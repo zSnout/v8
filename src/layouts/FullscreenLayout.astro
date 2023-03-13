@@ -1,0 +1,29 @@
+---
+import Navigation from "../components/nav/Navigation.astro"
+import Layout from "./Layout.astro"
+
+interface Props {
+  children: any
+  class?: string
+  options?: any
+  title: string
+}
+---
+
+<Layout title={Astro.props.title}>
+  {
+    Astro.slots.options ? (
+      <Navigation floating={true}>
+        <slot name="options" slot="options" />
+      </Navigation>
+    ) : (
+      <Navigation floating={true} />
+    )
+  }
+
+  <div
+    class="group-fullscreen-layout max-w-screen flex h-full max-h-screen min-h-full w-full min-w-full flex-1 touch-manipulation flex-col text-z transition"
+  >
+    <slot />
+  </div>
+</Layout>

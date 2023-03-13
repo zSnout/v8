@@ -1,0 +1,12 @@
+---
+import { Heading } from "../components/Heading"
+import DocumentLayout from "../layouts/DocumentLayout.astro"
+---
+
+<DocumentLayout title="zSnout">
+  {
+    Array(1000)
+      .fill(0)
+      .map(() => <Heading>Welcome to zSnout</Heading>)
+  }
+</DocumentLayout>

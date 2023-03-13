@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .field {
+    @apply resize-none rounded-lg border border-z bg-z-field px-3 py-2 text-z shadow ring-z-focus transition;
+  }
+
+  .field:where(input[type="range"]) {
+    @apply relative w-full appearance-none rounded-full bg-transparent p-0;
+
+    &::before {
+      @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-pre font-mono text-xs font-light lowercase text-z transition content-[var(--label)];
+      line-height: 1rem;
+    }
+
+    &::-webkit-slider-runnable-track {
+      @apply h-4 w-full cursor-pointer rounded-full bg-z-body transition;
+    }
+
+    &::-moz-range-track {
+      @apply h-4 w-full cursor-pointer rounded-full bg-z-body transition;
+    }
+
+    &::-webkit-slider-thumb {
+      @apply relative z-10 -mt-1 h-6 w-6 cursor-pointer appearance-none rounded-full border border-solid border-z bg-z-body-partial shadow ring-z-focus transition;
+    }
+
+    &::-moz-range-thumb {
+      @apply relative z-10 -mt-1 h-6 w-6 cursor-pointer appearance-none rounded-full border border-solid border-z bg-z-body-partial shadow ring-z-focus transition;
+    }
+
+    &:focus-visible {
+      &::-webkit-slider-thumb {
+        @apply border-z-focus ring;
+      }
+    }
+  }
+
+  .field:where(textarea) {
+    @apply resize-y;
+  }
+
+  .field:where(button:not([disabled])):active {
+    @apply translate-y-px;
+  }
+
+  .field:focus-visible {
+    @apply border-z-focus outline-none ring;
+  }
+}
+
+@layer utilities {
+  .placeholder::before {
+    @apply invisible text-transparent content-["empty"];
+  }
+}
+
+html,
+.light {
+  --z-bg-body: theme(colors.slate.100);
+  --z-bg-body-partial: theme(colors.slate.100/0.5);
+  --z-bg-field: theme(colors.white);
+
+  --z-border: theme(colors.slate.300);
+  --z-border-focus: theme(colors.blue.500);
+  --z-border-separator: theme(colors.slate.300);
+
+  --z-icon-stroke: theme(colors.slate.500);
+
+  --z-ring-focus: theme(colors.blue.200);
+
+  --z-text: theme(colors.slate.600);
+  --z-text-link: theme(colors.blue.500);
+  --z-text-nav-title: theme(colors.slate.800);
+}
+
+.dark {
+  --z-bg-body: theme(colors.slate.900);
+  --z-bg-body-partial: theme(colors.slate.900/0.5);
+  --z-bg-field: theme(colors.slate.800);
+
+  --z-border: theme(colors.slate.700);
+  --z-border-focus: theme(colors.blue.500);
+  --z-border-separator: theme(colors.slate.600);
+
+  --z-icon-stroke: theme(colors.slate.400);
+
+  --z-ring-focus: theme(colors.blue.900);
+
+  --z-text: theme(colors.slate.300);
+  --z-text-link: theme(colors.blue.500);
+  --z-text-nav-title: theme(colors.slate.200);
+}
+
+html {
+  --icon-stroke: var(--z-icon-stroke);
+}
+
+html.no-transition,
+html.no-transition * {
+  transition-duration: 0s !important;
+}

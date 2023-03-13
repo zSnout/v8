@@ -1,0 +1,62 @@
+---
+import "./index.postcss"
+
+export interface Props {
+  children: any
+  title: string
+}
+---
+
+<!DOCTYPE html>
+<html class="flex h-full w-full flex-col bg-z-body" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{Astro.props.title}</title>
+  </head>
+
+  <body class="flex flex-1 flex-col bg-z-body transition">
+    <div class="contents">
+      <slot />
+    </div>
+  </body>
+</html>
+
+<script is:inline>
+  const isDeviceDark = matchMedia("(prefers-color-scheme: dark)").matches
+
+  const theme = window.localStorage?.getItem("z8:theme")
+
+  const isDark = isDeviceDark ? theme != "light" : theme == "dark"
+
+  const list = document.documentElement.classList
+
+  requestAnimationFrame(() => {
+    list.add("no-transition")
+    list.toggle("dark", isDark)
+
+    requestAnimationFrame(() => {
+      list.remove("no-transition")
+    })
+  })
+</script>
+
+<script>
+  import { createEffect } from "solid-js"
+  import { isDark } from "../stores/theme"
+
+  if (typeof document != "undefined") {
+    const list = document.documentElement.classList
+
+    if (import.meta.env.DEV) {
+      const warn = console.warn
+      console.warn = () => {}
+      createEffect(() => list.toggle("dark", isDark()))
+      console.warn = warn
+    } else {
+      createEffect(() => list.toggle("dark", isDark()))
+    }
+  }
+</script>

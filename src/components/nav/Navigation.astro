@@ -1,0 +1,43 @@
+---
+import { Options } from "./Options"
+import { ThemeSwitcher } from "./ThemeSwitcher"
+
+interface Props {
+  floating: boolean
+  options?: any
+}
+---
+
+{
+  /* Some Apple devices have a partially transparent top address bar; this
+     blocks anything from being shown behind it, as it doesn't look great. */
+}
+<div class="pointer-events-none fixed -top-20 left-0 h-20 w-full bg-z-body">
+</div>
+
+<div
+  class={"pointer-events-none fixed top-0 flex h-12 w-full touch-none select-none items-center border-b px-6 py-1.5 transition " +
+    (Astro.props.floating
+      ? "border-b-transparent"
+      : "backdrop-blur-sm bg-z-body-partial border-b-z-border")}
+>
+  <a
+    class={"pointer-events-auto mr-auto font-extralight text-2xl underline decoration-transparent decoration-1 underline-offset-2 transition hover:decoration-current text-z-nav-title z-20 relative border border-transparent focus-visible:border-z-focus ring-z-focus focus-visible:ring focus-visible:outline-none rounded-lg left-[calc(-0.5rem_-_1px)] px-2 py-0.5 " +
+      (Astro.props.floating ? "backdrop-blur-sm bg-z-body-partial" : "")}
+    href="/"
+  >
+    zSnout
+  </a>
+
+  {
+    Astro.slots.options ? (
+      <Options client:load>
+        <slot name="options" />
+      </Options>
+    ) : (
+      <div id="nav-options" class="contents" />
+    )
+  }
+
+  <ThemeSwitcher client:idle />
+</div>
