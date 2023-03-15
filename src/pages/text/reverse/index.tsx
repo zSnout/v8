@@ -1,5 +1,5 @@
 import { createSignal } from "solid-js"
-import { AutoResizeTextarea } from "../../../components/fields/AutoResizeTextarea"
+import { AutoResizeTextarea } from "@/components/fields/AutoResizeTextarea"
 
 export default function () {
   const [value, setValue] = createSignal("")
