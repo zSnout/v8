@@ -1,17 +1,17 @@
-// import { createSignal } from "solid-js"
-// import type { WebGLCoordinateCanvas } from "../canvas/coordinate"
+import { createSignal, onCleanup } from "solid-js"
+import type { WebGLCoordinateCanvas } from "../canvas/coordinate"
 
-// export function trackTime(gl: WebGLCoordinateCanvas) {
-//   const start = Date.now()
-//   const [time, setTime] = createSignal(0)
+export function trackTime(gl: WebGLCoordinateCanvas) {
+  const start = Date.now()
+  const [time, setTime] = createSignal(0)
 
-//   gl.setReactiveUniform("u_time[0]", time)
+  gl.setReactiveUniform("u_time[0]", time)
 
-//   function interval
+  const intervalId = setInterval(() => {
+    setTime(Date.now() - start)
+  })
 
-//   let intervalId = setInterval(() => {})
+  onCleanup(() => clearInterval(intervalId))
 
-//   return time
-// }
-
-export {}
+  return time
+}

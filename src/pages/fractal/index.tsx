@@ -7,6 +7,7 @@ import { Range } from "@/components/fields/Range"
 import { WebGLInteractiveCoordinateCanvas } from "@/components/glsl/canvas/interactive"
 import { textToGLSL } from "@/components/glsl/math/output"
 import { trackMouse } from "@/components/glsl/mixins/track-mouse"
+import { trackTime } from "@/components/glsl/mixins/track-time"
 import type { Vec2 } from "@/components/glsl/types"
 import { ModalButton } from "@/components/Modal"
 import { DynamicOptions } from "@/components/nav/Options"
@@ -113,6 +114,7 @@ export function Index() {
 
   let gl: WebGLInteractiveCoordinateCanvas | undefined
   let mouse: Accessor<Vec2> | undefined
+  let time: Accessor<number> | undefined
 
   if (typeof document != "undefined") {
     createEventListener(document, "keydown", (event) => {
@@ -180,6 +182,7 @@ export function Index() {
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
 
               mouse = trackMouse(gl)
+              time = trackTime(gl)
 
               gl.draw()
             }}
