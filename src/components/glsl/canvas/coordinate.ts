@@ -1,6 +1,14 @@
 import type { Result } from "../../result"
 import type { Coordinates, Point } from "../types"
-import { WebGLCanvas } from "./base"
+import { WebGLCanvas, WebGLCanvasOptions } from "./base"
+
+export interface WebGLCoordinateCoordinateCanvasOptions
+  extends WebGLCanvasOptions {
+  left?: number
+  top?: number
+  bottom?: number
+  right?: number
+}
 
 export class WebGLCoordinateCanvas extends WebGLCanvas {
   static override vertMods =
@@ -8,14 +16,41 @@ export class WebGLCoordinateCanvas extends WebGLCanvas {
 
   static override vertMainMods = super.vertMainMods + "coords=i_coords;"
 
-  static override of(canvas: HTMLCanvasElement): Result<WebGLCoordinateCanvas> {
-    return super.of(canvas) as Result<WebGLCoordinateCanvas>
+  static override of(
+    canvas: HTMLCanvasElement,
+    options?: WebGLCoordinateCoordinateCanvasOptions,
+  ): Result<WebGLCoordinateCanvas> {
+    return super.of(canvas, options) as Result<WebGLCoordinateCanvas>
   }
 
   #top = 1
   #right = 1
   #bottom = 0
   #left = 0
+
+  constructor(
+    canvas: HTMLCanvasElement,
+    context: WebGL2RenderingContext,
+    options: WebGLCoordinateCoordinateCanvasOptions = {},
+  ) {
+    super(canvas, context, options)
+
+    if (options.left != null) {
+      this.#left = options.left
+    }
+
+    if (options.right != null) {
+      this.#right = options.right
+    }
+
+    if (options.top != null) {
+      this.#top = options.top
+    }
+
+    if (options.bottom != null) {
+      this.#bottom = options.bottom
+    }
+  }
 
   override draw() {
     const { top, right, bottom, left } = this.coordsNormalizedToCanvasSize()

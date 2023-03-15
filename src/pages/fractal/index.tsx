@@ -13,6 +13,11 @@ import { ModalButton } from "@/components/Modal"
 import { DynamicOptions } from "@/components/nav/Options"
 import { unwrap } from "@/components/result"
 import {
+  createBooleanSearchParam,
+  createNumericalSearchParam,
+  createSearchParam,
+} from "@/components/search-params"
+import {
   faExclamationTriangle,
   faLocationCrosshairs,
 } from "@fortawesome/free-solid-svg-icons"
@@ -108,16 +113,16 @@ const themeMap: Record<Theme, number> = {
 }
 
 export function Index() {
-  const [equation, setEquation] = createSignal("z^2 + c")
+  const [equation, setEquation] = createSearchParam("equation", "z^2 + c")
   const [parseError, setParseError] = createSignal<string>()
 
-  const [theme, setTheme] = createSignal<Theme>("simple")
+  const [theme, setTheme] = createSearchParam<Theme>("theme", "simple")
 
-  const [effectSplit, setEffectSplit] = createSignal(false)
+  const [effectSplit, setEffectSplit] = createBooleanSearchParam("split")
 
-  const [detail, setDetail] = createSignal(100)
-  const [minDetail, setMinDetail] = createSignal(0)
-  const [fractalSize, setFractalSize] = createSignal(2)
+  const [detail, setDetail] = createNumericalSearchParam("detail", 100)
+  const [minDetail, setMinDetail] = createNumericalSearchParam("minDetail", 0)
+  const [fractalSize, setFractalSize] = createNumericalSearchParam("size", 2)
 
   let gl: WebGLInteractiveCoordinateCanvas | undefined
 
@@ -164,7 +169,15 @@ export function Index() {
           <canvas
             class="h-full w-full touch-none"
             ref={(canvas) => {
-              gl = unwrap(WebGLInteractiveCoordinateCanvas.of(canvas))
+              gl = unwrap(
+                WebGLInteractiveCoordinateCanvas.of(canvas, {
+                  saveCoordinates: true,
+                  top: 1.25,
+                  right: 0.5,
+                  bottom: -1.25,
+                  left: -2,
+                }),
+              )
 
               createEffect(() => {
                 try {
@@ -178,13 +191,6 @@ export function Index() {
                     setParseError(glsl.reason)
                   }
                 } catch {}
-              })
-
-              gl.setCoords({
-                bottom: -1.25,
-                top: 1.25,
-                left: -2,
-                right: 0.5,
               })
 
               gl.setReactiveUniform("u_theme", () => themeMap[theme()])
@@ -246,7 +252,7 @@ export function Index() {
 
         <div class="relative mt-6 w-full">
           <input
-            class="field w-full bg-z-body px-2 py-1 font-mono text-sm"
+            class="field w-full bg-z-body font-mono"
             onInput={(event) => setEquation(event.currentTarget.value)}
             type="text"
             value={equation()}
@@ -254,7 +260,7 @@ export function Index() {
 
           <Show when={parseError() != null}>
             <Fa
-              class="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2"
+              class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
               icon={faExclamationTriangle}
               title="Error"
             />
@@ -317,7 +323,7 @@ export function Index() {
           decimalDigits={2}
         />
 
-        {gl ? <ColorModifiers gl={gl} /> : undefined}
+        {gl ? <ColorModifiers gl={gl} save /> : undefined}
       </DynamicOptions>
     </>
   )

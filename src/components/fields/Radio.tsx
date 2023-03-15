@@ -1,11 +1,4 @@
-import {
-  Accessor,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  Setter,
-} from "solid-js"
+import { createEffect, createMemo, createSignal, For, untrack } from "solid-js"
 
 export function Radio<T extends string>(props: {
   class?: string
@@ -110,8 +103,8 @@ export function CheckboxGroup(props: {
   class?: string
   options: readonly [
     label: string,
-    get: Accessor<boolean>,
-    set: Setter<boolean>,
+    get: () => boolean,
+    set: (value: boolean) => void,
   ][]
 }) {
   return (
@@ -130,7 +123,7 @@ export function CheckboxGroup(props: {
               classList={{
                 "bg-z-field": get(),
               }}
-              onClick={() => set((checked) => !checked)}
+              onClick={() => set(!untrack(get))}
               role="checkbox"
             >
               {label}

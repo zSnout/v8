@@ -1,19 +1,65 @@
+import { getSearchParam, setSearchParam } from "@/components/search-params"
 import { createEventListener } from "../../create-event-listener"
 import type { Result } from "../../result"
-import type { Point } from "../types"
-import { WebGLCoordinateCanvas } from "./coordinate"
+import type { Coordinates, Point } from "../types"
+import {
+  WebGLCoordinateCanvas,
+  WebGLCoordinateCoordinateCanvasOptions,
+} from "./coordinate"
 
 function prevent(event: Event) {
   event.preventDefault()
 }
 
+export interface WebGLInteractiveCoordinateCanvasOptions
+  extends WebGLCoordinateCoordinateCanvasOptions {
+  saveCoordinates?: boolean
+}
+
 export class WebGLInteractiveCoordinateCanvas extends WebGLCoordinateCanvas {
-  static override of(canvas: HTMLCanvasElement): Result<WebGLCoordinateCanvas> {
-    return super.of(canvas) as Result<WebGLCoordinateCanvas>
+  static override of(
+    canvas: HTMLCanvasElement,
+    options?: WebGLInteractiveCoordinateCanvasOptions,
+  ): Result<WebGLInteractiveCoordinateCanvas> {
+    return super.of(canvas, options) as Result<WebGLInteractiveCoordinateCanvas>
   }
 
-  constructor(canvas: HTMLCanvasElement, context: WebGL2RenderingContext) {
-    super(canvas, context)
+  #saveCoordinates: boolean
+
+  constructor(
+    canvas: HTMLCanvasElement,
+    context: WebGL2RenderingContext,
+    options: WebGLInteractiveCoordinateCanvasOptions = {},
+  ) {
+    super(canvas, context, options)
+
+    if (options.saveCoordinates) {
+      const coords = this.getCoords()
+
+      this.setCoords({
+        top: +(
+          getSearchParam("yStart") ?? +(getSearchParam("top") ?? coords.top)
+        ),
+        right: +(
+          getSearchParam("xEnd") ?? +(getSearchParam("right") ?? coords.right)
+        ),
+        bottom: +(
+          getSearchParam("yEnd") ?? +(getSearchParam("bottom") ?? coords.bottom)
+        ),
+        left: +(
+          getSearchParam("xStart") ?? +(getSearchParam("left") ?? coords.left)
+        ),
+      })
+
+      setSearchParam("xStart", null)
+      setSearchParam("xEnd", null)
+      setSearchParam("yStart", null)
+      setSearchParam("yEnd", null)
+
+      this.#saveCoordinates = true
+    } else {
+      this.#saveCoordinates = false
+    }
 
     createEventListener(canvas, "wheel", (event: WheelEvent) => {
       event.preventDefault()
@@ -117,6 +163,17 @@ export class WebGLInteractiveCoordinateCanvas extends WebGLCoordinateCanvas {
 
         previousDistance = distance
       })
+    }
+  }
+
+  override setCoords(coords: Coordinates): void {
+    super.setCoords(coords)
+
+    if (this.#saveCoordinates) {
+      setSearchParam("top", "" + coords.top)
+      setSearchParam("right", "" + coords.right)
+      setSearchParam("bottom", "" + coords.bottom)
+      setSearchParam("left", "" + coords.left)
     }
   }
 }

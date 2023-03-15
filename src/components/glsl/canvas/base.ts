@@ -7,13 +7,15 @@ function resize(canvas: HTMLCanvasElement) {
   canvas.height = height * devicePixelRatio
 }
 
+export interface WebGLCanvasOptions {}
+
 export class WebGLCanvas {
   static fragMods = ""
   static fragMainMods = ""
   static vertMods = ""
   static vertMainMods = ""
 
-  static of(canvas: HTMLCanvasElement) {
+  static of(canvas: HTMLCanvasElement, options?: WebGLCanvasOptions) {
     const context = canvas.getContext("webgl2")
 
     if (context == null) {
@@ -22,7 +24,7 @@ export class WebGLCanvas {
       )
     }
 
-    return ok(new this(canvas, context))
+    return ok(new this(canvas, context, options))
   }
 
   readonly #canvas: HTMLCanvasElement
@@ -34,7 +36,11 @@ export class WebGLCanvas {
   #uniformLocations = new Map<string, WebGLUniformLocation>()
   #effects: (() => void)[] = []
 
-  constructor(canvas: HTMLCanvasElement, context: WebGL2RenderingContext) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    context: WebGL2RenderingContext,
+    _options: WebGLCanvasOptions = {},
+  ) {
     this.#canvas = canvas
     this.#gl = context
 

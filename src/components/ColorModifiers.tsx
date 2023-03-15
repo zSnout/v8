@@ -1,15 +1,26 @@
 import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
-import { createSignal } from "solid-js"
+import { createSignal, untrack } from "solid-js"
 import { Fa } from "./Fa"
 import { Range } from "./fields/Range"
 import type { WebGLCanvas } from "./glsl/canvas/base"
+import { createNumericalSearchParam } from "./search-params"
 
-export function ColorModifiers(props: { gl: WebGLCanvas }) {
-  const [colorOffset, setColorOffset] = createSignal(0)
-  const [spectrum, setSpectrum] = createSignal(100)
-  const [smoothness, setSmoothness] = createSignal(100)
-  const [repetition, setRepetition] = createSignal(1)
-  const [repetitionSign, setRepetitionSign] = createSignal(-1)
+function createSearchSignal(defaultValue: number, name: string) {
+  return createNumericalSearchParam(name, defaultValue)
+}
+
+function createPlainSignal(value: number) {
+  return createSignal(value)
+}
+
+export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
+  const factory = props.save ? createSearchSignal : createPlainSignal
+
+  const [colorOffset, setColorOffset] = factory(0, "colorOffset")
+  const [spectrum, setSpectrum] = factory(100, "spectrum")
+  const [smoothness, setSmoothness] = factory(100, "smoothness")
+  const [repetition, setRepetition] = factory(1, "repetition")
+  const [repetitionSign, setRepetitionSign] = factory(-1, "repetitionSign")
 
   props.gl.setReactiveUniform("u_color_offset", () => colorOffset() / 360)
   props.gl.setReactiveUniform("u_color_spectrum", () => spectrum() / 100)
@@ -36,7 +47,7 @@ export function ColorModifiers(props: { gl: WebGLCanvas }) {
       />
 
       <Range
-        class="field mt-0.5 mb-2 w-full"
+        class="field mt-0.5 mb-1.5 w-full"
         name="Spectrum"
         min={0}
         max={100}
@@ -61,11 +72,13 @@ export function ColorModifiers(props: { gl: WebGLCanvas }) {
         set={setSmoothness}
       />
 
-      <div class="mb-2 flex gap-2">
+      <div class="-mb-1 flex gap-2">
         <button
           class="field flex h-4.5 w-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-z-body p-0 transition"
           role="checkbox"
-          onClick={() => setRepetitionSign((sign) => (sign == 1 ? -1 : 1))}
+          onClick={() =>
+            setRepetitionSign(untrack(repetitionSign) == 1 ? -1 : 1)
+          }
         >
           <Fa
             class="h-3 w-3"
