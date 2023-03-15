@@ -16,7 +16,14 @@ import {
   faExclamationTriangle,
   faLocationCrosshairs,
 } from "@fortawesome/free-solid-svg-icons"
-import { Accessor, createEffect, createSignal, Show, untrack } from "solid-js"
+import {
+  Accessor,
+  createEffect,
+  createSignal,
+  Setter,
+  Show,
+  untrack,
+} from "solid-js"
 import fragmentSource from "./fragment.glsl"
 
 // Because users likely want more control over lower detail values, we map the
@@ -113,15 +120,14 @@ export function Index() {
   const [fractalSize, setFractalSize] = createSignal(2)
 
   let gl: WebGLInteractiveCoordinateCanvas | undefined
-  let mouse: Accessor<Vec2> | undefined
-  let time: Accessor<number> | undefined
+
+  let mouse!: Accessor<Vec2>
+  let time!: Accessor<number>
+  let speed!: Accessor<number>
+  let setSpeed!: Setter<number>
 
   if (typeof document != "undefined") {
     createEventListener(document, "keydown", (event) => {
-      if (!mouse) {
-        return
-      }
-
       if (
         !event.altKey &&
         !event.ctrlKey &&
@@ -132,11 +138,17 @@ export function Index() {
 
         const eqWithoutConstants = eq
           .replace(/\$\([^)]*\)/g, "(m)")
-          .replace(/@\([^)]*\)/g, "(t)")
+          .replace(/@\([^)]*\)/g, `(t)`)
 
         if (eq == eqWithoutConstants) {
           const [x, y] = untrack(mouse)
-          setEquation(eq.replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`))
+
+          setEquation(
+            eq
+              .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
+              .replace(/t(?!an|h)/g, `@(${untrack(time)})`),
+          )
+
           return
         } else {
           setEquation(eqWithoutConstants)
@@ -182,7 +194,7 @@ export function Index() {
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
 
               mouse = trackMouse(gl)
-              time = trackTime(gl)
+              ;[time, speed, setSpeed] = trackTime(gl)
 
               gl.draw()
             }}
@@ -232,7 +244,7 @@ export function Index() {
           ]}
         />
 
-        <div class="relative my-6 w-full">
+        <div class="relative mt-6 w-full">
           <input
             class="field w-full bg-z-body px-2 py-1 font-mono text-sm"
             onInput={(event) => setEquation(event.currentTarget.value)}
@@ -249,8 +261,20 @@ export function Index() {
           </Show>
         </div>
 
+        <Show when={equation().includes("t")}>
+          <Slider
+            class="mt-3"
+            name="Speed"
+            get={speed}
+            set={setSpeed}
+            valueToSlider={fractalSizeValueToSlider}
+            sliderToValue={fractalSizeSliderToValue}
+            decimalDigits={2}
+          />
+        </Show>
+
         <Slider
-          class="mb-2"
+          class="mb-2 mt-6"
           name="Detail"
           get={detail}
           set={(value) => {
