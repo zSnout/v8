@@ -83,7 +83,7 @@ module.exports = {
             ...theme("iconStrokeColor"),
             ...theme("customColors"),
           },
-        }
+        },
       )
 
       matchUtilities({

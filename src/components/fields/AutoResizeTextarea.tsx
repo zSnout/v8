@@ -10,7 +10,7 @@ function onInput(this: HTMLTextAreaElement) {
 }
 
 export function AutoResizeTextarea(
-  props: JSX.TextareaHTMLAttributes<HTMLTextAreaElement>
+  props: JSX.TextareaHTMLAttributes<HTMLTextAreaElement>,
 ) {
   const textarea = (
     <textarea

@@ -19,7 +19,8 @@ vec3 modify_hsv(vec3 hsv) {
   }
 
   hue = fract(mod(hue, 1.0) * u_color_spectrum);
-  hue = hue + u_color_offset;
+
+  hue += u_color_offset;
 
   return vec3(hue, hsv.yz);
 }

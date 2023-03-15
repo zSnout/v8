@@ -64,7 +64,7 @@ export function DynamicOptions(props: { buttons?: any; children: any }) {
 
   if (!el) {
     console.error(
-      "Mounted <DynamicOptions> too early; could not find #nav-options."
+      "Mounted <DynamicOptions> too early; could not find #nav-options.",
     )
 
     return ""

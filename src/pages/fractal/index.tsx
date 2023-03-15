@@ -1,15 +1,21 @@
 import { ColorModifiers } from "@/components/ColorModifiers"
+import { createEventListener } from "@/components/create-event-listener"
 import { ErrorBoundary } from "@/components/Error"
 import { Fa } from "@/components/Fa"
-import { Radio } from "@/components/fields/Radio"
+import { CheckboxGroup, Radio } from "@/components/fields/Radio"
 import { Range } from "@/components/fields/Range"
+import { WebGLInteractiveCoordinateCanvas } from "@/components/glsl/canvas/interactive"
+import { textToGLSL } from "@/components/glsl/math/output"
+import { trackMouse } from "@/components/glsl/mixins/track-mouse"
+import type { Vec2 } from "@/components/glsl/types"
 import { ModalButton } from "@/components/Modal"
 import { DynamicOptions } from "@/components/nav/Options"
 import { unwrap } from "@/components/result"
-import { WebGLInteractiveCoordinateCanvas } from "@/components/webgl"
-import { Separator } from "@/layouts/Separator"
-import { faLocationCrosshairs } from "@fortawesome/free-solid-svg-icons"
-import { createSignal } from "solid-js"
+import {
+  faExclamationTriangle,
+  faLocationCrosshairs,
+} from "@fortawesome/free-solid-svg-icons"
+import { Accessor, createEffect, createSignal, Show, untrack } from "solid-js"
 import fragmentSource from "./fragment.glsl"
 
 // Because users likely want more control over lower detail values, we map the
@@ -85,20 +91,57 @@ function Slider(props: {
   )
 }
 
-type Theme = "simple" | "gradient"
+type Theme = "simple" | "gradient" | "rotation"
 
 const themeMap: Record<Theme, number> = {
   simple: 1,
   gradient: 2,
+  rotation: 3,
 }
 
 export function Index() {
+  const [equation, setEquation] = createSignal("z^2 + c")
+  const [parseError, setParseError] = createSignal<string>()
+
+  const [theme, setTheme] = createSignal<Theme>("simple")
+
+  const [effectSplit, setEffectSplit] = createSignal(false)
+
   const [detail, setDetail] = createSignal(100)
   const [minDetail, setMinDetail] = createSignal(0)
   const [fractalSize, setFractalSize] = createSignal(2)
-  const [theme, setTheme] = createSignal<Theme>("gradient")
 
   let gl: WebGLInteractiveCoordinateCanvas | undefined
+  let mouse: Accessor<Vec2> | undefined
+
+  if (typeof document != "undefined") {
+    createEventListener(document, "keydown", (event) => {
+      if (!mouse) {
+        return
+      }
+
+      if (
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        (event.key == "f" || event.key == "F")
+      ) {
+        const eq = untrack(equation)
+
+        const eqWithoutConstants = eq
+          .replace(/\$\([^)]*\)/g, "(m)")
+          .replace(/@\([^)]*\)/g, "(t)")
+
+        if (eq == eqWithoutConstants) {
+          const [x, y] = untrack(mouse)
+          setEquation(eq.replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`))
+          return
+        } else {
+          setEquation(eqWithoutConstants)
+        }
+      }
+    })
+  }
 
   return (
     <>
@@ -108,7 +151,20 @@ export function Index() {
             class="h-full w-full touch-none"
             ref={(canvas) => {
               gl = unwrap(WebGLInteractiveCoordinateCanvas.of(canvas))
-              unwrap(gl.load(fragmentSource))
+
+              createEffect(() => {
+                try {
+                  const glsl = textToGLSL(equation())
+
+                  if (glsl.ok) {
+                    setParseError()
+                    gl?.load(fragmentSource.replace(/EQ/g, glsl.value))
+                    gl?.draw()
+                  } else {
+                    setParseError(glsl.reason)
+                  }
+                } catch {}
+              })
 
               gl.setCoords({
                 bottom: -1.25,
@@ -117,10 +173,14 @@ export function Index() {
                 right: 0.5,
               })
 
+              gl.setReactiveUniform("u_theme", () => themeMap[theme()])
+              gl.setReactiveUniform("u_effect_split", effectSplit)
               gl.setReactiveUniform("u_detail", detail)
               gl.setReactiveUniform("u_detail_min", minDetail)
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
-              gl.setReactiveUniform("u_theme", () => themeMap[theme()])
+
+              mouse = trackMouse(gl)
+
               gl.draw()
             }}
           />
@@ -151,14 +211,40 @@ export function Index() {
           </ModalButton>
         }
       >
-        <Radio
+        <Radio<Theme>
           get={theme}
           label="Theme"
-          options={["simple", "gradient"]}
+          options={["simple", "gradient", "rotation"]}
           set={setTheme}
         />
 
-        <Separator />
+        <CheckboxGroup
+          class="mt-2"
+          options={[
+            [
+              theme() == "rotation" ? "halo?" : "split?",
+              effectSplit,
+              setEffectSplit,
+            ],
+          ]}
+        />
+
+        <div class="relative my-6 w-full">
+          <input
+            class="field w-full bg-z-body px-2 py-1 font-mono text-sm"
+            onInput={(event) => setEquation(event.currentTarget.value)}
+            type="text"
+            value={equation()}
+          />
+
+          <Show when={parseError() != null}>
+            <Fa
+              class="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2"
+              icon={faExclamationTriangle}
+              title="Error"
+            />
+          </Show>
+        </div>
 
         <Slider
           class="mb-2"

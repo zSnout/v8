@@ -2,14 +2,14 @@ import { createSignal, untrack, type Signal } from "solid-js"
 
 export function createStorage(
   key: string,
-  defaultValue: string
+  defaultValue: string,
 ): Signal<string> {
   const realKey = `z8:${key}`
 
   const [get, set] = createSignal(
     typeof localStorage != "undefined"
       ? localStorage.getItem(realKey) ?? defaultValue
-      : defaultValue
+      : defaultValue,
   )
 
   if (typeof localStorage != "undefined" && typeof window != "undefined") {

@@ -1,4 +1,11 @@
-import { createEffect, createMemo, createSignal, For } from "solid-js"
+import {
+  Accessor,
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Setter,
+} from "solid-js"
 
 export function Radio<T extends string>(props: {
   class?: string
@@ -17,12 +24,13 @@ export function Radio<T extends string>(props: {
   return (
     <div
       class={
-        "field relative flex w-full cursor-pointer flex-wrap rounded-lg border border-z bg-z-body p-0.5 shadow transition " +
+        "field relative flex w-full cursor-pointer flex-wrap gap-0.5 rounded-lg border border-z bg-z-body p-0.5 shadow transition " +
         (props.class || "")
       }
       role="radiogroup"
       aria-label={props.label}
       ref={setContainer}
+      data-z-interactive
       tabIndex={0}
       onKeyDown={(event) => {
         if (
@@ -68,7 +76,6 @@ export function Radio<T extends string>(props: {
             <div
               aria-checked={isActive()}
               class="relative flex-1 rounded-sm py-1 px-1 text-center font-mono text-xs text-z transition"
-              data-z-interactive
               onClick={() => props.set(option)}
               role="radio"
               ref={(button) => {
@@ -92,6 +99,42 @@ export function Radio<T extends string>(props: {
             >
               {option}
             </div>
+          )
+        }}
+      </For>
+    </div>
+  )
+}
+
+export function CheckboxGroup(props: {
+  class?: string
+  options: readonly [
+    label: string,
+    get: Accessor<boolean>,
+    set: Setter<boolean>,
+  ][]
+}) {
+  return (
+    <div
+      class={
+        "field relative flex w-full cursor-pointer flex-wrap gap-0.5 rounded-lg border border-z bg-z-body p-0.5 shadow transition " +
+        (props.class || "")
+      }
+    >
+      <For each={props.options}>
+        {([label, get, set]) => {
+          return (
+            <button
+              aria-checked={get()}
+              class="relative flex-1 rounded py-1 px-1 text-center font-mono text-xs text-z transition"
+              classList={{
+                "bg-z-field": get(),
+              }}
+              onClick={() => set((checked) => !checked)}
+              role="checkbox"
+            >
+              {label}
+            </button>
           )
         }}
       </For>

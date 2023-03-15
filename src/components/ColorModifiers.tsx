@@ -2,24 +2,24 @@ import { faMinus, faPlus } from "@fortawesome/free-solid-svg-icons"
 import { createSignal } from "solid-js"
 import { Fa } from "./Fa"
 import { Range } from "./fields/Range"
-import type { WebGLCanvas } from "./webgl"
+import type { WebGLCanvas } from "./glsl/canvas/base"
 
 export function ColorModifiers(props: { gl: WebGLCanvas }) {
   const [colorOffset, setColorOffset] = createSignal(0)
   const [spectrum, setSpectrum] = createSignal(100)
   const [smoothness, setSmoothness] = createSignal(100)
   const [repetition, setRepetition] = createSignal(1)
-  const [repSign, setRepSign] = createSignal(-1)
+  const [repetitionSign, setRepetitionSign] = createSignal(-1)
 
   props.gl.setReactiveUniform("u_color_offset", () => colorOffset() / 360)
   props.gl.setReactiveUniform("u_color_spectrum", () => spectrum() / 100)
   props.gl.setReactiveUniform(
     "u_color_smoothness",
-    () => 1 - smoothness() / 100
+    () => 1 - smoothness() / 100,
   )
   props.gl.setReactiveUniform(
     "u_color_repetition",
-    () => repetition() * repSign()
+    () => repetition() * repetitionSign(),
   )
 
   return (
@@ -61,15 +61,15 @@ export function ColorModifiers(props: { gl: WebGLCanvas }) {
         set={setSmoothness}
       />
 
-      <div class="flex gap-2">
+      <div class="mb-2 flex gap-2">
         <button
           class="field flex h-4.5 w-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-z-body p-0 transition"
           role="checkbox"
-          onClick={() => setRepSign((sign) => (sign == 1 ? -1 : 1))}
+          onClick={() => setRepetitionSign((sign) => (sign == 1 ? -1 : 1))}
         >
           <Fa
             class="h-3 w-3"
-            icon={repSign() == 1 ? faPlus : faMinus}
+            icon={repetitionSign() == 1 ? faPlus : faMinus}
             title="Flip Sign"
           />
         </button>

@@ -1,5 +1,5 @@
 import { createEventListener } from "./create-event-listener"
-import type { Point } from "./webgl"
+import type { Point } from "./glsl/canvas/base"
 
 const interactiveTags = ["A", "BUTTON", "INPUT", "TEXTAREA"]
 
@@ -65,7 +65,7 @@ export function draggable(element: HTMLElement) {
 
       setPosition(
         event.clientX - moveStart.x + moveStartOffset.x,
-        event.clientY - moveStart.y + moveStartOffset.y
+        event.clientY - moveStart.y + moveStartOffset.y,
       )
     })
 

@@ -1,6 +1,5 @@
 import { createEffect, onCleanup } from "solid-js"
-import { createEventListener } from "./create-event-listener"
-import { error, ok, Result } from "./result"
+import { error, ok, Result } from "../../result"
 
 function resize(canvas: HTMLCanvasElement) {
   const { width, height } = canvas.getBoundingClientRect()
@@ -19,7 +18,7 @@ export class WebGLCanvas {
 
     if (context == null) {
       return error(
-        "It looks like your browser doesn't support WebGL2. Try upgrading to the latest version of Chrome, Safari, Firefox, or Edge to resolve the issue."
+        "It looks like your browser doesn't support WebGL2. Try upgrading to the latest version of Chrome, Safari, Firefox, or Edge to resolve the issue.",
       )
     }
 
@@ -33,6 +32,7 @@ export class WebGLCanvas {
   #program?: WebGLProgram
   #attributeLocations = new Map<string, GLint>()
   #uniformLocations = new Map<string, WebGLUniformLocation>()
+  #effects: (() => void)[] = []
 
   constructor(canvas: HTMLCanvasElement, context: WebGL2RenderingContext) {
     this.#canvas = canvas
@@ -77,7 +77,7 @@ export class WebGLCanvas {
     }
 
     const shader = gl.createShader(
-      type == "fragment" ? gl.FRAGMENT_SHADER : gl.VERTEX_SHADER
+      type == "fragment" ? gl.FRAGMENT_SHADER : gl.VERTEX_SHADER,
     )
 
     if (!shader) {
@@ -141,7 +141,7 @@ export class WebGLCanvas {
   #getAttributeLocation(name: string) {
     if (this.#program == null) {
       return error(
-        "Cannot get an attribute location without an active program."
+        "Cannot get an attribute location without an active program.",
       )
     }
 
@@ -187,7 +187,7 @@ export class WebGLCanvas {
       rt: [number]
       lb: [number]
       rb: [number]
-    }
+    },
   ): Result<undefined>
 
   setAttribute(
@@ -197,7 +197,7 @@ export class WebGLCanvas {
       rt: [number, number]
       lb: [number, number]
       rb: [number, number]
-    }
+    },
   ): Result<undefined>
 
   setAttribute(
@@ -207,7 +207,7 @@ export class WebGLCanvas {
       rt: [number, number, number]
       lb: [number, number, number]
       rb: [number, number, number]
-    }
+    },
   ): Result<undefined>
 
   setAttribute(
@@ -217,7 +217,7 @@ export class WebGLCanvas {
       rt: [number, number, number, number]
       lb: [number, number, number, number]
       rb: [number, number, number, number]
-    }
+    },
   ): Result<undefined>
 
   setAttribute(
@@ -227,7 +227,7 @@ export class WebGLCanvas {
       rt: number[]
       lb: number[]
       rb: number[]
-    }
+    },
   ) {
     const location = this.#getAttributeLocation(name)
 
@@ -251,7 +251,7 @@ export class WebGLCanvas {
         ...values.lt,
         ...values.rb,
       ]),
-      gl.STATIC_DRAW
+      gl.STATIC_DRAW,
     )
 
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer)
@@ -262,7 +262,7 @@ export class WebGLCanvas {
       gl.FLOAT,
       false,
       0,
-      0
+      0,
     )
 
     gl.enableVertexAttribArray(location.value)
@@ -279,34 +279,38 @@ export class WebGLCanvas {
 
     this.#gl[`uniform${values.length as 1 | 2 | 3 | 4}f`](
       location.value,
-      ...(values as readonly [number, number, number, number])
+      ...(values as readonly [number, number, number, number]),
     )
 
     this.queueDraw()
   }
 
-  setReactiveUniform(name: string, value: () => number) {
-    createEffect(() => {
+  setReactiveUniform(name: string, value: () => number | boolean) {
+    const set = () => {
       const location = this.#getUniformLocation(name)
 
       if (!location.ok) {
         return
       }
 
-      this.#gl.uniform1f(location.value, value())
+      this.#gl.uniform1f(location.value, +value())
       this.queueDraw()
-    })
+    }
+
+    createEffect(set)
+    this.#effects.push(set)
   }
 
   setReactiveUniformArray(name: string, value: () => readonly number[]) {
     createEffect(() => this.setUniform(name, ...value()))
+    this.#effects.push(() => this.setUniform(name, ...value()))
   }
 
   load(fragmentSource: string) {
     const program = this.#createProgram(
       `#version 300 es
 in vec4 a_position;out vec4 position;void main(){gl_Position=position=a_position;}`,
-      fragmentSource
+      fragmentSource,
     )
 
     if (!program.ok) {
@@ -325,6 +329,16 @@ in vec4 a_position;out vec4 position;void main(){gl_Position=position=a_position
     gl.useProgram(program.value)
     this.#setViewport()
 
+    this.#program = program.value
+    this.#uniformLocations.clear()
+    this.#attributeLocations.clear()
+
+    this.#effects.forEach((fn) => {
+      try {
+        fn()
+      } catch {}
+    })
+
     return ok(undefined)
   }
 
@@ -335,7 +349,7 @@ in vec4 a_position;out vec4 position;void main(){gl_Position=position=a_position
       -canvas.width,
       -canvas.height,
       2 * canvas.width,
-      2 * canvas.height
+      2 * canvas.height,
     )
   }
 
@@ -360,246 +374,5 @@ in vec4 a_position;out vec4 position;void main(){gl_Position=position=a_position
     }
 
     this.#isDrawQueued = true
-  }
-}
-
-export interface Point {
-  x: number
-  y: number
-}
-
-export interface Coordinates {
-  top: number
-  right: number
-  bottom: number
-  left: number
-}
-
-export class WebGLCoordinateCanvas extends WebGLCanvas {
-  static override vertMods =
-    super.vertMods + "in vec4 i_coords;out vec4 coords;"
-
-  static override vertMainMods = super.vertMainMods + "coords=i_coords;"
-
-  static override of(canvas: HTMLCanvasElement): Result<WebGLCoordinateCanvas> {
-    return super.of(canvas) as Result<WebGLCoordinateCanvas>
-  }
-
-  #top = 1
-  #right = 1
-  #bottom = 0
-  #left = 0
-
-  override draw() {
-    const { top, right, bottom, left } = this.coordsNormalizedToCanvasSize()
-
-    this.setAttribute("i_coords", {
-      lt: [left, top],
-      rt: [right, top],
-      lb: [left, bottom],
-      rb: [right, bottom],
-    })
-
-    super.draw()
-  }
-
-  getCoords(): Coordinates {
-    return {
-      top: this.#top,
-      right: this.#right,
-      bottom: this.#bottom,
-      left: this.#left,
-    }
-  }
-
-  setCoords(coords: Coordinates) {
-    this.#top = coords.top
-    this.#right = coords.right
-    this.#bottom = coords.bottom
-    this.#left = coords.left
-    this.queueDraw()
-  }
-
-  coordsNormalizedToCanvasSize(): Coordinates {
-    const { width, height } = this.canvas
-    const size = this.#right - this.#left
-
-    let top = this.#top
-    let right = this.#right
-    let bottom = this.#bottom
-    let left = this.#left
-
-    if (width < height) {
-      const verticalChange = 0.5 * (height / width - 1) * size
-      top += verticalChange
-      bottom -= verticalChange
-    }
-
-    if (height < width) {
-      const horizontalChange = 0.5 * (width / height - 1) * size
-      left -= horizontalChange
-      right += horizontalChange
-    }
-
-    return { top, right, bottom, left }
-  }
-
-  // (0, 0) will be bottom-left, (1, 1) will be top-right.
-  // This behavior is the opposite of `offsetToCoords`.
-  percentToCoords(x: number, y: number): Point {
-    const { top, right, bottom, left } = this.coordsNormalizedToCanvasSize()
-
-    return {
-      x: x * (right - left) + left,
-      y: y * (top - bottom) + bottom,
-    }
-  }
-
-  // (0, 0) will be top-left, (width, height) will be bottom-right.
-  // This behavior is the opposite of `percentToCoords`.
-  offsetToCoords(x: number, y: number): Point {
-    const { top, right, bottom, left } = this.coordsNormalizedToCanvasSize()
-
-    return {
-      x: (x / this.canvas.width) * devicePixelRatio * (right - left) + left,
-      y:
-        (1 - (y / this.canvas.height) * devicePixelRatio) * (top - bottom) +
-        bottom,
-    }
-  }
-
-  eventToCoords(event: { offsetX: number; offsetY: number }) {
-    return this.offsetToCoords(event.offsetX, event.offsetY)
-  }
-
-  zoom(target: Point, scale: number) {
-    const { top, right, bottom, left } = this.getCoords()
-
-    const xCenter = (left + right) / 2
-    const yCenter = (top + bottom) / 2
-    const xAdj = (target.x - xCenter) * (1 - scale) + xCenter
-    const yAdj = (target.y - yCenter) * (1 - scale) + yCenter
-
-    this.setCoords({
-      top: scale * (top - yCenter) + yAdj,
-      right: scale * (right - xCenter) + xAdj,
-      bottom: scale * (bottom - yCenter) + yAdj,
-      left: scale * (left - xCenter) + xAdj,
-    })
-  }
-}
-
-function prevent(event: Event) {
-  event.preventDefault()
-}
-
-export class WebGLInteractiveCoordinateCanvas extends WebGLCoordinateCanvas {
-  static override of(canvas: HTMLCanvasElement): Result<WebGLCoordinateCanvas> {
-    return super.of(canvas) as Result<WebGLCoordinateCanvas>
-  }
-
-  constructor(canvas: HTMLCanvasElement, context: WebGL2RenderingContext) {
-    super(canvas, context)
-
-    createEventListener(canvas, "wheel", (event: WheelEvent) => {
-      event.preventDefault()
-
-      const scale =
-        0.99 -
-        (Math.sqrt(Math.abs(event.deltaY)) * -Math.sign(event.deltaY)) / 100
-
-      this.zoom(this.eventToCoords(event), scale)
-    })
-
-    createEventListener(canvas, "scroll", prevent)
-
-    // Handles movement from pointers
-    {
-      let moveStart: Point | undefined
-      let pointersDown = 0
-
-      createEventListener(canvas, "pointermove", (event) => {
-        event.preventDefault()
-
-        if (pointersDown != 1) {
-          return
-        }
-
-        if (!moveStart) {
-          return
-        }
-
-        const { x, y } = this.eventToCoords(event)
-        const { top, right, bottom, left } = this.getCoords()
-
-        this.setCoords({
-          top: top - (y - moveStart.y),
-          right: right - (x - moveStart.x),
-          bottom: bottom - (y - moveStart.y),
-          left: left - (x - moveStart.x),
-        })
-      })
-
-      createEventListener(canvas, "pointerdown", (event) => {
-        pointersDown++
-        moveStart = this.eventToCoords(event)
-        this.canvas.setPointerCapture(event.pointerId)
-      })
-
-      createEventListener(document, "pointerup", () => {
-        pointersDown--
-
-        if (pointersDown < 0) {
-          pointersDown = 0
-        }
-
-        moveStart = undefined
-      })
-    }
-
-    // Handles movement and zooming from touchscreens
-    {
-      let previousDistance: number | undefined
-
-      createEventListener(canvas, "touchmove", (event) => {
-        event.preventDefault()
-
-        const {
-          touches: [a, b, c],
-        } = event
-
-        if (!a || c) {
-          return
-        }
-
-        if (!b) {
-          return
-        }
-
-        const { x, y } = canvas.getBoundingClientRect()
-
-        const distance = Math.hypot(
-          b.clientX - a.clientX,
-          (b.clientY - a.clientY) ** 2
-        )
-
-        if (!previousDistance) {
-          previousDistance = distance
-          return
-        }
-
-        const xCenter = (a.clientX - x + b.clientX - x) / 2
-        const yCenter = (a.clientY - y + b.clientY - y) / 2
-        const center = this.offsetToCoords(xCenter, yCenter)
-
-        if (distance > previousDistance) {
-          this.zoom(center, 0.9)
-        } else {
-          this.zoom(center, 1.1)
-        }
-
-        previousDistance = distance
-      })
-    }
   }
 }

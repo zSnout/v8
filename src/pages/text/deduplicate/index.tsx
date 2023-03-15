@@ -31,7 +31,7 @@ export default function () {
   const [keepSeparators, setKeepSeparators] = createSignal(false)
 
   const output = createMemo(() =>
-    deDuplicate(value() || "Type something here...", keepSeparators())
+    deDuplicate(value() || "Type something here...", keepSeparators()),
   )
 
   return (
@@ -43,7 +43,10 @@ export default function () {
         value={value()}
       />
 
-      <div class="mt-4 break-words" classList={{ placeholder: output().trim() == "" }}>
+      <div
+        class="mt-4 break-words"
+        classList={{ placeholder: output().trim() == "" }}
+      >
         <span>{output()}</span>
       </div>
 

@@ -17,6 +17,6 @@ export function toggleIsDark() {
         : "light"
       : untrack(theme) == "dark"
       ? "auto"
-      : "dark"
+      : "dark",
   )
 }
