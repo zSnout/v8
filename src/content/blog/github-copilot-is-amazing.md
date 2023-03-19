@@ -8,9 +8,6 @@ published: 2021-12-09
 title: GitHub Copilot is Amazing
 ---
 
-import account from "./_copilot-account.webp"
-import schema from "./_copilot-schema.webp"
-
 GitHub Copilot is an amazing tool that can autocomplete code snippets for you.
 In this article I share my experience using GitHub Copilot: the upsides, the
 downsides, and what I think it could become.
@@ -21,7 +18,7 @@ GitHub Copilot basically completes sections of code for you. There are other
 autocompleters, but they'll only complete a single variable or function name,
 whereas Copilot completes the entire line. Here's an example:
 
-<img alt="An example of Copilot in action" src={account} />
+![An example of Copilot in action](/github-copilot-is-amazing/copilot-account.webp)
 
 The picture above shows me writing a `getPassword` function for the account
 system. Once I wrote the function signature, Copilot suggested a function body,
@@ -30,7 +27,7 @@ which I got completely correct. You can also see the previously written
 
 Let's look at another example.
 
-<img alt="Another example of Copilot" src={schema} />
+![Another example of Copilot](/github-copilot-is-amazing/copilot-schema.webp)
 
 In this picture it's completing some stuff from a custom schema system into a
 Fastify schema. Copilot completes the entire line of code and even recognizes

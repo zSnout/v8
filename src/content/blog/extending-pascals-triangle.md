@@ -1127,13 +1127,7 @@ $$
 Then, we find the total area under the curve for any positive value of $t$.
 Here's a picture of the curve for $x = 4$.
 
-<figure>
-
-![A graph of the function described above](/extending-pascals-triangle/_extended-factorial-4.webp)
-
-<figcaption>A graph of the function described above. Notice how at first, the function flies upward, but it drops significantly after the peak at t = 4.</figcaption>
-
-</figure>
+![A graph of the function above](/extending-pascals-triangle/_extended-factorial-4.webp "A graph of the function described above. Notice how at first, the function flies upward, but it drops significantly after the peak at t = 4.")
 
 Almost magically, for a nonnegative value of $x$, the integral above spits out
 the value of $x!$. And it doesn't stop there. This new definition of $x!$ has
@@ -1150,21 +1144,9 @@ First, I need to explain _why_ the gamma function doesn't work on negative
 integers. I'll start by including two graphs of the function inside the integral
 for $x = -0.5$ and $x = -1$.
 
-<figure>
+![A graph of the function described above at x = 0.5](/extending-pascals-triangle/_extended-factorial-0.5.webp "A graph of the integral for x = 0.5.")
 
-![A graph of the function described above at x = 0.5](/extending-pascals-triangle/_extended-factorial-0.5.webp)
-
-<figcaption>A graph of the integral for x = 0.5.</figcaption>
-
-</figure>
-
-<figure>
-
-![A graph of the function described above at x = 1](/extending-pascals-triangle/_extended-factorial-1.webp)
-
-<figcaption>A graph of the integral for x = 1.</figcaption>
-
-</figure>
+![A graph of the function described above at x = 1](/extending-pascals-triangle/_extended-factorial-1.webp "A graph of the integral for x = 1.")
 
 Notice how in the picture where $x = -0.5$, the top and right parts of the
 function taper to almost nothing, and the only area is in the bottom left. In

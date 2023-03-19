@@ -7,10 +7,46 @@ import remarkMath from "remark-math"
 import nesting from "tailwindcss/nesting"
 import glsl from "vite-plugin-glsl"
 
+function escapeHTML(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("'", "&apos;")
+    .replaceAll('"', "&quot;")
+}
+
+/** @returns {import("mdast").Content} */
+function traverse(/** @type {import("mdast").Content} */ node) {
+  if (node.type == "image") {
+    if (node.title) {
+      return {
+        type: "html",
+        value: `<figure><img alt="${escapeHTML(
+          node.alt || "",
+        )}" src="${escapeHTML(node.url)}" /><figcaption>${escapeHTML(
+          node.title,
+        )}</figcaption></figure>`,
+        position: node.position,
+      }
+    } else {
+      return node
+    }
+  } else if ("children" in node) {
+    return {
+      ...node,
+      children: /** @type {any} */ (node.children.map(traverse)),
+    }
+  } else {
+    return node
+  }
+}
+
 // https://astro.build/config
 export default defineConfig({
   integrations: [
     solidJs(),
+    // @ts-ignore
     mdx(),
     tailwind({
       config: {
@@ -20,7 +56,15 @@ export default defineConfig({
   ],
   markdown: {
     rehypePlugins: [rehypeKatex],
-    remarkPlugins: [remarkMath],
+    remarkPlugins: [
+      remarkMath,
+      () => (tree, file) => {
+        return {
+          ...tree,
+          children: tree.children.map(traverse),
+        }
+      },
+    ],
     shikiConfig: { wrap: true },
   },
   site: "https://v8.zsnout.com/",
