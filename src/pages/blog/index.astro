@@ -1,0 +1,45 @@
+---
+import { toDateString } from "@/components/to-date-string"
+import ProseLayout from "@/layouts/ProseLayout.astro"
+import { getCollection } from "astro:content"
+
+const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
+  (a, b) =>
+    a.data.published < b.data.published
+      ? 1
+      : a.data.published > b.data.published
+      ? -1
+      : 0,
+)
+---
+
+<ProseLayout title="zSnout Blog">
+  <h1 class="transition">zSnout Blog</h1>
+
+  {
+    blog.map((entry) => (
+      <>
+        <h3
+          class="relative flex break-inside-avoid items-baseline before:absolute before:top-0 before:-left-4 before:h-full before:w-1"
+          class:list={{
+            "before:bg-blue-300": entry.data.category == "code",
+            "before:bg-purple-300": entry.data.category == "language",
+            "before:bg-orange-300": entry.data.category == "math",
+            "before:bg-pink-300": entry.data.category == "meta",
+            "before:bg-green-300": entry.data.category == "saurs",
+          }}
+        >
+          <a class="relative no-underline" href={`/blog/${entry.slug}`}>
+            {entry.data.title}
+          </a>
+
+          <small class="relative ml-auto">
+            {toDateString(entry.data.published)}
+          </small>
+        </h3>
+
+        <p>{entry.data.excerpt}</p>
+      </>
+    ))
+  }
+</ProseLayout>

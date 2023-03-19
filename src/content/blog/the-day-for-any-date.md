@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: math
-date: 2021-12-07
+excerpt:
+  Ever wondered what day your friend's birthday occurred, or whether the next
+  July 4th will be a Thursday? You can calculate it using simple math, which
+  you'll learn here!
+published: 2021-12-07
 title: Compute the Day of any Date in Your Head
 ---
 

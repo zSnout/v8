@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: math
-date: 2022-04-03
+excerpt:
+  Have you ever wanted to convince your friend that you have psychic powers? In
+  this article you'll learn how to use amazing mathematical principles to help
+  you on your noble quest.
+published: 2022-04-03
 title: Mathemagical Tricks
 ---
 

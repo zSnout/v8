@@ -4,40 +4,44 @@ import { ThemeSwitcher } from "./ThemeSwitcher"
 
 interface Props {
   floating: boolean
+  maxWidth: `max-w-${string}`
   options?: any
 }
 ---
 
-{
-  /* Some Apple devices have a partially transparent top address bar; this
-     blocks anything from being shown behind it, as it doesn't look great. */
-}
-<div class="pointer-events-none fixed -top-20 left-0 h-20 w-full bg-z-body">
+{/* This blocks content the address bar in Safari. */}
+<div
+  class="pointer-events-none fixed -top-20 left-0 z-10 h-20 w-full bg-z-body print:hidden"
+>
 </div>
 
+{/* This is _intentionally_ not a <nav /> element. */}
+{/* That is used in prose and other documents with internal nav links. */}
 <div
-  class={"pointer-events-none fixed top-0 flex h-12 w-full touch-none select-none items-center border-b px-6 py-1.5 transition " +
+  class={"pointer-events-none fixed top-0 z-10 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden " +
     (Astro.props.floating
       ? "border-b-transparent"
-      : "backdrop-blur-sm bg-z-body-partial border-b-z-border")}
+      : "backdrop-blur-sm bg-z-body-partial border-b-z")}
 >
-  <a
-    class={"pointer-events-auto mr-auto font-extralight text-2xl underline decoration-transparent decoration-1 underline-offset-2 transition hover:decoration-current text-z-nav-title z-20 relative border border-transparent focus-visible:border-z-focus ring-z-focus focus-visible:ring focus-visible:outline-none rounded-lg left-[calc(-0.5rem_-_1px)] px-2 py-0.5 " +
-      (Astro.props.floating ? "backdrop-blur-sm bg-z-body-partial" : "")}
-    href="/"
-  >
-    zSnout
-  </a>
+  <div class={`flex h-full w-full flex-1 items-center ${Astro.props.maxWidth}`}>
+    <a
+      class={"pointer-events-auto mr-auto font-extralight text-2xl underline decoration-transparent decoration-1 underline-offset-2 transition hover:decoration-current text-z-nav-title z-20 relative border border-transparent focus-visible:border-z-focus ring-z-focus focus-visible:ring focus-visible:outline-none rounded-lg left-[calc(-0.5rem_-_1px)] px-2 py-0.5 " +
+        (Astro.props.floating ? "backdrop-blur-sm bg-z-body-partial" : "")}
+      href="/"
+    >
+      zSnout
+    </a>
 
-  {
-    Astro.slots.options ? (
-      <Options client:load>
-        <slot name="options" />
-      </Options>
-    ) : (
-      <div id="nav-options" class="contents" />
-    )
-  }
+    {
+      Astro.slots.options ? (
+        <Options client:load>
+          <slot name="options" />
+        </Options>
+      ) : (
+        <div id="nav-options" class="contents" />
+      )
+    }
 
-  <ThemeSwitcher client:idle />
+    <ThemeSwitcher client:idle />
+  </div>
 </div>

@@ -18,7 +18,7 @@ export function Checkbox(props: CheckboxProps) {
       <input
         {...props}
         checked={checked()}
-        class={(props.class || "") + " peercheckbox sr-only"}
+        class={(props.class || "") + " peer/checkbox sr-only"}
         onInput={(event) => {
           setChecked(event.currentTarget.checked)
           props.onInput?.(event)
@@ -28,11 +28,11 @@ export function Checkbox(props: CheckboxProps) {
 
       <div
         aria-hidden="true"
-        class="field flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm p-0 ring-z-focus peer-[checkbox:focus-visible]:border-z-focus peer-[checkbox:focus-visible]:ring"
+        class="field flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm p-0 ring-z-focus peer-focus-visible/checkbox:border-z-focus peer-focus-visible/checkbox:ring"
         data-z-interactive
       >
         <Fa
-          class="h-4 w-4 opacity-10 icon-stroke-z [.peercheckbox:checked~*>&]:opacity-100"
+          class="h-4 w-4 opacity-10 icon-stroke-z [.peer\/checkbox:checked~*>&]:opacity-100"
           icon={faCheck}
           title="Checkbox"
         />

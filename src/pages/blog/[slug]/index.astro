@@ -1,0 +1,27 @@
+---
+import ProseLayout from "@/layouts/ProseLayout.astro"
+import type { GetStaticPathsItem } from "astro"
+import { CollectionEntry, getCollection } from "astro:content"
+
+export interface Props {
+  entry: CollectionEntry<"blog">
+}
+
+export async function getStaticPaths() {
+  const blog = await getCollection("blog")
+
+  return blog.map<GetStaticPathsItem>((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }))
+}
+
+const { entry } = Astro.props
+const { Content, headings } = await entry.render()
+---
+
+<ProseLayout headings={headings} title={`${entry.data.title} | zSnout Blog`}>
+  <h1>{entry.data.title}</h1>
+
+  <Content />
+</ProseLayout>

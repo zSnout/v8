@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: language
-date: 2022-10-17
+excerpt:
+  Recently, I've been learning a minimalistic language known as toki pona. Today
+  we'll explore my journey in learning toki pona and how you can learn it for
+  yourself.
+published: 2022-10-17
 title: Learning toki pona
 ---
 
@@ -13,8 +16,6 @@ around 300 fluent speakers and over 10,000 people who can effectively read and
 understand it. My goal is to become one of those people who are fluent in the
 language. Today we'll explore my journey in learning toki pona and how you can
 learn it for yourself.
-
-[notoc]
 
 ## First Steps
 

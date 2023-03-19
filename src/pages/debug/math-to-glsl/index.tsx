@@ -27,7 +27,7 @@ export default function Index() {
   })
 
   return (
-    <div class="groupcenter m-auto flex w-[512px] max-w-full flex-col">
+    <div class="group/center m-auto flex w-[512px] max-w-full flex-col">
       <Heading>Debug: Math to GLSL</Heading>
 
       <input

@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: saurs
-date: 2022-09-08
+excerpt:
+  Throughout my childhood, I've come up with many stories about a group of
+  characters known as the Saurs. I'd like to share some of these stories with
+  you so we can laugh about them together.
+published: 2022-09-08
 title: Meet the Saurs
 ---
 

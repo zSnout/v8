@@ -1,7 +1,9 @@
 ---
-author: Zachary Sakowitz
 category: code
-date: 2022-09-24
+excerpt:
+  Today we're going to make a reactivity system in JavaScript, harness it to
+  create DOM constructs, and create a JSX framework using our new system.
+published: 2022-09-24
 title: Let's Make a Web Framework
 ---
 

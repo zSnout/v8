@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: math
-date: 2021-12-07
+excerpt:
+  You probably know how to find out if a number is divisible by 2, 5, or 10. But
+  did you know that there's simple divisibility rules for other numbers? Let's
+  check them out, from 2 to 12!
+published: 2021-12-07
 title: Divisibility Rules
 ---
 

@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: math
-date: 2021-12-08
+excerpt:
+  The "0 = 1" paradox states that the numbers 0 and 1 are equivalent. We can
+  easily prove this. Once done, we'll show you how you can use this to prove
+  that any two numbers are equivalent!
+published: 2021-12-08
 title: Does Zero Equal One?
 ---
 
@@ -18,22 +21,30 @@ After that's done, we can use basic mathematics to prove that 0 equals 1.
 
 First of all, let's define $S$ as follows:
 
-$$ S = 1 - 1 + 1 - 1 + 1 - 1... $$
+$$
+S = 1 - 1 + 1 - 1 + 1 - 1...
+$$
 
 ## Proving That S = 0
 
 We can group the $1 - 1$ terms in $S$ into parentheses.
 
-$$ S = (1 - 1) + (1 - 1) + (1 - 1) + ... $$
+$$
+S = (1 - 1) + (1 - 1) + (1 - 1) + ...
+$$
 
 Because $1 - 1 = 0$, we can simplify this.
 
-$$ S = 0 + 0 + 0 + ... $$
+$$
+S = 0 + 0 + 0 + ...
+$$
 
 Because we can add 0s forever and still get zero, we can simplify this even
 more.
 
-$$ S = 0 $$
+$$
+S = 0
+$$
 
 Ta da! We proved that $S = 0$.
 
@@ -41,16 +52,22 @@ Ta da! We proved that $S = 0$.
 
 We can group the $-1 + 1$ terms in $S$ into parentheses as well. Let's try this.
 
-$$ S = 1 - (1 - 1) - (1 - 1) - (1 - 1) ... $$
+$$
+S = 1 - (1 - 1) - (1 - 1) - (1 - 1) ...
+$$
 
 Because $1 - 1 = 0$, we can simplify this.
 
-$$ S = 1 - 0 - 0 - 0 ... $$
+$$
+S = 1 - 0 - 0 - 0 ...
+$$
 
 Because we can subtract 0s forever and still get zero, we can simplify this even
 more.
 
-$$ S = 1 $$
+$$
+S = 1
+$$
 
 Just like that, we proved that $S = 1$.
 

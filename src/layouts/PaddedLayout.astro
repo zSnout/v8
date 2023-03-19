@@ -4,8 +4,7 @@ import Layout from "./Layout.astro"
 
 interface Props {
   children: any
-  class?: string
-  options?: any
+  maxWidth: `max-w-${string}`
   title: string
 }
 ---
@@ -13,16 +12,16 @@ interface Props {
 <Layout title={Astro.props.title}>
   {
     Astro.slots.options ? (
-      <Navigation floating={true} maxWidth="max-w-[64rem]">
+      <Navigation floating={false} maxWidth={Astro.props.maxWidth}>
         <slot name="options" slot="options" />
       </Navigation>
     ) : (
-      <Navigation floating={true} maxWidth="max-w-[64rem]" />
+      <Navigation floating={false} maxWidth={Astro.props.maxWidth} />
     )
   }
 
   <div
-    class="max-w-screen flex h-full max-h-screen min-h-full w-full min-w-full flex-1 touch-manipulation flex-col text-z transition"
+    class="mx-6 mt-16 mb-4 flex flex-1 flex-col text-z transition print:mx-0 print:my-0"
   >
     <slot />
   </div>

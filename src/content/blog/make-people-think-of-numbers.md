@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: math
-date: 2021-12-07
+excerpt:
+  Did you know that using math we can force people to think of certain numbers?
+  We can use 9, 1089, or any other number you can think of using the simple
+  tricks described below.
+published: 2021-12-07
 title: Make People Think of Numbers
 ---
 

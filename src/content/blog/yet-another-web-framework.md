@@ -1,7 +1,11 @@
 ---
-author: Zachary Sakowitz
 category: code
-date: 2022-11-16
+excerpt:
+  About 3 months ago, I published an article titled "Let's Make A Web
+  Framework." While it was a fun article to write, I've been working on another
+  reactivity system for JavaScript that I think is better, and I want to share
+  it with you. Let's dive in!
+published: 2022-11-16
 title: Yet Another Web Framework
 ---
 
@@ -271,10 +275,7 @@ Now let's plug it into esbuild and watch magic happen:
 
 <!-- prettier-ignore -->
 ```js
-var n;function o(t){let e=n;n=t,t(),n=e}function f(){let t=new Set;return[()=>
-{n&&t.add(n)},()=>{t.forEach(e=>e())}]}function i(t){let[e,r]=f();return[()=>(e
-(),t),c=>{t=c,r()}]}function u(t){let[e,r]=i();return o(()=>r(t())),e}export{o 
-as effect,f as event,u as memo,i as signal};
+var n;function o(t){let e=n;n=t,t(),n=e}function f(){let t=new Set;return[()=>{n&&t.add(n)},()=>{t.forEach(e=>e())}]}function i(t){let[e,r]=f();return[()=>(e(),t),c=>{t=c,r()}]}function u(t){let[e,r]=i();return o(()=>r(t())),e}export{o as effect,f as event,u as memo,i as signal};
 ```
 
 It's literally 281 characters. That's not the 2kb of a tiny library, _that's the

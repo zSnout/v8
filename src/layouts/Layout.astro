@@ -8,7 +8,7 @@ export interface Props {
 ---
 
 <!DOCTYPE html>
-<html class="flex h-full w-full flex-col bg-z-body" lang="en">
+<html class="flex h-full w-full flex-col scroll-smooth bg-z-body" lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
@@ -17,7 +17,7 @@ export interface Props {
     <title>{Astro.props.title}</title>
   </head>
 
-  <body class="flex flex-1 flex-col bg-z-body transition">
+  <body class="flex flex-1 flex-col scroll-smooth bg-z-body transition">
     <div class="contents">
       <slot />
     </div>

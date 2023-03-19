@@ -1,7 +1,10 @@
 ---
-author: Zachary Sakowitz
 category: math
-date: 2021-12-08
+excerpt:
+  Did you know that the sum of all whole numbers is equal to -1/12? In this
+  article we find out how it's possible and prove it ourselves using simple
+  algebra and math!
+published: 2021-12-08
 title: Infinity is -1/12
 ---
 

@@ -1,7 +1,12 @@
 ---
-author: Zachary Sakowitz
 category: math
-date: 2022-11-21
+excerpt:
+  "Have you heard of Pascal's Triangle? If so, you'll know that it can only be
+  extended in a single direction: downward. However, we can use pyramids,
+  factorials, and limits to extend Pascal's Triangle in the opposite direction.
+  If you haven't heard of Pascal's Triangle, you might enjoy this article
+  anyway, and you'll definitely learn something new."
+published: 2022-11-21
 title: Extending Pascal's Triangle
 ---
 
@@ -343,7 +348,9 @@ Actually, it's a bit more complicated than that.
 
 First, take a look at the following series, known as the triangular numbers.
 
-$$1, 3, 6, 10, 15, 21, 28, \dots$$
+$$
+1, 3, 6, 10, 15, 21, 28, \dots
+$$
 
 There's a simple rule that governs the sequence. To find it, I'll rewrite the
 sequence using sums.
@@ -366,7 +373,9 @@ $28$? That's right: it's $36$, or $28 + 8$.
 We can express this sequence by using something known as summation notation, or
 sigma ($\Sigma$) notation. Here's an example:
 
-$$\sum_{n = 1}^4{n}$$
+$$
+\sum_{n = 1}^4{n}
+$$
 
 That may look confusing, but it's essentially saying, "For every number $n$ from
 $1$ to $4$ (inclusive), evaluate $n$ and add the results," which is
@@ -374,7 +383,9 @@ $1 + 2 + 3 + 4$, or $10$.
 
 Here's a more complex example:
 
-$$\sum_{n = 1}^6{n^2}$$
+$$
+\sum_{n = 1}^6{n^2}
+$$
 
 This has a similar meaning: "For every number $n$ from $1$ to $6$ (inclusive),
 evaluate $n^2$ and add the results," which is
@@ -383,11 +394,15 @@ $1^2 + 2^2 + 3^2 + 4^2 + 5^2 + 6^2$, or $91$.
 Summation notation is very useful when dealing with triangular numbers, as we
 can express the $n$th triangular number as
 
-$$\sum_{i = 1}^n{i}$$
+$$
+\sum_{i = 1}^n{i}
+$$
 
 In fact, this sum is equal to
 
-$$\frac{n(n + 1)}{2}$$
+$$
+\frac{n(n + 1)}{2}
+$$
 
 Why? Well, let's imagine creating the $4$th triangular number out of blocks.
 
@@ -432,7 +447,9 @@ result of $\frac{n \cdot (n + 1)}{2}$.
 
 Thus, we now know that
 
-$$\sum_{i = 1}^n{i} = \frac{n \cdot (n + 1)}{2}$$
+$$
+\sum_{i = 1}^n{i} = \frac{n \cdot (n + 1)}{2}
+$$
 
 ## Product notation
 
@@ -443,26 +460,34 @@ instead of adding them.
 
 Here's an example.
 
-$$\prod_{i = 1}^4{i} = 1 \cdot 2 \cdot 3 \cdot 4 = 24$$
+$$
+\prod_{i = 1}^4{i} = 1 \cdot 2 \cdot 3 \cdot 4 = 24
+$$
 
 One commonly known example of product notation is the factorial function. It
 multiplies every number from $1$ up to a specific whole number and is
 represented by putting an exclamation mark ($!$) after a number or expression.
 For example:
 
-$$7! = \prod_{i = 1}^7{i} = 1 \cdot 2 \cdot 3 \cdot 4 \cdot 5 \cdot 6 \cdot 7 = 5040$$
+$$
+7! = \prod_{i = 1}^7{i} = 1 \cdot 2 \cdot 3 \cdot 4 \cdot 5 \cdot 6 \cdot 7 = 5040
+$$
 
 <details>
 
 <summary>Try evaluating 5! on your own. Click this dropdown to find the answer.</summary>
 
-$$5! = \prod_{i = 1}^5{i} = 1 \cdot 2 \cdot 3 \cdot 4 \cdot 5 = 120$$
+$$
+5! = \prod_{i = 1}^5{i} = 1 \cdot 2 \cdot 3 \cdot 4 \cdot 5 = 120
+$$
 
 </details>
 
 One useful fact about factorials is that for any number $n$,
 
-$$(n - 1)! \cdot n = n!$$
+$$
+(n - 1)! \cdot n = n!
+$$
 
 Here's an example.
 
@@ -477,7 +502,9 @@ $$
 We'll be using factorials later, so be on the lookout for them. Here are the
 first few factorials so that you can recognize them later.
 
-$$1, 2, 6, 24, 120, 720, \dots$$
+$$
+1, 2, 6, 24, 120, 720, \dots
+$$
 
 ## The first column
 
@@ -502,7 +529,9 @@ For now, we're only going to focus on finding cells whose row and column numbers
 are both positive or zero. A formula for the first column is easy, as the
 numbers in the column, by definition, are all $1$.
 
-$$P_{x,1} = 1$$
+$$
+P_{x,1} = 1
+$$
 
 The second column seems to be the natural numbers, but let's see if we can
 express more rigorously why that happens. We know that each cell is equal to the
@@ -650,7 +679,7 @@ $x$ in the 1st column.
 
 $$
 \begin{align*}
-P_{x,1} &= \sum_{i = 0}^x{P_{i,0}}
+P_{x,1} &= \sum_{i = 0}^x{P_{i,0}} \\
         &= x + 1
 \end{align*}
 $$
@@ -788,9 +817,9 @@ Let's try our formula by plugging in $x = 5$.
 
 $$
 \begin{align*}
-P_{5,2} &= \frac{(5 + 1) \cdot (5 + 2)}{2}
-        &= \frac{6 \cdot 7}{2}
-        &= \frac{42}{2}
+P_{5,2} &= \frac{(5 + 1) \cdot (5 + 2)}{2} \\
+        &= \frac{6 \cdot 7}{2} \\
+        &= \frac{42}{2} \\
         &= 21
 \end{align*}
 $$
@@ -852,8 +881,8 @@ We can test this formula by plugging in $5$, for the fifth row and third column.
 
 $$
 \begin{align*}
-P_{x,3} &= \frac{(x + 1) \cdot (x + 2) \cdot (x + 3)}{6}
-P_{5,3} &= \frac{(5 + 1) \cdot (5 + 2) \cdot (5 + 3)}{6}
+P_{x,3} &= \frac{(x + 1) \cdot (x + 2) \cdot (x + 3)}{6} \\
+P_{5,3} &= \frac{(5 + 1) \cdot (5 + 2) \cdot (5 + 3)}{6} \\
         &= \frac{6 \cdot 7 \cdot 8}{6} \\
         &= \frac{\cancel{6} \cdot 7 \cdot 8}{\cancel{6}} \\
         &= 7 \cdot 8 \\
@@ -894,7 +923,9 @@ Everything about this formula seems reasonable except the denominators. They
 seem to change randomly from column to column. I'll list the first few for
 convenience.
 
-$$2, 6, 24, 120, \dots$$
+$$
+2, 6, 24, 120, \dots
+$$
 
 Wait. Do you recognize those numbers from somewhere? Because I sure do. They're
 the first few factorial numbers!
@@ -1076,7 +1107,9 @@ surprise. What? What does it even mean to take $2.5!$? Is it some odd thing
 where we stop halfway between multiplying numbers? Actually, no. Instead,
 mathematicians defined the factorial of a generic number $x$ as
 
-$$\Gamma(x + 1) = x! = \int_0^{\infty} t^x \cdot e^{-t} dt$$
+$$
+\Gamma(x + 1) = x! = \int_0^{\infty} t^x \cdot e^{-t} dt
+$$
 
 First of all, that $\Gamma$ symbol (a Greek uppercase gamma) is not special math
 syntax. It's just the name of the function. Mathematicians find themselves
@@ -1087,14 +1120,16 @@ Anyway, the gamma function is a complicated expression with a spaghetti of
 calculus, exponentials, Euler's constant $e$, and differentials. Basically, it
 tells us to plot this function for some value $x$:
 
-$$f(t) = t^x \cdot e^-t$$
+$$
+f(t) = t^x \cdot e^-t
+$$
 
 Then, we find the total area under the curve for any positive value of $t$.
 Here's a picture of the curve for $x = 4$.
 
 <figure>
 
-![A graph of the function described above](/blog/extended-factorial-4.webp)
+![A graph of the function described above](/extending-pascals-triangle/_extended-factorial-4.webp)
 
 <figcaption>A graph of the function described above. Notice how at first, the function flies upward, but it drops significantly after the peak at t = 4.</figcaption>
 
@@ -1115,13 +1150,9 @@ First, I need to explain _why_ the gamma function doesn't work on negative
 integers. I'll start by including two graphs of the function inside the integral
 for $x = -0.5$ and $x = -1$.
 
-<!-- #region — Comparison between integral images. -->
-
-<compare>
-
 <figure>
 
-![A graph of the function described above at x = 0.5](/blog/extended-factorial-0.5.webp)
+![A graph of the function described above at x = 0.5](/extending-pascals-triangle/_extended-factorial-0.5.webp)
 
 <figcaption>A graph of the integral for x = 0.5.</figcaption>
 
@@ -1129,15 +1160,11 @@ for $x = -0.5$ and $x = -1$.
 
 <figure>
 
-![A graph of the function described above at x = 1](/blog/extended-factorial-1.webp)
+![A graph of the function described above at x = 1](/extending-pascals-triangle/_extended-factorial-1.webp)
 
 <figcaption>A graph of the integral for x = 1.</figcaption>
 
 </figure>
-
-</compare>
-
-<!-- #endregion -->
 
 Notice how in the picture where $x = -0.5$, the top and right parts of the
 function taper to almost nothing, and the only area is in the bottom left. In
@@ -1148,7 +1175,7 @@ However, when $x = -1$, the function has a solid chunk of area on the top-left
 section, preventing its area from converging on a specific value. In fact, why
 don't we just plot this new factorial as a graph?
 
-![The gamma function plotted in Desmos](/blog/gamma-function.webp)
+![The gamma function plotted in Desmos](/extending-pascals-triangle/_gamma-function.webp)
 
 Notice how in the graph, there are reasonable values for the function at any
 decimal number, but their signs alternate. For a value of $x$ where
@@ -1174,16 +1201,18 @@ infinity without actually getting to that point.
 
 For example, imagine we have this function:
 
-$$f(x) = \frac{x^2 - x - 6}{x - 3}$$
+$$
+f(x) = \frac{x^2 - x - 6}{x - 3}
+$$
 
 What is its value at $x = 2$? It's just
 
 $$
 \begin{align*}
-f(x) &= \frac{x^2 - x - 6}{x - 3}
-f(2) &= \frac{2^2 - 2 - 6}{2 - 3}
-     &= \frac{4 - 2 - 6}{-1}
-     &= \frac{-4}{-1}
+f(x) &= \frac{x^2 - x - 6}{x - 3} \\
+f(2) &= \frac{2^2 - 2 - 6}{2 - 3} \\
+     &= \frac{4 - 2 - 6}{-1} \\
+     &= \frac{-4}{-1} \\
      &= 4
 \end{align*}
 $$
@@ -1192,10 +1221,10 @@ What about $x = 1$?
 
 $$
 \begin{align*}
-f(x) &= \frac{x^2 - x - 6}{x - 3}
-f(2) &= \frac{1^2 - 1 - 6}{1 - 3}
-     &= \frac{1 - 1 - 6}{-2}
-     &= \frac{-6}{-2}
+f(x) &= \frac{x^2 - x - 6}{x - 3} \\
+f(2) &= \frac{1^2 - 1 - 6}{1 - 3} \\
+     &= \frac{1 - 1 - 6}{-2} \\
+     &= \frac{-6}{-2} \\
      &= 3
 \end{align*}
 $$
@@ -1204,10 +1233,10 @@ What about $x = 3$?
 
 $$
 \begin{align*}
-f(x) &= \frac{x^2 - x - 6}{x - 3}
-f(2) &= \frac{3^2 - 3 - 6}{3 - 3}
-     &= \frac{9 - 3 - 6}{0}
-     &= \frac{0}{0}
+f(x) &= \frac{x^2 - x - 6}{x - 3} \\
+f(2) &= \frac{3^2 - 3 - 6}{3 - 3} \\
+     &= \frac{9 - 3 - 6}{0} \\
+     &= \frac{0}{0} \\
      &= \text{undefined}
 \end{align*}
 $$
@@ -1215,15 +1244,15 @@ $$
 We seem to have run into an issue; we're trying to divide by $0$, which is
 forbidden. Let's look at the graph of this function and see where we went wrong.
 
-![The graph of f of x equals x squared minus x minus 6](/blog/rational-function.webp)
+![The graph of f of x equals x squared minus x minus 6](/extending-pascals-triangle/_rational-function.webp)
 
 Hmm. It looks like our function is a line! Let's try factoring it.
 
 $$
 \begin{align*}
-f(x) &= \frac{x^2 - x - 6}{x - 3}
-     &= \frac{(x + 2) \cdot (x - 3)}{x - 3}
-     &= \frac{(x + 2) \cdot \cancel{(x - 3)}}{\cancel{x - 3}}
+f(x) &= \frac{x^2 - x - 6}{x - 3} \\
+     &= \frac{(x + 2) \cdot (x - 3)}{x - 3} \\
+     &= \frac{(x + 2) \cdot \cancel{(x - 3)}}{\cancel{x - 3}} \\
      &= x + 2
 \end{align*}
 $$
@@ -1291,15 +1320,15 @@ Another is to graph what you're limiting.
 Let's do the second option. I'll plug the limit into Desmos as a function of
 $x$. Here's the plot.
 
-![The function described above](/blog/limit-normal.webp)
+![The function described above](/extending-pascals-triangle/_limit-normal.webp)
 
 Let's zoom in a bit.
 
-![The same function, zoomed in](/blog/limit-zoomed-in.webp)
+![The same function, zoomed in](/extending-pascals-triangle/_limit-zoomed-in.webp)
 
 Let's zoom in on the limit, where the curve approaches a straight line.
 
-![The same function, zoomed in](/blog/limit-limit.webp)
+![The same function, zoomed in](/extending-pascals-triangle/_limit-limit.webp)
 
 It looks like we get $y = 0.5$, which is exactly what we predicted! In fact, we
 can get any other value in Pascal's Triangle just by taking different limits.

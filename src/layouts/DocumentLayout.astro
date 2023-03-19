@@ -1,29 +1,16 @@
 ---
-import Navigation from "../components/nav/Navigation.astro"
-import Layout from "./Layout.astro"
+import PaddedLayout from "./PaddedLayout.astro"
 
 interface Props {
   children: any
-  class?: string
-  options?: any
   title: string
 }
 ---
 
-<Layout title={Astro.props.title}>
-  {
-    Astro.slots.options ? (
-      <Navigation floating={false}>
-        <slot name="options" slot="options" />
-      </Navigation>
-    ) : (
-      <Navigation floating={false} />
-    )
-  }
-
+<PaddedLayout maxWidth="max-w-[64rem]" title={Astro.props.title}>
   <div
-    class="group-document-layout mx-6 mt-16 mb-4 flex flex-1 flex-col text-z transition"
+    class="mx-auto flex w-[64rem] max-w-full flex-1 flex-col text-z transition"
   >
     <slot />
   </div>
-</Layout>
+</PaddedLayout>

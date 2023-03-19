@@ -65,9 +65,21 @@ module.exports = {
     },
   },
   plugins: [
+    require("@tailwindcss/typography")(),
+
     /** @type {import("tailwindcss/types/config").PluginCreator} */
     ({ addVariant, matchUtilities, theme }) => {
       addVariant("xs", "@media (min-width: 400px)")
+
+      addVariant(
+        "prose-details",
+        '& :is(:where(details):not(:where([class~="not-prose"] *)))',
+      )
+
+      addVariant(
+        "prose-summary",
+        '& :is(:where(summary):not(:where([class~="not-prose"] *)))',
+      )
 
       matchUtilities(
         {

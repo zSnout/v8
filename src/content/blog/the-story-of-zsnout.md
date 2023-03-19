@@ -1,7 +1,9 @@
 ---
-author: Zachary Sakowitz
 category: meta
-date: 2022-03-02
+excerpt:
+  Have you ever wondered how zSnout began? Let's hear the story together and
+  take a deep dive into the early years of zSnout.
+published: 2022-03-02
 title: The Story of zSnout
 updated: 2022-09-07
 ---

@@ -17,15 +17,19 @@
     "@fortawesome/free-regular-svg-icons": "^6.3.0",
     "@fortawesome/free-solid-svg-icons": "^6.3.0",
     "@solid-primitives/media": "^2.1.3",
+    "@tailwindcss/typography": "^0.5.9",
     "astro": "^2.1.2",
+    "katex": "^0.16.4",
+    "rehype-katex": "^6.0.2",
+    "remark-math": "^5.1.1",
     "solid-js": "^1.6.12",
-    "tailwindcss": "^3.2.7"
+    "tailwindcss": "^3.2.7",
+    "vite-plugin-glsl": "^1.1.2"
   },
   "devDependencies": {
     "prettier": "^2.8.4",
     "prettier-plugin-astro": "^0.8.0",
     "prettier-plugin-glsl": "^0.0.9",
-    "prettier-plugin-tailwindcss": "^0.2.4",
-    "vite-plugin-glsl": "^1.1.2"
+    "prettier-plugin-tailwindcss": "^0.2.4"
   }
 }
