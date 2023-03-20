@@ -20,7 +20,7 @@ const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
     blog.map((entry) => (
       <>
         <h3
-          class="relative flex break-inside-avoid items-baseline before:absolute before:top-0 before:-left-4 before:h-full before:w-1"
+          class="relative flex flex-wrap break-inside-avoid items-baseline before:absolute before:top-0 before:-left-4 before:h-full before:w-1"
           class:list={{
             "before:bg-blue-300": entry.data.category == "code",
             "before:bg-purple-300": entry.data.category == "language",
