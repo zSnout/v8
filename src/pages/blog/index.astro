@@ -2,6 +2,7 @@
 import { toDateString } from "@/components/to-date-string"
 import ProseLayout from "@/layouts/ProseLayout.astro"
 import { getCollection } from "astro:content"
+import openGraphImage from "./open-graph.jpg"
 
 const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
   (a, b) =>
@@ -17,9 +18,9 @@ const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
   description="Articles about math, coding, language, and short stories."
   title="zSnout Blog"
   og={{
-    image: "/favicon.ico",
-    imageAlt: "favicon",
-    title: "zSnout",
+    imageSrc: openGraphImage,
+    imageAlt: "A word cloud featuring 'blog.'",
+    title: "zSnout Blog",
   }}
 >
   <h1 class="transition">zSnout Blog</h1>
@@ -28,7 +29,7 @@ const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
     blog.map((entry) => (
       <>
         <h3
-          class="relative flex flex-wrap break-inside-avoid items-baseline before:absolute before:top-0 before:-left-4 before:h-full before:w-1"
+          class="relative flex break-inside-avoid flex-wrap items-baseline before:absolute before:top-0 before:-left-4 before:h-full before:w-1"
           class:list={{
             "before:bg-blue-300": entry.data.category == "code",
             "before:bg-purple-300": entry.data.category == "language",

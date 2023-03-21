@@ -1,3 +1,6 @@
+const typography = require("@tailwindcss/typography")
+const containerQueries = require("@tailwindcss/container-queries")
+
 /** @type {import("tailwindcss").Config} */
 module.exports = {
   content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
@@ -17,7 +20,8 @@ module.exports = {
 
         "z-text": "var(--z-text)",
         "z-text-link": "var(--z-text-link)",
-        "z-text-nav-title": "var(--z-text-nav-title)",
+        "z-text-heading": "var(--z-text-heading)",
+        "z-text-subtitle": "var(--z-text-subtitle)",
       },
       colors: ({ theme }) => ({
         ...theme("customColors"),
@@ -50,7 +54,8 @@ module.exports = {
       textColor: {
         z: "var(--z-text)",
         "z-link": "var(--z-text-link)",
-        "z-nav-title": "var(--z-text-nav-title)",
+        "z-heading": "var(--z-text-heading)",
+        "z-subtitle": "var(--z-text-subtitle)",
       },
 
       borderRadius: {
@@ -65,10 +70,11 @@ module.exports = {
     },
   },
   plugins: [
-    require("@tailwindcss/typography")(),
+    typography(),
+    containerQueries,
 
     /** @type {import("tailwindcss/types/config").PluginCreator} */
-    ({ addVariant, matchUtilities, theme }) => {
+    ({ addVariant, addUtilities, matchUtilities, theme }) => {
       addVariant("xs", "@media (min-width: 400px)")
 
       addVariant(
@@ -80,6 +86,12 @@ module.exports = {
         "prose-summary",
         '& :is(:where(summary):not(:where([class~="not-prose"] *)))',
       )
+
+      addUtilities({
+        ".aspect-open-graph": {
+          "aspect-ratio": "40 / 21",
+        },
+      })
 
       matchUtilities(
         {

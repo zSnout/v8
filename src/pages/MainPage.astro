@@ -1,0 +1,66 @@
+---
+import { toDateString } from "@/components/to-date-string"
+
+export interface Props {
+  category: string
+  categoryHref?: string
+  date: Date
+  imageAlt: string
+  imageSrc: string
+  subtitle: string
+  title: string
+  href: string
+}
+---
+
+<div class="flex w-full max-w-2xl">
+  <div class="flex h-full w-full flex-1 flex-col">
+    <a
+      class="w-full overflow-clip rounded-lg shadow aspect-open-graph"
+      draggable="false"
+      href={Astro.props.href}
+    >
+      <img
+        alt={Astro.props.imageAlt}
+        class="object-contain transition duration-300 hover:scale-105"
+        draggable="false"
+        src={Astro.props.imageSrc}
+        width="1200"
+        height="630"
+      />
+    </a>
+
+    <div class="mt-6 flex w-full align-baseline">
+      {
+        Astro.props.categoryHref ? (
+          <a
+            href={Astro.props.categoryHref}
+            class="bg-gradient-to-br from-green-500 via-teal-500 to-blue-500 bg-clip-text font-bold [-webkit-text-fill-color:transparent]"
+          >
+            {Astro.props.category}
+          </a>
+        ) : (
+          <p class="bg-gradient-to-br from-green-500 via-blue-500 to-blue-500 bg-clip-text font-bold [-webkit-text-fill-color:transparent]">
+            {Astro.props.category}
+          </p>
+        )
+      }
+
+      <time
+        class="ml-auto font-mono text-sm text-z-subtitle transition"
+        datetime={Astro.props.date.toISOString()}
+      >
+        {toDateString(Astro.props.date)}
+      </time>
+    </div>
+
+    <a
+      class="mt-3 font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link lg:text-4xl"
+      href={Astro.props.href}
+    >
+      {Astro.props.title}
+    </a>
+
+    <p class="mt-3 text-z-subtitle transition">{Astro.props.subtitle}</p>
+  </div>
+</div>

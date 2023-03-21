@@ -34,10 +34,10 @@ const openGraphImage = (
   title={`${entry.data.title} | zSnout Blog`}
   og={{
     title: entry.data.title,
-    image: openGraphImage,
+    imageSrc: openGraphImage,
     imageAlt: entry.data.imageAlt,
     article: {
-      authors: [entry.data.author],
+      authors: ["Zachary Sakowitz"],
       publishedTime: entry.data.published,
       tags: [entry.data.category],
       modifiedTime: entry.data.updated,

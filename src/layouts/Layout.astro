@@ -15,7 +15,7 @@ export interface Props {
     }
 
     title: string
-    image: string
+    imageSrc: string
     imageAlt: string
   }
 }
@@ -36,7 +36,7 @@ const { article } = og
     {Astro.props.noIndex && <meta name="robots" content="noindex" />}
     <meta property="og:title" content={og.title} />
     <meta property="og:type" content={article ? "article" : "website"} />
-    <meta property="og:image" content={og.image} />
+    <meta property="og:image" content={og.imageSrc} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content={Astro.url.href} />
