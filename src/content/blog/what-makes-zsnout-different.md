@@ -1,8 +1,12 @@
 ---
 category: meta
+description: An overview of zSnout 5's theme system and offline capabilities.
 excerpt:
   Many things stand out about zSnout that aren't seen in other websites. Let's
   explore zSnout's purpose, theme system, and offline capabilities.
+imageAlt:
+  "The zSnout logo, with a list of three items below. The list reads, 'theme
+  system,' 'offline capable,' and 'open source.'"
 published: 2021-12-09
 title: What Makes zSnout Different?
 updated: 2022-09-04

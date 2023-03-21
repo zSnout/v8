@@ -1,15 +1,13 @@
 ---
-import Navigation from "../components/nav/Navigation.astro"
-import Layout from "./Layout.astro"
+import Navigation from "@/components/nav/Navigation.astro"
+import Layout, { type Props as LayoutProps } from "./Layout.astro"
 
-interface Props {
-  children: any
+export interface Props extends LayoutProps {
   maxWidth: `max-w-${string}`
-  title: string
 }
 ---
 
-<Layout title={Astro.props.title}>
+<Layout {...Astro.props}>
   {
     Astro.slots.options ? (
       <Navigation floating={false} maxWidth={Astro.props.maxWidth}>

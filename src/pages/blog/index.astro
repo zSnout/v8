@@ -13,7 +13,15 @@ const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
 )
 ---
 
-<ProseLayout title="zSnout Blog">
+<ProseLayout
+  description="Articles about math, coding, language, and short stories."
+  title="zSnout Blog"
+  og={{
+    image: "/favicon.ico",
+    imageAlt: "favicon",
+    title: "zSnout",
+  }}
+>
   <h1 class="transition">zSnout Blog</h1>
 
   {

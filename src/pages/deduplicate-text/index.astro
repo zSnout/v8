@@ -1,0 +1,24 @@
+---
+import { Center } from "@/components/Center"
+import { Heading } from "@/components/Heading"
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import Index from "."
+import openGraphImage from "./open-graph.jpg"
+---
+
+<DocumentLayout
+  description="A tool to remove repeated letters (e.g. Hello world => He wrld)."
+  title="Deduplicate Text"
+  og={{
+    image: openGraphImage,
+    imageAlt:
+      "Two rows of text. The first reads 'Deduplicate Text', with arrows pointing the first two Ds, Es, and Ts to each other. The second row reads 'uplica ext,' with the Ds, Es, and Ts in the first row removed.",
+    title: "Deduplicate Text",
+  }}
+>
+  <Center>
+    <Heading>Deduplicate Text</Heading>
+
+    <Index client:load />
+  </Center>
+</DocumentLayout>

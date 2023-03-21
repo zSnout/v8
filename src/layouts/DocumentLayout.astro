@@ -1,13 +1,11 @@
 ---
+import type { Props as LayoutProps } from "./Layout.astro"
 import PaddedLayout from "./PaddedLayout.astro"
 
-interface Props {
-  children: any
-  title: string
-}
+export interface Props extends LayoutProps {}
 ---
 
-<PaddedLayout maxWidth="max-w-[64rem]" title={Astro.props.title}>
+<PaddedLayout maxWidth="max-w-[64rem]" {...Astro.props}>
   <div
     class="mx-auto flex w-[64rem] max-w-full flex-1 flex-col text-z transition"
   >

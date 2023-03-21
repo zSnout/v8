@@ -1,10 +1,15 @@
 ---
 category: code
+description: Build your own JavaScript signals and framework, part 2.
 excerpt:
   About 3 months ago, I published an article titled "Let's Make A Web
   Framework." While it was a fun article to write, I've been working on another
   reactivity system for JavaScript that I think is better, and I want to share
   it with you. Let's dive in!
+imageAlt:
+  "The Angular, Svelte, JavaScript, Vue, React, Solid, and Preact logos in
+  order, with text saying 'build your own! signals & JSX from scratch' around
+  them. There's also a banner in the bottom right which says '2.0.'"
 published: 2022-11-16
 title: Yet Another Web Framework
 ---

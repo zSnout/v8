@@ -1,8 +1,19 @@
 ---
 import DocumentLayout from "@/layouts/DocumentLayout.astro"
 import Index from "./"
+import openGraphImage from "./open-graph.png"
 ---
 
-<DocumentLayout title="Debug: Math to GLSL">
+<DocumentLayout
+  title="Debug: Math to GLSL"
+  description="A tool to convert math expressions to GLSL."
+  noIndex
+  og={{
+    image: openGraphImage,
+    imageAlt:
+      "A light grey bug icon to the left of text saying 'Debug Page: Math to GLSL.' Yellow and black construction tape surrounds the other elements.",
+    title: "Math to GLSL",
+  }}
+>
   <Index client:load />
 </DocumentLayout>

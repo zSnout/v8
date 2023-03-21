@@ -1,9 +1,11 @@
 ---
 category: code
+description: A review of GitHub Copilot and ideas for its future.
 excerpt:
   "GitHub Copilot is an amazing tool that can autocomplete code snippets for
   you. In this article I share my experience using GitHub Copilot: the upsides,
   the downsides, and what I think it could become."
+imageAlt: "GitHub Copilot completing a huge block of code. Source: github.com."
 published: 2021-12-09
 title: GitHub Copilot is Amazing
 ---

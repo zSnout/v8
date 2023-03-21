@@ -1,8 +1,13 @@
 ---
 category: code
+description: Create your own signals and JavaScript framework.
 excerpt:
   Today we're going to make a reactivity system in JavaScript, harness it to
   create DOM constructs, and create a JSX framework using our new system.
+imageAlt:
+  "The Angular, Svelte, JavaScript, Vue, React, Solid, and Preact logos in
+  order, with text saying 'build your own! signals & JSX from scratch' around
+  them."
 published: 2022-09-24
 title: Let's Make a Web Framework
 ---

@@ -1,12 +1,11 @@
 ---
 import type { MarkdownHeading } from "astro"
 import "katex/dist/katex.min.css"
+import type { Props as LayoutProps } from "./Layout.astro"
 import PaddedLayout from "./PaddedLayout.astro"
 
-export interface Props {
-  children: any
+export interface Props extends LayoutProps {
   headings?: readonly MarkdownHeading[]
-  title: string
 }
 
 const hasHeadings =
@@ -17,11 +16,11 @@ const hasHeadings =
   maxWidth={hasHeadings
     ? "max-w-prose md:max-w-[calc(65ch_+_15rem)]"
     : "max-w-prose"}
-  title={Astro.props.title}
+  {...Astro.props}
 >
   <div class="flex h-full w-full flex-1 gap-12 text-z transition">
     <article
-      class="prose prose-slate mx-auto w-full flex-1 py-8 text-z transition dark:prose-invert prose-headings:scroll-mt-20 prose-pre:relative prose-pre:-left-4 prose-pre:w-[calc(100%_+_2em)] prose-hr:relative prose-hr:left-1/2 prose-hr:mt-7 prose-hr:w-48 prose-hr:-translate-x-1/2"
+      class="prose prose-slate mx-auto w-full flex-1 py-8 text-z transition dark:prose-invert prose-headings:scroll-mt-20 prose-pre:relative prose-pre:-left-4 prose-pre:w-[calc(100%_+_2em)] prose-hr:relative prose-hr:left-1/2 prose-hr:w-48 prose-hr:-translate-x-1/2 [&_.math]:overflow-x-auto"
       class:list={{ "md:mr-0": hasHeadings }}
     >
       <slot />

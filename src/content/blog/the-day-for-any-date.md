@@ -1,9 +1,11 @@
 ---
 category: math
+description: Calculate whether any date in history was a Friday.
 excerpt:
   Ever wondered what day your friend's birthday occurred, or whether the next
   July 4th will be a Thursday? You can calculate it using simple math, which
   you'll learn here!
+imageAlt: "calculate days... in your head! December 12, 1975 = Friday."
 published: 2021-12-07
 title: Compute the Day of any Date in Your Head
 ---

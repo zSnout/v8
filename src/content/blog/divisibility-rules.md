@@ -1,9 +1,11 @@
 ---
 category: math
+description: Learn the divisibility rules from 2 to 12.
 excerpt:
   You probably know how to find out if a number is divisible by 2, 5, or 10. But
   did you know that there's simple divisibility rules for other numbers? Let's
   check them out, from 2 to 12!
+imageAlt: Is 2051 divisible by 7? 2051 - 21 = 2030; 203 - 63 = 140; 14 - 14 = 0.
 published: 2021-12-07
 title: Divisibility Rules
 ---

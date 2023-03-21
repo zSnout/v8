@@ -1,9 +1,11 @@
 ---
 category: math
+description: Proof that 1 + 2 + 3 + 4 ... = -1/12.
 excerpt:
   Did you know that the sum of all whole numbers is equal to -1/12? In this
   article we find out how it's possible and prove it ourselves using simple
   algebra and math!
+imageAlt: "adding all numbers ... gives -1/12? 1 + 2 + 3 + 4 ... = -1/12."
 published: 2021-12-08
 title: Infinity is -1/12
 ---

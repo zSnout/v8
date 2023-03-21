@@ -1,11 +1,17 @@
 ---
 category: math
+description: Extending Pascal's triangle beyond its starting point.
 excerpt:
   "Have you heard of Pascal's Triangle? If so, you'll know that it can only be
   extended in a single direction: downward. However, we can use pyramids,
   factorials, and limits to extend Pascal's Triangle in the opposite direction.
   If you haven't heard of Pascal's Triangle, you might enjoy this article
   anyway, and you'll definitely learn something new."
+imageAlt:
+  "The top four rows of Pascal's triangle surrounded by question marks
+  indicating spots that don't yet have a known value. Two of the question marks
+  have arrows pointing to them. One of the arrows says 'what goes here?' while
+  the other says 'or here?'"
 published: 2022-11-21
 title: Extending Pascal's Triangle
 ---

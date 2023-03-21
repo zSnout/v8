@@ -1,9 +1,14 @@
 ---
 category: math
+description: Guess the missing digit of a friend's number.
 excerpt:
   Have you ever wanted to convince your friend that you have psychic powers? In
   this article you'll learn how to use amazing mathematical principles to help
   you on your noble quest.
+imageAlt:
+  "Two people having a conversation. One says 'think of a number.' The other
+  responds with 'its digits are 1, 5, and something else.' The first one asks
+  'is the last digit 3?' The other person exclaims 'yes! wow.'"
 published: 2022-04-03
 title: Mathemagical Tricks
 ---

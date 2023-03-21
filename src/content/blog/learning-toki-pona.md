@@ -1,9 +1,19 @@
 ---
 category: language
+description: My experience learning the 137-word language "toki pona."
 excerpt:
-  Recently, I've been learning a minimalistic language known as toki pona. Today
-  we'll explore my journey in learning toki pona and how you can learn it for
-  yourself.
+  "Recently, I've been learning a minimalistic language known as toki pona.
+  Today we'll explore my journey in learning toki pona and how you can learn it
+  for yourself."
+imageAlt:
+  "A text heading saying 'a language with only 137 words? toki ni: ona li jo e
+  nimi lili?' Below it (from left to right) are: the toki pona logo, a yellow
+  circle with a blue outline, three blue chicken scratches above it, and a blue
+  semicircle as a smile; four symbols in 'sitelen pona', saying 'pilin ike',
+  'telo lete', 'kala lili', and 'toki pona;' and a huge document in sitelen
+  sitelen, saying 'mi lili. mi suli. mi tan pi lon sina. jan lanpan e mi. jan jo
+  e mi. taso mi awen lon ma wan. mi ken e ni: mi pona tawa sina; mi ike tawa
+  sina. seme li mi?'"
 published: 2022-10-17
 title: Learning toki pona
 ---

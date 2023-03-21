@@ -1,7 +1,7 @@
 import { createMemo, createSignal } from "solid-js"
 import { AutoResizeTextarea } from "@/components/fields/AutoResizeTextarea"
 import { LabeledCheckbox } from "@/components/fields/Checkbox"
-import { Separator } from "@/layouts/Separator"
+import { Separator } from "@/components/Separator"
 
 const isNonSeparator = /[\p{L}\p{N}]/u
 

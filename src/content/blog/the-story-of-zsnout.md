@@ -1,8 +1,13 @@
 ---
 category: meta
+description: A deep dive into the early years of zSnout.
 excerpt:
   Have you ever wondered how zSnout began? Let's hear the story together and
   take a deep dive into the early years of zSnout.
+imageAlt:
+  "The Python, Express, Hostinger, VSCode, Khan Academy, NodeJS, PHP, MySQL,
+  Vue, and TypeScript icons, all with gray arrows pointing to a giant zSnout
+  icon."
 published: 2022-03-02
 title: The Story of zSnout
 updated: 2022-09-07
@@ -134,7 +139,7 @@ The other huge issue I had was that the site was too tightly coupled together. I
 wanted zSnout to work seamlessly without needing complex dependency structures.
 The best solution for that was to make it modular. I had my choice of several
 different libraries offering these capabilities, but decided to make my own
-system by separating the code into seperate NPM packages.
+system by separating the code into separate NPM packages.
 
 As you may expect, trying to do that without solving common problems or putting
 much thought into the system didn't work out well for me. In fact, I probably

@@ -1,9 +1,18 @@
 ---
-import { Heading } from "../components/Heading"
-import DocumentLayout from "../layouts/DocumentLayout.astro"
+import { Heading } from "@/components/Heading"
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import openGraphImage from "./open-graph.jpg"
 ---
 
-<DocumentLayout title="zSnout">
+<DocumentLayout
+  description="A website with many unrelated yet fun projects."
+  title="zSnout"
+  og={{
+    image: openGraphImage,
+    imageAlt: "favicon",
+    title: "zSnout",
+  }}
+>
   {
     Array(1000)
       .fill(0)

@@ -1,9 +1,13 @@
 ---
 category: math
+description: How to prove that 0 equals 1.
 excerpt:
   The "0 = 1" paradox states that the numbers 0 and 1 are equivalent. We can
   easily prove this. Once done, we'll show you how you can use this to prove
   that any two numbers are equivalent!
+imageAlt:
+  "1 - 1 + 1 - 1 ... = (1-1) + (1-1) ... = 0. 1 - 1 + 1 - 1 + 1 ... = 1+(-1+1) +
+  (-1+1) ... = 1. same series ... different results?!"
 published: 2021-12-08
 title: Does Zero Equal One?
 ---

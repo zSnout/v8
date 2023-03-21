@@ -1,6 +1,6 @@
 import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons"
 import { Show } from "solid-js"
-import { isDark, toggleIsDark } from "../../stores/theme"
+import { isDark, toggleIsDark } from "@/stores/theme"
 import { Fa } from "../Fa"
 
 export function ThemeSwitcher() {

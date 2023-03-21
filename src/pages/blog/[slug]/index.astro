@@ -18,9 +18,32 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props
 const { Content, headings } = await entry.render()
+
+const openGraphImage = (
+  await import(
+    `../../../assets/blog/${
+      entry.id.endsWith(".mdx") ? entry.id.slice(0, -4) : entry.id.slice(0, -3)
+    }.jpg`
+  )
+).default
 ---
 
-<ProseLayout headings={headings} title={`${entry.data.title} | zSnout Blog`}>
+<ProseLayout
+  description={entry.data.description}
+  headings={headings}
+  title={`${entry.data.title} | zSnout Blog`}
+  og={{
+    title: entry.data.title,
+    image: openGraphImage,
+    imageAlt: entry.data.imageAlt,
+    article: {
+      authors: [entry.data.author],
+      publishedTime: entry.data.published,
+      tags: [entry.data.category],
+      modifiedTime: entry.data.updated,
+    },
+  }}
+>
   <h1>{entry.data.title}</h1>
 
   <Content />

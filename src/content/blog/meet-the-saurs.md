@@ -1,9 +1,14 @@
 ---
 category: saurs
+description: Short stories about a fictional species known as the Saurs.
 excerpt:
   Throughout my childhood, I've come up with many stories about a group of
   characters known as the Saurs. I'd like to share some of these stories with
   you so we can laugh about them together.
+imageAlt:
+  "Text splattered across the image saying 'Funny Stories,' 'XR: Extended
+  Reality,' 'Opposition Law,' 'Tessie the Robot,' 'SaurAirs,' 'Resurrection,'
+  and 'Duplicating the world.'"
 published: 2022-09-08
 title: Meet the Saurs
 ---

@@ -4,7 +4,24 @@ import "./index.postcss"
 export interface Props {
   children: any
   title: string
+  description: string
+  noIndex?: boolean
+  og: {
+    article?: {
+      publishedTime: Date
+      modifiedTime?: Date
+      authors: readonly string[]
+      tags: readonly string[]
+    }
+
+    title: string
+    image: string
+    imageAlt: string
+  }
 }
+
+const { og } = Astro.props
+const { article } = og
 ---
 
 <!DOCTYPE html>
@@ -13,7 +30,40 @@ export interface Props {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="canonical" href={Astro.url.href} />
     <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={Astro.props.description} />
+    {Astro.props.noIndex && <meta name="robots" content="noindex" />}
+    <meta property="og:title" content={og.title} />
+    <meta property="og:type" content={article ? "article" : "website"} />
+    <meta property="og:image" content={og.image} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content={Astro.url.href} />
+    {
+      article ? (
+        <>
+          <meta
+            property="article:published_time"
+            content={article.publishedTime?.toISOString()}
+          />
+        </>
+      ) : null
+    }
+    {
+      article?.modifiedTime ? (
+        <meta
+          property="article:modified_time"
+          content={article.modifiedTime?.toISOString()}
+        />
+      ) : null
+    }
+    {
+      article?.authors.map((author) => (
+        <meta property="article:author" content={author} />
+      ))
+    }
+    {article?.tags.map((tag) => <meta property="article:tag" content={tag} />)}
     <title>{Astro.props.title}</title>
   </head>
 
@@ -44,8 +94,8 @@ export interface Props {
 </script>
 
 <script>
+  import { isDark } from "@/stores/theme"
   import { createEffect } from "solid-js"
-  import { isDark } from "../stores/theme"
 
   if (typeof document != "undefined") {
     const list = document.documentElement.classList

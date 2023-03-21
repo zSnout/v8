@@ -1,9 +1,14 @@
 ---
 category: math
+description: Force people to think of certain numbers with math tricks.
 excerpt:
   Did you know that using math we can force people to think of certain numbers?
   We can use 9, 1089, or any other number you can think of using the simple
   tricks described below.
+imageAlt:
+  "Two people having a conversation. One says 'pick a number. then do math.' The
+  other responds with 'ok.' The first one says 'it's probably 6.' The other
+  person exclaims 'wow! that's cool.'"
 published: 2021-12-07
 title: Make People Think of Numbers
 ---

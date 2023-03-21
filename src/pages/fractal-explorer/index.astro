@@ -1,0 +1,17 @@
+---
+import FullscreenLayout from "@/layouts/FullscreenLayout.astro"
+import { Index } from "."
+import openGraphImage from "./open-graph.png"
+---
+
+<FullscreenLayout
+  title="Fractal Explorer"
+  description="Explore fractals with custom equations and color palettes."
+  og={{
+    image: openGraphImage,
+    imageAlt: "A multicolored zoom of the Mandelbrot Set.",
+    title: "Fractal Explorer",
+  }}
+>
+  <Index client:load />
+</FullscreenLayout>
