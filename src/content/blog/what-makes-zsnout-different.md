@@ -35,7 +35,7 @@ be fun to have a website where I could present my code to other people.
 ## A Different Theming System
 
 Another reason I notice that zSnout's different is in our theming system. Most
-sites I've seen either use a white theme with an accent color or have a seperate
+sites I've seen either use a white theme with an accent color or have a separate
 theme for when the user's in dark mode. On zSnout, we default you to using the
 dark theme and allow you to choose which theme you want. Additionally, our
 "dark" theme is mostly aqua because it's my favorite color and I like to feature
