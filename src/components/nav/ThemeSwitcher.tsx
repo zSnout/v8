@@ -7,12 +7,12 @@ export function ThemeSwitcher() {
   return (
     <button
       aria-checked={isDark()}
-      class="group pointer-events-auto relative z-20 flex h-[1.375rem] w-10 items-center rounded-full border border-transparent bg-z-theme-switcher bg-clip-padding ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring"
+      class="group pointer-events-auto relative z-20 flex h-5 w-10 items-center rounded-full border border-slate-200 bg-z-theme-switcher bg-clip-padding ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring dark:border-z-bg-theme-switcher"
       onClick={toggleIsDark}
       role="switch"
     >
       <div
-        class="relative flex h-5 w-5 items-center justify-center rounded-full outline outline-1 outline-z transition-all icon-stroke-z group-focus-visible:outline-z-focus"
+        class="relative flex h-5 w-5 items-center justify-center rounded-full bg-z-theme-switcher outline outline-1 outline-z transition-all icon-stroke-z group-focus-visible:outline-z-focus"
         classList={{
           "left-0": !isDark(),
           "left-[1.125rem]": isDark(),
