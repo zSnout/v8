@@ -32,7 +32,7 @@ export function Checkbox(props: CheckboxProps) {
         data-z-interactive
       >
         <Fa
-          class="h-4 w-4 opacity-10 icon-stroke-z [.peer\/checkbox:checked~*>&]:opacity-100"
+          class="h-4 w-4 opacity-0 icon-stroke-z [.peer\/checkbox:checked~*>&]:opacity-100"
           icon={faCheck}
           title="Checkbox"
         />

@@ -7,7 +7,7 @@ export function ThemeSwitcher() {
   return (
     <button
       aria-checked={isDark()}
-      class="group pointer-events-auto relative z-20 flex h-[1.375rem] w-10 items-center rounded-full border border-transparent bg-z-field bg-clip-padding ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring"
+      class="group pointer-events-auto relative z-20 flex h-[1.375rem] w-10 items-center rounded-full border border-transparent bg-z-theme-switcher bg-clip-padding ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring"
       onClick={toggleIsDark}
       role="switch"
     >

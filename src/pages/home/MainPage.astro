@@ -7,22 +7,27 @@ export interface Props {
   date: Date
   imageAlt: string
   imageSrc: string
+  invertOnLight: boolean
   subtitle: string
   title: string
   href: string
 }
 ---
 
-<div class="flex w-full max-w-2xl">
+<div class="flex w-full lg:max-w-2xl">
   <div class="flex h-full w-full flex-1 flex-col">
     <a
-      class="w-full overflow-clip rounded-lg shadow aspect-open-graph"
+      class="w-full overflow-clip rounded-lg aspect-open-graph"
       draggable="false"
       href={Astro.props.href}
     >
       <img
         alt={Astro.props.imageAlt}
         class="object-contain transition duration-300 hover:scale-105"
+        class:list={{
+          invert: Astro.props.invertOnLight,
+          "dark:invert-0": Astro.props.invertOnLight,
+        }}
         draggable="false"
         src={Astro.props.imageSrc}
         width="1200"
@@ -55,7 +60,7 @@ export interface Props {
     </div>
 
     <a
-      class="mt-3 font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link lg:text-4xl"
+      class="mt-3 text-3xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link md:text-4xl"
       href={Astro.props.href}
     >
       {Astro.props.title}

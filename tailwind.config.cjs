@@ -11,6 +11,7 @@ module.exports = {
         "z-bg-body": "var(--z-bg-body)",
         "z-bg-body-partial": "var(--z-bg-body-partial)",
         "z-bg-field": "var(--z-bg-field)",
+        "z-bg-theme-switcher": "var(--z-bg-theme-switcher)",
 
         "z-border": "var(--z-border)",
         "z-border-focus": "var(--z-border-focus)",
@@ -35,6 +36,7 @@ module.exports = {
         "z-body": "var(--z-bg-body)",
         "z-body-partial": "var(--z-bg-body-partial)",
         "z-field": "var(--z-bg-field)",
+        "z-theme-switcher": "var(--z-bg-theme-switcher)",
       },
       borderColor: {
         z: "var(--z-border)",

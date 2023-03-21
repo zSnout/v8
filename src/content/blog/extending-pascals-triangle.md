@@ -1130,7 +1130,7 @@ $$
 Then, we find the total area under the curve for any positive value of $t$.
 Here's a picture of the curve for $x = 4$.
 
-![A graph of the function above](/extending-pascals-triangle/_extended-factorial-4.webp "A graph of the function described above. Notice how at first, the function flies upward, but it drops significantly after the peak at t = 4.")
+![A graph of the function above](/extending-pascals-triangle/extended-factorial-4.webp "A graph of the function described above. Notice how at first, the function flies upward, but it drops significantly after the peak at t = 4.")
 
 Almost magically, for a nonnegative value of $x$, the integral above spits out
 the value of $x!$. And it doesn't stop there. This new definition of $x!$ has
@@ -1147,9 +1147,9 @@ First, I need to explain _why_ the gamma function doesn't work on negative
 integers. I'll start by including two graphs of the function inside the integral
 for $x = -0.5$ and $x = -1$.
 
-![A graph of the function described above at x = 0.5](/extending-pascals-triangle/_extended-factorial-0.5.webp "A graph of the integral for x = 0.5.")
+![A graph of the function described above at x = 0.5](/extending-pascals-triangle/extended-factorial-0.5.webp "A graph of the integral for x = 0.5.")
 
-![A graph of the function described above at x = 1](/extending-pascals-triangle/_extended-factorial-1.webp "A graph of the integral for x = 1.")
+![A graph of the function described above at x = 1](/extending-pascals-triangle/extended-factorial-1.webp "A graph of the integral for x = 1.")
 
 Notice how in the picture where $x = -0.5$, the top and right parts of the
 function taper to almost nothing, and the only area is in the bottom left. In
@@ -1160,7 +1160,7 @@ However, when $x = -1$, the function has a solid chunk of area on the top-left
 section, preventing its area from converging on a specific value. In fact, why
 don't we just plot this new factorial as a graph?
 
-![The gamma function plotted in Desmos](/extending-pascals-triangle/_gamma-function.webp)
+![The gamma function plotted in Desmos](/extending-pascals-triangle/gamma-function.webp)
 
 Notice how in the graph, there are reasonable values for the function at any
 decimal number, but their signs alternate. For a value of $x$ where
@@ -1229,7 +1229,7 @@ $$
 We seem to have run into an issue; we're trying to divide by $0$, which is
 forbidden. Let's look at the graph of this function and see where we went wrong.
 
-![The graph of f of x equals x squared minus x minus 6](/extending-pascals-triangle/_rational-function.webp)
+![The graph of f of x equals x squared minus x minus 6](/extending-pascals-triangle/rational-function.webp)
 
 Hmm. It looks like our function is a line! Let's try factoring it.
 
@@ -1305,15 +1305,15 @@ Another is to graph what you're limiting.
 Let's do the second option. I'll plug the limit into Desmos as a function of
 $x$. Here's the plot.
 
-![The function described above](/extending-pascals-triangle/_limit-normal.webp)
+![The function described above](/extending-pascals-triangle/limit-normal.webp)
 
 Let's zoom in a bit.
 
-![The same function, zoomed in](/extending-pascals-triangle/_limit-zoomed-in.webp)
+![The same function, zoomed in](/extending-pascals-triangle/limit-zoomed-in.webp)
 
 Let's zoom in on the limit, where the curve approaches a straight line.
 
-![The same function, zoomed in](/extending-pascals-triangle/_limit-limit.webp)
+![The same function, zoomed in](/extending-pascals-triangle/limit-limit.webp)
 
 It looks like we get $y = 0.5$, which is exactly what we predicted! In fact, we
 can get any other value in Pascal's Triangle just by taking different limits.
