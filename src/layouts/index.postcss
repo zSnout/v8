@@ -5,49 +5,53 @@
 @layer components {
   .field {
     @apply resize-none rounded-lg border border-z bg-z-field px-3 py-2 text-z shadow ring-z-focus transition;
-  }
 
-  .field:where(input[type="range"]) {
-    @apply relative w-full appearance-none rounded-full bg-transparent p-0;
+    &:where(input[type="range"]) {
+      @apply relative w-full appearance-none rounded-full bg-transparent p-0;
 
-    &::before {
-      @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-pre font-mono text-xs font-light lowercase text-z transition content-[var(--label)];
-      line-height: 1rem;
+      &::before {
+        @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-pre font-mono text-xs font-light lowercase text-z transition content-[var(--label)];
+        line-height: 1rem;
+      }
+
+      &::-webkit-slider-runnable-track {
+        @apply h-4 w-full cursor-pointer rounded-full bg-z-body transition;
+      }
+
+      &::-moz-range-track {
+        @apply h-4 w-full cursor-pointer rounded-full bg-z-body transition;
+      }
+
+      &::-webkit-slider-thumb {
+        @apply relative z-10 -mt-1 h-6 w-6 cursor-pointer appearance-none rounded-full border border-solid border-z bg-z-body-partial shadow ring-z-focus transition;
+      }
+
+      &::-moz-range-thumb {
+        @apply relative z-10 -mt-1 h-6 w-6 cursor-pointer appearance-none rounded-full border border-solid border-z bg-z-body-partial shadow ring-z-focus transition;
+      }
+
+      &:focus-visible {
+        &::-webkit-slider-thumb {
+          @apply border-z-focus ring;
+        }
+      }
     }
 
-    &::-webkit-slider-runnable-track {
-      @apply h-4 w-full cursor-pointer rounded-full bg-z-body transition;
+    &:where(textarea) {
+      @apply resize-y;
     }
 
-    &::-moz-range-track {
-      @apply h-4 w-full cursor-pointer rounded-full bg-z-body transition;
-    }
-
-    &::-webkit-slider-thumb {
-      @apply relative z-10 -mt-1 h-6 w-6 cursor-pointer appearance-none rounded-full border border-solid border-z bg-z-body-partial shadow ring-z-focus transition;
-    }
-
-    &::-moz-range-thumb {
-      @apply relative z-10 -mt-1 h-6 w-6 cursor-pointer appearance-none rounded-full border border-solid border-z bg-z-body-partial shadow ring-z-focus transition;
+    &:where(button:not([disabled])):active {
+      @apply translate-y-px;
     }
 
     &:focus-visible {
-      &::-webkit-slider-thumb {
-        @apply border-z-focus ring;
-      }
+      @apply border-z-focus outline-none ring;
     }
-  }
 
-  .field:where(textarea) {
-    @apply resize-y;
-  }
-
-  .field:where(button:not([disabled])):active {
-    @apply translate-y-px;
-  }
-
-  .field:focus-visible {
-    @apply border-z-focus outline-none ring;
+    &::placeholder {
+      @apply text-z-subtitle;
+    }
   }
 }
 

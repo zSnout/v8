@@ -1,5 +1,22 @@
 ---
-import Index from "./home/_index.astro"
+import PaddedLayout from "@/layouts/PaddedLayout.astro"
+import { Index } from "./_home/Index"
+import openGraphImage from "./_home/open-graph.jpg"
 ---
 
-<Index />
+<PaddedLayout
+  maxWidth="max-w-6xl"
+  description="A website with many unrelated yet fun projects."
+  title="zSnout"
+  og={{
+    imageSrc: openGraphImage,
+    imageAlt: "A combination of thumbnails for various pages on zSnout.",
+    title: "zSnout",
+  }}
+>
+  <div
+    class="mx-auto flex w-[72rem] max-w-full flex-1 flex-col py-2 text-z transition md:px-4 md:py-6"
+  >
+    <Index client:load />
+  </div>
+</PaddedLayout>

@@ -35,7 +35,7 @@ const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
             "before:bg-purple-300": entry.data.category == "language",
             "before:bg-orange-300": entry.data.category == "math",
             "before:bg-pink-300": entry.data.category == "meta",
-            "before:bg-green-300": entry.data.category == "saurs",
+            "before:bg-green-300": entry.data.category == "stories",
           }}
         >
           <a class="relative no-underline" href={`/blog/${entry.slug}`}>

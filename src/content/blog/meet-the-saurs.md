@@ -1,5 +1,5 @@
 ---
-category: saurs
+category: stories
 description: Short stories about a fictional species known as the Saurs.
 excerpt:
   Throughout my childhood, I've come up with many stories about a group of

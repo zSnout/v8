@@ -1,0 +1,134 @@
+import { Fa } from "@/components/Fa"
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { search } from "fast-fuzzy"
+import { createMemo, createSignal, Show } from "solid-js"
+import { BlogCard } from "./cards/BlogCard"
+import { MegaCard } from "./cards/MegaCard"
+import { SideCard } from "./cards/SideCard"
+import { LatestBlogArticle } from "./LatestBlogArticle"
+import { Page, pages } from "./pages"
+import { SidePageSeparator } from "./SidePageSeparator"
+
+const allPages = pages.slice()
+
+const page1 = allPages.at(-1)!
+const page2 = allPages.at(-2)!
+const page3 = allPages.at(-3)!
+
+export function UnsearchedView() {
+  return (
+    <>
+      <div class="flex flex-col gap-12 lg:flex-row">
+        <LatestBlogArticle />
+
+        <div class="flex flex-col">
+          <SideCard {...page1} />
+          <SidePageSeparator />
+          <SideCard {...page2} />
+          <SidePageSeparator />
+          <SideCard {...page3} />
+        </div>
+      </div>
+
+      <div class="mt-16 flex items-baseline border-t-4 border-b border-t-z-text-heading border-b-z py-2 transition">
+        <p class="text-xl font-bold text-z-heading transition">Latest Posts</p>
+
+        <a
+          class="ml-auto flex items-center whitespace-pre text-z-link underline decoration-transparent transition hover:decoration-current"
+          href="/blog"
+        >
+          All Posts
+          <Fa
+            class="ml-2 h-3 w-3 icon-stroke-z-text-link"
+            icon={faChevronRight}
+            title="Right arrow"
+          />
+        </a>
+      </div>
+
+      <div class="mt-4 flex gap-8">
+        <BlogCard page={allPages[1]!} />
+        <BlogCard page={allPages[2]!} />
+        <BlogCard page={allPages[3]!} />
+        <BlogCard page={allPages[4]!} />
+      </div>
+    </>
+  )
+}
+
+export function SearchedView(props: { pages: readonly Page[] }) {
+  return (
+    <div
+      class="flex flex-col gap-12 lg:flex-row"
+      classList={{
+        "flex-1": props.pages.length == 0,
+        "h-full": props.pages.length == 0,
+      }}
+    >
+      <Show
+        fallback={
+          <div class="m-auto flex flex-col gap-4 text-center">
+            <p class="text-2xl font-bold text-z-heading">
+              Looks like there aren't any results!
+            </p>
+
+            <p class="text-lg">Try adjusting your query.</p>
+          </div>
+        }
+        when={props.pages[0]!}
+      >
+        <MegaCard {...props.pages[0]!} />
+      </Show>
+
+      <div class="flex flex-col">
+        <Show when={props.pages[1]}>
+          <SideCard {...props.pages[1]!} />
+        </Show>
+
+        <Show when={props.pages[2]}>
+          <SidePageSeparator />
+
+          <SideCard {...props.pages[2]!} />
+        </Show>
+
+        <Show when={props.pages[3]}>
+          <SidePageSeparator />
+
+          <SideCard {...props.pages[3]!} />
+        </Show>
+      </div>
+    </div>
+  )
+}
+
+export function Index() {
+  const [query, setQuery] = createSignal("")
+
+  const filtered = createMemo(() =>
+    search(query(), allPages, {
+      ignoreCase: true,
+      ignoreSymbols: true,
+      keySelector(page) {
+        return [page.title, page.shortSubtitle]
+      },
+      normalizeWhitespace: true,
+    }),
+  )
+
+  return (
+    <>
+      <div class="mx-auto mb-11 w-[30rem] max-w-full">
+        <input
+          class="field h-12 w-full border-transparent bg-slate-100 text-center shadow-none dark:bg-slate-800"
+          placeholder="Search..."
+          value={query()}
+          onInput={(event) => setQuery(event.currentTarget.value)}
+        />
+      </div>
+
+      <Show fallback={<UnsearchedView />} when={query()}>
+        <SearchedView pages={filtered()} />
+      </Show>
+    </>
+  )
+}
