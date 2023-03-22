@@ -1,8 +1,9 @@
 import { Fa } from "@/components/Fa"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
-import { createMemo, createSignal, Show } from "solid-js"
+import { createMemo, createSignal, JSX, Show } from "solid-js"
 import { BlogCard } from "./cards/BlogCard"
+import { CompactCard } from "./cards/CompactCard"
 import { MegaCard } from "./cards/MegaCard"
 import { SideCard } from "./cards/SideCard"
 import { LatestBlogArticle } from "./LatestBlogArticle"
@@ -15,7 +16,65 @@ const page1 = allPages.at(-1)!
 const page2 = allPages.at(-2)!
 const page3 = allPages.at(-3)!
 
-export function UnsearchedView() {
+function SectionHeader(props: { title: string; allItems?: JSX.Element }) {
+  return (
+    <div class="mt-16 flex items-center border-t-4 border-b border-t-z-text-heading border-b-z py-2 transition">
+      <p class="text-xl font-bold text-z-heading transition">{props.title}</p>
+
+      {props.allItems}
+    </div>
+  )
+}
+
+function BlogSection() {
+  return (
+    <>
+      <SectionHeader
+        title="Latest Posts"
+        allItems={
+          <a
+            class="ml-auto flex items-center whitespace-pre text-z-link underline decoration-transparent transition hover:decoration-current"
+            href="/blog"
+          >
+            All Posts
+            <Fa
+              class="ml-2 h-3 w-3 icon-stroke-z-text-link"
+              icon={faChevronRight}
+              title="Right arrow"
+            />
+          </a>
+        }
+      />
+
+      <div class="mt-4 flex flex-col gap-8 sm:flex-row">
+        <BlogCard class="flex" page={allPages[1]!} />
+        <BlogCard class="flex" page={allPages[2]!} />
+        <BlogCard class="hidden md:flex" page={allPages[3]!} />
+        <BlogCard class="hidden lg:flex" page={allPages[4]!} />
+      </div>
+    </>
+  )
+}
+
+function AllPagesSection() {
+  return (
+    <>
+      <SectionHeader title="All Pages" />
+
+      <div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        {pages
+          .filter((x) => x.category != "blog")
+          .slice(3)
+          .sort((a, b) => (a.title < b.title ? -1 : 1))
+          .map((page) => (
+            <CompactCard page={page} />
+          ))}
+      </div>
+    </>
+  )
+}
+
+function UnsearchedView() {
   return (
     <>
       <div class="flex flex-col gap-12 lg:flex-row">
@@ -30,74 +89,67 @@ export function UnsearchedView() {
         </div>
       </div>
 
-      <div class="mt-16 flex items-baseline border-t-4 border-b border-t-z-text-heading border-b-z py-2 transition">
-        <p class="text-xl font-bold text-z-heading transition">Latest Posts</p>
+      <BlogSection />
 
-        <a
-          class="ml-auto flex items-center whitespace-pre text-z-link underline decoration-transparent transition hover:decoration-current"
-          href="/blog"
-        >
-          All Posts
-          <Fa
-            class="ml-2 h-3 w-3 icon-stroke-z-text-link"
-            icon={faChevronRight}
-            title="Right arrow"
-          />
-        </a>
-      </div>
-
-      <div class="mt-4 flex gap-8">
-        <BlogCard page={allPages[1]!} />
-        <BlogCard page={allPages[2]!} />
-        <BlogCard page={allPages[3]!} />
-        <BlogCard page={allPages[4]!} />
-      </div>
+      <AllPagesSection />
     </>
   )
 }
 
-export function SearchedView(props: { pages: readonly Page[] }) {
+function SearchedView(props: { pages: readonly Page[] }) {
   return (
-    <div
-      class="flex flex-col gap-12 lg:flex-row"
-      classList={{
-        "flex-1": props.pages.length == 0,
-        "h-full": props.pages.length == 0,
-      }}
-    >
-      <Show
-        fallback={
-          <div class="m-auto flex flex-col gap-4 text-center">
-            <p class="text-2xl font-bold text-z-heading">
-              Looks like there aren't any results!
-            </p>
-
-            <p class="text-lg">Try adjusting your query.</p>
-          </div>
-        }
-        when={props.pages[0]!}
+    <>
+      <div
+        class="flex flex-col gap-12 lg:flex-row"
+        classList={{
+          "flex-1": props.pages.length == 0,
+          "h-full": props.pages.length == 0,
+        }}
       >
-        <MegaCard {...props.pages[0]!} />
-      </Show>
+        <Show
+          fallback={
+            <div class="m-auto flex flex-col gap-4 text-center">
+              <p class="text-2xl font-bold text-z-heading">
+                Looks like there aren't any results!
+              </p>
 
-      <div class="flex flex-col">
-        <Show when={props.pages[1]}>
-          <SideCard {...props.pages[1]!} />
+              <p class="text-lg">Try adjusting your query.</p>
+            </div>
+          }
+          when={props.pages[0]!}
+        >
+          <MegaCard {...props.pages[0]!} />
         </Show>
 
-        <Show when={props.pages[2]}>
-          <SidePageSeparator />
+        <div class="flex flex-col">
+          <Show when={props.pages[1]}>
+            <SideCard {...props.pages[1]!} />
+          </Show>
 
-          <SideCard {...props.pages[2]!} />
-        </Show>
+          <Show when={props.pages[2]}>
+            <SidePageSeparator />
 
-        <Show when={props.pages[3]}>
-          <SidePageSeparator />
+            <SideCard {...props.pages[2]!} />
+          </Show>
 
-          <SideCard {...props.pages[3]!} />
-        </Show>
+          <Show when={props.pages[3]}>
+            <SidePageSeparator />
+
+            <SideCard {...props.pages[3]!} />
+          </Show>
+        </div>
       </div>
-    </div>
+
+      <Show when={props.pages.length > 4}>
+        <SectionHeader title="More Results" />
+
+        <div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {pages.slice(4).map((page) => (
+            <CompactCard page={page} />
+          ))}
+        </div>
+      </Show>
+    </>
   )
 }
 
@@ -117,10 +169,10 @@ export function Index() {
 
   return (
     <>
-      <div class="mx-auto mb-11 w-[30rem] max-w-full">
+      <div class="mx-auto mb-11 w-[30rem] max-w-full md:fixed md:top-2 md:left-1/2 md:z-20 md:w-[20rem] md:-translate-x-1/2">
         <input
-          class="field h-12 w-full border-transparent bg-slate-100 text-center shadow-none dark:bg-slate-800"
-          placeholder="Search..."
+          class="field h-12 w-full border-transparent bg-slate-100 text-center shadow-none dark:bg-slate-800 md:h-8 md:py-0 md:px-3"
+          placeholder="Search zSnout..."
           value={query()}
           onInput={(event) => setQuery(event.currentTarget.value)}
         />

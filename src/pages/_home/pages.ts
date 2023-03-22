@@ -31,7 +31,7 @@ export interface Page {
   imageAlt: string
 }
 
-export const nonBlogPages: readonly Page[] = [
+const nonBlogPages: readonly Page[] = [
   {
     title: "Fractal Explorer",
     href: "/fractal-explorer",
@@ -76,7 +76,7 @@ export const nonBlogPages: readonly Page[] = [
   },
 ]
 
-export const blogPages: readonly Page[] = await Promise.all(
+const blogPages: readonly Page[] = await Promise.all(
   (
     await getCollection("blog", (entry) => !entry.data.draft)
   )

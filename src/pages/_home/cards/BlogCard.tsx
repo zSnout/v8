@@ -1,9 +1,9 @@
 import { BlueGreenText } from "../BlueGreenText"
 import type { Page } from "../pages"
 
-export function BlogCard(props: { page: Page }) {
+export function BlogCard(props: { class: string; page: Page }) {
   return (
-    <div class="flex w-64 max-w-full flex-col">
+    <div class={"w-full flex-col " + props.class}>
       <BlueGreenText name={props.page.tags[0]} />
 
       <p class="mt-1 text-xl font-bold text-z-heading">{props.page.title}</p>
