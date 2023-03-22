@@ -1,3 +1,4 @@
+import { createEventListener } from "@/components/create-event-listener"
 import { Fa } from "@/components/Fa"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
@@ -116,7 +117,7 @@ function SearchedView(props: { pages: readonly Page[] }) {
               <p class="text-lg">Try adjusting your query.</p>
             </div>
           }
-          when={props.pages[0]!}
+          when={props.pages[0]}
         >
           <MegaCard {...props.pages[0]!} />
         </Show>
@@ -156,16 +157,34 @@ function SearchedView(props: { pages: readonly Page[] }) {
 export function Index() {
   const [query, setQuery] = createSignal("")
 
-  const filtered = createMemo(() =>
-    search(query(), allPages, {
-      ignoreCase: true,
-      ignoreSymbols: true,
-      keySelector(page) {
-        return [page.title, page.shortSubtitle]
-      },
-      normalizeWhitespace: true,
-    }),
-  )
+  const filtered = createMemo(() => [
+    ...new Set([
+      ...search(query(), allPages, {
+        ignoreCase: true,
+        ignoreSymbols: true,
+        keySelector(page) {
+          return page.title
+        },
+        normalizeWhitespace: true,
+      }),
+      ...search(query(), allPages, {
+        ignoreCase: true,
+        ignoreSymbols: true,
+        keySelector(page) {
+          return page.shortSubtitle
+        },
+        normalizeWhitespace: true,
+      }),
+      ...search(query(), allPages, {
+        ignoreCase: true,
+        ignoreSymbols: true,
+        keySelector(page) {
+          return page.longSubtitle
+        },
+        normalizeWhitespace: true,
+      }),
+    ]),
+  ])
 
   return (
     <>
@@ -175,6 +194,27 @@ export function Index() {
           placeholder="Search zSnout..."
           value={query()}
           onInput={(event) => setQuery(event.currentTarget.value)}
+          ref={(field) => {
+            console.log(field)
+
+            createEventListener(document, "keydown", (event) => {
+              if (
+                event.altKey ||
+                event.shiftKey ||
+                document.activeElement == field
+              ) {
+                return
+              }
+
+              if (
+                (event.key == "/" && !event.ctrlKey && !event.metaKey) ||
+                (event.key == "k" && event.ctrlKey !== event.metaKey)
+              ) {
+                field.focus()
+                event.preventDefault()
+              }
+            })
+          }}
         />
       </div>
 

@@ -3,7 +3,7 @@ import { onCleanup } from "solid-js"
 export function createEventListener<K extends keyof DocumentEventMap>(
   target: Document,
   name: K,
-  callback: (event: DocumentEventMap[K] & { currentTarget: Window }) => void,
+  callback: (event: DocumentEventMap[K] & { currentTarget: Document }) => void,
   options?: AddEventListenerOptions,
 ): void
 

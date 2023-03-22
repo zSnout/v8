@@ -31,23 +31,28 @@ export function MegaCard(props: {
         />
       </a>
 
-      <div class="mt-6 flex w-full items-baseline">
-        <Show when={props.category}>
-          <BlueGreenText href={props.categoryHref} name={props.category!} />
-        </Show>
+      <Show when={props.category || props.published}>
+        <div class="mt-6 mb-3 flex w-full items-baseline">
+          <Show when={props.category}>
+            <BlueGreenText href={props.categoryHref} name={props.category!} />
+          </Show>
 
-        <Show when={props.published}>
-          <time
-            class="ml-auto font-mono text-sm text-z-subtitle transition"
-            datetime={props.published?.toISOString()}
-          >
-            {props.published && toDateString(props.published)}
-          </time>
-        </Show>
-      </div>
+          <Show when={props.published}>
+            <time
+              class="ml-auto font-mono text-sm text-z-subtitle transition"
+              datetime={props.published?.toISOString()}
+            >
+              {props.published && toDateString(props.published)}
+            </time>
+          </Show>
+        </div>
+      </Show>
 
       <a
-        class="mt-3 text-3xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link md:text-4xl"
+        class="text-3xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link md:text-4xl"
+        classList={{
+          "mt-6": !(props.category || props.published),
+        }}
         href={props.href}
       >
         {props.title}
