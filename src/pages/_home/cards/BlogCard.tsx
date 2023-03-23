@@ -14,7 +14,7 @@ export function BlogCard(props: { class: string; page: Page }) {
       </a>
 
       <p class="mt-2 text-sm text-z-subtitle transition [line-height:1.5]">
-        {props.page.longSubtitle}
+        {props.page.subtitle}
       </p>
     </div>
   )

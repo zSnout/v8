@@ -1,10 +1,6 @@
-export function SideCard(props: {
-  imageAlt: string
-  imageSrc: string
-  longSubtitle: string
-  title: string
-  href: string
-}) {
+import type { Page } from "../pages"
+
+export function SideCard(props: Page) {
   return (
     <div class="flex w-full gap-4 lg:max-w-md">
       <a
@@ -31,7 +27,7 @@ export function SideCard(props: {
         </a>
 
         <p class="mt-3 text-sm text-z-subtitle transition [line-height:1.5]">
-          {props.longSubtitle}
+          {props.subtitle}
         </p>
       </div>
     </div>

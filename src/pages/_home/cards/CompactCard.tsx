@@ -20,7 +20,7 @@ export function CompactCard(props: { page: Page }) {
       </a>
 
       <p class="mt-2 text-sm text-z-subtitle [line-height:1.5]">
-        {props.page.longSubtitle}
+        {props.page.subtitle}
       </p>
     </div>
   )

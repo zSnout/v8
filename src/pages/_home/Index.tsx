@@ -65,7 +65,7 @@ function AllPagesSection() {
       <div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {pages
           .filter((x) => x.category != "blog")
-          .slice(3)
+          .slice(0, -3)
           .sort((a, b) => (a.title < b.title ? -1 : 1))
           .map((page) => (
             <CompactCard page={page} />
@@ -171,15 +171,7 @@ export function Index() {
         ignoreCase: true,
         ignoreSymbols: true,
         keySelector(page) {
-          return page.shortSubtitle
-        },
-        normalizeWhitespace: true,
-      }),
-      ...search(query(), allPages, {
-        ignoreCase: true,
-        ignoreSymbols: true,
-        keySelector(page) {
-          return page.longSubtitle
+          return page.subtitle
         },
         normalizeWhitespace: true,
       }),

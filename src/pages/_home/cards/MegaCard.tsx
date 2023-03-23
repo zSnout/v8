@@ -1,19 +1,9 @@
 import { toDateString } from "@/components/to-date-string"
 import { Show } from "solid-js"
 import { BlueGreenText } from "../BlueGreenText"
+import type { Page } from "../pages"
 
-export function MegaCard(props: {
-  title: string
-  href: string
-  longSubtitle: string
-
-  published?: Date
-  category?: string
-  categoryHref?: string
-
-  imageSrc: string
-  imageAlt: string
-}) {
+export function MegaCard(props: Page) {
   return (
     <div class="flex w-full flex-col lg:max-w-2xl">
       <a
@@ -58,7 +48,7 @@ export function MegaCard(props: {
         {props.title}
       </a>
 
-      <p class="mt-3 text-z-subtitle transition">{props.longSubtitle}</p>
+      <p class="mt-3 text-z-subtitle transition">{props.subtitle}</p>
     </div>
   )
 }
