@@ -1,5 +1,6 @@
 import zsnoutSevenOpenGraph from "@/assets/zsnout-7.png"
 import { getCollection } from "astro:content"
+import fakeGradientOpenGraph from "../art/fake-gradient/open-graph.png"
 import debugMathToGLSLOpenGraph from "../debug/math-to-glsl/open-graph.png"
 import deduplicateTextOpenGraph from "../deduplicate-text/open-graph.jpg"
 import fractalExplorerOpenGraph from "../fractal-explorer/open-graph.png"
@@ -46,15 +47,29 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
-    title: "Fractal Explorer",
-    href: "/fractal-explorer",
+    title: "Debug: Math to GLSL",
+    href: "/debug/math-to-glsl",
     subtitle:
-      "Explore beautiful mathematical fractals by using custom equations, zooming deeply into nested structures, and adjusting many settings to vary the color scheme.",
+      "A tool for debugging the math to GLSL converter used internally by the Fractal Explorer and other pages featuring customizable mathematical content.",
 
-    tags: ["art", "math"],
+    tags: ["debug", "math"],
+    category: "debug",
 
-    imageAlt: "A multicolored zoom of the Mandelbrot Set.",
-    imageSrc: fractalExplorerOpenGraph,
+    imageAlt:
+      "A light grey bug icon to the left of text saying 'Debug Page: Math to GLSL.' Yellow and black construction tape surrounds the other elements.",
+    imageSrc: debugMathToGLSLOpenGraph,
+  },
+
+  {
+    title: "Fake Gradient",
+    href: "/art/fake-gradient",
+    subtitle:
+      "Can enough randomness make a smooth image? Find out by using this tool, which generates a customizable grayscale gradient using randomness.",
+
+    tags: ["art"],
+
+    imageSrc: fakeGradientOpenGraph,
+    imageAlt: "A random-looking gradient.",
   },
 
   {
@@ -71,17 +86,15 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
-    title: "Debug: Math to GLSL",
-    href: "/debug/math-to-glsl",
+    title: "Fractal Explorer",
+    href: "/fractal-explorer",
     subtitle:
-      "A tool for debugging the math to GLSL converter used internally by the Fractal Explorer and other pages featuring customizable mathematical content.",
+      "Explore beautiful mathematical fractals by using custom equations, zooming deeply into nested structures, and adjusting many settings to vary the color scheme.",
 
-    tags: ["debug", "math"],
-    category: "debug",
+    tags: ["art", "math"],
 
-    imageAlt:
-      "A light grey bug icon to the left of text saying 'Debug Page: Math to GLSL.' Yellow and black construction tape surrounds the other elements.",
-    imageSrc: debugMathToGLSLOpenGraph,
+    imageAlt: "A multicolored zoom of the Mandelbrot Set.",
+    imageSrc: fractalExplorerOpenGraph,
   },
 ]
 

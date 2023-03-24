@@ -1,0 +1,17 @@
+---
+import FullscreenLayout from "@/layouts/FullscreenLayout.astro"
+import { Index } from "./Index"
+import openGraphImage from "./open-graph.png"
+---
+
+<FullscreenLayout
+  description="Creates a random-looking gradient."
+  title="zSnout"
+  og={{
+    imageSrc: openGraphImage,
+    imageAlt: "A random-looking gradient.",
+    title: "Fake Gradient",
+  }}
+>
+  <Index client:load />
+</FullscreenLayout>
