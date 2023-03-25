@@ -151,7 +151,7 @@ export function Index() {
           setEquation(
             eq
               .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
-              .replace(/t(?!an|h)/g, `@(${untrack(time)})`),
+              .replace(/t(?!an|er|h)/g, `@(${untrack(time)})`),
           )
 
           return

@@ -10,6 +10,7 @@ module.exports = {
       customColors: {
         "z-bg-body": "var(--z-bg-body)",
         "z-bg-body-partial": "var(--z-bg-body-partial)",
+        "z-bg-body-selected": "var(--z-bg-body-selected)",
         "z-bg-field": "var(--z-bg-field)",
         "z-bg-theme-switcher": "var(--z-bg-theme-switcher)",
 
@@ -35,6 +36,7 @@ module.exports = {
       backgroundColor: {
         "z-body": "var(--z-bg-body)",
         "z-body-partial": "var(--z-bg-body-partial)",
+        "z-body-selected": "var(--z-bg-body-selected)",
         "z-field": "var(--z-bg-field)",
         "z-theme-switcher": "var(--z-bg-theme-switcher)",
       },

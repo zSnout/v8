@@ -8,6 +8,10 @@ export function treeToGLSL(tree: Tree): string {
   }
 
   if (tree.type == "constant") {
+    if (tree.name == "iter") {
+      return "vec2(i,0)"
+    }
+
     return tree.name
   }
 

@@ -15,7 +15,7 @@ export type UnaryFunction =
   | "sqr"
   | "cube"
 
-export type Constant = "z" | "c" | "u_mouse" | "u_time"
+export type Constant = "z" | "c" | "u_mouse" | "u_time" | "iter"
 
 export type Token =
   | { type: "left-paren" }
@@ -33,6 +33,7 @@ const tokenize = createTokenizer<Token>(
     /^(?:sin|cos|tan|exp|log|abs|length)/,
     ([match]) => ({ type: "unary-fn", name: match as UnaryFunction }),
   ],
+  [/^iter/, () => ({ type: "constant", name: "iter" })],
   [/^i/, () => ({ type: "number", value: [0, 1] })],
   [/^e/, () => ({ type: "number", value: [Math.E, 0] })],
   [/^pi/, () => ({ type: "number", value: [Math.PI, 0] })],

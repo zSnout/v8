@@ -52,7 +52,7 @@ export function Radio<T extends string>(props: {
       }}
     >
       <div
-        class="absolute rounded bg-z-field transition-all"
+        class="absolute rounded bg-z-body-selected transition-all"
         style={{
           left: `${left() - 1}px`,
           top: `${top() - 1}px`,
@@ -121,7 +121,7 @@ export function CheckboxGroup(props: {
               aria-checked={get()}
               class="relative flex-1 rounded py-1 px-1 text-center font-mono text-xs text-z transition"
               classList={{
-                "bg-z-field": get(),
+                "bg-z-body-selected": get(),
               }}
               onClick={() => set(!untrack(get))}
               role="checkbox"
