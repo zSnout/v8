@@ -15,7 +15,7 @@ export type UnaryFunction =
   | "sqr"
   | "cube"
 
-export type Constant = "z" | "c" | "u_mouse" | "u_time" | "iter"
+export type Constant = "c" | "z" | "iter" | "u_mouse" | "u_slider" | "u_time"
 
 export type Token =
   | { type: "left-paren" }
@@ -40,7 +40,7 @@ const tokenize = createTokenizer<Token>(
   [/^fx/, () => ({ type: "number", value: [1, -1] })],
   [/^fy/, () => ({ type: "number", value: [-1, 1] })],
   [
-    /^[cmtz]/,
+    /^[cmstz]/,
     ([match]) => ({
       type: "constant",
       name: (
@@ -48,9 +48,10 @@ const tokenize = createTokenizer<Token>(
           c: "c",
           m: "u_mouse",
           t: "u_time",
+          s: "u_slider",
           z: "z",
         } as const
-      )[match as "c" | "m" | "t" | "z"],
+      )[match as "c" | "m" | "s" | "t" | "z"],
     }),
   ],
   [/^[-+*#/^]/, ([match]) => ({ type: "operator", name: match as Operator })],

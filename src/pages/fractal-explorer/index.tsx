@@ -123,6 +123,7 @@ export function Index() {
   const [detail, setDetail] = createNumericalSearchParam("detail", 100)
   const [minDetail, setMinDetail] = createNumericalSearchParam("minDetail", 0)
   const [fractalSize, setFractalSize] = createNumericalSearchParam("size", 2)
+  const [slider, setSlider] = createNumericalSearchParam("slider", 0)
 
   let gl: WebGLInteractiveCoordinateCanvas | undefined
 
@@ -198,6 +199,7 @@ export function Index() {
               gl.setReactiveUniform("u_detail", detail)
               gl.setReactiveUniform("u_detail_min", minDetail)
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
+              gl.setReactiveUniformArray("u_slider", () => [slider() / 100, 0])
 
               mouse = trackMouse(gl)
               ;[time, speed, setSpeed] = trackTime(gl)
@@ -207,6 +209,23 @@ export function Index() {
           />
         )}
       </ErrorBoundary>
+
+      <Show when={equation().match(/(?<!ab|co)s(?!in)/)}>
+        <div class="fixed bottom-6 left-6 right-6 flex touch-none justify-center">
+          <div class="flex w-full max-w-xs flex-1">
+            <Range
+              class="border-0"
+              name="slider"
+              min={0}
+              max={100}
+              step="any"
+              get={slider}
+              getLabel={() => Math.round(slider()) + "%"}
+              set={setSlider}
+            />
+          </div>
+        </div>
+      </Show>
 
       <DynamicOptions
         buttons={
