@@ -1,0 +1,23 @@
+---
+import PaddedLayout from "@/layouts/PaddedLayout.astro"
+import { Index } from "."
+import openGraph from "./open-graph.png"
+---
+
+<PaddedLayout
+  maxWidth="max-w-[60rem]"
+  title="Trope Highlighter"
+  description="Colors Hebrew words based on their tropes to aid with learning."
+  og={{
+    imageAlt:
+      "A paragraph of Hebrew text where each word has a background color depending on its trope.",
+    imageSrc: openGraph,
+    title: "Trope Highlighter",
+  }}
+>
+  <div
+    class="mx-auto flex w-[60rem] max-w-full flex-1 flex-col text-z transition"
+  >
+    <Index client:load />
+  </div>
+</PaddedLayout>

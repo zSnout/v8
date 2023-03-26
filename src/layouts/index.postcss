@@ -50,7 +50,11 @@
     }
 
     &::placeholder {
-      @apply text-z-subtitle;
+      @apply text-z-subtitle transition;
+    }
+
+    &[data-placeholder]::before {
+      @apply absolute text-z-subtitle transition content-[attr(data-placeholder)];
     }
   }
 }

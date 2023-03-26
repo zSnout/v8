@@ -68,7 +68,7 @@ export function Radio<T extends string>(props: {
           return (
             <div
               aria-checked={isActive()}
-              class="relative flex-1 rounded-sm py-1 px-1 text-center font-mono text-xs text-z transition"
+              class="relative flex-1 rounded py-1 px-1 text-center font-mono text-xs text-z transition"
               onClick={() => props.set(option)}
               role="radio"
               ref={(button) => {

@@ -62,8 +62,8 @@ module.exports = {
         "z-subtitle": "var(--z-text-subtitle)",
       },
 
-      borderRadius: {
-        sm: "0.25rem",
+      fontFamily: {
+        hebrew: '"Frank Ruhl Libre", "Times New Roman", "Times", serif',
       },
       rotate: {
         60: "60deg",

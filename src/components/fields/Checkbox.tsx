@@ -28,7 +28,7 @@ export function Checkbox(props: CheckboxProps) {
 
       <div
         aria-hidden="true"
-        class="field flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm p-0 ring-z-focus peer-focus-visible/checkbox:border-z-focus peer-focus-visible/checkbox:ring"
+        class="field flex h-6 w-6 cursor-pointer items-center justify-center rounded p-0 ring-z-focus peer-focus-visible/checkbox:border-z-focus peer-focus-visible/checkbox:ring"
         data-z-interactive
       >
         <Fa
