@@ -20,7 +20,7 @@ out vec4 color;
 
 void run_simple() {
   vec2 c = coords.xy;
-  vec2 z;
+  vec2 z = c;
 
   float i = 0.0;
   for (; i < u_detail; i++) {
@@ -59,7 +59,8 @@ vec3 gradient_palette(vec3 sz, float i) {
 
 void run_gradient() {
   vec2 c = coords.xy;
-  vec2 pz, ppz, z;
+  vec2 z = c;
+  vec2 pz, ppz;
   vec3 sz;
 
   float i = 0.0;
