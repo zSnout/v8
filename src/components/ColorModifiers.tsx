@@ -47,7 +47,7 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
       />
 
       <Range
-        class="field mt-0.5 mb-1.5 w-full"
+        class="field mb-1.5 mt-0.5 w-full"
         name="Spectrum"
         min={0}
         max={100}
@@ -58,7 +58,7 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
       />
 
       <Range
-        class="field mt-0.5 mb-2 w-full"
+        class="field mb-2 mt-0.5 w-full"
         name="# of colors"
         min={50}
         max={100}

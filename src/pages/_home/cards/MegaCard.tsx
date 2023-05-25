@@ -22,7 +22,7 @@ export function MegaCard(props: Page) {
       </a>
 
       <Show when={props.category || props.published}>
-        <div class="mt-6 mb-3 flex w-full items-baseline">
+        <div class="mb-3 mt-6 flex w-full items-baseline">
           <Show when={props.category}>
             <BlueGreenText href={props.categoryHref} name={props.category!} />
           </Show>

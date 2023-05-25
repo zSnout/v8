@@ -19,7 +19,7 @@ const page3 = allPages.at(-3)!
 
 function SectionHeader(props: { title: string; allItems?: JSX.Element }) {
   return (
-    <div class="mt-16 flex items-center border-t-4 border-b border-t-z-text-heading border-b-z py-2 transition">
+    <div class="mt-16 flex items-center border-b border-t-4 border-b-z border-t-z-text-heading py-2 transition">
       <p class="text-xl font-bold text-z-heading transition">{props.title}</p>
 
       {props.allItems}
@@ -180,9 +180,9 @@ export function Index() {
 
   return (
     <>
-      <div class="mx-auto mb-11 w-[30rem] max-w-full md:fixed md:top-2 md:left-1/2 md:z-20 md:w-[20rem] md:-translate-x-1/2">
+      <div class="mx-auto mb-11 w-[30rem] max-w-full md:fixed md:left-1/2 md:top-2 md:z-20 md:w-[20rem] md:-translate-x-1/2">
         <input
-          class="field h-12 w-full border-transparent bg-slate-100 text-center shadow-none dark:bg-slate-800 md:h-8 md:py-0 md:px-3"
+          class="field h-12 w-full border-transparent bg-slate-100 text-center shadow-none dark:bg-slate-800 md:h-8 md:px-3 md:py-0"
           placeholder="Search zSnout..."
           value={query()}
           onInput={(event) => setQuery(event.currentTarget.value)}
