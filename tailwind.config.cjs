@@ -13,6 +13,11 @@ module.exports = {
         "z-bg-body-selected": "var(--z-bg-body-selected)",
         "z-bg-field": "var(--z-bg-field)",
         "z-bg-theme-switcher": "var(--z-bg-theme-switcher)",
+        "z-bg-radio": "var(--z-bg-radio)",
+        "z-bg-radio-active": "var(--z-bg-radio-active)",
+        "z-bg-radio-group": "var(--z-bg-radio-group)",
+        "z-bg-radio-selected": "var(--z-bg-radio-selected)",
+        "z-bg-radio-selected-item": "var(--z-bg-radio-selected-item)",
 
         "z-border": "var(--z-border)",
         "z-border-focus": "var(--z-border-focus)",
@@ -39,6 +44,11 @@ module.exports = {
         "z-body-selected": "var(--z-bg-body-selected)",
         "z-field": "var(--z-bg-field)",
         "z-theme-switcher": "var(--z-bg-theme-switcher)",
+        "z-radio": "var(--z-bg-radio)",
+        "z-radio-active": "var(--z-bg-radio-active)",
+        "z-radio-group": "var(--z-bg-radio-group)",
+        "z-radio-selected": "var(--z-bg-radio-selected)",
+        "z-radio-selected-item": "var(--z-bg-radio-selected-item)",
       },
       borderColor: {
         z: "var(--z-border)",
@@ -80,6 +90,8 @@ module.exports = {
     /** @type {import("tailwindcss/types/config").PluginCreator} */
     ({ addVariant, addUtilities, matchUtilities, theme }) => {
       addVariant("xs", "@media (min-width: 400px)")
+
+      addVariant("scrollbar", "&::-webkit-scrollbar")
 
       addVariant(
         "prose-details",
