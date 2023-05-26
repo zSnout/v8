@@ -88,7 +88,7 @@ module.exports = {
     containerQueries,
 
     /** @type {import("tailwindcss/types/config").PluginCreator} */
-    ({ addVariant, addUtilities, matchUtilities, theme }) => {
+    ({ addVariant, addUtilities, matchUtilities, matchVariant, theme }) => {
       addVariant("xs", "@media (min-width: 400px)")
 
       addVariant("scrollbar", "&::-webkit-scrollbar")
@@ -134,6 +134,21 @@ module.exports = {
               value,
             "transition-timing-function": "cubic-bezier(0.4, 0, 0.2, 1)",
             "transition-duration": "150ms",
+          }
+        },
+      })
+
+      matchVariant("child", (value) => `&:nth-child(${value})`)
+
+      matchUtilities({
+        "z-quiz"(value) {
+          const [color, index] = value.split(",")
+
+          return {
+            [`&:nth-child(${index})`]: {
+              "border-bottom-color": theme(`colors.${color}.700`),
+              "background-color": theme(`colors.${color}.500`),
+            },
           }
         },
       })

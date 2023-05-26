@@ -5,7 +5,6 @@
     "exactOptionalPropertyTypes": false,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "verbatimModuleSyntax": true,
     "paths": {
       "~/assets/*": ["src/assets/*"],
       "@/*": ["src/*"]
