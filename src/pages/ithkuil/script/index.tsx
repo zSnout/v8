@@ -385,8 +385,8 @@ export function Main() {
         </p>
 
         <p>
-          The "Line spacing" field controls the spacing between multiple lines
-          of text. It defaults to 70.
+          The "Spacing" field controls the spacing between multiple lines of
+          text. It defaults to 70.
         </p>
       </div>
     </div>
