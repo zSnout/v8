@@ -3,7 +3,7 @@ import { parse } from "@/components/glsl/math/parse"
 import { Heading } from "@/components/Heading"
 import { createMemo, createSignal } from "solid-js"
 
-export default function Index() {
+export default function Main() {
   const [math, setMath] = createSignal("z^2 + c")
 
   const parsed = createMemo(() => {

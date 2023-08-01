@@ -1,0 +1,22 @@
+---
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+import openGraph from "./open-graph.png"
+---
+
+<DocumentLayout
+  title="Ithkuil Script Generator"
+  description="A tool which generates Ithkuil script using SVGs."
+  og={{
+    imageAlt:
+      'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
+    imageSrc: openGraph,
+    title: "Ithkuil Script Generator",
+  }}
+>
+  <p class="q8s7 m-auto w-96 max-w-full">
+    Loading script generator. Please wait a moment.
+  </p>
+
+  <Main client:only />
+</DocumentLayout>

@@ -154,7 +154,7 @@ function SearchedView(props: { pages: readonly Page[] }) {
   )
 }
 
-export function Index() {
+export function Main() {
   const [query, setQuery] = createSignal("")
 
   const filtered = createMemo(() => [

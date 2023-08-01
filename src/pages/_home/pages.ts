@@ -4,6 +4,7 @@ import fakeGradientOpenGraph from "../art/fake-gradient/open-graph.png"
 import debugMathToGLSLOpenGraph from "../debug/math-to-glsl/open-graph.png"
 import deduplicateTextOpenGraph from "../deduplicate-text/open-graph.jpg"
 import fractalExplorerOpenGraph from "../fractal-explorer/open-graph.png"
+import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
 
 export type Tag =
@@ -84,6 +85,19 @@ const nonBlogPages: readonly Page[] = [
     imageAlt:
       "Two rows of text. The first reads 'Deduplicate Text', with arrows pointing the first two Ds, Es, and Ts to each other. The second row reads 'uplica ext,' with the Ds, Es, and Ts in the first row removed.",
     imageSrc: deduplicateTextOpenGraph,
+  },
+
+  {
+    title: "Ithkuil Script Generator",
+    href: "/ithkuil/script",
+    subtitle:
+      "Quickly write in the block script of the constructed language Ithkuil using our simple online SVG generator. Handles formatives, adjuncts, and referentials.",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
+    imageSrc: ithkuilScriptGeneratorOpenGraph,
   },
 
   {

@@ -5,7 +5,7 @@ import { Fa } from "../Fa"
 
 export type CheckboxProps = Omit<
   JSX.InputHTMLAttributes<HTMLInputElement>,
-  "type"
+  "type" | "onInput"
 > & {
   onInput?: JSX.EventHandler<HTMLInputElement, InputEvent>
 }

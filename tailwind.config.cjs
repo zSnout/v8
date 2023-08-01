@@ -12,6 +12,7 @@ module.exports = {
         "z-bg-body-partial": "var(--z-bg-body-partial)",
         "z-bg-body-selected": "var(--z-bg-body-selected)",
         "z-bg-field": "var(--z-bg-field)",
+        "z-bg-field-selected": "var(--z-bg-field-selected)",
         "z-bg-theme-switcher": "var(--z-bg-theme-switcher)",
         "z-bg-radio": "var(--z-bg-radio)",
         "z-bg-radio-active": "var(--z-bg-radio-active)",
@@ -20,6 +21,7 @@ module.exports = {
         "z-bg-radio-selected-item": "var(--z-bg-radio-selected-item)",
 
         "z-border": "var(--z-border)",
+        "z-border-selected": "var(--z-border-selected)",
         "z-border-focus": "var(--z-border-focus)",
         "z-border-separator": "var(--z-border-separator)",
 
@@ -43,6 +45,7 @@ module.exports = {
         "z-body-partial": "var(--z-bg-body-partial)",
         "z-body-selected": "var(--z-bg-body-selected)",
         "z-field": "var(--z-bg-field)",
+        "z-field-selected": "var(--z-bg-field-selected)",
         "z-theme-switcher": "var(--z-bg-theme-switcher)",
         "z-radio": "var(--z-bg-radio)",
         "z-radio-active": "var(--z-bg-radio-active)",
@@ -52,6 +55,7 @@ module.exports = {
       },
       borderColor: {
         z: "var(--z-border)",
+        "z-selected": "var(--z-border-selected)",
         "z-focus": "var(--z-border-focus)",
         "z-separator": "var(--z-border-separator)",
       },

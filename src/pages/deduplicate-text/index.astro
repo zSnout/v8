@@ -2,7 +2,7 @@
 import { Center } from "@/components/Center"
 import { Heading } from "@/components/Heading"
 import DocumentLayout from "@/layouts/DocumentLayout.astro"
-import Index from "."
+import Main from "."
 import openGraphImage from "./open-graph.jpg"
 ---
 
@@ -19,6 +19,6 @@ import openGraphImage from "./open-graph.jpg"
   <Center>
     <Heading>Deduplicate Text</Heading>
 
-    <Index client:load />
+    <Main client:load />
   </Center>
 </DocumentLayout>

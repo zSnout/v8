@@ -1,5 +1,5 @@
 import { createEventListener } from "./create-event-listener"
-import type { Point } from "./glsl/canvas/base"
+import type { Point } from "./glsl/types"
 
 const interactiveTags = ["A", "BUTTON", "INPUT", "TEXTAREA"]
 

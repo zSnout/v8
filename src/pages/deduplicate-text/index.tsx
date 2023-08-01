@@ -26,7 +26,7 @@ function deDuplicate(text: string, keepSeparators: boolean) {
   return output
 }
 
-export default function () {
+export default function Main() {
   const [value, setValue] = createSignal("")
   const [keepSeparators, setKeepSeparators] = createSignal(false)
 

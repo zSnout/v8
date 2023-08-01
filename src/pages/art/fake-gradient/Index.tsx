@@ -12,7 +12,7 @@ function cubic(value: number) {
   return value * value * (3 - 2 * value)
 }
 
-export function Index() {
+export function Main() {
   const [smoothness, setSmoothness] = createSignal(1)
   const [pixelation, setPixelation] = createSignal(1)
   const [drawColumns, setDrawColumns] = createSignal(false)

@@ -112,7 +112,7 @@ const themeMap: Record<Theme, number> = {
   rotation: 3,
 }
 
-export function Index() {
+export function Main() {
   const [equation, setEquation] = createSearchParam("equation", "z^2 + c")
   const [parseError, setParseError] = createSignal<string>()
 
