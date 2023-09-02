@@ -5,6 +5,8 @@ import {
   faDownload,
   faMagicWandSparkles,
   faPaperPlane,
+  faPenFancy,
+  faPenNib,
   faTextSlash,
 } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -37,6 +39,7 @@ export function Main() {
   const [lineSpace, setLineSpace] = createSignal(70)
   const [showGuides, setShowGuides] = createSignal(true)
   const [elidePrimaries, setElidePrimaries] = createSignal(true)
+  const [strokeWidth, setStrokeWidth] = createSignal(0)
 
   let isFast = true
   const [trigger, setTrigger] = createSignal(0)
@@ -62,11 +65,12 @@ export function Main() {
       const spaceBetweenLines = lineSpace()
       const willShowGuides = showGuides()
       const willElidePrimaries = elidePrimaries()
+      const renderedStrokeWidth = strokeWidth()
 
       let maxWidth = 0
 
       const rows = content.split("\n").map((line, index) => {
-        const parsed = textToScript(line)
+        const parsed = textToScript(line, renderedStrokeWidth != 0)
 
         const characters = AnchorX({
           at: "l",
@@ -75,6 +79,7 @@ export function Main() {
               {parsed.ok
                 ? willElidePrimaries
                   ? Row({
+                      space: 10 + renderedStrokeWidth,
                       children: parsed.value
                         .filter((character) => {
                           if (
@@ -101,6 +106,7 @@ export function Main() {
                                   "FRM"
                                     ? "HORIZ_BAR"
                                     : "DOT",
+                                handwritten: renderedStrokeWidth != 0,
                               }),
                             })
                           }
@@ -170,7 +176,18 @@ export function Main() {
   })
 
   const svg = (
-    <svg class="fill-z-text-heading transition" viewBox="-512 -100 1024 200">
+    <svg
+      class={
+        "transition " +
+        (strokeWidth()
+          ? "fill-none stroke-z-text-heading "
+          : "fill-z-text-heading")
+      }
+      viewBox="-512 -100 1024 200"
+      stroke-width={strokeWidth()}
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    >
       {sentence()}
     </svg>
   ) as SVGSVGElement
@@ -178,20 +195,25 @@ export function Main() {
   isSVGInitialized = true
 
   function updateViewBox() {
+    const renderedStrokeWidth = untrack(strokeWidth)
+
     const width = Math.max(200, svg.clientWidth)
 
     const xCenter = box.x + box.width / 2
 
     svg.setAttribute(
       "viewBox",
-      `${xCenter - width / 2} ${box.y} ${width} ${box.height}`,
+      `${xCenter - width / 2} ${box.y - renderedStrokeWidth} ${width} ${
+        box.height + 2 * renderedStrokeWidth
+      }`,
     )
   }
 
-  setTimeout(updateViewBox)
+  setTimeout(() => untrack(updateViewBox))
 
   createEffect(() => {
     text()
+    strokeWidth()
     updateViewBox()
   })
 
@@ -236,7 +258,7 @@ export function Main() {
           }}
         />
 
-        <div class="flex w-full gap-4">
+        <div class="flex w-full gap-2">
           <input
             class="field w-full px-0 text-center"
             min={0}
@@ -253,6 +275,19 @@ export function Main() {
             placeholder="Spacing..."
             disabled={!inputText().includes("\n")}
           />
+
+          <button
+            class="field flex items-center justify-center"
+            classList={{ "bg-z-field-selected": strokeWidth() == 0 }}
+            type="submit"
+            onClick={() => setStrokeWidth((x) => (x == 0 ? 5 : 0))}
+          >
+            <Fa
+              class="h-4 w-4"
+              icon={faPenNib}
+              title="Toggle whether to write in calligraphic mode"
+            />
+          </button>
 
           <button
             class="field flex items-center justify-center"
@@ -321,7 +356,19 @@ export function Main() {
           <button
             class="field flex items-center justify-center"
             type="submit"
-            onClick={() => (isFast = false)}
+            onClick={() => {
+              if (
+                confirm(
+                  "This may freeze your browser for a few seconds or minutes, depending on the length of your text. Are you sure you want to continue?",
+                )
+              ) {
+                isFast = false
+
+                setTimeout(() => {
+                  alert("Done.")
+                })
+              }
+            }}
           >
             <Fa class="h-4 w-4" icon={faMagicWandSparkles} title="Prettify" />
           </button>
@@ -338,6 +385,15 @@ export function Main() {
 
       <div class="mt-4 flex w-96 max-w-full flex-col gap-1 self-center">
         <p>To adjust the content, type in the input field.</p>
+
+        <p>
+          <Fa
+            class="relative -top-px mx-1 inline h-4 w-4"
+            icon={faPenNib}
+            title="Toggle whether to write in calligraphic mode"
+          />{" "}
+          flips between calligraphic and handwritten mode.
+        </p>
 
         <p>
           <Fa
@@ -372,7 +428,7 @@ export function Main() {
             icon={faMagicWandSparkles}
             title="Prettify"
           />{" "}
-          renders the text slowly but more accurately.
+          is explained below.
         </p>
 
         <p>
@@ -387,6 +443,18 @@ export function Main() {
         <p>
           The "Spacing" field controls the spacing between multiple lines of
           text. It defaults to 70.
+        </p>
+
+        <p class="mt-4">
+          The{" "}
+          <Fa
+            class="relative -top-px mx-1 inline h-4 w-4"
+            icon={faMagicWandSparkles}
+            title="Prettify"
+          />{" "}
+          button aligns the spaces between letters more accurately. It is{" "}
+          <em>very</em> slow, and will freeze the browser for 30 seconds to
+          several minutes.
         </p>
       </div>
     </div>
