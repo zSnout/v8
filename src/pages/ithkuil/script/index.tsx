@@ -124,7 +124,11 @@ export function Main() {
                       children: parsed.value,
                       compact: !isFast,
                     })
-                : ((<text>{parsed.reason}</text>) as SVGTextElement)}
+                : ((
+                    <text class="fill-z-text-heading" stroke-width={0}>
+                      {parsed.reason}
+                    </text>
+                  ) as SVGTextElement)}
             </g>
           ) as SVGGElement,
           y: index * (70 + spaceBetweenLines),
