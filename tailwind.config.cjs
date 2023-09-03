@@ -28,8 +28,9 @@ module.exports = {
         "z-ring-focus": "var(--z-ring-focus)",
 
         "z-text": "var(--z-text)",
-        "z-text-link": "var(--z-text-link)",
+        "z-text-dimmed": "var(--z-text-dimmed)",
         "z-text-heading": "var(--z-text-heading)",
+        "z-text-link": "var(--z-text-link)",
         "z-text-subtitle": "var(--z-text-subtitle)",
       },
       colors: ({ theme }) => ({
@@ -71,8 +72,9 @@ module.exports = {
       },
       textColor: {
         z: "var(--z-text)",
-        "z-link": "var(--z-text-link)",
+        "z-dimmed": "var(--z-text-dimmed)",
         "z-heading": "var(--z-text-heading)",
+        "z-link": "var(--z-text-link)",
         "z-subtitle": "var(--z-text-subtitle)",
       },
 

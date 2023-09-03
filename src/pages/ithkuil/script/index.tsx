@@ -5,7 +5,6 @@ import {
   faDownload,
   faMagicWandSparkles,
   faPaperPlane,
-  faPenFancy,
   faPenNib,
   faTextSlash,
 } from "@fortawesome/free-solid-svg-icons"
@@ -114,7 +113,7 @@ export function Main() {
                           const node = character.construct(character as any)
 
                           if (character.dimmed) {
-                            node.setAttribute("fill", "#a0a0a0")
+                            node.classList.add("dimmed")
                           }
 
                           return node
@@ -180,8 +179,8 @@ export function Main() {
       class={
         "transition " +
         (strokeWidth()
-          ? "fill-none stroke-z-text-heading "
-          : "fill-z-text-heading")
+          ? "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
+          : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed")
       }
       viewBox="-512 -100 1024 200"
       stroke-width={strokeWidth()}
@@ -319,12 +318,37 @@ export function Main() {
 
               downloaded.removeAttribute("class")
 
+              downloaded.querySelectorAll(".dimmed").forEach((el) => {
+                if (renderedStrokeWidth) {
+                  el.setAttribute("stroke", "#808080")
+                } else {
+                  el.setAttribute("fill", "#808080")
+                }
+              })
+
               downloaded
                 .querySelectorAll("[class]")
                 .forEach((el) => el.removeAttribute("class"))
 
+              const renderedStrokeWidth = untrack(strokeWidth)
+
               if (!showGuides()) {
-                fitViewBox(downloaded)
+                fitViewBox(downloaded, renderedStrokeWidth / 2)
+              }
+
+              if (renderedStrokeWidth) {
+                downloaded.setAttribute(
+                  "stroke-width",
+                  "" + renderedStrokeWidth,
+                )
+
+                downloaded.setAttribute("stroke", "black")
+
+                downloaded.setAttribute("fill", "none")
+              } else {
+                downloaded.removeAttribute("stroke-width")
+                downloaded.removeAttribute("stroke")
+                downloaded.setAttribute("fill", "black")
               }
 
               downloaded.setAttribute("xmlns", "http://www.w3.org/2000/svg")
