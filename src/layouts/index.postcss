@@ -135,16 +135,13 @@ html,
   --z-text-subtitle: theme(colors.slate.400);
 }
 
+html,
 .arc {
   --z-bg-body: var(--arc-palette-background);
-  --z-bg-body-partial: color-mix(
-    in oklab,
-    var(--arc-palette-background),
-    transparent
-  );
+  --z-bg-body-partial: var(--arc-palette-background);
   --z-bg-body-selected: var(--arc-palette-cutoutColor);
-  --z-bg-field: var(--arc-palette-cutoutColor);
-  --z-bg-field-selected: var(--arc-palette-background);
+  --z-bg-field: #000c;
+  --z-bg-field-selected: var(--arc-palette-cutoutColor);
   --z-bg-theme-switcher: var(--arc-palette-cutoutColor);
 
   --z-border: var(--arc-palette-focus);
@@ -162,6 +159,21 @@ html,
   --z-text-heading: var(--arc-palette-title);
   --z-text-link: var(--arc-palette-foregroundTertiary);
   --z-text-subtitle: var(--arc-palette-foregroundSecondary);
+
+  @supports (
+    color: color-mix(in oklab, var(--arc-palette-cutoutColor), transparent)
+  ) {
+    --z-bg-body-partial: color-mix(
+      in oklab,
+      var(--arc-palette-background),
+      transparent
+    );
+    --z-bg-field: color-mix(
+      in oklab,
+      var(--arc-palette-cutoutColor),
+      transparent
+    );
+  }
 }
 
 html {
