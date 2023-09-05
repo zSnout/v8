@@ -226,7 +226,7 @@ export function Main() {
 
   const result = (
     <div class="group/center my-auto flex flex-col">
-      <h1 class="mb-8 text-center text-lg font-light">
+      <h1 class="mb-8 text-center text-lg font-light text-z-heading transition">
         Ithkuil Script Generator
       </h1>
 
