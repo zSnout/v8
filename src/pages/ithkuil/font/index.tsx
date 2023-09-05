@@ -333,7 +333,7 @@ function convertPrimary(primary: PrimaryCharacter, elidePrimaries: boolean) {
     (bottomLeft ? "<" + DIAC[bottomLeft] : "") +
     (topRight ? ">" + DIAC[topRight] : "") +
     (superposed ? "^" + DIAC[superposed] : "") +
-    (underposed ? "__" + DIAC[underposed] : "")
+    (underposed ? "_" + DIAC[underposed] : "")
   )
 }
 
