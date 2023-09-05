@@ -550,7 +550,7 @@ export function Main() {
   const converted = createMemo(() => convert(text(), elidePrimaries()))
 
   const node = (
-    <div class="group/center my-auto flex flex-col">
+    <div class="group/center my-auto flex w-full max-w-full flex-col overflow-x-clip">
       <h1 class="mb-8 text-center text-lg font-light text-z-heading transition">
         Ithkuil Font Generator
       </h1>
@@ -564,7 +564,7 @@ export function Main() {
         {(value) => (
           <p
             class={
-              "mx-auto max-w-full overflow-x-auto text-9xl text-z-heading transition " +
+              "mx-auto max-w-full text-9xl text-z-heading transition " +
               (calligraphic()
                 ? "font-['IthkuilBasic',sans-serif]"
                 : "font-['IthkuilFlow',sans-serif]")
