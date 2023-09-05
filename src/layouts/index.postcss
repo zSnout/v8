@@ -63,7 +63,8 @@
       @apply translate-y-px;
     }
 
-    &:focus-visible {
+    &:focus-visible,
+    &:has(:focus-visible) {
       @apply border-z-focus outline-none ring;
     }
 
@@ -91,16 +92,12 @@ html,
   --z-bg-field: theme(colors.white);
   --z-bg-field-selected: theme(colors.slate.200);
   --z-bg-theme-switcher: theme(colors.slate.50);
-  --z-bg-radio: theme(colors.slate.100);
-  --z-bg-radio-active: theme(colors.slate.200);
-  --z-bg-radio-group: theme(colors.slate.50);
-  --z-bg-radio-selected: theme(colors.blue.200);
-  --z-bg-radio-selected-item: theme(colors.blue.400);
 
   --z-border: theme(colors.slate.300);
   --z-border-selected: theme(colors.slate.300);
   --z-border-focus: theme(colors.blue.500);
   --z-border-separator: theme(colors.slate.300);
+  --z-border-theme-switcher: theme(colors.slate.200);
 
   --z-icon-stroke: theme(colors.slate.500);
 
@@ -120,16 +117,12 @@ html,
   --z-bg-field: theme(colors.slate.800);
   --z-bg-field-selected: theme(colors.slate.700);
   --z-bg-theme-switcher: theme(colors.slate.800);
-  --z-bg-radio: theme(colors.slate.800);
-  --z-bg-radio-active: theme(colors.slate.700);
-  --z-bg-radio-group: theme(colors.slate.950);
-  --z-bg-radio-selected: theme(colors.slate.700);
-  --z-bg-radio-selected-item: theme(colors.blue.500);
 
   --z-border: theme(colors.slate.700);
   --z-border-selected: theme(colors.slate.600);
   --z-border-focus: theme(colors.blue.500);
   --z-border-separator: theme(colors.slate.600);
+  --z-border-theme-switcher: theme(colors.slate.800);
 
   --z-icon-stroke: theme(colors.slate.400);
 
@@ -140,6 +133,35 @@ html,
   --z-text-heading: theme(colors.slate.200);
   --z-text-link: theme(colors.blue.500);
   --z-text-subtitle: theme(colors.slate.400);
+}
+
+.arc {
+  --z-bg-body: var(--arc-palette-background);
+  --z-bg-body-partial: color-mix(
+    in oklab,
+    var(--arc-palette-background),
+    transparent
+  );
+  --z-bg-body-selected: var(--arc-palette-cutoutColor);
+  --z-bg-field: var(--arc-palette-cutoutColor);
+  --z-bg-field-selected: var(--arc-palette-background);
+  --z-bg-theme-switcher: var(--arc-palette-cutoutColor);
+
+  --z-border: var(--arc-palette-focus);
+  --z-border-selected: var(--z-border);
+  --z-border-focus: var(--z-border);
+  --z-border-separator: var(--arc-background-simple-color);
+  --z-border-theme-switcher: var(--z-border);
+
+  --z-icon-stroke: var(--arc-palette-foregroundSecondary);
+
+  --z-ring-focus: var(--arc-palette-hover);
+
+  --z-text: var(--arc-palette-foregroundPrimary);
+  --z-text-dimmed: var(--arc-palette-foregroundSecondary);
+  --z-text-heading: var(--arc-palette-title);
+  --z-text-link: var(--arc-palette-foregroundTertiary);
+  --z-text-subtitle: var(--arc-palette-foregroundSecondary);
 }
 
 html {

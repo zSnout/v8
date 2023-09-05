@@ -14,16 +14,12 @@ module.exports = {
         "z-bg-field": "var(--z-bg-field)",
         "z-bg-field-selected": "var(--z-bg-field-selected)",
         "z-bg-theme-switcher": "var(--z-bg-theme-switcher)",
-        "z-bg-radio": "var(--z-bg-radio)",
-        "z-bg-radio-active": "var(--z-bg-radio-active)",
-        "z-bg-radio-group": "var(--z-bg-radio-group)",
-        "z-bg-radio-selected": "var(--z-bg-radio-selected)",
-        "z-bg-radio-selected-item": "var(--z-bg-radio-selected-item)",
 
         "z-border": "var(--z-border)",
         "z-border-selected": "var(--z-border-selected)",
         "z-border-focus": "var(--z-border-focus)",
         "z-border-separator": "var(--z-border-separator)",
+        "z-border-theme-switcher": "var(--z-border-theme-switcher)",
 
         "z-ring-focus": "var(--z-ring-focus)",
 
@@ -48,17 +44,13 @@ module.exports = {
         "z-field": "var(--z-bg-field)",
         "z-field-selected": "var(--z-bg-field-selected)",
         "z-theme-switcher": "var(--z-bg-theme-switcher)",
-        "z-radio": "var(--z-bg-radio)",
-        "z-radio-active": "var(--z-bg-radio-active)",
-        "z-radio-group": "var(--z-bg-radio-group)",
-        "z-radio-selected": "var(--z-bg-radio-selected)",
-        "z-radio-selected-item": "var(--z-bg-radio-selected-item)",
       },
       borderColor: {
         z: "var(--z-border)",
         "z-selected": "var(--z-border-selected)",
         "z-focus": "var(--z-border-focus)",
         "z-separator": "var(--z-border-separator)",
+        "z-theme-switcher": "var(--z-border-theme-switcher)",
       },
       iconStrokeColor: {
         z: "var(--z-icon-stroke)",
