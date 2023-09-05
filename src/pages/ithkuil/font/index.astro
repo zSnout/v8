@@ -1,0 +1,22 @@
+---
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+import openGraph from "./open-graph.png"
+---
+
+<DocumentLayout
+  title="Ithkuil Font Generator"
+  description="A tool which transforms text for use in Shankar Sivarajan's Ithkuil fonts."
+  og={{
+    imageAlt:
+      'zSnout\'s Ithkuil font generator, with "Wattunkí ruyün!" as the input.',
+    imageSrc: openGraph,
+    title: "Ithkuil Font Generator",
+  }}
+>
+  <p class="q8s7 m-auto w-96 max-w-full">
+    Loading font generator. Please wait a moment.
+  </p>
+
+  <Main client:only />
+</DocumentLayout>

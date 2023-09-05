@@ -4,6 +4,7 @@ import fakeGradientOpenGraph from "../art/fake-gradient/open-graph.png"
 import debugMathToGLSLOpenGraph from "../debug/math-to-glsl/open-graph.png"
 import deduplicateTextOpenGraph from "../deduplicate-text/open-graph.jpg"
 import fractalExplorerOpenGraph from "../fractal-explorer/open-graph.png"
+import ithkuilFontGeneratorOpenGraph from "../ithkuil/font/open-graph.png"
 import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
 
@@ -88,10 +89,23 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
+    title: "Ithkuil Font Generator",
+    href: "/ithkuil/font",
+    subtitle:
+      "Convert written Ithkuil text into a format suitable for use with the IthkuilBasic and IthkuilFlow fonts. Handles formatives, referentials, and adjuncts.",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      'zSnout\'s Ithkuil font generator, with "Wattunkí ruyün!" as the input.',
+    imageSrc: ithkuilFontGeneratorOpenGraph,
+  },
+
+  {
     title: "Ithkuil Script Generator",
     href: "/ithkuil/script",
     subtitle:
-      "Quickly write in the block script of the constructed language Ithkuil using our simple online SVG generator. Handles formatives, adjuncts, and referentials.",
+      "Quickly write in the block script of the constructed language Ithkuil using our simple online SVG generator. Handles formatives, referentials, and adjuncts.",
 
     tags: ["language", "tool"],
 
