@@ -17,7 +17,7 @@ export function ok<T>(value: T): Result<T> {
 export function error(reason: unknown): Error {
   return {
     ok: false,
-    reason: reason instanceof Error ? reason.message : String(reason),
+    reason: String(reason instanceof Error ? reason.message : reason),
   }
 }
 

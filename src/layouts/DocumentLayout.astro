@@ -1,8 +1,9 @@
 ---
-import type { Props as LayoutProps } from "./Layout.astro"
-import PaddedLayout from "./PaddedLayout.astro"
+import PaddedLayout, {
+  type Props as PaddedLayoutProps,
+} from "./PaddedLayout.astro"
 
-export interface Props extends LayoutProps {}
+export interface Props extends Omit<PaddedLayoutProps, "maxWidth"> {}
 ---
 
 <PaddedLayout maxWidth="max-w-5xl" {...Astro.props}>

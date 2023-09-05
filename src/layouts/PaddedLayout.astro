@@ -4,6 +4,8 @@ import Layout, { type Props as LayoutProps } from "./Layout.astro"
 
 export interface Props extends LayoutProps {
   maxWidth: `max-w-${string}`
+  pt?: `pt-${number}`
+  pb?: `pb-${number}`
 }
 ---
 
@@ -19,7 +21,9 @@ export interface Props extends LayoutProps {
   }
 
   <div
-    class="mx-6 mb-4 mt-16 flex flex-1 flex-col text-z transition print:mx-0 print:my-0"
+    class={`mx-6 flex flex-1 flex-col ${Astro.props.pb || "pb-8"} ${
+      Astro.props.pt || "pt-20"
+    } text-z transition print:mx-0 print:my-0`}
   >
     <slot />
   </div>

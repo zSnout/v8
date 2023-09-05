@@ -182,7 +182,7 @@ export function Main() {
     <>
       <div class="mx-auto mb-11 w-[30rem] max-w-full md:fixed md:left-1/2 md:top-2 md:z-20 md:w-[20rem] md:-translate-x-1/2">
         <input
-          class="field h-12 w-full border-transparent bg-slate-100 text-center shadow-none dark:bg-slate-800 md:h-8 md:px-3 md:py-0"
+          class="field h-12 w-full border-transparent bg-z-body-selected text-center shadow-none md:h-8 md:px-3 md:py-0"
           placeholder="Search zSnout..."
           value={query()}
           onInput={(event) => setQuery(event.currentTarget.value)}
