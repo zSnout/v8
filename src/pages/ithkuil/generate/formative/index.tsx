@@ -1,8 +1,18 @@
+import { Fa } from "@/components/Fa"
+import {
+  IconDefinition,
+  faAdd,
+  faChevronDown,
+  faClose,
+} from "@fortawesome/free-solid-svg-icons"
+import { affixes } from "@zsnout/ithkuil/data/affixes-latest.js"
+import { affixesMap } from "@zsnout/ithkuil/data/affixes-map.js"
 import { roots } from "@zsnout/ithkuil/data/roots-latest.js"
 import { rootsMap } from "@zsnout/ithkuil/data/roots-map.js"
 import {
   AFFILIATION_TO_NAME_MAP,
   ALL_AFFILIATIONS,
+  ALL_AFFIX_DEGREES,
   ALL_ASPECTS,
   ALL_CASES_SKIPPING_DEGREE_8,
   ALL_CASE_SCOPES,
@@ -24,7 +34,9 @@ import {
   ALL_VERSIONS,
   ASPECT_TO_NAME_MAP,
   Affix,
+  AffixDegree,
   AffixShortcut,
+  AffixType,
   CASE_SCOPE_TO_NAME_MAP,
   CASE_TO_NAME_MAP,
   CONTEXT_TO_NAME_MAP,
@@ -59,7 +71,9 @@ import {
 import { glossWord } from "@zsnout/ithkuil/gloss"
 import { Searcher } from "fast-fuzzy"
 import {
+  Accessor,
   Index,
+  Setter,
   Show,
   batch,
   createEffect,
@@ -67,8 +81,9 @@ import {
   createSignal,
   untrack,
 } from "solid-js"
+import { Dynamic } from "solid-js/web"
 
-const searcher = new Searcher(
+const rootSearcher = new Searcher(
   roots.flatMap((root) =>
     [
       { stem: 0 as const, cr: root.cr, label: root.stems[0] },
@@ -80,6 +95,78 @@ const searcher = new Searcher(
   {
     keySelector(value) {
       return value.label!
+    },
+  },
+)
+
+const affixSearcher = new Searcher(
+  affixes.flatMap((affix) =>
+    [
+      {
+        degree: 0 as const,
+        cs: affix.cs,
+        label: affix.degrees[0],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 1 as const,
+        cs: affix.cs,
+        label: affix.degrees[1],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 2 as const,
+        cs: affix.cs,
+        label: affix.degrees[2],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 3 as const,
+        cs: affix.cs,
+        label: affix.degrees[3],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 4 as const,
+        cs: affix.cs,
+        label: affix.degrees[4],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 5 as const,
+        cs: affix.cs,
+        label: affix.degrees[5],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 6 as const,
+        cs: affix.cs,
+        label: affix.degrees[6],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 7 as const,
+        cs: affix.cs,
+        label: affix.degrees[7],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 8 as const,
+        cs: affix.cs,
+        label: affix.degrees[8],
+        abbr: affix.abbreviation,
+      },
+      {
+        degree: 9 as const,
+        cs: affix.cs,
+        label: affix.degrees[9],
+        abbr: affix.abbreviation,
+      },
+    ].filter((x) => x.label),
+  ),
+  {
+    keySelector(value) {
+      return [value.abbr + "/" + value.degree, value.label!]
     },
   },
 )
@@ -156,6 +243,278 @@ function SelectField<T extends string | number | boolean | undefined>(props: {
           }}
         </Index>
       </div>
+    </div>
+  )
+}
+
+function CircleButton(props: {
+  class: `left-${string} top-${string}`
+  onClick?: () => void
+  icon: IconDefinition
+  title: string
+}) {
+  return (
+    <button
+      class={
+        "field absolute -translate-x-1/2 -translate-y-1/2 rounded-full p-1 active:translate-y-[calc(-50%_+_1px)] " +
+        props.class
+      }
+      onClick={() => props.onClick?.()}
+    >
+      <Fa class="h-3 w-3" icon={props.icon} title={props.title} />
+    </button>
+  )
+}
+
+function AffixSelector(props: {
+  get: () => Affix
+  set: (a: Affix | ((previous: Affix) => Affix)) => void
+  remove(): void
+  insert(): void
+}) {
+  return (
+    // @ts-ignore
+    <Dynamic
+      component={(() => {
+        const value = props.get()
+
+        if ("case" in value) {
+          return undefined
+        } else if ("referents" in value) {
+          return undefined
+        } else if ("ca" in value) {
+          return CaSelector
+        } else {
+          return PlainAffixSelector
+        }
+      })()}
+      {...props}
+    />
+  )
+}
+
+interface PlainAffix {
+  readonly cs: string
+  readonly degree: AffixDegree
+  readonly type: AffixType
+  readonly setFromDefinitionField: boolean
+}
+
+function PlainAffixSelector(props: {
+  get(): PlainAffix
+  set(affix: PlainAffix | ((previous: PlainAffix) => PlainAffix)): void
+  remove(): void
+  insert(): void
+  atRoot: boolean
+}) {
+  const inputId = "x-" + Math.random().toString(36).slice(2)
+
+  return (
+    <div class="relative -mx-4 px-4 py-2 child-[2]:-mt-2">
+      <div>
+        <Show when={props.atRoot}>
+          <label
+            for={inputId}
+            class="block pb-1 text-sm text-z-subtitle transition"
+          >
+            Root
+          </label>
+        </Show>
+
+        <div class="flex flex-wrap gap-4">
+          <div class="field flex flex-1 flex-col items-baseline overflow-hidden p-0 sm:flex-row">
+            <input
+              id={inputId}
+              class={
+                "w-full px-3 py-2 text-z outline-none transition sm:w-48 " +
+                (props.atRoot ? "bg-z-field" : "bg-z-body")
+              }
+              type="text"
+              value={props.get().cs}
+              onInput={(event) =>
+                props.set((previous) => ({
+                  ...previous,
+                  cs: event.currentTarget.value,
+                  setFromDefinitionField: false,
+                }))
+              }
+            />
+
+            <input
+              class={
+                "w-full flex-1 border-t border-dashed border-z px-3 py-2 text-z outline-none transition sm:border-l sm:border-t-0 " +
+                (props.atRoot ? "bg-z-field" : "bg-z-body")
+              }
+              type="text"
+              ref={(el) => {
+                createEffect(() => {
+                  const value = props.get()
+
+                  if (!value.setFromDefinitionField) {
+                    const affix = affixesMap.get(value.cs)
+
+                    if (affix) {
+                      el.value =
+                        affix.degrees[value.degree] ||
+                        affix.abbreviation + "/" + value.degree
+                    } else {
+                      el.value = "(no info found)"
+                    }
+                  }
+                })
+              }}
+              onInput={(event) => {
+                const searched = affixSearcher.search(
+                  event.currentTarget.value,
+                )[0]
+
+                props.set((previous) => ({
+                  ...previous,
+                  setFromDefinitionField: true,
+                  cs: searched?.cs || "N/A",
+                  degree: searched?.degree || 0,
+                }))
+              }}
+              onBlur={() => {
+                props.set((previous) => ({
+                  ...previous,
+                  setFromDefinitionField: false,
+                }))
+              }}
+            />
+          </div>
+
+          <select
+            class="sr-only"
+            onInput={(event) => {
+              const degree = +event.currentTarget.value
+
+              if (has(ALL_AFFIX_DEGREES, degree)) {
+                props.set((previous) => ({
+                  ...previous,
+                  degree,
+                  setFromDefinitionField: false,
+                }))
+              }
+            }}
+            value={props.get().degree}
+          >
+            {([1, 2, 3, 4, 5, 6, 7, 8, 9, 0] satisfies AffixDegree[]).map(
+              (degree) => (
+                <option value={degree}>
+                  {(() => {
+                    const { cs } = props.get()
+
+                    const affix = affixesMap.get(cs)
+
+                    if (!affix) {
+                      return "Degree " + degree
+                    }
+
+                    const value = affix.degrees[degree]
+
+                    return (
+                      affix.abbreviation +
+                      "/" +
+                      degree +
+                      (value ? ": " + value : "")
+                    )
+                  })()}
+                </option>
+              ),
+            )}
+          </select>
+
+          <p
+            class={
+              "field relative flex w-[7.5rem] items-center whitespace-nowrap text-z transition" +
+              (props.atRoot ? "" : " bg-z-body")
+            }
+            aria-hidden
+          >
+            <span class="mr-auto">Degree {props.get().degree}</span>
+
+            <Fa
+              class="h-3 w-3"
+              icon={faChevronDown}
+              title="Lower the degree by 1"
+            />
+
+            <select
+              class="absolute bottom-0 left-0 right-0 top-0 cursor-pointer opacity-0"
+              onInput={(event) => {
+                const degree = +event.currentTarget.value
+
+                if (has(ALL_AFFIX_DEGREES, degree)) {
+                  props.set((previous) => ({
+                    ...previous,
+                    degree,
+                    setFromDefinitionField: false,
+                  }))
+                }
+              }}
+              value={props.get().degree}
+            >
+              {([1, 2, 3, 4, 5, 6, 7, 8, 9, 0] satisfies AffixDegree[]).map(
+                (degree) => (
+                  <option value={degree}>
+                    {(() => {
+                      const { cs } = props.get()
+
+                      const affix = affixesMap.get(cs)
+
+                      if (!affix) {
+                        return "Degree " + degree
+                      }
+
+                      const value = affix.degrees[degree]
+
+                      return (
+                        affix.abbreviation +
+                        "/" +
+                        degree +
+                        (value ? ": " + value : "")
+                      )
+                    })()}
+                  </option>
+                ),
+              )}
+            </select>
+          </p>
+
+          <div>
+            <SelectField
+              class="flex"
+              get={() => props.get().type}
+              id="affix-type"
+              name={undefined}
+              options={[1, 2, 3]}
+              labels={["", "T1", "T2", "T3"] as const}
+              set={(v) =>
+                props.set((previous) => ({
+                  ...previous,
+                  setFromDefinitionField: false,
+                  type: typeof v == "function" ? 1 : v,
+                }))
+              }
+            />
+          </div>
+        </div>
+      </div>
+
+      <CircleButton
+        onClick={() => props.insert()}
+        icon={faAdd}
+        title="Add Affix"
+        class="left-[100%] top-0"
+      />
+
+      <CircleButton
+        onClick={() => props.remove()}
+        icon={faClose}
+        title="Remove Affix"
+        class="left-0 top-[50%]"
+      />
     </div>
   )
 }
@@ -490,6 +849,82 @@ function IllocutionOrValidationSelector(props: {
   )
 }
 
+function AffixGroupSelector(props: {
+  get: Accessor<readonly PlainAffix[]>
+  set: Setter<readonly PlainAffix[]>
+  label: string
+}) {
+  return (
+    <div
+      class="relative -mx-4 border-x border-dashed border-z p-4 py-2"
+      classList={{ "pb-3": props.get().length == 0 }}
+    >
+      <p class="mb-1 text-sm text-z-subtitle transition">{props.label}</p>
+
+      <Index each={props.get()}>
+        {(item, index) => (
+          <PlainAffixSelector
+            get={item}
+            insert={() =>
+              props.set((previous) => {
+                const copy = previous.slice()
+
+                copy.splice(index, 0, {
+                  cs: "t",
+                  degree: 4,
+                  setFromDefinitionField: false,
+                  type: 1,
+                })
+
+                return copy
+              })
+            }
+            remove={() =>
+              props.set((previous) => {
+                const copy = previous.slice()
+
+                copy.splice(index, 1)
+
+                return copy
+              })
+            }
+            set={(affix) => {
+              props.set((previous) => {
+                const copy = previous.slice()
+
+                if (typeof affix == "function") {
+                  copy[index] = affix(copy[index]!)
+                } else {
+                  copy[index] = affix
+                }
+
+                return copy
+              })
+            }}
+            atRoot={false}
+          />
+        )}
+      </Index>
+
+      <CircleButton
+        onClick={() =>
+          props.set((x) => [
+            ...x,
+            { cs: "t", degree: 4, setFromDefinitionField: false, type: 1 },
+          ])
+        }
+        icon={faAdd}
+        title="Add Affix"
+        class={
+          props.get().length
+            ? "left-[100%] top-[calc(100%_-_0.5rem)]"
+            : "left-[100%] top-[calc(50%_+_0.125rem)]"
+        }
+      />
+    </div>
+  )
+}
+
 export function Main() {
   const [fullGloss, setFullGloss] = createSignal(false)
 
@@ -519,8 +954,14 @@ export function Main() {
   const [specification, setSpecification] = createSignal<Specification>("BSC")
   const [context, setContext] = createSignal<Context>("EXS")
 
+  // Slot V
+  const [v, setV] = createSignal<readonly PlainAffix[]>([])
+
   // Slot VI
   const [ca_, setCa] = createSignal<PartialCA>({})
+
+  // Slot VII
+  const [vii, setVII] = createSignal<readonly PlainAffix[]>([])
 
   // Slot VIII
   const [vn, setVn] = createSignal<VN>("MNO")
@@ -599,9 +1040,13 @@ export function Main() {
       specification: specification(),
       context: context(),
 
+      slotVAffixes: v() as readonly Affix[],
+
       ca,
 
-      slotVIIAffixes: finalSlotVIIAffix && [finalSlotVIIAffix],
+      slotVIIAffixes: (vii() as readonly Affix[]).concat(
+        finalSlotVIIAffix ? [finalSlotVIIAffix] : [],
+      ),
 
       vn: vn(),
       caseScope: caseScope(),
@@ -639,7 +1084,9 @@ export function Main() {
 
   const node = (
     <div class="flex flex-col gap-4">
-      <h1 class="text-center text-lg font-light">Ithkuil Word Generator</h1>
+      <h1 class="text-center text-lg font-light">
+        Ithkuil Formative Generator
+      </h1>
 
       <SelectField
         class="flex flex-wrap [&>:nth-child(4)]:flex-[1.5] [&>:nth-child(5)]:flex-[1.5]"
@@ -741,7 +1188,7 @@ export function Main() {
       <label>
         <p class="mb-1 text-sm text-z-subtitle transition">Root</p>
 
-        <div class="field flex w-full  flex-col items-baseline overflow-hidden p-0 sm:flex-row">
+        <div class="field flex w-full flex-col items-baseline overflow-hidden p-0 sm:flex-row">
           <input
             class="w-full bg-z-field px-3 py-2 text-z outline-none transition sm:w-48"
             type="text"
@@ -769,7 +1216,7 @@ export function Main() {
               })
             }}
             onInput={(event) => {
-              const searched = searcher.search(event.currentTarget.value)[0]
+              const searched = rootSearcher.search(event.currentTarget.value)[0]
 
               batch(() => {
                 if (searched) {
@@ -824,9 +1271,11 @@ export function Main() {
         />
       </div>
 
-      <hr class="my-4 w-full border-t border-dashed border-z transition" />
+      <AffixGroupSelector get={v} set={setV} label="Slot V Affixes" />
 
       <CaSelector get={ca_} set={setCa} />
+
+      <AffixGroupSelector get={vii} set={setVII} label="Slot VII Affixes" />
 
       <VnSelector get={vn} set={setVn} />
 

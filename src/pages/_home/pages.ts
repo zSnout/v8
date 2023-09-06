@@ -6,6 +6,7 @@ import deduplicateTextOpenGraph from "../deduplicate-text/open-graph.jpg"
 import fractalExplorerOpenGraph from "../fractal-explorer/open-graph.png"
 import ithkuilFontGeneratorOpenGraph from "../ithkuil/font/open-graph.png"
 import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
+import ithkuilFormativeGeneratorOpenGraph from "../ithkuil/generate/formative/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
 
 export type Tag =
@@ -99,6 +100,19 @@ const nonBlogPages: readonly Page[] = [
     imageAlt:
       'zSnout\'s Ithkuil font generator, with "Wattunkí ruyün!" as the input.',
     imageSrc: ithkuilFontGeneratorOpenGraph,
+  },
+
+  {
+    title: "Ithkuil Formative Generator",
+    href: "/ithkuil/generate/formative",
+    subtitle:
+      "Create words in Ithkuil by selecting grammatical categories from dropdowns and searching through roots and affixes. Comes with a built-in glosser.",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      "zSnout's Ithkuil formative generator, with 'ersmlakpalla' as the input.",
+    imageSrc: ithkuilFormativeGeneratorOpenGraph,
   },
 
   {

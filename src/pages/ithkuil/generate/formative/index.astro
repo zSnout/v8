@@ -1,0 +1,23 @@
+---
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+import openGraph from "./open-graph.png"
+---
+
+<DocumentLayout
+  pb="pb-0"
+  title="Ithkuil Formative Generator"
+  description="Create words in Ithkuil by selecting grammatical categories from dropdowns and searching through roots and affixes. Comes with a built-in glosser."
+  og={{
+    imageAlt:
+      "The Ithkuil formative generator, with the description of the root field selected and a slot V affix added, combining to make the word 'ersmlakpalla'.",
+    imageSrc: openGraph,
+    title: "Ithkuil Formative Generator",
+  }}
+>
+  <p class="q8s7 m-auto w-96 max-w-full">
+    Loading formative generator. Please wait a moment.
+  </p>
+
+  <Main client:only />
+</DocumentLayout>
