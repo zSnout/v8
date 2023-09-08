@@ -88,7 +88,7 @@ const CORE: Record<Specification | CoreName, string> = {
   ž: "ž",
   ḑ: "ḍ",
   TONAL_PLACEHOLDER: "Z",
-  BIAS: "Σ",
+  BIAS: "Ʃ",
   ALPHABETIC_PLACEHOLDER: "{",
   STANDARD_PLACEHOLDER: "}",
   STRESSED_SYLLABLE_PLACEHOLDER: "|",
