@@ -78,7 +78,6 @@ export function Main() {
               {parsed.ok
                 ? willElidePrimaries
                   ? Row({
-                      space: 10 + renderedStrokeWidth,
                       children: parsed.value
                         .filter((character) => {
                           if (
@@ -119,10 +118,12 @@ export function Main() {
                           return node
                         }),
                       compact: !isFast,
+                      space: 10 + renderedStrokeWidth,
                     })
                   : CharacterRow({
                       children: parsed.value,
                       compact: !isFast,
+                      space: 10 + renderedStrokeWidth,
                     })
                 : ((
                     <text class="fill-z-text-heading" stroke-width={0}>
