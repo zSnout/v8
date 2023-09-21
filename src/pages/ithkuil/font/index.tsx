@@ -577,7 +577,7 @@ export function Main() {
 
       <div class="mx-auto flex w-96 max-w-full flex-col gap-4">
         <AutoResizeTextarea
-          class="field mt-16 w-full"
+          class="z-field mt-16 w-full"
           placeholder="Type a sentence here..."
           value={text()}
           onInput={(event) => setText(event?.currentTarget.value)}
@@ -585,7 +585,7 @@ export function Main() {
 
         <div class="flex h-[2.625rem] gap-2">
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             classList={{ "bg-z-field-selected": calligraphic() }}
             onClick={() => setCalligraphic((x) => !x)}
           >
@@ -597,7 +597,7 @@ export function Main() {
           </button>
 
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             classList={{ "bg-z-field-selected": elidePrimaries() }}
             onClick={() => setElidePrimaries((x) => !x)}
           >
@@ -609,7 +609,7 @@ export function Main() {
           </button>
 
           <button
-            class="field flex origin-center transform items-center justify-center transition"
+            class="z-field flex origin-center transform items-center justify-center transition"
             onClick={async ({ currentTarget: el }) => {
               try {
                 const output = untrack(converted)

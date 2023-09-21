@@ -25,7 +25,7 @@ export function Range(props: {
 
   return (
     <input
-      class={"field w-full " + (props.class || "")}
+      class={"z-field w-full " + (props.class || "")}
       min={props.min}
       max={props.max}
       step={props.step}

@@ -134,7 +134,7 @@ export function Main() {
   return (
     <div class="relative flex h-full w-full flex-1">
       <div
-        class="field flex-1 bg-white px-6 py-4 font-hebrew text-5xl text-black [direction:rtl] [line-height:1.5]"
+        class="z-field flex-1 bg-white px-6 py-4 font-hebrew text-5xl text-black [line-height:1.5] [direction:rtl]"
         contentEditable
         data-placeholder={
           textContent() != "" ? "" : "...Paste Hebrew text here"
@@ -145,7 +145,7 @@ export function Main() {
       />
 
       <button
-        class="field absolute bottom-4 right-4"
+        class="z-field absolute bottom-4 right-4"
         contentEditable={false}
         onClick={recolor}
       >

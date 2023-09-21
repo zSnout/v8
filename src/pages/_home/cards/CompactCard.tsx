@@ -10,7 +10,7 @@ export function CompactCard(props: { page: Page }) {
       </Show>
 
       <a
-        class="text-xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link"
+        class="text-xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-current"
         classList={{
           "mt-1": props.page.category != null,
         }}

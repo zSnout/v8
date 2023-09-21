@@ -20,7 +20,7 @@ export function SideCard(props: Page) {
 
       <div class="flex flex-col">
         <a
-          class="text-xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link"
+          class="text-xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-current"
           href={props.href}
         >
           {props.title}

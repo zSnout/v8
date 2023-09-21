@@ -223,7 +223,7 @@ function SelectField<T extends string | number | boolean | undefined>(props: {
 
       <div
         class={
-          "field w-full rounded-md bg-z-body p-1 shadow transition " +
+          "z-field w-full rounded-md bg-z-body p-1 shadow transition " +
           props.class
         }
       >
@@ -256,7 +256,7 @@ function CircleButton(props: {
   return (
     <button
       class={
-        "field absolute -translate-x-1/2 -translate-y-1/2 rounded-full p-1 active:translate-y-[calc(-50%_+_1px)] " +
+        "z-field absolute -translate-x-1/2 -translate-y-1/2 rounded-full p-1 active:translate-y-[calc(-50%_+_1px)] " +
         props.class
       }
       onClick={() => props.onClick?.()}
@@ -322,7 +322,7 @@ function PlainAffixSelector(props: {
         </Show>
 
         <div class="flex flex-wrap gap-4">
-          <div class="field flex flex-1 flex-col items-baseline overflow-hidden p-0 sm:flex-row">
+          <div class="z-field flex flex-1 flex-col items-baseline overflow-hidden p-0 sm:flex-row">
             <input
               id={inputId}
               class={
@@ -427,7 +427,7 @@ function PlainAffixSelector(props: {
 
           <p
             class={
-              "field relative flex w-[7.5rem] items-center whitespace-nowrap text-z transition" +
+              "z-field relative flex w-[7.5rem] items-center whitespace-nowrap text-z transition" +
               (props.atRoot ? "" : " bg-z-body")
             }
             aria-hidden
@@ -1188,7 +1188,7 @@ export function Main() {
       <label>
         <p class="mb-1 text-sm text-z-subtitle transition">Root</p>
 
-        <div class="field flex w-full flex-col items-baseline overflow-hidden p-0 sm:flex-row">
+        <div class="z-field flex w-full flex-col items-baseline overflow-hidden p-0 sm:flex-row">
           <input
             class="w-full bg-z-field px-3 py-2 text-z outline-none transition sm:w-48"
             type="text"

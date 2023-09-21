@@ -28,11 +28,11 @@ export function Checkbox(props: CheckboxProps) {
 
       <div
         aria-hidden="true"
-        class="field flex h-6 w-6 cursor-pointer items-center justify-center rounded p-0 ring-z-focus peer-focus-visible/checkbox:border-z-focus peer-focus-visible/checkbox:ring"
+        class="z-field flex h-6 w-6 cursor-pointer items-center justify-center rounded p-0 ring-z-focus peer-focus-visible/checkbox:border-z-focus peer-focus-visible/checkbox:ring"
         data-z-interactive
       >
         <Fa
-          class="h-4 w-4 opacity-0 icon-stroke-z [.peer\/checkbox:checked~*>&]:opacity-100"
+          class="h-4 w-4 opacity-0 icon-z [.peer\/checkbox:checked~*>&]:opacity-100"
           icon={faCheck}
           title="Checkbox"
         />

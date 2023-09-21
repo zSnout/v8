@@ -36,7 +36,7 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
   return (
     <>
       <Range
-        class="field w-full"
+        class="z-field w-full"
         name="Color Offset"
         min={0}
         max={360}
@@ -47,7 +47,7 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
       />
 
       <Range
-        class="field mb-1.5 mt-0.5 w-full"
+        class="z-field mb-1.5 mt-0.5 w-full"
         name="Spectrum"
         min={0}
         max={100}
@@ -58,7 +58,7 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
       />
 
       <Range
-        class="field mb-2 mt-0.5 w-full"
+        class="z-field mb-2 mt-0.5 w-full"
         name="# of colors"
         min={50}
         max={100}
@@ -74,7 +74,7 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
 
       <div class="-mb-1 flex gap-2">
         <button
-          class="field flex h-4.5 w-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-z-body p-0 transition"
+          class="z-field flex h-4.5 w-4.5 min-w-[1.125rem] items-center justify-center rounded-full bg-z-body p-0 transition"
           role="checkbox"
           onClick={() =>
             setRepetitionSign(untrack(repetitionSign) == 1 ? -1 : 1)

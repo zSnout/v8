@@ -271,7 +271,7 @@ export function Main() {
 
         <div class="relative mt-6 w-full">
           <input
-            class="field w-full bg-z-body font-mono"
+            class="z-field w-full bg-z-body font-mono"
             onInput={(event) => setEquation(event.currentTarget.value)}
             type="text"
             value={equation()}

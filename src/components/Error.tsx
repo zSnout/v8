@@ -22,7 +22,7 @@ export function Error(props: { reason: unknown; status?: number }) {
           </div>
 
           <a
-            class="field mx-auto mt-6 w-48 max-w-full flex-1 whitespace-pre text-center"
+            class="z-field mx-auto mt-6 w-48 max-w-full flex-1 whitespace-pre text-center"
             href=""
           >
             Reload

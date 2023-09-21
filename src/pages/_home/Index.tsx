@@ -39,7 +39,7 @@ function BlogSection() {
           >
             All Posts
             <Fa
-              class="ml-2 h-3 w-3 icon-stroke-z-text-link"
+              class="ml-2 h-3 w-3 icon-z-text-link"
               icon={faChevronRight}
               title="Right arrow"
             />
@@ -182,7 +182,7 @@ export function Main() {
     <>
       <div class="mx-auto mb-11 w-[30rem] max-w-full md:fixed md:left-1/2 md:top-2 md:z-20 md:w-[20rem] md:-translate-x-1/2">
         <input
-          class="field h-12 w-full border-transparent bg-z-body-selected text-center shadow-none md:h-8 md:px-3 md:py-0"
+          class="z-field h-12 w-full border-transparent bg-z-body-selected text-center shadow-none md:h-8 md:px-3 md:py-0"
           placeholder="Search zSnout..."
           value={query()}
           onInput={(event) => setQuery(event.currentTarget.value)}

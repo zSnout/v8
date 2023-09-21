@@ -23,7 +23,7 @@ export type QuizQuestion =
       question: JSX.Element
       next?(): QuizQuestion
 
-      type: "field"
+      type: "z-field"
       placeholder?: string
       check(value: string): QuizCheckResult
     }
@@ -152,7 +152,7 @@ export function QuizLayout(props: { createQuestion(): QuizQuestion }) {
           const question = screen()
           const el = field()
 
-          if (question.type == "field" && el) {
+          if (question.type == "z-field" && el) {
             const result = check(question, el.value)
 
             if (result.correct) {
@@ -179,7 +179,7 @@ export function QuizLayout(props: { createQuestion(): QuizQuestion }) {
         }}
       >
         <input
-          class="field w-80 max-w-full"
+          class="z-field w-80 max-w-full"
           placeholder={screen().placeholder || "Type..."}
           ref={setField}
           required
@@ -293,7 +293,7 @@ export function QuizLayout(props: { createQuestion(): QuizQuestion }) {
         </Switch>
       </div>
 
-      <Show when={screen().type == "field"}>
+      <Show when={screen().type == "z-field"}>
         <QuizField />
       </Show>
 

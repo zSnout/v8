@@ -33,7 +33,7 @@ export function Modal(props: {
     <NormalizeContent class="z-30">
       <Center isPopup>
         <div
-          class="group pointer-events-none flex max-h-full min-h-[min(20rem,100vh_-_5rem)] w-96 max-w-full flex-col gap-2 text-z transition-and-[visibility]"
+          class="group transition-and-[visibility] pointer-events-none flex max-h-full min-h-[min(20rem,100vh_-_5rem)] w-96 max-w-full flex-col gap-2 text-z"
           classList={{
             invisible: !props.open,
             "translate-y-8": !props.open,

@@ -7,7 +7,7 @@ export function MegaCard(props: Page) {
   return (
     <div class="flex w-full flex-col lg:max-w-2xl">
       <a
-        class="w-full overflow-clip rounded-lg aspect-open-graph"
+        class="aspect-open-graph w-full overflow-clip rounded-lg"
         draggable={false}
         href={props.href}
       >
@@ -39,7 +39,7 @@ export function MegaCard(props: Page) {
       </Show>
 
       <a
-        class="text-3xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-z-text-link md:text-4xl"
+        class="text-3xl font-bold text-z-heading underline decoration-transparent transition hover:text-z-link hover:decoration-current md:text-4xl"
         classList={{
           "mt-6": !(props.category || props.published),
         }}

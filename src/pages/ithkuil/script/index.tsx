@@ -245,7 +245,7 @@ export function Main() {
         }}
       >
         <AutoResizeTextarea
-          class="field w-full"
+          class="z-field w-full"
           placeholder="Type a sentence here..."
           value={inputText()}
           onInput={(event) => setInputText(event.currentTarget.value)}
@@ -264,7 +264,7 @@ export function Main() {
 
         <div class="flex w-full gap-2">
           <input
-            class="field w-full px-0 text-center"
+            class="z-field w-full px-0 text-center"
             min={0}
             onInput={(event) => {
               const value = +event.currentTarget.value
@@ -281,7 +281,7 @@ export function Main() {
           />
 
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             classList={{ "bg-z-field-selected": strokeWidth() == 0 }}
             type="submit"
             onClick={() => setStrokeWidth((x) => (x == 0 ? 5 : 0))}
@@ -294,7 +294,7 @@ export function Main() {
           </button>
 
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             classList={{ "bg-z-field-selected": elidePrimaries() }}
             type="submit"
             onClick={() => setElidePrimaries((x) => !x)}
@@ -307,7 +307,7 @@ export function Main() {
           </button>
 
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             classList={{ "bg-z-field-selected": showGuides() }}
             type="submit"
             onClick={() => setShowGuides((x) => !x)}
@@ -316,7 +316,7 @@ export function Main() {
           </button>
 
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             type="button"
             onClick={() => {
               const downloaded = svg.cloneNode(true) as SVGSVGElement
@@ -383,7 +383,7 @@ export function Main() {
           </button>
 
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             type="submit"
             onClick={() => {
               if (
@@ -403,7 +403,7 @@ export function Main() {
           </button>
 
           <button
-            class="field flex items-center justify-center"
+            class="z-field flex items-center justify-center"
             type="submit"
             onClick={() => (isFast = true)}
           >

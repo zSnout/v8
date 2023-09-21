@@ -37,7 +37,7 @@ export default function Main() {
   return (
     <>
       <AutoResizeTextarea
-        class="field"
+        class="z-field"
         onInput={(event) => setValue(event.currentTarget.value)}
         placeholder="Type something here..."
         value={value()}

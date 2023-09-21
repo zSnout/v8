@@ -31,7 +31,7 @@ export default function Main() {
       <Heading>Debug: Math to GLSL</Heading>
 
       <input
-        class="field mb-4"
+        class="z-field mb-4"
         onInput={(event) => setMath(event.currentTarget.value)}
         placeholder="Type an expression..."
         type="text"

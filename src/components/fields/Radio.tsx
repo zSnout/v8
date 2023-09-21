@@ -17,7 +17,7 @@ export function Radio<T extends string>(props: {
   return (
     <div
       class={
-        "field relative flex w-full cursor-pointer flex-wrap gap-0.5 rounded-lg border border-z bg-z-body p-0.5 shadow transition " +
+        "z-field relative flex w-full cursor-pointer flex-wrap gap-0.5 rounded-lg border border-z bg-z-body p-0.5 shadow transition " +
         (props.class || "")
       }
       role="radiogroup"
@@ -110,7 +110,7 @@ export function CheckboxGroup(props: {
   return (
     <div
       class={
-        "field relative flex w-full cursor-pointer flex-wrap gap-0.5 rounded-lg border border-z bg-z-body p-0.5 shadow transition " +
+        "z-field relative flex w-full cursor-pointer flex-wrap gap-0.5 rounded-lg border border-z bg-z-body p-0.5 shadow transition " +
         (props.class || "")
       }
     >

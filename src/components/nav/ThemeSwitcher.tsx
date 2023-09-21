@@ -12,7 +12,7 @@ export function ThemeSwitcher() {
       role="switch"
     >
       <div
-        class="relative flex h-5 w-5 items-center justify-center rounded-full bg-z-theme-switcher outline outline-1 outline-z transition-all icon-stroke-z group-focus-visible:outline-z-focus"
+        class="relative flex h-5 w-5 items-center justify-center rounded-full bg-z-theme-switcher outline outline-1 outline-z transition-all icon-z group-focus-visible:outline-z-focus"
         classList={{
           "left-0": !isDark(),
           "left-[1.125rem]": isDark(),

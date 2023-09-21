@@ -17,10 +17,9 @@ import {
   CORES,
   CORE_DIACRITICS,
   EXTENSIONS,
-  HANDWRITTEN_DIACRITICS,
-  HANDWRITTEN_REGISTERS,
   Primary,
   Quaternary,
+  REGISTERS,
   Secondary,
   Tertiary,
   scale,
@@ -28,6 +27,8 @@ import {
   type DiacriticName,
   type ExtensionName,
   type RegisterMode,
+  HANDWRITTEN_DIACRITICS,
+  HANDWRITTEN_REGISTERS,
 } from "@zsnout/ithkuil/script"
 import { Numeral } from "@zsnout/ithkuil/script/numerals"
 import { For, Index, JSX, createSignal, untrack } from "solid-js"
@@ -590,16 +591,18 @@ const shiftedKeyNames = deepFreeze({
 
 const SCALING_FACTOR = 4 / 2.625
 
+const HANDWRITTEN_MODE = true
+
 function Key(props: { active?: boolean; children?: JSX.Element }) {
   return (
-    <div class="field flex h-16 w-16 items-center justify-center">
+    <div class="z-field flex h-16 w-16 items-center justify-center">
       <svg
-        fill="none"
+        fill={HANDWRITTEN_MODE ? "none" : "var(--z-text)"}
         height={64}
-        stroke="var(--z-text)"
+        stroke={HANDWRITTEN_MODE ? "var(--z-text)" : "none"}
         stroke-linecap="round"
         stroke-linejoin="round"
-        stroke-width={5}
+        stroke-width={HANDWRITTEN_MODE ? 5 : 0}
         viewBox="-50 -50 100 100"
         width={64}
       >
@@ -655,26 +658,26 @@ function LabeledKey(props: { active?: boolean; label: KeyLabel }) {
       ) : props.label == "rotate" ? (
         <path d="M 0 30 a 30 30 0 1 0 -30 -30 l -10 -20 m 10 20 l 20 -10" />
       ) : has(ALL_SPECIFICATIONS, props.label) ? (
-        Primary({ specification: props.label, handwritten: true })
+        Primary({ specification: props.label, handwritten: HANDWRITTEN_MODE })
       ) : has(ALL_VALENCES, props.label) ? (
-        Tertiary({ valence: props.label, handwritten: true })
+        Tertiary({ valence: props.label, handwritten: HANDWRITTEN_MODE })
       ) : has(ALL_PHASES, props.label) ||
         has(ALL_EFFECTS, props.label) ||
         has(ALL_ASPECTS, props.label) ? (
-        Tertiary({ top: props.label, handwritten: true })
+        Tertiary({ top: props.label, handwritten: HANDWRITTEN_MODE })
       ) : has(Object.keys(CORES) as CoreName[], props.label) ? (
         Secondary({
           core: props.label,
-          handwritten: true,
+          handwritten: HANDWRITTEN_MODE,
           rotated: props.label == "BIAS",
         })
       ) : props.label == "ASR" ? (
-        Quaternary({ value: "ASR", handwritten: true })
+        Quaternary({ value: "ASR", handwritten: HANDWRITTEN_MODE })
       ) : has(Object.keys(EXTENSIONS) as ExtensionName[], props.label) ? (
         Secondary({
           core: "STRESSED_SYLLABLE_PLACEHOLDER",
           top: props.label,
-          handwritten: true,
+          handwritten: HANDWRITTEN_MODE,
         })
       ) : has(Object.keys(CORE_DIACRITICS) as DiacriticName[], props.label) ? (
         Anchor({
@@ -682,11 +685,18 @@ function LabeledKey(props: { active?: boolean; label: KeyLabel }) {
           children:
             (props.label,
             (
-              <path d={scale(HANDWRITTEN_DIACRITICS[props.label], 2)} />
+              <path
+                d={scale(
+                  (HANDWRITTEN_MODE ? HANDWRITTEN_DIACRITICS : CORE_DIACRITICS)[
+                    props.label
+                  ],
+                  1,
+                )}
+              />
             ) as SVGPathElement),
         })
       ) : typeof props.label == "number" ? (
-        Numeral({ value: props.label, handwritten: true })
+        Numeral({ value: props.label, handwritten: HANDWRITTEN_MODE })
       ) : typeof props.label == "object" ? (
         Anchor({
           at: "cc",
@@ -695,8 +705,10 @@ function LabeledKey(props: { active?: boolean; label: KeyLabel }) {
             (
               <path
                 d={scale(
-                  HANDWRITTEN_REGISTERS[props.label[0]][props.label[1]],
-                  2,
+                  (HANDWRITTEN_MODE ? HANDWRITTEN_REGISTERS : REGISTERS)[
+                    props.label[0]
+                  ][props.label[1]],
+                  1,
                 )}
               />
             ) as SVGPathElement),
@@ -1001,7 +1013,7 @@ export function Main() {
         <p>Modifier: {modifier_()}.</p>
 
         <input
-          class="field my-4 w-full"
+          class="z-field my-4 w-full"
           placeholder={placeholder()}
           onKeyDown={(event) => {
             event.preventDefault()
@@ -1026,12 +1038,6 @@ export function Main() {
   for (const el of document.getElementsByClassName("q8s7")) {
     el.remove()
   }
-
-  window.addEventListener("keydown", (event) => {
-    if (event.key == "Shift") {
-      setIsShifting(true)
-    }
-  })
 
   window.addEventListener("keyup", (event) => {
     if (event.key == "Shift") {
