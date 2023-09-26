@@ -52,7 +52,12 @@ export function Main() {
 
   function ColorWord(props: { children: string }) {
     return (
-      <button class="bg-z-field px-3 py-2 transition focus:bg-z-body-selected focus:outline-none">
+      <button
+        class="bg-z-field px-3 py-2 text-z transition focus:bg-z-body-selected focus:outline-none"
+        onClick={() => {
+          setColor((prev) => pickNextColor(prev, 20))
+        }}
+      >
         {props.children}
       </button>
     )
@@ -63,7 +68,7 @@ export function Main() {
       <Heading center>toki pona color voter</Heading>
 
       <div
-        class="mb-8 aspect-video w-full rounded-lg shadow transition"
+        class="mb-8 aspect-video w-full rounded-lg shadow"
         style={{ "background-color": color().hex }}
       />
 
@@ -78,7 +83,7 @@ export function Main() {
         <ColorWord>laso</ColorWord>
 
         <ColorWord>walo</ColorWord>
-        <ColorWord>ante</ColorWord>
+        <ColorWord>kule ante</ColorWord>
         <ColorWord>pimeja</ColorWord>
       </div>
     </div>
