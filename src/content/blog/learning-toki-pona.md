@@ -1,6 +1,6 @@
 ---
 category: language
-description: My experience learning the 137-word language "toki pona."
+description: My experience learning the 137-word language called toki pona.
 excerpt:
   "Recently, I've been learning a minimalistic language known as toki pona.
   Today we'll explore my journey in learning toki pona and how you can learn it

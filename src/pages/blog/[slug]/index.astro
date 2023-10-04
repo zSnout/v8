@@ -44,7 +44,21 @@ const openGraphImage = (
     },
   }}
 >
-  <h1>{entry.data.title}</h1>
+  <div class="relative mb-20 flex flex-col">
+    <div
+      class="absolute -left-[150vw] bottom-0 h-[100vh] w-[300vw] bg-z-border transition"
+    >
+    </div>
+
+    <h1 class="relative m-0 mb-4 transition">{entry.data.title}</h1>
+
+    <p class="relative m-0 mb-12 transition">{entry.data.description}</p>
+
+    <img
+      class="relative m-0 -mb-12 rounded-lg shadow-md transition"
+      src={openGraphImage}
+    />
+  </div>
 
   <Content />
 </ProseLayout>

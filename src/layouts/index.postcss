@@ -20,6 +20,18 @@ html.no-transition * {
   transition-duration: 0s !important;
 }
 
+.prose {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  a {
+    @apply transition;
+  }
+}
+
 @keyframes fade-in {
   from {
     @apply opacity-0;
