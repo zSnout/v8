@@ -75,22 +75,22 @@ const { article } = og
 </html>
 
 <script is:inline>
-  const isDeviceDark = matchMedia("(prefers-color-scheme: dark)").matches
+const isDeviceDark = matchMedia("(prefers-color-scheme: dark)").matches
 
-  const theme = window.localStorage?.getItem("z8:theme")
+const theme = window.localStorage?.getItem("z8:theme")
 
-  const isDark = isDeviceDark ? theme != "light" : theme == "dark"
+const isDark = isDeviceDark ? theme != "light" : theme == "dark"
 
-  const list = document.documentElement.classList
+const list = document.documentElement.classList
+
+requestAnimationFrame(() => {
+  list.add("no-transition")
+  list.toggle("dark", isDark)
 
   requestAnimationFrame(() => {
-    list.add("no-transition")
-    list.toggle("dark", isDark)
-
-    requestAnimationFrame(() => {
-      list.remove("no-transition")
-    })
+    list.remove("no-transition")
   })
+})
 </script>
 
 <script>
