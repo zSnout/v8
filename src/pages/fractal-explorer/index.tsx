@@ -104,12 +104,13 @@ function Slider(props: {
   )
 }
 
-type Theme = "simple" | "gradient" | "rotation"
+type Theme = "simple" | "gradient" | "rotation" | "plot"
 
 const themeMap: Record<Theme, number> = {
   simple: 1,
   gradient: 2,
   rotation: 3,
+  plot: 4,
 }
 
 export function Main() {
@@ -121,8 +122,9 @@ export function Main() {
   const [effectSplit, setEffectSplit] = createBooleanSearchParam("split")
 
   const [detail, setDetail] = createNumericalSearchParam("detail", 100)
-  const [minDetail, setMinDetail] = createNumericalSearchParam("minDetail", 0)
+  const [minDetail, setMinDetail] = createNumericalSearchParam("min_detail", 0)
   const [fractalSize, setFractalSize] = createNumericalSearchParam("size", 2)
+  const [plotSize, setPlotSize] = createNumericalSearchParam("plot_size", 1)
   const [slider, setSlider] = createNumericalSearchParam("slider", 0)
 
   let gl: WebGLInteractiveCoordinateCanvas | undefined
@@ -199,6 +201,7 @@ export function Main() {
               gl.setReactiveUniform("u_detail", detail)
               gl.setReactiveUniform("u_detail_min", minDetail)
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
+              gl.setReactiveUniform("u_plot_size", plotSize)
               gl.setReactiveUniformArray("u_slider", () => [slider() / 100, 0])
 
               mouse = trackMouse(gl)
@@ -254,7 +257,7 @@ export function Main() {
         <Radio<Theme>
           get={theme}
           label="Theme"
-          options={["simple", "gradient", "rotation"]}
+          options={["simple", "gradient", "rotation", "plot"]}
           set={setTheme}
         />
 
@@ -262,7 +265,11 @@ export function Main() {
           class="mt-2"
           options={[
             [
-              theme() == "rotation" ? "halo?" : "split?",
+              theme() == "plot"
+                ? "ignore size?"
+                : theme() == "rotation"
+                ? "halo?"
+                : "split?",
               effectSplit,
               setEffectSplit,
             ],
@@ -333,7 +340,7 @@ export function Main() {
         />
 
         <Slider
-          class="mb-6"
+          class={theme() == "plot" ? "mb-3" : "mb-6"}
           name="Fractal Size"
           get={fractalSize}
           set={setFractalSize}
@@ -341,6 +348,18 @@ export function Main() {
           sliderToValue={fractalSizeSliderToValue}
           decimalDigits={2}
         />
+
+        <Show when={theme() == "plot"}>
+          <Slider
+            class="mb-6"
+            name="Plot Size"
+            get={plotSize}
+            set={setPlotSize}
+            valueToSlider={fractalSizeValueToSlider}
+            sliderToValue={fractalSizeSliderToValue}
+            decimalDigits={2}
+          />
+        </Show>
 
         {gl ? <ColorModifiers gl={gl} save /> : undefined}
       </DynamicOptions>

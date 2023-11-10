@@ -6,6 +6,7 @@ uniform float u_detail;
 uniform float u_detail_min;
 uniform float u_fractal_size;
 uniform float u_theme;
+uniform float u_plot_size;
 uniform vec2 u_slider;
 uniform vec2 u_mouse;
 uniform vec2 u_time;
@@ -71,7 +72,9 @@ void run_gradient() {
     z = EQ;
 
     if (z.x * z.x + z.y * z.y > u_fractal_size) {
-      if (i < u_detail_min) return;
+      if (i < u_detail_min) {
+        return;
+      }
 
       color = vec4(gradient_palette(sz, i), 1.0);
       return;
@@ -121,11 +124,49 @@ void run_rotation() {
   color = vec4(rotation_palette(z), 1);
 }
 
+vec3 plot_palette(vec2 z) {
+  float hue =
+    atan(z.y, z.x) / 6.2831853071795864769252867665590057683943387987502;
+
+  float r = length(z) / u_plot_size;
+  r = min(r, 1.0);
+  r = sqrt(r);
+
+  return hsv2rgb(modify_hsv(vec3(hue, 1.0, r)));
+}
+
+void run_plot() {
+  vec2 c = coords.xy;
+  vec2 z = c;
+
+  float i = 0.0;
+  for (; i < u_detail; i++) {
+    z = EQ;
+
+    if (z.x * z.x + z.y * z.y > u_fractal_size) {
+      if (i < u_detail_min) {
+        return;
+      }
+
+      if (!u_effect_split) {
+        color = vec4(plot_palette(z), 1);
+
+        return;
+      }
+
+    }
+  }
+
+  color = vec4(plot_palette(z), 1);
+}
+
 void main() {
   if (u_theme == 2.0) {
     run_gradient();
   } else if (u_theme == 3.0) {
     run_rotation();
+  } else if (u_theme == 4.0) {
+    run_plot();
   } else {
     run_simple();
   }
