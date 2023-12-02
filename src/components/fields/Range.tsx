@@ -10,17 +10,20 @@ export function Range(props: {
   get: () => number
   getLabel?: () => string
   set: (value: number) => void
+  labelSize?: number
 }) {
+  const labelSize = props.labelSize || 4
+
   function label() {
     const name = props.name.slice(0, 12)
     let value = props.getLabel?.() ?? props.get().toFixed(props.decimalDigits)
-    value = value.slice(0, 4)
+    value = value.slice(0, labelSize)
 
     if (value.endsWith(".")) {
       value = value.slice(0, -1)
     }
 
-    return `--label:"${name.padStart(12)}: ${value.padEnd(4)}"`
+    return `--label:"${name.padStart(12)}: ${value.padEnd(labelSize)}"`
   }
 
   return (
