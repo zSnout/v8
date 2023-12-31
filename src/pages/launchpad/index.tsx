@@ -20,7 +20,7 @@ const pages: readonly Page[] = [
   {
     title: "zSnout 7",
     description: "The previous version of zSnout.",
-    href: "https://zsnout.com/home",
+    href: "https://zsnout.com/",
     image: openGraphV7,
   },
   {
