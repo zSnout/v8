@@ -4,7 +4,7 @@ description: around 50-65 chars
 excerpt: around 160 chars
 imageAlt: TODO
 published: 2024-01-03
-title: Ithkuil for Tokiponists
+title: An Introduction to Ithkuil
 draft: true
 ---
 
