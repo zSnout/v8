@@ -7,58 +7,15 @@ import PaddedLayout from "./PaddedLayout.astro"
 export interface Props extends LayoutProps {
   headings?: readonly MarkdownHeading[]
 }
-
-const hasHeadings =
-  Astro.props.headings != null && Astro.props.headings.length > 0
 ---
 
-<PaddedLayout
-  maxWidth={hasHeadings
-    ? "max-w-prose md:max-w-[calc(65ch_+_15rem)]"
-    : "max-w-prose"}
-  {...Astro.props}
->
-  <div class="flex h-full w-full flex-1 gap-12 text-z transition">
+<PaddedLayout maxWidth="max-w-prose" {...Astro.props}>
+  <div class="flex h-full w-full flex-1 text-z transition">
     <article
       class="prose prose-slate mx-auto w-full flex-1 py-8 text-z transition dark:prose-invert prose-headings:scroll-mt-20 prose-pre:relative prose-pre:-left-4 prose-pre:w-[calc(100%_+_2em)] prose-hr:relative prose-hr:left-1/2 prose-hr:w-48 prose-hr:-translate-x-1/2 prose-linjamanka:font-linjamanka [&_.math]:overflow-x-auto"
-      class:list={{ "md:mr-0": hasHeadings }}
     >
       <slot />
     </article>
-
-    {
-      hasHeadings && Astro.props.headings && (
-        <>
-          <div class="sticky top-16 mr-auto hidden w-48 flex-col self-start py-8 text-sm print:hidden md:flex md:print:hidden" />
-
-          <nav class="fixed right-[calc(max(1.5rem,50%_-_10rem_-_32.5ch))] top-16 mr-auto hidden w-48 flex-col py-8 text-sm print:hidden md:flex md:print:hidden">
-            {
-              // When this <div /> is placed directly in JSX (instead of in an
-              // expression), the app breaks with a ReferenceError about "entry."
-              // Note that this doesn't happen when the div doesn't self-close,
-              // e.g. is written as <div></div>. However, Prettier has its own
-              // opinions about whether JSX elements are allowed to do that.
-              <div
-                class="absolute -left-3 top-0 h-6 w-1 transition-all"
-                id="nav-marker"
-              />
-            }
-
-            {Astro.props.headings.map(
-              (entry: { depth: number; slug: string; text: string }) => (
-                <a
-                  class="block [line-height:1.75]"
-                  class:list={["", "", "", "ml-2", "ml-4"][entry.depth]}
-                  href={"#" + entry.slug}
-                >
-                  {entry.text}
-                </a>
-              ),
-            )}
-          </nav>
-        </>
-      )
-    }
   </div>
 </PaddedLayout>
 
