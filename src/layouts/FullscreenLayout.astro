@@ -3,7 +3,6 @@ import Navigation from "@/components/nav/Navigation.astro"
 import Layout, { type Props as LayoutProps } from "./Layout.astro"
 
 interface Props extends LayoutProps {
-  class?: string
   options?: any
 }
 ---
@@ -11,11 +10,19 @@ interface Props extends LayoutProps {
 <Layout {...Astro.props}>
   {
     Astro.slots.options ? (
-      <Navigation floating={true} maxWidth="max-w-[64rem]">
+      <Navigation
+        floating={true}
+        maxWidth="max-w-[64rem]"
+        theme={Astro.props.theme}
+      >
         <slot name="options" slot="options" />
       </Navigation>
     ) : (
-      <Navigation floating={true} maxWidth="max-w-[64rem]" />
+      <Navigation
+        floating={true}
+        maxWidth="max-w-[64rem]"
+        theme={Astro.props.theme}
+      />
     )
   }
 

@@ -20,7 +20,7 @@ const hasHeadings =
 >
   <div class="flex h-full w-full flex-1 gap-12 text-z transition">
     <article
-      class="prose prose-slate mx-auto w-full flex-1 py-8 text-z transition dark:prose-invert prose-headings:scroll-mt-20 prose-pre:relative prose-pre:-left-4 prose-pre:w-[calc(100%_+_2em)] prose-hr:relative prose-hr:left-1/2 prose-hr:w-48 prose-hr:-translate-x-1/2 [&_.math]:overflow-x-auto"
+      class="prose prose-slate mx-auto w-full flex-1 py-8 text-z transition dark:prose-invert prose-headings:scroll-mt-20 prose-pre:relative prose-pre:-left-4 prose-pre:w-[calc(100%_+_2em)] prose-hr:relative prose-hr:left-1/2 prose-hr:w-48 prose-hr:-translate-x-1/2 prose-linjamanka:font-linjamanka [&_.math]:overflow-x-auto"
       class:list={{ "md:mr-0": hasHeadings }}
     >
       <slot />
@@ -44,15 +44,17 @@ const hasHeadings =
               />
             }
 
-            {Astro.props.headings.map((entry) => (
-              <a
-                class="block [line-height:1.75]"
-                class:list={["", "", "", "ml-2", "ml-4"][entry.depth]}
-                href={"#" + entry.slug}
-              >
-                {entry.text}
-              </a>
-            ))}
+            {Astro.props.headings.map(
+              (entry: { depth: number; slug: string; text: string }) => (
+                <a
+                  class="block [line-height:1.75]"
+                  class:list={["", "", "", "ml-2", "ml-4"][entry.depth]}
+                  href={"#" + entry.slug}
+                >
+                  {entry.text}
+                </a>
+              ),
+            )}
           </nav>
         </>
       )

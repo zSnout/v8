@@ -6,6 +6,7 @@ interface Props {
   floating: boolean
   maxWidth: `max-w-${string}`
   options?: any
+  theme?: "light" | "dark"
 }
 ---
 
@@ -42,6 +43,6 @@ interface Props {
       )
     }
 
-    <ThemeSwitcher client:idle />
+    <ThemeSwitcher client:idle theme={Astro.props.theme} />
   </div>
 </div>

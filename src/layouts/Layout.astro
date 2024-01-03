@@ -3,6 +3,7 @@ import "./index.postcss"
 
 export interface Props {
   children: any
+  theme?: "light" | "dark"
   title: string
   description: string
   noIndex?: boolean
@@ -25,13 +26,17 @@ const { article } = og
 ---
 
 <!DOCTYPE html>
-<html class="flex h-full w-full flex-col scroll-smooth bg-z-body" lang="en">
+<html
+  class={"flex h-full w-full flex-col scroll-smooth bg-z-body" +
+    (Astro.props.theme ? " force-" + Astro.props.theme : "")}
+  lang="en"
+>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="canonical" href={Astro.url.href} />
-    <meta name="generator" content={Astro.generator} />
+    <meta name="generat or" content={Astro.generator} />
     <meta name="description" content={Astro.props.description} />
     {Astro.props.noIndex && <meta name="robots" content="noindex" />}
     <meta property="og:title" content={og.title} />
@@ -59,11 +64,15 @@ const { article } = og
       ) : null
     }
     {
-      article?.authors.map((author) => (
+      article?.authors.map((author: string) => (
         <meta property="article:author" content={author} />
       ))
     }
-    {article?.tags.map((tag) => <meta property="article:tag" content={tag} />)}
+    {
+      article?.tags.map((tag: string) => (
+        <meta property="article:tag" content={tag} />
+      ))
+    }
     <title>{Astro.props.title}</title>
   </head>
 
@@ -75,22 +84,22 @@ const { article } = og
 </html>
 
 <script is:inline>
-const isDeviceDark = matchMedia("(prefers-color-scheme: dark)").matches
+  const isDeviceDark = matchMedia("(prefers-color-scheme: dark)").matches
 
-const theme = window.localStorage?.getItem("z8:theme")
+  const theme = window.localStorage?.getItem("z8:theme")
 
-const isDark = isDeviceDark ? theme != "light" : theme == "dark"
+  const isDark = isDeviceDark ? theme != "light" : theme == "dark"
 
-const list = document.documentElement.classList
-
-requestAnimationFrame(() => {
-  list.add("no-transition")
-  list.toggle("dark", isDark)
+  const list = document.documentElement.classList
 
   requestAnimationFrame(() => {
-    list.remove("no-transition")
+    list.add("no-transition")
+    list.toggle("dark", isDark)
+
+    requestAnimationFrame(() => {
+      list.remove("no-transition")
+    })
   })
-})
 </script>
 
 <script>
