@@ -12,14 +12,14 @@ interface Props {
 
 {/* This blocks content the address bar in Safari. */}
 <div
-  class="pointer-events-none fixed -top-20 left-0 z-10 h-20 w-full bg-z-body print:hidden"
+  class="pointer-events-none fixed -top-20 left-0 z-30 h-20 w-full bg-z-body print:hidden"
 >
 </div>
 
 {/* This is _intentionally_ not a <nav /> element. */}
 {/* That is used in prose and other documents with internal nav links. */}
 <div
-  class={"pointer-events-none fixed top-0 z-10 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden " +
+  class={"pointer-events-none fixed top-0 z-30 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden " +
     (Astro.props.floating
       ? "border-b-transparent"
       : "backdrop-blur-sm bg-z-body-partial border-b-z")}
