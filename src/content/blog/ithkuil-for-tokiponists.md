@@ -13,6 +13,8 @@ called Ithkuil. This is a brief introduction to some of Ithkuil's features for
 those interested, aimed specifically at the minds of people who already know
 toki pona.
 
-```linjamanka
-toki a! mi jan [ sama .. kala .. wile .. ]
+```sp
+󱥬󱤀
+󱤴󱤑󱦐󱥖󱦜󱤔󱦜󱥷󱦜󱦑
+󱤴󱥷󱥌󱥡󱤉󱥬󱦐󱤌󱦈󱦜󱥷󱦜󱦑󱥩󱥞
 ```

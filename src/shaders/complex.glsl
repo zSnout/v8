@@ -50,3 +50,19 @@ vec2 cx_cube(vec2 z) {
 vec2 cx_pow(vec2 a, vec2 b) {
   return cx_exp(cx_mult(b, cx_log(a)));
 }
+
+vec2 cx_real(vec2 z) {
+  return vec2(z.x, 0);
+}
+
+vec2 cx_imag(vec2 z) {
+  return vec2(z.y, 0);
+}
+
+vec2 cx_sign(vec2 z) {
+  return normalize(z);
+}
+
+vec2 cx_angle(vec2 z) {
+  return vec2(atan(z.y, z.x), 0);
+}

@@ -32,6 +32,15 @@ function traverse(/** @type {import("mdast").Content} */ node) {
     } else {
       return node
     }
+  } else if (node.type == "code" && node.lang == "sp") {
+    return {
+      type: "html",
+      position: node.position,
+      value:
+        "<div class='sp-outer'><div class='sp-inner'>" +
+        escapeHTML(node.value) +
+        "</div></div>",
+    }
   } else if ("children" in node) {
     return {
       ...node,

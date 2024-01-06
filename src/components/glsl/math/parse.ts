@@ -14,8 +14,19 @@ export type UnaryFunction =
   | "length"
   | "sqr"
   | "cube"
+  | "real"
+  | "imag"
+  | "sign"
+  | "angle"
 
-export type Constant = "c" | "z" | "iter" | "u_mouse" | "u_slider" | "u_time"
+export type Constant =
+  | "c"
+  | "z"
+  | "p"
+  | "iter"
+  | "u_mouse"
+  | "u_slider"
+  | "u_time"
 
 export type Token =
   | { type: "left-paren" }
@@ -30,7 +41,7 @@ const tokenize = createTokenizer<Token>(
   [/^\(/, () => ({ type: "left-paren" })],
   [/^\)/, () => ({ type: "right-paren" })],
   [
-    /^(?:sin|cos|tan|exp|log|abs|length)/,
+    /^(?:sin|cos|tan|exp|log|abs|length|real|imag|sign|angle)/,
     ([match]) => ({ type: "unary-fn", name: match as UnaryFunction }),
   ],
   [/^iter/, () => ({ type: "constant", name: "iter" })],
@@ -40,18 +51,19 @@ const tokenize = createTokenizer<Token>(
   [/^fx/, () => ({ type: "number", value: [1, -1] })],
   [/^fy/, () => ({ type: "number", value: [-1, 1] })],
   [
-    /^[cmstz]/,
+    /^[cmpstz]/,
     ([match]) => ({
       type: "constant",
       name: (
         {
           c: "c",
           m: "u_mouse",
-          t: "u_time",
+          p: "p",
           s: "u_slider",
+          t: "u_time",
           z: "z",
         } as const
-      )[match as "c" | "m" | "s" | "t" | "z"],
+      )[match as "c" | "m" | "p" | "s" | "t" | "z"],
     }),
   ],
   [/^[-+*#/^]/, ([match]) => ({ type: "operator", name: match as Operator })],

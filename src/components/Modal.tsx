@@ -33,7 +33,7 @@ export function Modal(props: {
     <NormalizeContent class="z-30">
       <Center isPopup>
         <div
-          class="group transition-and-[visibility] pointer-events-none flex max-h-full min-h-[min(20rem,100vh_-_5rem)] w-96 max-w-full flex-col gap-2 text-z"
+          class="group transition-and-[visibility] pointer-events-none flex min-h-[min(20rem,100vh_-_5rem)] w-96 max-w-full flex-col gap-2 text-z"
           classList={{
             invisible: !props.open,
             "translate-y-8": !props.open,
@@ -43,7 +43,7 @@ export function Modal(props: {
           onClick={(event) => event.stopPropagation()}
           ref={(div) => draggable(div)}
         >
-          <div class="pointer-events-auto flex-1 rounded-lg bg-z-field p-3 text-z shadow-md transition">
+          <div class="pointer-events-auto max-h-[calc(100vh_-_4rem)] flex-1 overflow-y-auto rounded-lg bg-z-field p-3 text-z shadow-md transition">
             {props.children}
           </div>
 

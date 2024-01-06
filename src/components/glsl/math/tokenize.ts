@@ -13,7 +13,12 @@ export function createTokenizer<T>(
 
 export function createTokenizer(...patterns: Pattern<unknown>[]) {
   for (const [regex] of patterns) {
-    if (regex.sticky || regex.global || !regex.source.startsWith("^")) {
+    if (
+      regex.sticky ||
+      regex.global ||
+      regex.multiline ||
+      !regex.source.startsWith("^")
+    ) {
       throw new Error(
         "Invalid regular expression: " +
           "/" +

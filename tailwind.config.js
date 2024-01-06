@@ -10,7 +10,7 @@ export default {
     extend: {
       rotate: { 60: "60deg" },
       spacing: { 4.5: "1.125rem" },
-      fontFamily: { linjamanka: "linjamanka" },
+      fontFamily: { sp: "sitelen pona" },
     },
   },
   plugins: [
@@ -27,11 +27,6 @@ export default {
       addVariant(
         "prose-details",
         '& :is(:where(details):not(:where([class~="not-prose"] *)))',
-      )
-
-      addVariant(
-        "prose-linjamanka",
-        '& :is(:where(pre[data-language="linjamanka"]):not(:where([class~="not-prose"] *)))',
       )
 
       addVariant(

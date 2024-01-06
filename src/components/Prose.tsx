@@ -2,7 +2,7 @@ export function Unprose(props: { children?: any; class?: string }) {
   return (
     <div
       class={
-        "relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw] print:mx-0" +
+        "relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw]" +
         (props.class ? " " + props.class : "")
       }
     >

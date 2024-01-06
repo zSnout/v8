@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: "linjamanka";
-  src: url("../assets/linjamanka.woff") format("woff");
+  font-family: "sitelen pona";
+  src: url("../assets/sitelenselikiwenjuniko.ttf");
 }
 
 html,
@@ -42,6 +42,17 @@ html.no-transition * {
   h6,
   a {
     @apply transition;
+  }
+}
+
+.prose-sp {
+  & :is(:where(.sp-outer):not(:where([class~="not-prose"] *))) {
+    @apply px-6;
+  }
+
+  & :is(:where(.sp-inner):not(:where([class~="not-prose"] *))) {
+    @apply w-full whitespace-pre font-sp text-5xl;
+    line-height: 1.5;
   }
 }
 
