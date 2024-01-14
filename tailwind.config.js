@@ -10,7 +10,12 @@ export default {
     extend: {
       rotate: { 60: "60deg" },
       spacing: { 4.5: "1.125rem" },
-      fontFamily: { sp: "sitelen pona" },
+      fontFamily: {
+        sans: 'ui-sans-serif, system-ui, "nasin-nanpa", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+        serif:
+          'ui-serif, Georgia, Cambria, "Times New Roman", Times, "nasin-nanpa", serif',
+        mono: 'font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", "nasin-nanpa", monospace',
+      },
     },
   },
   plugins: [
