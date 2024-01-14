@@ -22,6 +22,8 @@ async function run(
   const BLOB_COUNT = 20
   const BLOB_MIN_SIZE = 64
   const BLOB_MAX_SIZE = 128
+  const BLOB_MIN_HEIGHT = 0
+  const BLOB_MAX_HEIGHT = 1000
   const GROUND_SIZE = 600
 
   const blobs = new (class Blobs {
@@ -34,7 +36,9 @@ async function run(
         ([x, y, r]) =>
           [
             x * canvas.width,
-            canvas.height - y * GROUND_SIZE,
+            canvas.height -
+              y * (BLOB_MAX_HEIGHT - BLOB_MIN_HEIGHT) +
+              BLOB_MIN_HEIGHT,
             r * (BLOB_MAX_SIZE - BLOB_MIN_SIZE) + BLOB_MIN_SIZE,
           ] as const,
       )
@@ -53,7 +57,14 @@ async function run(
       // const width = +(svg.getAttribute("width") || 0)
       // this.#x = Math.max(0, Math.min(value, canvas.width / 4 - width))
       this.#x = value
-      screen.x = value + canvas.width / 2
+      const MOUSE_BOUND = 100
+      screen.x = 0
+      if (value < MOUSE_BOUND) {
+        screen.x = 4 * (value - MOUSE_BOUND)
+      } else if (value > canvas.width / 4 - MOUSE_BOUND) {
+        screen.x = 4 * (value - canvas.width / 4 + MOUSE_BOUND)
+      }
+      console.log(value)
     }
 
     get y() {
@@ -72,6 +83,29 @@ async function run(
       const height = +(svg.getAttribute("height") || 0)
       return this.#y >= (canvas.height - GROUND_SIZE) / 4 - height
     }
+
+    checkCollision() {
+      for (let [x, y, r] of blobs.blobs) {
+        r += 10
+        console.log(1)
+        console.log(2)
+        console.log(3)
+        console.log(4)
+        console.log(5)
+        console.log(6)
+        console.log(7)
+        console.log(8)
+        console.log(9)
+        const offsetX = x - 4 * this.#x
+        const offsetY = y - 4 * this.#y
+        const direction = Math.atan2(offsetY, offsetX)
+
+        if (Math.hypot(offsetX, offsetY) <= r) {
+          this.#x = (x - r * Math.cos(direction)) / 4
+          this.#y = (y - r * Math.sin(direction)) / 4
+        }
+      }
+    }
   })()
 
   const gravity = new (class Gravity {
@@ -89,9 +123,6 @@ async function run(
 
     set vx(value) {
       if (this.#active) {
-        if (Math.abs(value) > 10) {
-          value = 10 * Math.sign(value)
-        }
         this.#vx = value
       }
     }
@@ -117,10 +148,14 @@ async function run(
     }
 
     exec(deltaTime: number) {
-      const GRAVITY = (((9.8 * 100) / 2.56) * 96) / 60 / 60
+      const GRAVITY = ((((9.8 * 100) / 2.56) * 96) / 60 / 60) * 2
 
       if (this.#active) {
         mouse.x += this.#vx
+
+        if (Math.abs(this.#vx) > 10) {
+          this.#vx = 10 * Math.sign(this.#vx)
+        }
 
         const startVelocity = this.#vy
         this.#vy += GRAVITY * deltaTime
@@ -188,12 +223,15 @@ async function run(
       }
     }
 
+    // Run collisions
+    mouse.checkCollision()
+
     // Clear screen
     context.clearRect(0, 0, canvas.width, canvas.height)
 
     // Move mouse to correct place
     svgEl.style.top = mouse.y + "px"
-    svgEl.style.left = mouse.x + "px"
+    svgEl.style.left = mouse.x - screen.x / 4 + "px"
 
     // Draw force field
     context.fillStyle = "transparent"
@@ -225,13 +263,18 @@ async function run(
     // Draw ground
     context.fillStyle = "rgb(0 128 0)"
     context.beginPath()
-    context.rect(0, canvas.height - GROUND_SIZE, canvas.width, GROUND_SIZE)
+    context.rect(
+      -screen.x,
+      canvas.height - GROUND_SIZE,
+      canvas.width,
+      GROUND_SIZE,
+    )
     context.fill()
 
     context.fillStyle = "rgb(0 255 0)"
     for (const [x, y, r] of blobs.blobs) {
       context.beginPath()
-      context.arc(x, y, r, 0, 360)
+      context.arc(x - screen.x, y, r, 0, 360)
       context.fill()
     }
   }
