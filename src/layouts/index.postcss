@@ -4,11 +4,35 @@
 
 @font-face {
   font-family: "nasin-nanpa";
-  src: url("../assets/nasin-nanpa-2.7.1.ttf");
+  src: local("nasin-nanpa"),
+    url("../assets/fonts/nasin-nanpa-2.7.1.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "Fairfax HD";
+  src: local("Fairfax HD"),
+    url("../assets/fonts/FairfaxHD.eot") format("embedded-opentype"),
+    url("../assets/fonts/FairfaxHD.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "sitelen seli kiwen juniko";
+  src: local("sitelen seli kiwen juniko"),
+    url("../assets/fonts/sitelenselikiwenjuniko.eot")
+      format("embedded-opentype"),
+    url("../assets/fonts/sitelenselikiwenjuniko.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "linja lipamanka";
+  src: local("linja lipamanka"),
+    url("../assets/fonts/linjalipamanka.otf") format("opentype"),
+    url("../assets/fonts/linjalipamanka.woff") format("woff");
 }
 
 :root {
   @apply font-sans;
+  --font-sp: "nasin-nanpa";
 }
 
 html,

@@ -11,10 +11,10 @@ export default {
       rotate: { 60: "60deg" },
       spacing: { 4.5: "1.125rem" },
       fontFamily: {
-        sans: 'ui-sans-serif, system-ui, "nasin-nanpa", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+        sans: 'ui-sans-serif, system-ui, var(--font-sp), sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
         serif:
-          'ui-serif, Georgia, Cambria, "Times New Roman", Times, "nasin-nanpa", serif',
-        mono: 'font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", "nasin-nanpa", monospace',
+          'ui-serif, Georgia, Cambria, "Times New Roman", Times, var(--font-sp), serif',
+        mono: 'font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", var(--font-sp), monospace',
       },
     },
   },
