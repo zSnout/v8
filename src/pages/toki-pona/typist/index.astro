@@ -1,15 +1,17 @@
 ---
 import DocumentLayout from "@/layouts/DocumentLayout.astro"
 import { Main } from "."
+import og from "./open-graph.png"
 ---
 
 <DocumentLayout
-  title="kama sona nena e sitelen pona"
-  description="Learn how to rapidly type using the sitelen pona keyboard layout created by KreativeKorp."
+  title="sitelen pona typist"
+  description="Practice typing using the sitelen pona keyboard layout from kreativekorp.com by choosing which keys to practice with and which ones to ignore."
   og={{
-    title: "TODO",
-    imageSrc: "TODO",
-    imageAlt: "TODO",
+    imageSrc: og,
+    imageAlt:
+      "A section of the sitelen pona typist page, with five keys at the top visible reading 'o pi luka e toki'. The first two keys are highlighted in green, and the keyboard below has the 'luka' key highlighted in blue.",
+    title: "sitelen pona typist",
   }}
 >
   <Main client:load />

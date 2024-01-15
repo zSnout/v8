@@ -8,6 +8,7 @@ import ithkuilFontGeneratorOpenGraph from "../ithkuil/font/open-graph.png"
 import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import ithkuilFormativeGeneratorOpenGraph from "../ithkuil/generate/formative/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
+import sitelenPonaTypistOpenGraph from "../toki-pona/typist/open-graph.png"
 
 export type Tag =
   | "art"
@@ -113,6 +114,19 @@ const nonBlogPages: readonly Page[] = [
     imageAlt:
       "zSnout's Ithkuil formative generator, with 'ersmlakpalla' as the input.",
     imageSrc: ithkuilFormativeGeneratorOpenGraph,
+  },
+
+  {
+    title: "sitelen pona typist",
+    href: "/toki-pona/typist",
+    subtitle:
+      "Practice typing using the sitelen pona keyboard layout from kreativekorp.com by choosing which keys to practice with and which ones to ignore.",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      "A section of the sitelen pona typist page, with five keys at the top visible reading 'o pi luka e toki'. The first two keys are highlighted in green, and the keyboard below has the 'luka' key highlighted in blue.",
+    imageSrc: sitelenPonaTypistOpenGraph,
   },
 
   {
