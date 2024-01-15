@@ -1,7 +1,6 @@
 ---
 import DocumentLayout from "@/layouts/DocumentLayout.astro"
 import { Main } from "."
-import "./index.css"
 ---
 
 <DocumentLayout
@@ -13,5 +12,5 @@ import "./index.css"
     imageAlt: "TODO",
   }}
 >
-  <Main />
+  <Main client:load />
 </DocumentLayout>

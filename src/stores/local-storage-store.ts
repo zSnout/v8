@@ -1,4 +1,4 @@
-import { createSignal, untrack, type Signal } from "solid-js"
+import { createSignal, untrack, type Signal, onMount } from "solid-js"
 
 export function createStorage(
   key: string,
@@ -10,7 +10,14 @@ export function createStorage(
     typeof localStorage != "undefined"
       ? localStorage.getItem(realKey) ?? defaultValue
       : defaultValue,
+    // defaultValue,
   )
+
+  onMount(() => {
+    setTimeout(() => {
+      set(localStorage.getItem(realKey) ?? defaultValue)
+    })
+  })
 
   if (typeof localStorage != "undefined" && typeof window != "undefined") {
     window.addEventListener("storage", (event) => {
