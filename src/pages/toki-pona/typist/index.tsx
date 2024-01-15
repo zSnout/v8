@@ -352,6 +352,16 @@ export function Main() {
         Press <kbd>Alt</kbd> to select just one cell.
         <br />
         Press <kbd>Space</kbd> to blur the keyboard unless hovered.
+        <br />
+        Based on{" "}
+        <a
+          class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-inherit focus:decoration-inherit focus:outline-none"
+          href="https://www.kreativekorp.com/software/keyboards/sitelenpona/"
+          target="_blank"
+        >
+          this keyboard layout
+        </a>
+        .
       </p>
 
       <Entries entries={keys()} />
