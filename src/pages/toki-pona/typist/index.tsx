@@ -94,6 +94,8 @@ const [used, setUsed] = createStorage(
   PRESSABLE_BY_SEGMENT[0].join(""),
 )
 
+const [font, setFont] = createStorage("toki-pona/typist:font", "", true)
+
 function createKeysStorage() {
   const [keys, setKeys] = createStorage(
     "toki-pona/typist:keys",
@@ -282,6 +284,15 @@ export function Main() {
     setNextPrompt()
   })
 
+  createEffect(() => {
+    const spFont = font()
+
+    document.documentElement.style.setProperty(
+      "--font-sp",
+      spFont || "nasin-nanpa",
+    )
+  })
+
   onMount(() => {
     document.addEventListener("keydown", (event) => {
       if (event.metaKey || event.ctrlKey || event.defaultPrevented) {
@@ -363,6 +374,23 @@ export function Main() {
         </a>
         .
       </p>
+
+      <datalist id="preloaded-fonts">
+        <option>nasin-nanpa</option>
+        <option>sitelen seli kiwen juniko</option>
+        <option>Fairfax HD</option>
+        <option>linja lipamanka</option>
+      </datalist>
+
+      <input
+        list="preloaded-fonts"
+        class="z-field -my-12 mx-auto w-full max-w-md"
+        type="text"
+        value={font()}
+        onInput={(event) => setFont(event.currentTarget.value)}
+        placeholder="Preferred font..."
+        onKeyDown={(event) => event.stopImmediatePropagation()}
+      />
 
       <Entries entries={keys()} />
     </div>
