@@ -1,28 +1,19 @@
 import { faCheck } from "@fortawesome/free-solid-svg-icons"
-import { createSignal } from "solid-js"
 import type { JSX } from "solid-js/jsx-runtime"
 import { Fa } from "../Fa"
 
 export type CheckboxProps = Omit<
   JSX.InputHTMLAttributes<HTMLInputElement>,
-  "type" | "onInput"
-> & {
-  onInput?: JSX.EventHandler<HTMLInputElement, InputEvent>
-}
+  "type"
+>
 
 export function Checkbox(props: CheckboxProps) {
-  const [checked, setChecked] = createSignal(props.checked ?? false)
-
   return (
     <>
       <input
         {...props}
-        checked={checked()}
+        checked={props.checked}
         class={(props.class || "") + " peer/checkbox sr-only"}
-        onInput={(event) => {
-          setChecked(event.currentTarget.checked)
-          props.onInput?.(event)
-        }}
         type="checkbox"
       />
 

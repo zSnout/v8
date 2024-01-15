@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/fields/Checkbox"
 import { createStorage } from "@/stores/local-storage-store"
 import {
   For,
@@ -10,10 +11,13 @@ import {
 
 type Key = readonly [
   standard: string,
+
   main: string,
   shift: string,
   alt: string,
   altShift: string,
+
+  code: string,
 ]
 
 type KeyRow = readonly Key[]
@@ -22,59 +26,59 @@ type KeyData = readonly [KeyRow, KeyRow, KeyRow, KeyRow]
 
 const KEY_DATA: KeyData = [
   [
-    ["`", "(", ")", "<", ">"],
-    ["1", "󱥳", "󱤹", "󱥗", "󱥹"],
-    ["2", "󱥮", "󱤾", "󱥑", "󱤁"],
-    ["3", "󱤼", "󱤽", "󱤋", "󱥽"],
-    ["4", "󱥩", "󱤈", "󱤲", "󱦡"],
-    ["5", "󱤭", "󱥌", "󱥃", "󱥻"],
-    ["6", "󱤨", "󱥣", "󱥦", "󱦃"],
-    ["7", "󱤊", "󱥢", "󱥴", "󱦀"],
-    ["8", "󱤖", "󱥶", "󱤦", "󱥸"],
-    ["9", "󱤄", "󱦐", "󱥇", "󱦣"],
-    ["0", "󱤂", "󱦑", "󱥋", "🗧"],
+    ["`", "(", ")", "<", ">", "Backquote"],
+    ["1", "󱥳", "󱤹", "󱥗", "󱥹", "Digit1"],
+    ["2", "󱥮", "󱤾", "󱥑", "󱤁", "Digit2"],
+    ["3", "󱤼", "󱤽", "󱤋", "󱥽", "Digit3"],
+    ["4", "󱥩", "󱤈", "󱤲", "󱦡", "Digit4"],
+    ["5", "󱤭", "󱥌", "󱥃", "󱥻", "Digit5"],
+    ["6", "󱤨", "󱥣", "󱥦", "󱦃", "Digit6"],
+    ["7", "󱤊", "󱥢", "󱥴", "󱦀", "Digit7"],
+    ["8", "󱤖", "󱥶", "󱤦", "󱥸", "Digit8"],
+    ["9", "󱤄", "󱦐", "󱥇", "󱦣", "Digit9"],
+    ["0", "󱤂", "󱦑", "󱥋", "🗧", "Digit0"],
     // ["-", "‍", "‍", "", ""], // "󱦓", "󱦒"], (not recommended)
     // ["=", "󱦕", "󱦖", "", ""], // "󱦔", "󱦙"], (not recommended)
   ],
   [
-    ["q", "󱥙", "󱥤", "󱤜", "󱤺"],
-    ["w", "󱤡", "󱥵", "󱥚", "󱥲"],
-    ["e", "󱤉", "󱥖", "󱥓", "󱥼"],
-    ["r", "󱥫", "󱤤", "󱤫", "󱦇"],
-    ["t", "󱥬", "󱥭", "󱥥", "󱥾"],
-    ["y", "󱤬", "󱤇", "󱤗", "󱦁"],
-    ["u", "󱥞", "󱤕", "󱥰", "󱥯"],
-    ["i", "󱤍", "󱤎", "󱤏", "󱦂"],
-    ["o", "󱥄", "󱤌", "󱥜", "󱥺"],
-    ["p", "󱥔", "󱥈", "󱥒", "󱥕"],
-    ["[", "", "", "[", "{"],
-    ["]", "", "", "]", "}"],
-    ["\\", "/", "_", "\\", "|"],
+    ["q", "󱥙", "󱥤", "󱤜", "󱤺", "KeyQ"],
+    ["w", "󱤡", "󱥵", "󱥚", "󱥲", "KeyW"],
+    ["e", "󱤉", "󱥖", "󱥓", "󱥼", "KeyE"],
+    ["r", "󱥫", "󱤤", "󱤫", "󱦇", "KeyR"],
+    ["t", "󱥬", "󱥭", "󱥥", "󱥾", "KeyT"],
+    ["y", "󱤬", "󱤇", "󱤗", "󱦁", "KeyY"],
+    ["u", "󱥞", "󱤕", "󱥰", "󱥯", "KeyU"],
+    ["i", "󱤍", "󱤎", "󱤏", "󱦂", "KeyI"],
+    ["o", "󱥄", "󱤌", "󱥜", "󱥺", "KeyO"],
+    ["p", "󱥔", "󱥈", "󱥒", "󱥕", "KeyP"],
+    ["[", "", "", "[", "{", "BracketLeft"],
+    ["]", "", "", "]", "}", "BracketRight"],
+    ["\\", "/", "_", "\\", "|", "Backslash"],
   ],
   [
-    ["a", "󱤀", "󱤆", "󱤔", "󱤅"],
-    ["s", "󱥡", "󱥠", "󱥛", "󱥘"],
-    ["d", "󱥨", "󱤪", "󱤥", "󱤃"],
-    ["f", "󱥍", "󱥐", "󱤚", "󱦠"],
-    ["g", "󱥆", "󱤟", "󱤣", "󱦅"],
-    ["h", "󱥂", "󱥝", "󱥊", "󱦢"],
-    ["j", "󱤑", "󱤓", "󱤐", "󱤒"],
-    ["k", "󱤘", "󱤙", "󱤛", "󱦈"],
-    ["l", "󱤧", "󱤮", "󱤩", "󱤯"],
-    [";", "󱦜", "󱦝", ";", ":"],
-    ["'", "'", '"', "+", "*"],
+    ["a", "󱤀", "󱤆", "󱤔", "󱤅", "KeyA"],
+    ["s", "󱥡", "󱥠", "󱥛", "󱥘", "KeyS"],
+    ["d", "󱥨", "󱤪", "󱤥", "󱤃", "KeyD"],
+    ["f", "󱥍", "󱥐", "󱤚", "󱦠", "KeyF"],
+    ["g", "󱥆", "󱤟", "󱤣", "󱦅", "KeyG"],
+    ["h", "󱥂", "󱥝", "󱥊", "󱦢", "KeyH"],
+    ["j", "󱤑", "󱤓", "󱤐", "󱤒", "KeyJ"],
+    ["k", "󱤘", "󱤙", "󱤛", "󱦈", "KeyK"],
+    ["l", "󱤧", "󱤮", "󱤩", "󱤯", "KeyL"],
+    [";", "󱦜", "󱦝", ";", ":", "Semicolon"],
+    ["'", "'", '"', "+", "*", "Quote"],
   ],
   [
-    ["z", "󱥧", "󱤢", "󱤷", "󱤸"],
-    ["x", "󱥉", "󱤶", "󱥱", "󱥟"],
-    ["c", "󱥎", "󱥅", "󱤞", "󱦄"],
-    ["v", "󱥷", "󱥪", "󱤝", "󱥿"],
-    ["b", "󱥁", "󱤿", "󱥏", "󱤵"],
-    ["n", "󱦆", "󱤻", "󱤠", "󱥀"],
-    ["m", "󱤴", "󱤰", "󱤱", "󱤳"],
-    [",", "、", "「", ",", "『"],
-    [".", "。", "」", ".", "』"],
-    ["/", "-", "=", "!", "?"],
+    ["z", "󱥧", "󱤢", "󱤷", "󱤸", "KeyZ"],
+    ["x", "󱥉", "󱤶", "󱥱", "󱥟", "KeyX"],
+    ["c", "󱥎", "󱥅", "󱤞", "󱦄", "KeyC"],
+    ["v", "󱥷", "󱥪", "󱤝", "󱥿", "KeyV"],
+    ["b", "󱥁", "󱤿", "󱥏", "󱤵", "KeyB"],
+    ["n", "󱦆", "󱤻", "󱤠", "󱥀", "KeyN"],
+    ["m", "󱤴", "󱤰", "󱤱", "󱤳", "KeyM"],
+    [",", "、", "「", ",", "『", "Comma"],
+    [".", "。", "」", ".", "』", "Period"],
+    ["/", "-", "=", "!", "?", "Slash"],
   ],
 ]
 
@@ -85,9 +89,9 @@ const PRESSABLE_BY_SEGMENT = [
   KEY_DATA.flatMap((x) => x.map((y) => y[4])).filter((x) => x),
 ] as const
 
-const PRESSABLE = KEY_DATA.flatMap((x) => x.flatMap((x) => x.slice(1))).filter(
-  (x) => x,
-)
+const PRESSABLE: string[] = KEY_DATA.flatMap((x) =>
+  x.flatMap((x) => x.slice(1, 5) as string[]),
+).filter((x) => x)
 
 const [used, setUsed] = createStorage(
   "toki-pona/typist:used",
@@ -172,7 +176,7 @@ function CharTable(props: { active: string | undefined }) {
               : props.row
 
             const items = event.shiftKey
-              ? keys.flatMap((x) => x.slice(0))
+              ? keys.flatMap((x) => x.slice(1, 5) as string[])
               : keys.map((x) => x[props.index])
 
             if (used.includes(props.char)) {
@@ -264,6 +268,12 @@ function chooseNextKeys() {
   ]
 }
 
+const [useCode, setUseCode] = createStorage(
+  "toki-pona/typist:use_code",
+  "true",
+  true,
+)
+
 export function Main() {
   const [prompt, setPrompt] = createSignal<Prompt>({
     answer: split("󱥬󱥔󱦜"),
@@ -301,12 +311,25 @@ export function Main() {
 
       if (event.key == "Backspace") {
         setPrompt((prompt) => ({ ...prompt, typed: prompt.typed.slice(0, -1) }))
-      } else if (event.key == " ") {
+        return
+      }
+
+      if (event.key == " " || event.key == "　") {
         setIsBlurred((x) => (x == "true" ? "false" : "true"))
-      } else if (PRESSABLE.includes(event.key)) {
+        return
+      }
+
+      const key =
+        untrack(useCode) == "true"
+          ? KEY_DATA.flat().find((x) => x[5] == event.code)?.[
+              1 + 2 * +event.altKey + +event.shiftKey
+            ] || ""
+          : event.key
+
+      if (PRESSABLE.includes(key)) {
         setPrompt((prompt) => ({
           ...prompt,
-          typed: prompt.typed.concat(event.key),
+          typed: prompt.typed.concat(key),
         }))
 
         if (prompt().typed.join("") == prompt().answer.join("")) {
@@ -382,15 +405,28 @@ export function Main() {
         <option>linja lipamanka</option>
       </datalist>
 
-      <input
-        list="preloaded-fonts"
-        class="z-field -my-12 mx-auto w-full max-w-md"
-        type="text"
-        value={font()}
-        onInput={(event) => setFont(event.currentTarget.value)}
-        placeholder="Preferred font..."
-        onKeyDown={(event) => event.stopImmediatePropagation()}
-      />
+      <div class="-my-12 mx-auto flex w-full max-w-md flex-col gap-4">
+        <input
+          list="preloaded-fonts"
+          class="z-field"
+          type="text"
+          value={font()}
+          onInput={(event) => setFont(event.currentTarget.value)}
+          placeholder="Preferred font..."
+          onKeyDown={(event) => event.stopImmediatePropagation()}
+        />
+
+        <label class="flex gap-2">
+          <Checkbox
+            checked={useCode() == "true"}
+            onInput={(event) =>
+              setUseCode(event.currentTarget.checked ? "true" : "false")
+            }
+          />
+
+          <p>Force sitelen pona keyboard layout</p>
+        </label>
+      </div>
 
       <Entries entries={keys()} />
     </div>
