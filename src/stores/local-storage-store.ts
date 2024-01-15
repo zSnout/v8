@@ -3,21 +3,23 @@ import { createSignal, untrack, type Signal, onMount } from "solid-js"
 export function createStorage(
   key: string,
   defaultValue: string,
+  delay?: boolean,
 ): Signal<string> {
   const realKey = `z8:${key}`
 
   const [get, set] = createSignal(
-    typeof localStorage != "undefined"
+    !delay && typeof localStorage != "undefined"
       ? localStorage.getItem(realKey) ?? defaultValue
       : defaultValue,
-    // defaultValue,
   )
 
-  onMount(() => {
-    setTimeout(() => {
-      set(localStorage.getItem(realKey) ?? defaultValue)
+  if (delay) {
+    onMount(() => {
+      setTimeout(() => {
+        set(localStorage.getItem(realKey) ?? defaultValue)
+      })
     })
-  })
+  }
 
   if (typeof localStorage != "undefined" && typeof window != "undefined") {
     window.addEventListener("storage", (event) => {
@@ -29,10 +31,11 @@ export function createStorage(
 
   return [
     get,
-    (value) => {
+    (value: string | ((x: string) => string)) => {
       if (typeof value == "function") {
         const next = value(untrack(get))
         localStorage.setItem(realKey, next)
+        set(next)
         return next as any
       } else {
         localStorage.setItem(realKey, value)

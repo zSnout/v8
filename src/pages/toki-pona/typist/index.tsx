@@ -2,7 +2,7 @@ import { createStorage } from "@/stores/local-storage-store"
 import {
   For,
   Index,
-  createMemo,
+  createEffect,
   createSignal,
   onMount,
   untrack,
@@ -89,8 +89,17 @@ const PRESSABLE = KEY_DATA.flatMap((x) => x.flatMap((x) => x.slice(1))).filter(
   (x) => x,
 )
 
+const [used, setUsed] = createStorage(
+  "toki-pona/typist:used",
+  PRESSABLE_BY_SEGMENT[0].join(""),
+)
+
 function createKeysStorage() {
-  const [keys, setKeys] = createStorage("toki-pona/typist:keys", "{}")
+  const [keys, setKeys] = createStorage(
+    "toki-pona/typist:keys",
+    '{"󱥬":1}',
+    true,
+  )
 
   return [
     (): Record<string, number> => {
@@ -119,6 +128,11 @@ function createKeysStorage() {
 
 const [keys, setKeys] = createKeysStorage()
 
+const [isBlurred, setIsBlurred] = createStorage(
+  "toki-pona/typist:blur_keyboard",
+  "false",
+)
+
 function split(text: string): string[] {
   const output = []
   let index = 0
@@ -134,8 +148,52 @@ function split(text: string): string[] {
 }
 
 function CharTable(props: { active: string | undefined }) {
+  function Char(props: {
+    index: 1 | 2 | 3 | 4
+    char: string
+    key: Key
+    row: KeyRow
+  }) {
+    return (
+      <p
+        class="flex cursor-pointer select-none items-center justify-center"
+        classList={{ "opacity-20 text-xs": !used().includes(props.char) }}
+        onContextMenu={(event) => event.preventDefault()}
+        onMouseDown={(event) => {
+          setUsed((usedStr) => {
+            const used = split(usedStr)
+
+            const keys = event.altKey
+              ? [props.key]
+              : event.ctrlKey || event.metaKey
+              ? KEY_DATA.flat()
+              : props.row
+
+            const items = event.shiftKey
+              ? keys.flatMap((x) => x.slice(0))
+              : keys.map((x) => x[props.index])
+
+            if (used.includes(props.char)) {
+              return used.filter((x) => !items.includes(x)).join("")
+            } else {
+              return used
+                .concat(...items)
+                .filter((x, i, a) => a.indexOf(x) == i)
+                .join("")
+            }
+          })
+        }}
+      >
+        {props.char}
+      </p>
+    )
+  }
+
   return (
-    <div class="mx-auto flex flex-col text-z-heading">
+    <div
+      class="group mx-auto flex flex-col text-z-heading transition hover:blur-none"
+      classList={{ blur: isBlurred() == "true" }}
+    >
       {KEY_DATA.map((row, index) => (
         <div
           class="-mt-px flex pl-[--offset] first:mt-0"
@@ -146,23 +204,25 @@ function CharTable(props: { active: string | undefined }) {
           }}
         >
           {row.map((cell) => {
-            const [_, main, shift, alt, altShift] = cell
+            const [_, main, shf, alt, as] = cell
 
             return (
               <div
                 class={
                   "-ml-px grid aspect-square grid-cols-[1.75rem,1.75rem] grid-rows-[1.75rem,1.75rem] border border-z transition first:ml-0" +
-                  ((cell as readonly (string | undefined)[]).includes(
-                    props.active,
-                  )
-                    ? " relative border-z-focus bg-z-ring-focus ring ring-z-focus"
+                  ((cell as readonly (string | undefined)[])
+                    .slice(1)
+                    .includes(props.active)
+                    ? isBlurred() == "true"
+                      ? " relative group-hover:border-z-focus group-hover:bg-z-ring-focus group-hover:ring group-hover:ring-z-focus"
+                      : " relative border-z-focus bg-z-ring-focus ring ring-z-focus"
                     : "")
                 }
               >
-                <p class="flex items-center justify-center">{shift}</p>
-                <p class="flex items-center justify-center">{altShift}</p>
-                <p class="flex items-center justify-center">{main}</p>
-                <p class="flex items-center justify-center">{alt}</p>
+                <Char char={shf} index={2} key={cell} row={KEY_DATA[index]!} />
+                <Char char={as} index={4} key={cell} row={KEY_DATA[index]!} />
+                <Char char={main} index={1} key={cell} row={KEY_DATA[index]!} />
+                <Char char={alt} index={3} key={cell} row={KEY_DATA[index]!} />
               </div>
             )
           })}
@@ -177,23 +237,49 @@ interface Prompt {
   readonly typed: readonly string[]
 }
 
-export function Main() {
-  function Content(props: { class?: string; children: any }) {
-    return (
-      <div
-        class={
-          "mx-auto flex w-full max-w-lg flex-1 flex-col" +
-          (props.class ? " " + props.class : "")
-        }
-      >
-        {props.children}
-      </div>
-    )
+function chooseNextKeys() {
+  function choose<T>(items: T[]): T {
+    if (items.length == 0) {
+      throw new Error()
+    }
+
+    return items[Math.floor(items.length * Math.random())]!
   }
 
+  const values = split(used()).filter((x) => PRESSABLE.includes(x))
+
+  if (values.length == 0) {
+    return undefined
+  }
+
+  return [
+    choose(values),
+    choose(values),
+    choose(values),
+    choose(values),
+    choose(values),
+    choose(values),
+  ]
+}
+
+export function Main() {
   const [prompt, setPrompt] = createSignal<Prompt>({
     answer: split("󱥬󱥔󱦜"),
     typed: split("󱥬"),
+  })
+
+  function setNextPrompt() {
+    const values = chooseNextKeys() || ["󱤴", "󱤘", "󱤂", "󱥌", "󱤉", "󱥂"]
+
+    setPrompt({
+      answer: values,
+      typed: [],
+    })
+  }
+
+  createEffect(() => {
+    used()
+    setNextPrompt()
   })
 
   onMount(() => {
@@ -204,6 +290,8 @@ export function Main() {
 
       if (event.key == "Backspace") {
         setPrompt((prompt) => ({ ...prompt, typed: prompt.typed.slice(0, -1) }))
+      } else if (event.key == " ") {
+        setIsBlurred((x) => (x == "true" ? "false" : "true"))
       } else if (PRESSABLE.includes(event.key)) {
         setPrompt((prompt) => ({
           ...prompt,
@@ -219,43 +307,52 @@ export function Main() {
           }
           setKeys(newKeys)
 
-          const pick = () =>
-            PRESSABLE[Math.floor(PRESSABLE.length * Math.random())]!
-
-          setPrompt({ answer: Array(6).fill(0).map(pick), typed: [] })
+          setNextPrompt()
         }
       }
     })
+
+    setNextPrompt()
   })
 
   return (
     <div class="m-auto flex flex-col gap-20">
-      <Content>
-        <div class="mx-auto flex gap-6">
-          <Index each={prompt().answer}>
-            {(value, index) => (
-              <div
-                class={
-                  "flex h-20 w-20 items-center justify-center rounded-lg border border-z text-6xl transition " +
-                  (prompt().typed[index] == value()
-                    ? " !border-green-500 bg-green-100 dark:bg-green-950"
-                    : prompt().typed[index]
-                    ? " !border-red-500 bg-red-100 dark:bg-red-950"
-                    : "")
-                }
-              >
-                {value()}
-              </div>
-            )}
-          </Index>
-        </div>
-      </Content>
+      <div class="mx-auto flex gap-6">
+        <Index each={prompt().answer}>
+          {(value, index) => (
+            <div
+              class={
+                "flex h-20 w-20 items-center justify-center rounded-lg border border-z text-6xl transition " +
+                (prompt().typed[index] == value()
+                  ? " !border-green-500 bg-green-100 dark:bg-green-950"
+                  : prompt().typed[index]
+                  ? " !border-red-500 bg-red-100 dark:bg-red-950"
+                  : "")
+              }
+            >
+              {value()}
+            </div>
+          )}
+        </Index>
+      </div>
 
       <CharTable
         active={prompt().answer.find(
           (value, index) => prompt().typed[index] != value,
         )}
       />
+
+      <p class="-mt-16 text-center">
+        Click a cell to toggle keys in its given row.
+        <br />
+        Press <kbd>Ctrl</kbd> to toggle the whole keyboard.
+        <br />
+        Press <kbd>Shift</kbd> to ignore key modifiers.
+        <br />
+        Press <kbd>Alt</kbd> to select just one cell.
+        <br />
+        Press <kbd>Space</kbd> to blur the keyboard unless hovered.
+      </p>
 
       <Entries entries={keys()} />
     </div>
@@ -264,16 +361,16 @@ export function Main() {
 
 function Entries(props: { entries: Record<string, number> }) {
   return (
-    <div class="flex">
+    <div class="flex max-w-full flex-wrap gap-y-6">
       <For
         each={Object.entries(props.entries)
           .sort(([a], [b]) => (a < b ? -1 : 1))
-          .sort(([, a], [, b]) => a - b)}
+          .sort(([, a], [, b]) => b - a)}
       >
         {([word, practices]) => (
-          <div class="h-10 w-10">
-            {word}
-            {practices}
+          <div class="flex w-8 flex-col items-center">
+            <p class="text-xl">{word}</p>
+            <p class="text-sm text-z-subtitle">{practices}</p>
           </div>
         )}
       </For>
