@@ -14,7 +14,7 @@ export default {
         sans: 'ui-sans-serif, system-ui, var(--font-sp), sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
         serif:
           'ui-serif, Georgia, Cambria, "Times New Roman", Times, var(--font-sp), serif',
-        mono: 'font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", var(--font-sp), monospace',
+        mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", var(--font-sp), monospace',
       },
     },
   },
