@@ -5,10 +5,11 @@ import debugMathToGLSLOpenGraph from "../debug/math-to-glsl/open-graph.png"
 import deduplicateTextOpenGraph from "../deduplicate-text/open-graph.jpg"
 import fractalExplorerOpenGraph from "../fractal-explorer/open-graph.png"
 import ithkuilFontGeneratorOpenGraph from "../ithkuil/font/open-graph.png"
-import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import ithkuilFormativeGeneratorOpenGraph from "../ithkuil/generate/formative/open-graph.png"
-import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
+import ithkuilScriptCheatSheetOpenGraph from "../ithkuil/script/cheat-sheet/open-graph.jpg"
+import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import sitelenPonaTypistOpenGraph from "../toki-pona/typist/open-graph.png"
+import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
 
 export type Tag =
   | "art"
@@ -101,6 +102,19 @@ const nonBlogPages: readonly Page[] = [
     imageAlt:
       'zSnout\'s Ithkuil font generator, with "Wattunkí ruyün!" as the input.',
     imageSrc: ithkuilFontGeneratorOpenGraph,
+  },
+
+  {
+    title: "Ithkuil Script Cheat Sheet",
+    href: "/ithkuil/script/cheat-sheet",
+    subtitle:
+      "A single-page cheat sheet containing all the Ithkuil script core shapes and extensions.",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      "A screenshot of the Ithkuil Script Cheat Sheet showing the extensions and core shapes for the letters C, Č, D2, Ḑ, G2, H, L, Ļ, Ň, and P.",
+    imageSrc: ithkuilScriptCheatSheetOpenGraph,
   },
 
   {

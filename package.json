@@ -39,7 +39,6 @@
   },
   "prettier": {
     "semi": false,
-    "trailingComma": "all",
     "proseWrap": "always",
     "plugins": [
       "prettier-plugin-astro",
@@ -48,6 +47,7 @@
     ],
     "pluginSearchDirs": [
       "."
-    ]
+    ],
+    "trailingComma": "all"
   }
 }

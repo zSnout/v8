@@ -1,0 +1,18 @@
+---
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+import openGraph from "./open-graph.jpg"
+---
+
+<DocumentLayout
+  title="Ithkuil Script Cheat Sheet"
+  description="A single-page cheat sheet containing all the Ithkuil script core shapes and extensions."
+  og={{
+    imageAlt:
+      "A screenshot of the Ithkuil Script Cheat Sheet showing the extensions and core shapes for the letters C, Č, D2, Ḑ, G2, H, L, Ļ, Ň, and P.",
+    imageSrc: openGraph,
+    title: "Ithkuil Script Cheat Sheet",
+  }}
+>
+  <Main client:only />
+</DocumentLayout>

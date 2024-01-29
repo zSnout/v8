@@ -1,3 +1,4 @@
+import { createEventListener } from "@/components/create-event-listener"
 import { defaultMouse } from "@/components/cursors"
 import { JSX, Signal, createSignal, onMount } from "solid-js"
 
@@ -354,7 +355,7 @@ export function Main() {
   onMount(() => {
     locked = !!document.pointerLockElement
 
-    document.addEventListener("pointerlockchange", () => {
+    createEventListener(document, "pointerlockchange", () => {
       if (document.pointerLockElement) {
         clickToStart.style.display = "none"
         events?.lock(x, y)
@@ -367,7 +368,7 @@ export function Main() {
       }
     })
 
-    document.addEventListener("keydown", (event) => {
+    createEventListener(document, "keydown", (event) => {
       if (locked) {
         events?.key(event.key)
       }

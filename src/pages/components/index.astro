@@ -1,0 +1,18 @@
+---
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+import openGraphImage from "../../assets/blog/draft.jpg"
+---
+
+<DocumentLayout
+  description="A page containing some components that this website uses."
+  title="Components"
+  og={{
+    imageSrc: openGraphImage,
+    imageAlt:
+      "A pencil and ruler icon on the left, construction tape along the top-left and bottom-right corners, both surrounding a large heading saying 'Draft Page: (still writing)' on the right side.",
+    title: "Components",
+  }}
+>
+  <Main client:load />
+</DocumentLayout>

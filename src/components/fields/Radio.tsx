@@ -68,7 +68,7 @@ export function Radio<T extends string>(props: {
           return (
             <div
               aria-checked={isActive()}
-              class="relative flex-1 rounded px-1 py-1 text-center font-mono text-xs text-z transition"
+              class="font-mono relative flex-1 rounded px-1 py-1 text-center text-xs text-z transition"
               onClick={() => props.set(option)}
               role="radio"
               ref={(button) => {
@@ -119,7 +119,7 @@ export function CheckboxGroup(props: {
           return (
             <button
               aria-checked={get()}
-              class="relative flex-1 rounded px-1 py-1 text-center font-mono text-xs text-z transition"
+              class="font-mono relative flex-1 rounded px-1 py-1 text-center text-xs text-z transition"
               classList={{
                 "bg-z-body-selected": get(),
               }}

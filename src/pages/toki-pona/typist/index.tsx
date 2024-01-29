@@ -1,3 +1,4 @@
+import { createEventListener } from "@/components/create-event-listener"
 import { Checkbox } from "@/components/fields/Checkbox"
 import { createStorage } from "@/stores/local-storage-store"
 import {
@@ -304,7 +305,7 @@ export function Main() {
   })
 
   onMount(() => {
-    document.addEventListener("keydown", (event) => {
+    createEventListener(document, "keydown", (event) => {
       if (event.metaKey || event.ctrlKey || event.defaultPrevented) {
         return
       }

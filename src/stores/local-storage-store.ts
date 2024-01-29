@@ -45,3 +45,22 @@ export function createStorage(
     },
   ]
 }
+
+export function createStorageBoolean(
+  key: string,
+  defaultValue: boolean,
+  delay?: boolean,
+): Signal<boolean> {
+  const [get, set] = createStorage(key, "" + defaultValue, delay)
+
+  return [
+    () => get() == "true",
+    (value) => {
+      if (typeof value == "function") {
+        return set((x) => "" + value(x == "true"))
+      } else {
+        return set("" + value)
+      }
+    },
+  ]
+}
