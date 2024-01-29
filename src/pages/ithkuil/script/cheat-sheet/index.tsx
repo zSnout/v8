@@ -1,7 +1,9 @@
 import { LabeledCheckbox } from "@/components/fields/Checkbox"
 import { createStorageBoolean } from "@/stores/local-storage-store"
 import {
+  Anchor,
   CORES,
+  Diacritic,
   EXTENSIONS,
   Extension,
   HANDWRITTEN_CORES,
@@ -39,7 +41,7 @@ const [showFlippedLetters, setShowFlippedLetters] = createStorageBoolean(
 
 function Helper(props: { children: any }) {
   return (
-    <div class="bg-z-field-selected my-4 flex flex-col gap-1 rounded-lg px-6 py-4 print:hidden">
+    <div class="bg-z-field-selected my-4 flex flex-col gap-1 rounded-lg px-6 py-4 text-z transition print:hidden">
       {props.children}
 
       <p class="mt-2 italic">This box will disappear when printing.</p>
@@ -49,7 +51,7 @@ function Helper(props: { children: any }) {
 
 function PrintCenter(props: { children: any }) {
   return (
-    <div class="contents [page-break-inside:avoid] print:flex print:h-screen print:w-screen print:flex-col print:justify-center">
+    <div class="contents text-z [page-break-inside:avoid] print:flex print:h-screen print:w-screen print:flex-col print:justify-center">
       {props.children}
     </div>
   )
@@ -62,14 +64,14 @@ function Cores() {
         {Object.entries(CORES).map(([key, value]) => (
           <div class="flex items-center">
             <svg
-              class="h-14 w-16"
+              class="h-12 w-16 fill-black dark:fill-white"
               ref={(el) => setTimeout(() => fitViewBox(el))}
             >
               <path d={value.shape} />
             </svg>
 
             <svg
-              class="h-14 w-16"
+              class="h-12 w-16"
               ref={(el) => setTimeout(() => fitViewBox(el, 5))}
               fill="none"
               stroke-width={5}
@@ -97,14 +99,14 @@ function Cores() {
           .map(([key, value]) => (
             <div class="flex items-center">
               <svg
-                class="h-14 w-16"
+                class="h-12 w-16 fill-black dark:fill-white"
                 ref={(el) => setTimeout(() => fitViewBox(el))}
               >
                 <path d={value} />
               </svg>
 
               <svg
-                class="h-14 w-16"
+                class="h-12 w-16"
                 ref={(el) => setTimeout(() => fitViewBox(el, 5))}
                 fill="none"
                 stroke-width={5}
@@ -185,6 +187,31 @@ const EXTENSION_SORT_ORDER = [
   "Z",
 ]
 
+const diacriticObject = {
+  DOT: "A",
+  HORIZ_BAR: "Ä",
+  HORIZ_WITH_BOTTOM_LINE: "E",
+  HORIZ_WITH_TOP_LINE: "Ë",
+  VERT_BAR: "I",
+  DIAG_BAR: "I₂",
+  TWO_PART_DIAG_BAR: "I₃",
+  CURVE_TO_TOP: "O",
+  CURVE_TO_BOTTOM: "Ö",
+  CURVE_TO_BOTTOM_WITH_LINE: "Ö₂",
+  VERT_WITH_RIGHT_LINE: "U",
+  VERT_WITH_LEFT_LINE: "Ü",
+
+  CURVE_TO_LEFT: "CL",
+  CURVE_TO_RIGHT: "CR",
+  CURVE_TO_LEFT_WITH_DOT: "CLD",
+  CURVE_TO_RIGHT_WITH_DOT: "CRD",
+}
+
+const diacritics = Object.entries(diacriticObject) as [
+  keyof typeof diacriticObject,
+  string,
+][]
+
 function Extensions(props: { handwritten: boolean }) {
   const cores = props.handwritten ? HANDWRITTEN_CORES : CORES
 
@@ -217,11 +244,11 @@ function Extensions(props: { handwritten: boolean }) {
       ["Σ", { extension: undefined, core: cores.BIAS.shape }],
     ])
     .concat([
-      ["bs", { extension: undefined, core: primaries.BSC }],
-      ["ct", { extension: undefined, core: primaries.CTE }],
-      ["cs", { extension: undefined, core: primaries.CSV }],
+      ["BSC", { extension: undefined, core: primaries.BSC }],
+      ["CTE", { extension: undefined, core: primaries.CTE }],
+      ["CSV", { extension: undefined, core: primaries.CSV }],
       [
-        "ob",
+        "OBJ",
         {
           extension: undefined,
           core: primaries.OBJ,
@@ -269,7 +296,7 @@ function Extensions(props: { handwritten: boolean }) {
         />
       </Helper>
 
-      <div class="m-auto grid grid-cols-4 pl-px pt-px">
+      <div class="grid grid-cols-4 pl-px pt-px">
         <For each={chars}>
           {([key, value]) => {
             const label =
@@ -280,19 +307,19 @@ function Extensions(props: { handwritten: boolean }) {
                 r_FLIPPED: "r₂",
                 CORE_GEMINATE: "=",
                 EXTENSION_GEMINATE: "≈",
-                EJECTIVE: "ej",
-                VELARIZED: "vlr",
+                EJECTIVE: "eject.",
+                VELARIZED: "velar",
               }[key] || key
 
             return (
-              <div class="-ml-px -mt-px flex items-center border border-z">
+              <div class="-ml-px -mt-px flex items-center border border-z print:w-[25vw]">
                 <div class="flex">
                   <Show when={showExtensions()}>
                     <svg
                       class={
                         props.handwritten
-                          ? "h-14 fill-transparent stroke-black"
-                          : "h-14"
+                          ? "h-12 fill-transparent stroke-black dark:stroke-white"
+                          : "h-12 fill-black dark:fill-white"
                       }
                       stroke-width={4}
                       stroke-linecap="round"
@@ -318,7 +345,11 @@ function Extensions(props: { handwritten: boolean }) {
                           }
                         >
                           <path
-                            fill={props.handwritten ? "none" : "#c0c0c0"}
+                            class={
+                              props.handwritten
+                                ? "fill-none"
+                                : "fill-[#c0c0c0] dark:fill-[#404040]"
+                            }
                             d={
                               props.handwritten
                                 ? "M 0 0 h -40"
@@ -343,7 +374,7 @@ function Extensions(props: { handwritten: boolean }) {
                           }
                         >
                           <path
-                            fill="#c0c0c0"
+                            class="fill-[#c0c0c0] dark:fill-[#404040]"
                             d={
                               props.handwritten
                                 ? "M 0 0 v 40"
@@ -369,7 +400,7 @@ function Extensions(props: { handwritten: boolean }) {
                             }
                           >
                             <path
-                              fill="#c0c0c0"
+                              class="fill-[#c0c0c0] dark:fill-[#404040]"
                               d="M -10 10 l 7.5 -7.5 l 40 40 l -7.5 7.5 z"
                             />
 
@@ -387,8 +418,8 @@ function Extensions(props: { handwritten: boolean }) {
                     <svg
                       class={
                         props.handwritten
-                          ? "h-14 w-16 fill-transparent stroke-black"
-                          : "h-14 w-16"
+                          ? "h-12 w-16 fill-transparent stroke-black dark:stroke-white"
+                          : "h-12 w-16 fill-black dark:fill-white"
                       }
                       stroke-width={5}
                       stroke-linecap="round"
@@ -400,7 +431,7 @@ function Extensions(props: { handwritten: boolean }) {
                   </Show>
                 </div>
 
-                <div class="mx-auto text-center text-xl font-bold text-z-heading">
+                <div class="mx-auto h-12 text-center text-xl/6 font-bold text-z-heading">
                   <Show when={showNormalLetters()}>
                     <p>{label}</p>
                   </Show>
@@ -412,6 +443,35 @@ function Extensions(props: { handwritten: boolean }) {
               </div>
             )
           }}
+        </For>
+      </div>
+
+      <div class="-mt-px flex border border-z">
+        <For each={diacritics}>
+          {([key, name]) => (
+            <div class="flex flex-1 flex-col">
+              <svg
+                class={
+                  props.handwritten
+                    ? "fill-none stroke-black stroke-[5px] dark:stroke-white"
+                    : "fill-black dark:fill-white"
+                }
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                viewBox="-50 -25 100 50"
+              >
+                <Anchor
+                  at="cc"
+                  children={Diacritic({
+                    name: key,
+                    handwritten: props.handwritten,
+                  })}
+                />
+              </svg>
+
+              <p class="text-center text-lg font-light">{name}</p>
+            </div>
+          )}
         </For>
       </div>
     </PrintCenter>
