@@ -1,6 +1,12 @@
 import { LabeledCheckbox } from "@/components/fields/Checkbox"
 import { createStorageBoolean } from "@/stores/local-storage-store"
 import {
+  ALL_ASPECTS,
+  ALL_EFFECTS,
+  ALL_PHASES,
+  ALL_VALENCES,
+} from "@zsnout/ithkuil/generate"
+import {
   Anchor,
   CORES,
   Diacritic,
@@ -8,7 +14,13 @@ import {
   Extension,
   HANDWRITTEN_CORES,
   HANDWRITTEN_PRIMARY_CORES,
+  HANDWRITTEN_REGISTERS,
+  HANDWRITTEN_TERTIARY_SEGMENTS,
+  HANDWRITTEN_VALENCE,
   PRIMARY_CORES,
+  REGISTERS,
+  TERTIARY_SEGMENTS,
+  VALENCE,
   fitViewBox,
   rotate180,
 } from "@zsnout/ithkuil/script"
@@ -478,6 +490,152 @@ function Extensions(props: { handwritten: boolean }) {
   )
 }
 
+function Tertiaries(props: { handwritten?: boolean }) {
+  // 20x25 = 8.06x5.47
+  // 1x1 = 0.403x0.2188
+
+  const CATEGORIES = [
+    "standard",
+    "alphabetic",
+    "transcriptive",
+    "transliterative",
+  ] as const
+
+  const NAMES = ["NRR", "DSV", "PNT", "CGT", "EXM", "SPF"] as const
+
+  return (
+    <PrintCenter>
+      <Helper>Page break.</Helper>
+
+      <div class="grid w-full grid-cols-9 gap-px bg-z-border p-px">
+        {ALL_VALENCES.map((valence) => (
+          <div class="flex flex-col items-center bg-z-bg-body py-1 text-base/4">
+            <p>{valence}</p>
+
+            <svg
+              class={
+                "h-8 " +
+                (props.handwritten
+                  ? "fill-none stroke-black stroke-[7.5px] dark:stroke-white"
+                  : "fill-black dark:fill-white")
+              }
+              viewBox="-40 -30 80 60"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <Anchor
+                at="cc"
+                children={
+                  (
+                    <path
+                      d={
+                        (props.handwritten ? HANDWRITTEN_VALENCE : VALENCE)[
+                          valence
+                        ]
+                      }
+                    />
+                  ) as SVGPathElement
+                }
+              />
+            </svg>
+          </div>
+        ))}
+
+        {[
+          ...ALL_PHASES.map((phase) => [phase, ,] as const),
+          ...ALL_EFFECTS.map((effect) => [effect, ,] as const),
+          ...ALL_ASPECTS.slice(0, 9).map(
+            (aspect, index) => [aspect, ALL_ASPECTS[9 + index]] as const,
+          ),
+          ...ALL_ASPECTS.slice(18, 27).map(
+            (aspect, index) => [aspect, ALL_ASPECTS[27 + index]] as const,
+          ),
+        ].map(([key, bottom]) => (
+          <div class="flex flex-col items-center bg-z-bg-body py-1 text-base/4">
+            <p>
+              {key.endsWith(":BEN")
+                ? key.slice(0, -4) + "+"
+                : key.endsWith(":DET")
+                ? key.slice(0, -4) + "-"
+                : key}
+            </p>
+
+            <svg
+              class={
+                "h-8 " +
+                (props.handwritten
+                  ? "fill-none stroke-black stroke-[7.5px] dark:stroke-white"
+                  : "fill-black dark:fill-white")
+              }
+              viewBox="-40 -30 80 60"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <Anchor
+                at="cc"
+                children={
+                  (
+                    <path
+                      d={
+                        (props.handwritten
+                          ? HANDWRITTEN_TERTIARY_SEGMENTS
+                          : TERTIARY_SEGMENTS)[key]
+                      }
+                    />
+                  ) as SVGPathElement
+                }
+              />
+            </svg>
+
+            {bottom && <p class="rotate-180">{bottom}</p>}
+          </div>
+        ))}
+      </div>
+
+      <div class="grid w-full grid-cols-[2fr,repeat(6,1fr)] items-center justify-center">
+        <p />
+
+        {NAMES.map((x) => (
+          <p>{x}</p>
+        ))}
+
+        {CATEGORIES.flatMap((category) =>
+          [<p>{category}</p>].concat(
+            NAMES.map((name) => (
+              <svg
+                class={
+                  "h-8 overflow-visible " +
+                  (props.handwritten
+                    ? "fill-none stroke-black stroke-[5px] dark:stroke-white"
+                    : "fill-black dark:fill-white")
+                }
+                viewBox="-20 -20 40 40"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <Anchor
+                  at="cc"
+                  children={
+                    (
+                      <path
+                        d={
+                          (props.handwritten
+                            ? HANDWRITTEN_REGISTERS
+                            : REGISTERS)[category][name]
+                        }
+                      />
+                    ) as SVGPathElement
+                  }
+                />
+              </svg>
+            )),
+          ),
+        )}
+      </div>
+    </PrintCenter>
+  )
+}
+
 export function Main() {
   return (
     <div>
@@ -496,8 +654,10 @@ export function Main() {
       </Helper>
 
       <Cores />
+      <Tertiaries handwritten={false} />
+      <Tertiaries handwritten={true} />
       <Extensions handwritten={false} />
-      <Extensions handwritten={true} />
+      <Extensions handwritten={false} />
     </div>
   )
 }
