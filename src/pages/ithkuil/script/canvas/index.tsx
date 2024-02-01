@@ -1,4 +1,4 @@
-import { fitViewBox } from "@zsnout/ithkuil/script"
+import { Lines } from "@zsnout/ithkuil/script"
 
 function path(
   data: TemplateStringsArray,
@@ -18,62 +18,178 @@ export type Step =
   | { readonly type: "up"; readonly d: number }
   | { readonly type: "down"; readonly d: number }
 
-// function genPaths2(x: number, y: number, steps: readonly Step[]): string {
-//   let output = ""
+function makePath(x: number, y: number, steps: readonly Step[]): string {
+  function segment(
+    last: "initial" | Step["type"],
+    step: Step,
+    rest: readonly Step[],
+  ): string {
+    let nextSegment = ""
 
-//   for (let index = 0; index < steps.length; index++) {
-//     const step = steps[index]!
+    try {
+      if (rest[0]) {
+        nextSegment = segment(step.type, rest[0], rest.slice(1))
+      }
+    } catch {}
 
-//     if ("x" in step || "y" in step) {
-//       const dx = step.x || 0
-//       const dy = step.y || 0
+    switch (step.type) {
+      case "left": {
+        switch (last) {
+          case "initial":
+            return path`
+              M ${x + 5} ${y - 5}
+              l -10 10
+              h ${-step.d + 10}
+              ${nextSegment || "h -10"}
+              l 10 -10
+              h ${step.d - 10}
+              z
+            `
 
-//       if (dx && dy) {
-//         // TODO thick diagonal
-//       } else if (dx) {
-//         output += path`
-//           M ${x + 5} ${y - 5}
-//           h ${dx - 10}
-//           l 0 10
-//           h ${-dx}
-//           l 10 -10
-//         `
+          case "left":
+          case "right":
+            throw new Error("Invalid segment sequence.")
 
-//         x += dx
-//       } else if (dy) {
-//         output += path`
-//           M ${x + 5} ${y - 5}
-//           v ${dy}
-//           l -10 10
-//           v ${-dy}
-//           l 10 -10
-//         `
+          case "up":
+            return "" // TODO
 
-//         y += dy
-//       }
-//     } else {
-//       // TODO thin diagonal line
-//     }
-//   }
+          case "down":
+            return path`
+              l -10 10
+              h ${-step.d + 10}
+              ${nextSegment || "h -10"}
+              l 10 -10
+              h ${step.d - 10}
+            `
+        }
+      }
 
-//   return output
-// }
+      case "right": {
+        switch (last) {
+          case "initial":
+            return path`
+              M ${x - 5 + step.d} ${y + 5}
+              h ${-step.d}
+              l 10 -10
+              h ${step.d}
+              ${nextSegment}
+              z
+            `
 
-function makePath(x: number, y: number, steps: readonly Step[]) {}
+          case "left":
+          case "right":
+            throw new Error("Invalid segment sequence.")
+
+          case "up":
+            return "" // TODO
+
+          case "down":
+            return path`
+              h ${step.d}
+              ${nextSegment || "l -10 10"}
+              h ${-step.d}
+              v -10
+            `
+        }
+      }
+
+      case "up": {
+        switch (last) {
+          case "initial":
+            return "" // TODO
+
+          case "left":
+            return "" // TODO
+
+          case "right":
+            return "" // TODO
+
+          case "up":
+          case "down":
+            throw new Error("Invalid segment sequence.")
+        }
+      }
+
+      case "down": {
+        switch (last) {
+          case "initial":
+            return "" // TODO
+
+          case "left":
+            return path`
+              v ${step.d}
+              ${nextSegment || "l -10 10"}
+              v ${-step.d}
+            `
+
+          case "right":
+            return path`
+              v ${step.d}
+              ${nextSegment || "l -10 10 v -10"}
+              v ${-step.d + 10}
+            `
+
+          case "up":
+          case "down":
+            throw new Error("Invalid segment sequence.")
+        }
+      }
+    }
+  }
+
+  const first = steps[0]
+
+  if (!first) {
+    return ""
+  }
+
+  return segment("initial", first, steps.slice(1))
+}
 
 export function Main() {
+  const GRID = `
+    M 0 000 h 300 M 000 0 v 300
+    M 0 020 h 300 M 020 0 v 300
+    M 0 040 h 300 M 040 0 v 300
+    M 0 060 h 300 M 060 0 v 300
+    M 0 080 h 300 M 080 0 v 300
+
+    M 0 100 h 300 M 100 0 v 300
+    M 0 120 h 300 M 120 0 v 300
+    M 0 140 h 300 M 140 0 v 300
+    M 0 160 h 300 M 160 0 v 300
+    M 0 180 h 300 M 180 0 v 300
+  `
+
   return (
     <svg
       class="m-auto max-h-[calc(100vh_-_7rem)] max-w-full overflow-visible"
-      ref={(el) => setTimeout(() => fitViewBox(el, 10))}
+      viewBox="-5 -5 200 200"
     >
       <g>
+        <path d={GRID} stroke="blue" stroke-width={0.1} />
+        <path d={GRID} stroke="blue" transform="scale(5)" stroke-width={0.2} />
+
         <path
           stroke="red"
           fill-rule="nonzero"
           d={makePath(45, 5, [
             { type: "left", d: 40 },
-            { type: "up", d: 20 },
+            { type: "down", d: 60 },
+          ])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(65, 5, [
+            { type: "right", d: 40 },
+            { type: "down", d: 60 },
+            { type: "left", d: 40 },
+            { type: "down", d: 60 },
+            { type: "right", d: 40 },
+            { type: "down", d: 60 },
+            { type: "left", d: 40 },
           ])}
         />
       </g>
