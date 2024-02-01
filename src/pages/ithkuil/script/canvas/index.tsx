@@ -81,7 +81,12 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             throw new Error("Invalid segment sequence.")
 
           case "up":
-            return "" // TODO
+            return path`
+              l 10 -10
+              h ${step.d}
+              ${nextSegment || "l -10 10"}
+              h ${-step.d + 10}
+            `
 
           case "down":
             return path`
@@ -96,7 +101,14 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
       case "up": {
         switch (last) {
           case "initial":
-            return "" // TODO
+            return path`
+              M ${x - 5} ${y + 5 - step.d}
+              v ${step.d - 10}
+              l -10 10
+              v ${-step.d}
+              ${nextSegment || "l 10 -10 v 10"}
+              z
+            `
 
           case "left":
             return "" // TODO
@@ -204,6 +216,16 @@ export function Main() {
           stroke="red"
           fill-rule="nonzero"
           d={makePath(5, 85, [{ type: "down", d: 60 }])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(35, 85, [
+            { type: "up", d: 60 },
+            { type: "right", d: 40 },
+            { type: "down", d: 20 },
+          ])}
         />
       </g>
     </svg>
