@@ -1,9 +1,12 @@
-import { Blink, CORES } from "@zsnout/ithkuil/script"
-
-export function path(data: TemplateStringsArray, ...values: number[]): string {
+export function path(
+  data: TemplateStringsArray,
+  ...values: (number | string)[]
+): string {
   return String.raw(
     { raw: data },
-    ...values.map((value) => String(Math.round(value * 1e6) / 1e6)),
+    ...values.map((value) =>
+      typeof value == "string" ? value : Math.round(value * 1e6) / 1e6,
+    ),
   )
 }
 
@@ -19,10 +22,10 @@ export type Path = {
 }
 
 export type ModernOffset =
-  | { readonly h: number; readonly v?: undefined } // horiz line
-  | { readonly v: number; readonly h?: undefined } // vert line
-  | { readonly x: number; readonly y: number } // thick diagonal line
-  | { readonly d: number } // thin diagonal line
+  | { readonly x: number; readonly y?: undefined } // horiz
+  | { readonly x?: undefined; readonly y: number } // vert
+  | { readonly x: number; readonly y: number } // thick diagonal
+  | { readonly d: number } // thin diagonal
 
 export function generatePaths(
   x: number,
@@ -127,13 +130,105 @@ const CORE_PATHS = {
   },
 } satisfies Record<string, Path> as Record<string, Path>
 
-export function genPaths2()
+// export function genPaths2(
+//   x: number,
+//   y: number,
+//   offsets: readonly ModernOffset[],
+// ): string {
+//   let output = ""
+
+//   for (let index = 0; index < offsets.length; index++) {
+//     const prev = offsets[index - 1]
+//     const offset = offsets[index]!
+//     const next = offsets[index + 1]
+
+//     if ("x" in offset || "y" in offset) {
+//       const dx = offset.x || 0
+//       const dy = offset.y || 0
+
+//       if (dx && dy) {
+//         // TODO thick diagonal
+//       } else if (dx) {
+//         const WAS_LAST_NEGATIVE_VERTICAL =
+//           prev && "x" in prev && prev.x && !prev.y && prev.x < 0
+
+//         output += path`
+//           M ${x + 5} ${y - 5}
+//           h ${dx}
+//           l -10 10
+//           h ${-dx}
+//           l 10 -10
+//         `
+
+//         x += dx
+//       } else if (dy) {
+//         const WAS_LAST_NEGATIVE_HORIZONTAL =
+//           prev && "x" in prev && prev.x && !prev.y && prev.x < 0
+
+//         if (WAS_LAST_NEGATIVE_HORIZONTAL) {
+//           output += path`
+//             M ${x + 5} ${y + 5}
+//             v ${dy - 10}
+//             l -10 10
+//             v ${-dy}
+//             l 10 0
+//           `
+//         } else {
+//           output += path`
+//             M ${x + 5} ${y - 5}
+//             v ${dy}
+//             l -10 10
+//             v ${-dy}
+//             l 10 -10
+//           `
+//         }
+
+//         y += dy
+//       }
+//     } else {
+//       // TODO thin diagonal line
+//     }
+//   }
+
+//   return output
+// }
+
+export function genPaths2(
+  x: number,
+  y: number,
+  offsets: readonly ModernOffset[],
+): string {
+  const first = offsets[0]
+
+  if (!first) {
+    return ""
+  }
+
+  const rest = offsets.slice(1)
+
+  if ("x" in first || "y" in first) {
+    const dx = first.x || 0
+    const dy = first.y || 0
+
+    if (dx && dy) {
+      // TODO
+    } else if (dx) {
+      return path``
+    } else if (dy) {
+      // TODO
+    }
+  } else {
+    // TODO
+  }
+}
 
 export function Main() {
   return (
     <svg class="m-auto w-full overflow-visible" viewBox="-20 -20 100 100">
       <g>
-        <path d="M 0 0      H 40      V 70 H 0 z" fill="red" />
+        <path stroke="red" d={genPaths2(45, 5, [{ x: 40 }, { y: 20 }])} />
+
+        {/* <path d="M 0 0      H 40      V 70 H 0 z" fill="red" />
 
         {generatePaths(
           Object.values(CORE_PATHS).at(-1)!.x,
@@ -156,7 +251,7 @@ export function Main() {
               />
             ) as SVGPathElement
           }
-        />
+        /> */}
       </g>
     </svg>
   )
