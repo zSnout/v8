@@ -1,34 +1,6 @@
-// export function scriptify(
-//   [x1, y1]: [x: number, y: number],
-//   [x2, y2]: [x: number, y: number],
-// ): string {
-//   let lft
-//   let top
-//   let rht
-//   let btm
+import { Blink, CORES } from "@zsnout/ithkuil/script"
 
-import { Secondary } from "@zsnout/ithkuil/script"
-
-//   if (y1 < y2) {
-//     top = [x1 + 4.4, y1 - 5.6]
-//     btm = [x2 - 4.4, y2 + 5.6]
-//   } else {
-//     top = [x2 + 4.4, y2 - 5.6]
-//     btm = [x1 - 4.4, y1 + 5.6]
-//   }
-
-//   if (x1 < x2) {
-//     lft = [x1 - 5.6, y1 + 4.4]
-//     rht = [x2 + 5.6, y2 - 4.4]
-//   } else {
-//     lft = [x2 - 5.6, y2 + 4.4]
-//     rht = [x1 + 5.6, y1 - 4.4]
-//   }
-
-//   return `M ${top[0]} ${top[1]} L ${rht[0]} ${rht[1]} L ${btm[0]} ${btm[1]} L ${lft[0]} ${lft[1]} Z`
-// }
-
-function path(data: TemplateStringsArray, ...values: number[]): string {
+export function path(data: TemplateStringsArray, ...values: number[]): string {
   return String.raw(
     { raw: data },
     ...values.map((value) => String(Math.round(value * 1e6) / 1e6)),
@@ -71,7 +43,7 @@ export function scriptify(
   return path`M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} L ${x4} ${y4} Z`
 }
 
-function all(points: [number, number][]) {
+export function all(points: [number, number][]) {
   return (
     <>
       {points.map(([x, y]) => (
@@ -91,18 +63,100 @@ function all(points: [number, number][]) {
   )
 }
 
+type Offset =
+  | { h: number; v?: undefined; d?: number }
+  | { h?: undefined; v: number }
+  | { x: number; y: number; d?: number }
+
+const THIN_STROKE_WIDTH = 2.5
+const THIN_STROKE_DIAG_WIDTH = 2.5 * Math.SQRT1_2
+
+export function generatePaths(
+  x: number,
+  y: number,
+  offsets: Offset[],
+): string[] {
+  const outputs: string[] = []
+
+  for (let index = 0; index < offsets.length; index++) {
+    const offset = offsets[index]!
+
+    if ("h" in offset && offset.h != null) {
+      if (offset.d != null) {
+        outputs.push(
+          path`
+M ${x + 5} ${y - 5}
+h ${offset.h}
+l ${-offset.d - 5} ${offset.d + 5}
+h ${-THIN_STROKE_WIDTH}
+l ${offset.d - 5} ${-offset.d + 5}
+h ${-offset.h + THIN_STROKE_WIDTH}
+z`,
+        )
+
+        x += offset.h - offset.d
+        y += offset.d - THIN_STROKE_WIDTH
+      } else {
+        outputs.push(
+          path`M ${x + 5} ${y - 5} h ${offset.h} l -10 10 h ${-offset.h} z`,
+        )
+
+        x += offset.h
+      }
+    } else if ("v" in offset && offset.v != null) {
+      outputs.push(
+        path`M ${x + 5} ${y - 5} v ${offset.v} l -10 10 v ${-offset.v} z`,
+      )
+
+      y += offset.v
+    } else if (offset.d != null) {
+      const angle = Math.atan2(offset.y, offset.x) + Math.PI
+
+      outputs.push(
+        path`
+M ${x + 3.75} ${y - 3.75}
+l ${offset.x} ${offset.y}
+l ${-offset.d - 3.75} ${offset.d + 3.75}
+l ${THIN_STROKE_DIAG_WIDTH * Math.cos(angle)} ${
+          THIN_STROKE_DIAG_WIDTH * Math.sin(angle)
+        }
+l ${offset.d - 3.75} ${-offset.d + 3.75}
+L ${x - 3.75} ${y + 3.75}
+z`,
+      )
+
+      x += offset.x - offset.d
+      y += offset.y + offset.d - THIN_STROKE_WIDTH
+    } else {
+      outputs.push(
+        path`M ${x + 3.75} ${y - 3.75} l ${offset.x} ${
+          offset.y
+        } l -7.5 7.5 l ${-offset.x} ${-offset.y} z`,
+      )
+
+      x += offset.x
+      y += offset.y
+    }
+  }
+
+  return outputs
+}
+
 export function Main() {
   return (
-    <svg class="m-auto h-80 w-80" viewBox="-100 -100 200 200">
+    <svg class="m-auto w-full overflow-visible" viewBox="-20 -20 100 100">
       <g>
-        {all([
-          [70, 0],
-          [10, 0],
-        ])}
-        {all([
-          [0, 10],
-          [40, 70],
-        ])}
+        <path d="M 0 0 l 40 0 l 0 70 l -40 0 z" fill="red" />
+        {generatePaths(3.75, 3.75, [
+          { x: 32.5, y: 32.5, d: 31.25 },
+          { h: 40 },
+        ]).map((x) => (
+          <path d={x} />
+        ))}
+        <path d="M 0 0 l 40 0 l 0 70 l -40 0 z" stroke="green" fill="none" />
+        <Blink>
+          <path transform="translate(25 35)" d={CORES.r.shape} fill="blue" />
+        </Blink>
       </g>
     </svg>
   )
