@@ -19,14 +19,16 @@ export type Path = {
 }
 
 export function generatePaths(
-  x: number,
-  y: number,
+  cx: number,
+  cy: number,
   offsets: readonly Offset[],
 ): string[] {
   const THIN_STROKE_WIDTH = 2.5
   const THIN_STROKE_DIAG_WIDTH = 2.5 * Math.SQRT1_2
 
   const outputs: string[] = []
+  let x = 0
+  let y = 0
 
   for (let index = 0; index < offsets.length; index++) {
     const offset = offsets[index]!
@@ -35,7 +37,7 @@ export function generatePaths(
       if (offset.d != null) {
         outputs.push(
           path`
-M ${x + 5} ${y - 5}
+M ${cx + 5} ${cy - 5}
 h ${offset.h}
 l ${-offset.d - 5} ${offset.d + 5}
 h ${-THIN_STROKE_WIDTH}
@@ -43,58 +45,58 @@ l ${offset.d - 5} ${-offset.d + 5}
 h ${-offset.h + THIN_STROKE_WIDTH}`,
         )
 
-        x += offset.h - offset.d
-        y += offset.d - THIN_STROKE_WIDTH
+        cx += offset.h - offset.d
+        cy += offset.d - THIN_STROKE_WIDTH
       } else {
         outputs.push(
-          path`M ${x + 5} ${y - 5}
+          path`M ${cx + 5} ${cy - 5}
 h ${offset.h}
 l -10 10
 h ${-offset.h}`,
         )
 
-        x += offset.h
+        cx += offset.h
       }
     } else if ("v" in offset && offset.v != null) {
       outputs.push(
-        path`M ${x + 5} ${y - 5}
+        path`M ${cx + 5} ${cy - 5}
 v ${offset.v}
 l -10 10
 v ${-offset.v}`,
       )
 
-      y += offset.v
+      cy += offset.v
     } else if (offset.d != null) {
       const angle = Math.atan2(offset.y, offset.x) + Math.PI
 
       outputs.push(
         path`
-M ${x + 3.75} ${y - 3.75}
+M ${cx + 3.75} ${cy - 3.75}
 l ${offset.x} ${offset.y}
 l ${-offset.d - 3.75} ${offset.d + 3.75}
 l ${THIN_STROKE_DIAG_WIDTH * Math.cos(angle)} ${
           THIN_STROKE_DIAG_WIDTH * Math.sin(angle)
         }
 l ${offset.d - 3.75} ${-offset.d + 3.75}
-L ${x - 3.75} ${y + 3.75}`,
+L ${cx - 3.75} ${cy + 3.75}`,
       )
 
-      x += offset.x - offset.d
-      y += offset.y + offset.d - THIN_STROKE_WIDTH
+      cx += offset.x - offset.d
+      cy += offset.y + offset.d - THIN_STROKE_WIDTH
     } else {
       outputs.push(
-        path`M ${x + 3.75} ${y - 3.75}
+        path`M ${cx + 3.75} ${cy - 3.75}
 l ${offset.x} ${offset.y}
 l -7.5 7.5
 l ${-offset.x} ${-offset.y}`,
       )
 
-      x += offset.x
-      y += offset.y
+      cx += offset.x
+      cy += offset.y
     }
   }
 
-  return outputs
+  return [outputs.join("")]
 }
 
 const CORE_PATHS = {
