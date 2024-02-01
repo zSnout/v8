@@ -113,13 +113,20 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
       case "down": {
         switch (last) {
           case "initial":
-            return "" // TODO
+            return path`
+              M ${x + 5} ${y - 5}
+              v ${step.d}
+              ${nextSegment || "l -10 10 v -10"}
+              v ${-step.d + 10}
+              l 10 -10
+              z
+            `
 
           case "left":
             return path`
-              v ${step.d}
-              ${nextSegment || "l -10 10"}
-              v ${-step.d}
+              v ${step.d - 10}
+              ${nextSegment || "l -10 10 v -10"}
+              v ${-step.d + 10}
             `
 
           case "right":
@@ -191,6 +198,12 @@ export function Main() {
             { type: "down", d: 60 },
             { type: "left", d: 40 },
           ])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(5, 85, [{ type: "down", d: 60 }])}
         />
       </g>
     </svg>
