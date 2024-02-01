@@ -18,17 +18,21 @@ export type Path = {
   readonly path: readonly Offset[]
 }
 
+export type ModernOffset =
+  | { readonly h: number; readonly v?: undefined } // horiz line
+  | { readonly v: number; readonly h?: undefined } // vert line
+  | { readonly x: number; readonly y: number } // thick diagonal line
+  | { readonly d: number } // thin diagonal line
+
 export function generatePaths(
-  cx: number,
-  cy: number,
+  x: number,
+  y: number,
   offsets: readonly Offset[],
 ): string[] {
-  const THIN_STROKE_WIDTH = 2.5
-  const THIN_STROKE_DIAG_WIDTH = 2.5 * Math.SQRT1_2
+  const THIN_STROKE_WIDTH = 2.4
+  const THIN_STROKE_DIAG_WIDTH = 2.4 * Math.SQRT1_2
 
   const outputs: string[] = []
-  let x = 0
-  let y = 0
 
   for (let index = 0; index < offsets.length; index++) {
     const offset = offsets[index]!
@@ -37,7 +41,7 @@ export function generatePaths(
       if (offset.d != null) {
         outputs.push(
           path`
-M ${cx + 5} ${cy - 5}
+M ${x + 5} ${y - 5}
 h ${offset.h}
 l ${-offset.d - 5} ${offset.d + 5}
 h ${-THIN_STROKE_WIDTH}
@@ -45,54 +49,54 @@ l ${offset.d - 5} ${-offset.d + 5}
 h ${-offset.h + THIN_STROKE_WIDTH}`,
         )
 
-        cx += offset.h - offset.d
-        cy += offset.d - THIN_STROKE_WIDTH
+        x += offset.h - offset.d
+        y += offset.d - THIN_STROKE_WIDTH
       } else {
         outputs.push(
-          path`M ${cx + 5} ${cy - 5}
+          path`M ${x + 5} ${y - 5}
 h ${offset.h}
 l -10 10
 h ${-offset.h}`,
         )
 
-        cx += offset.h
+        x += offset.h
       }
     } else if ("v" in offset && offset.v != null) {
       outputs.push(
-        path`M ${cx + 5} ${cy - 5}
+        path`M ${x + 5} ${y - 5}
 v ${offset.v}
 l -10 10
 v ${-offset.v}`,
       )
 
-      cy += offset.v
+      y += offset.v
     } else if (offset.d != null) {
       const angle = Math.atan2(offset.y, offset.x) + Math.PI
 
       outputs.push(
         path`
-M ${cx + 3.75} ${cy - 3.75}
+M ${x + 3.75} ${y - 3.75}
 l ${offset.x} ${offset.y}
 l ${-offset.d - 3.75} ${offset.d + 3.75}
 l ${THIN_STROKE_DIAG_WIDTH * Math.cos(angle)} ${
           THIN_STROKE_DIAG_WIDTH * Math.sin(angle)
         }
 l ${offset.d - 3.75} ${-offset.d + 3.75}
-L ${cx - 3.75} ${cy + 3.75}`,
+L ${x - 3.75} ${y + 3.75}`,
       )
 
-      cx += offset.x - offset.d
-      cy += offset.y + offset.d - THIN_STROKE_WIDTH
+      x += offset.x - offset.d
+      y += offset.y + offset.d - THIN_STROKE_WIDTH
     } else {
       outputs.push(
-        path`M ${cx + 3.75} ${cy - 3.75}
+        path`M ${x + 3.75} ${y - 3.75}
 l ${offset.x} ${offset.y}
 l -7.5 7.5
 l ${-offset.x} ${-offset.y}`,
       )
 
-      cx += offset.x
-      cy += offset.y
+      x += offset.x
+      y += offset.y
     }
   }
 
@@ -100,18 +104,30 @@ l ${-offset.x} ${-offset.y}`,
 }
 
 const CORE_PATHS = {
-  r: {
-    x: 3.75,
-    y: 3.75,
-    path: [{ x: 32.5, y: 32.5, d: 31.25 }, { h: 40 }],
-  },
-
   l: {
     x: 10,
     y: 5,
-    path: [{ v: 35 }, { h: 22.4, d: 30 }],
+    path: [{ v: 35 }, { h: 22.4, d: 27.4 }, { h: 40 }],
+  },
+
+  r: {
+    x: 3.75,
+    y: 3.75,
+    path: [{ x: 32.5, y: 32.4, d: 31.2 }, { h: 40 }],
+  },
+
+  m: {
+    x: 5,
+    y: 5,
+    path: [
+      {
+        v: 35,
+      },
+    ],
   },
 } satisfies Record<string, Path> as Record<string, Path>
+
+export function genPaths2()
 
 export function Main() {
   return (
@@ -131,7 +147,7 @@ export function Main() {
           children={
             (
               <path
-                transform="translate(25 35)"
+                transform="translate(18.75 35)"
                 d={
                   CORES[Object.keys(CORE_PATHS).at(-1) as keyof typeof CORES]
                     ?.shape
