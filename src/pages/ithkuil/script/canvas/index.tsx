@@ -7,6 +7,8 @@
 //   let rht
 //   let btm
 
+import { Secondary } from "@zsnout/ithkuil/script"
+
 //   if (y1 < y2) {
 //     top = [x1 + 4.4, y1 - 5.6]
 //     btm = [x2 - 4.4, y2 + 5.6]
@@ -33,23 +35,38 @@ function path(data: TemplateStringsArray, ...values: number[]): string {
   )
 }
 
-export function scriptify(
+export function scriptify1(
   [x1, y1]: [x: number, y: number],
   [x2, y2]: [x: number, y: number],
 ): string {
-  if (y1 < y2) {
-    ;[x1, y1, x2, y2] = [x2, y2, x1, y1]
-  }
+  // if (y1 < y2) {
+  //   ;[x1, y1, x2, y2] = [x2, y2, x1, y1]
+  // }
 
   const angle = Math.atan2(y2 - y1, x2 - x1) - Math.PI / 2
   const tx = 10 * Math.cos(angle)
   const ty = 10 * Math.sin(angle)
-  const slope = (y2 - y1) / (x2 - x1)
   const x4 =
     ((y1 - y2) * (x1 + tx) + (x2 - x1) * (ty - x1)) / (x1 + y1 - x2 - y2)
   const y4 = x1 + y1 - x4
   const x3 = x4 - x1 + x2
   const y3 = y4 - y1 + y2
+
+  return path`M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} L ${x4} ${y4} Z`
+}
+
+export function scriptify(
+  [x1, y1]: [x: number, y: number],
+  [x2, y2]: [x: number, y: number],
+): string {
+  const angle = (Math.atan2(y2 - y1, x2 - x1) + 2 * Math.PI) % Math.PI
+
+  const [tx, ty] = angle == 0 || angle == Math.PI ? [-10, 10] : [7.5, -7.5]
+
+  const x4 = x1 + tx
+  const y4 = y1 + ty
+  const x3 = x2 + tx
+  const y3 = y2 + ty
 
   return path`M ${x1} ${y1} L ${x2} ${y2} L ${x3} ${y3} L ${x4} ${y4} Z`
 }
@@ -74,16 +91,19 @@ function all(points: [number, number][]) {
   )
 }
 
-import "@zsnout/ithkuil/script"
-
 export function Main() {
   return (
     <svg class="m-auto h-80 w-80" viewBox="-100 -100 200 200">
-      {all([
-        [60, 0],
-        [0, 0],
-        [0, 50],
-      ])}
+      <g>
+        {all([
+          [70, 0],
+          [10, 0],
+        ])}
+        {all([
+          [0, 10],
+          [40, 70],
+        ])}
+      </g>
     </svg>
   )
 }
