@@ -15,20 +15,66 @@ export type Step =
   | { readonly type: "right"; readonly d: number }
   | { readonly type: "up"; readonly d: number }
   | { readonly type: "down"; readonly d: number }
+  | { readonly type: "cap" }
 
 function makePath(x: number, y: number, steps: readonly Step[]): string {
+  /**
+   * Here's an in-depth explanation of how this works:
+   *
+   * You might think this should be as simple as generating a shape for each
+   * block and then overlapping them. And while that works, it has several
+   * downsides.
+   *
+   * If we did that, we'd either need to force the script user to use multiple
+   * <path>s to render this, which creates difficulty on their and causes
+   * strokes to be drawn in the middle of characters; or we'd have to combine
+   * the paths into a single one using `M` commands. This is undesirable because
+   * a) it has the same multiple-stroke downside and b) SVGs have an odd
+   * specification where if multiple shapes overlap, an empty space will be
+   * drawn, even if `fill-rule: nonzero` is enabled. So we are unable to use that
+   * method due to quirks of the specification.
+   *
+   * So instead, we join together all the steps into a single SVG path. This is
+   * also difficult, but avoids the other problems. To do this, we use a
+   * recursive approach. The first step is rendered, which renders the second
+   * step inside it, which renders the third step inside it, and so on. To
+   * account for the variation in directions and step types, the only
+   * requirements each step has is that it needs to start in a specific place
+   * and end in another specific place. The type of parent step (e.g. the first
+   * step when rendering the second step) is then passed to the child step (e.g.
+   * the second step rendered by the first step) so it knows the constraints.
+   *
+   * For example, the `right` step shape only actually renders this bit:
+   *
+   * ```
+   *    ───────── (step ends here)
+   *  ╱
+   * ╱
+   * ──────────── (step starts here)
+   * ```
+   *
+   * The top section is `d-10` units long, and the bottom section is `d` units
+   * long. It expects that the child step will connect them properly.
+   *
+   * The special `cap` step ends the SVG path with the appropriate cap. It is
+   * automatically added on if no cap is otherwise found.
+   *
+   * @param last
+   * @param step
+   * @param rest
+   * @returns
+   */
   function segment(
-    last: "initial" | Step["type"],
+    last: "initial" | Exclude<Step["type"], "cap" | "uncap">,
     step: Step,
     rest: readonly Step[],
   ): string {
-    let nextSegment = ""
-
-    try {
-      if (rest[0]) {
-        nextSegment = segment(step.type, rest[0], rest.slice(1))
-      }
-    } catch {}
+    const nextSegment = () =>
+      step.type == "cap"
+        ? ""
+        : rest[0]
+        ? segment(step.type, rest[0], rest.slice(1))
+        : segment(step.type, { type: "cap" }, [])
 
     switch (step.type) {
       case "left": {
@@ -38,7 +84,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
               M ${x + 5} ${y - 5}
               l -10 10
               h ${-step.d + 10}
-              ${nextSegment || "h -10 l 10 -10"}
+              ${nextSegment()}
               h ${step.d}
               z
             `
@@ -50,7 +96,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
           case "up":
             return path`
               h ${-step.d + 10}
-              ${nextSegment || "h -10 l 10 -10"}
+              ${nextSegment()}
               h ${step.d}
               v 10
             `
@@ -59,7 +105,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return path`
               l -10 10
               h ${-step.d + 10}
-              ${nextSegment || "h -10 l 10 -10"}
+              ${nextSegment()}
               h ${step.d - 10}
             `
         }
@@ -73,7 +119,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
               h ${-step.d}
               l 10 -10
               h ${step.d - 10}
-              ${nextSegment || "h 10 l -10 10"}
+              ${nextSegment()}
               z
             `
 
@@ -85,14 +131,14 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return path`
               l 10 -10
               h ${step.d - 10}
-              ${nextSegment || "h 10 l -10 10"}
+              ${nextSegment()}
               h ${-step.d + 10}
             `
 
           case "down":
             return path`
               h ${step.d - 10}
-              ${nextSegment || "h 10 l -10 10"}
+              ${nextSegment()}
               h ${-step.d}
               v -10
             `
@@ -107,7 +153,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
               v ${step.d - 10}
               l -10 10
               v ${-step.d}
-              ${nextSegment || "l 10 -10 v 10"}
+              ${nextSegment()}
               z
             `
 
@@ -115,14 +161,14 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return path`
               h -10
               v ${-step.d}
-              ${nextSegment || "l 10 -10 v 10"}
+              ${nextSegment()}
               v ${step.d - 10}
             `
 
           case "right":
             return path`
               v ${-step.d + 10}
-              ${nextSegment || "l 10 -10 v 10"}
+              ${nextSegment()}
               v ${step.d - 10}
               l -10 10
             `
@@ -139,7 +185,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return path`
               M ${x + 5} ${y - 5}
               v ${step.d}
-              ${nextSegment || "l -10 10 v -10"}
+              ${nextSegment()}
               v ${-step.d + 10}
               l 10 -10
               z
@@ -148,7 +194,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
           case "left":
             return path`
               v ${step.d - 10}
-              ${nextSegment || "l -10 10 v -10"}
+              ${nextSegment()}
               v ${-step.d + 10}
               l 10 -10
             `
@@ -157,13 +203,32 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return path`
               h 10
               v ${step.d}
-              ${nextSegment || "l -10 10 v -10"}
+              ${nextSegment()}
               v ${-step.d + 10}
             `
 
           case "up":
           case "down":
             throw new Error("Invalid segment sequence.")
+        }
+      }
+
+      case "cap": {
+        switch (last) {
+          case "initial":
+            return ""
+
+          case "left":
+            return path`h -10 l 10 -10`
+
+          case "right":
+            return path`h 10 l -10 10`
+
+          case "up":
+            return path`l 10 -10 v 10`
+
+          case "down":
+            return path`l -10 10 v -10`
         }
       }
     }
@@ -175,7 +240,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
     return ""
   }
 
-  return segment("initial", first, steps.slice(1)).replace("z", "")
+  return segment("initial", first, steps.slice(1)).replace("z", "") + " z"
 }
 
 export function Main() {
