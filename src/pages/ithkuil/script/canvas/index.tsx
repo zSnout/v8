@@ -15,9 +15,17 @@ export type Step =
   | { readonly type: "right"; readonly d: number }
   | { readonly type: "up"; readonly d: number }
   | { readonly type: "down"; readonly d: number }
+  | { readonly type: "thin"; readonly d: number }
   | { readonly type: "cap" }
 
-function makePath(x: number, y: number, steps: readonly Step[]): string {
+function makePath(
+  x: number,
+  y: number,
+  steps: readonly Step[],
+  throwOnError = false,
+): string {
+  const THIN_LINE_WIDTH = 2.4
+
   /**
    * Here's an in-depth explanation of how this works:
    *
@@ -131,6 +139,10 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
    * Left segment is `d-10` units long, right segment is `d` units long,
    * diagonal segment is `10,10` units long (10 in both X and Y directions).
    *
+   * **`thin` shape**
+   *
+   * TODO: add shape
+   *
    * **`cap` shape**
    *
    * Not allowed to appear as an initial shape.
@@ -152,6 +164,14 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
         ? segment(step.type, rest[0], rest.slice(1))
         : segment(step.type, { type: "cap" }, [])
 
+    const passSegment = () => {
+      if (throwOnError) {
+        throw new Error("Unsupported segment sequence.")
+      }
+
+      return segment(last, { type: "cap" }, [])
+    }
+
     switch (step.type) {
       case "left": {
         switch (last) {
@@ -167,7 +187,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
 
           case "left":
           case "right":
-            throw new Error("Invalid segment sequence.")
+            return passSegment()
 
           case "up":
             return path`
@@ -201,7 +221,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
 
           case "left":
           case "right":
-            throw new Error("Invalid segment sequence.")
+            return passSegment()
 
           case "up":
             return path`
@@ -251,7 +271,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
 
           case "up":
           case "down":
-            throw new Error("Invalid segment sequence.")
+            return passSegment()
         }
       }
 
@@ -285,7 +305,34 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
 
           case "up":
           case "down":
-            throw new Error("Invalid segment sequence.")
+            return passSegment()
+        }
+      }
+
+      case "thin": {
+        switch (last) {
+          case "initial":
+            return passSegment() // TODO
+
+          case "left":
+            return passSegment() // TODO
+
+          case "right":
+            return path`
+              h ${10 + THIN_LINE_WIDTH}
+              l ${-step.d} ${step.d}
+              h ${-THIN_LINE_WIDTH}
+              l ${step.d - 10} ${-step.d + 10}
+            `
+
+          case "up":
+            return passSegment() // TODO
+
+          case "down":
+            return passSegment() // TODO
+
+          case "thin":
+            return passSegment()
         }
       }
 
@@ -308,6 +355,8 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
         }
       }
     }
+
+    return passSegment()
   }
 
   const first = steps[0]
@@ -316,7 +365,17 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
     return ""
   }
 
-  return segment("initial", first, steps.slice(1)).replace("z", "") + " z"
+  return segment("initial", first, steps.slice(1))
+}
+
+function Path(props: { x: number; y: number; path: readonly Step[] }) {
+  return (
+    <path
+      // stroke="red"
+      fill-rule="nonzero"
+      d={makePath(props.x, props.y, props.path)}
+    />
+  )
 }
 
 export function Main() {
@@ -343,19 +402,19 @@ export function Main() {
         <path d={GRID} stroke="blue" stroke-width={0.1} />
         <path d={GRID} stroke="blue" transform="scale(5)" stroke-width={0.2} />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(45, 5, [
+        <Path
+          x={45}
+          y={5}
+          path={[
             { type: "left", d: 40 },
             { type: "down", d: 60 },
-          ])}
+          ]}
         />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(65, 5, [
+        <Path
+          x={65}
+          y={5}
+          path={[
             { type: "right", d: 40 },
             { type: "down", d: 60 },
             { type: "left", d: 40 },
@@ -363,70 +422,63 @@ export function Main() {
             { type: "right", d: 40 },
             { type: "down", d: 60 },
             { type: "left", d: 40 },
-          ])}
+          ]}
         />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(5, 85, [{ type: "down", d: 60 }])}
-        />
+        <Path x={5} y={85} path={[{ type: "down", d: 60 }]} />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(25, 85, [
+        <Path
+          x={25}
+          y={85}
+          path={[
             { type: "up", d: 60 },
             { type: "right", d: 40 },
             { type: "down", d: 20 },
-          ])}
+          ]}
         />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(45, 125, [
+        <Path
+          x={45}
+          y={125}
+          path={[
             { type: "up", d: 20 },
             { type: "left", d: 20 },
             { type: "down", d: 60 },
             { type: "right", d: 20 },
             { type: "up", d: 20 },
             { type: "right", d: 20 },
-          ])}
+          ]}
         />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(85, 85, [{ type: "right", d: 40 }])}
-        />
+        <Path x={85} y={85} path={[{ type: "right", d: 40 }]} />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(85, 105, [
+        <Path
+          x={85}
+          y={105}
+          path={[
             { type: "right", d: 40 },
             { type: "down", d: 40 },
-          ])}
+          ]}
         />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(165, 65, [
+        <Path
+          x={165}
+          y={65}
+          path={[
             { type: "left", d: 40 },
             { type: "up", d: 40 },
             { type: "right", d: 40 },
-          ])}
+            { type: "thin", d: 20 },
+          ]}
         />
 
-        <path
-          stroke="red"
-          fill-rule="nonzero"
-          d={makePath(125, 165, [
+        <Path
+          x={125}
+          y={165}
+          path={[
             { type: "down", d: 20 },
             { type: "right", d: 40 },
-          ])}
+          ]}
         />
       </g>
     </svg>
