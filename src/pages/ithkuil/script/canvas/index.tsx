@@ -47,17 +47,93 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
    * For example, the `right` step shape only actually renders this bit:
    *
    * ```
-   *    ───────── (step ends here)
+   *    ───────── (child step)
    *  ╱
    * ╱
    * ──────────── (step starts here)
    * ```
    *
    * The top section is `d-10` units long, and the bottom section is `d` units
-   * long. It expects that the child step will connect them properly.
+   * long. It expects that the child step will connect them properly. The
+   * diagonal there is only actually drawn if the `right` step is the first one
+   * drawn. Otherwise, only the lines are drawn, with the other ends left up to
+   * its parent and child steps.
+   *
+   * Importantly, these shapes are the same regardless of the child step,
+   * although they may depend on the parent shape. This means that `N^2 + N`
+   * shapes have to be programmed in if there are `N` path types, keeping it to
+   * a reasonable level of complexity.
    *
    * The special `cap` step ends the SVG path with the appropriate cap. It is
    * automatically added on if no cap is otherwise found.
+   *
+   * ## Step Shapes
+   *
+   * Here is an overview of all initial step shapes (that is, what each shape
+   * looks like if it is the first step in a path). `A` marks the beginning of
+   * the child path, `B` marks the end of the child path, and `C` marks the
+   * point at the initial X and Y coordinates. If two points look like they're
+   * on the same line (horizontal or vertical), assume they are.
+   *
+   * **`left` shape**
+   *
+   * ```
+   * B──────────────
+   *               ╱
+   *              C
+   *             ╱
+   * A──────────
+   * ```
+   *
+   * Top segment is `d` units long, bottom segment is `d-10` units long,
+   * diagonal segment is `10,10` units long (10 in both X and Y directions).
+   *
+   * **`right` shape**
+   *
+   * ```
+   *     ─────────A
+   *   ╱
+   *  C
+   * ╱
+   * ─────────────B
+   * ```
+   *
+   * Top segment is `d-10` units long, bottom segment is `d` units long,
+   * diagonal segment is `10,10` units long (10 in both X and Y directions).
+   *
+   * **`up` shape**
+   *
+   * ```
+   * A       B
+   * │       │
+   * │       │
+   * │       │
+   * │     ╱
+   * │   C
+   * │ ╱
+   * ```
+   *
+   * Left segment is `d` units long, right segment is `d-10` units long,
+   * diagonal segment is `10,10` units long (10 in both X and Y directions).
+   *
+   * **`down` shape**
+   *
+   * ```
+   *       ╱ │
+   *     C   │
+   *   ╱     │
+   * │       │
+   * │       │
+   * │       │
+   * B       A
+   * ```
+   *
+   * Left segment is `d-10` units long, right segment is `d` units long,
+   * diagonal segment is `10,10` units long (10 in both X and Y directions).
+   *
+   * **`cap` shape**
+   *
+   * Not allowed to appear as an initial shape.
    *
    * @param last
    * @param step
@@ -149,7 +225,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
         switch (last) {
           case "initial":
             return path`
-              M ${x - 5} ${y + 5 - step.d}
+              M ${x + 5} ${y + 5 - step.d}
               v ${step.d - 10}
               l -10 10
               v ${-step.d}
@@ -299,7 +375,7 @@ export function Main() {
         <path
           stroke="red"
           fill-rule="nonzero"
-          d={makePath(35, 85, [
+          d={makePath(25, 85, [
             { type: "up", d: 60 },
             { type: "right", d: 40 },
             { type: "down", d: 20 },
@@ -309,7 +385,7 @@ export function Main() {
         <path
           stroke="red"
           fill-rule="nonzero"
-          d={makePath(55, 125, [
+          d={makePath(45, 125, [
             { type: "up", d: 20 },
             { type: "left", d: 20 },
             { type: "down", d: 60 },
@@ -340,6 +416,15 @@ export function Main() {
           d={makePath(165, 65, [
             { type: "left", d: 40 },
             { type: "up", d: 40 },
+            { type: "right", d: 40 },
+          ])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(125, 165, [
+            { type: "down", d: 20 },
             { type: "right", d: 40 },
           ])}
         />
