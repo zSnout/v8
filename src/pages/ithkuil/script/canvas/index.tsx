@@ -42,7 +42,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
               h ${-step.d + 10}
               ${nextSegment || "h -10"}
               l 10 -10
-              h ${step.d - 10}
+              h ${step.d}
               z
             `
 
@@ -51,7 +51,13 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             throw new Error("Invalid segment sequence.")
 
           case "up":
-            return "" // TODO
+            return path`
+              h ${-step.d + 10}
+              ${nextSegment || "h -10"}
+              l 10 -10
+              h ${step.d}
+              v 10
+            `
 
           case "down":
             return path`
@@ -71,8 +77,8 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
               M ${x - 5 + step.d} ${y + 5}
               h ${-step.d}
               l 10 -10
-              h ${step.d}
-              ${nextSegment}
+              h ${step.d - 10}
+              ${nextSegment || "h 10 l -10 10"}
               z
             `
 
@@ -84,14 +90,14 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return path`
               l 10 -10
               h ${step.d}
-              ${nextSegment || "l -10 10"}
-              h ${-step.d + 10}
+              ${nextSegment || "h 10 l -10 10"}
+              h ${-step.d}
             `
 
           case "down":
             return path`
-              h ${step.d}
-              ${nextSegment || "l -10 10"}
+              h ${step.d - 10}
+              ${nextSegment || "h 10 l -10 10"}
               h ${-step.d}
               v -10
             `
@@ -114,7 +120,12 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return "" // TODO
 
           case "right":
-            return "" // TODO
+            return path`
+              v ${-step.d + 10}
+              ${nextSegment || "l 10 -10 v 10"}
+              v ${step.d - 10}
+              l -10 10
+            `
 
           case "up":
           case "down":
@@ -143,6 +154,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
 
           case "right":
             return path`
+              h 10
               v ${step.d}
               ${nextSegment || "l -10 10 v -10"}
               v ${-step.d + 10}
@@ -162,7 +174,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
     return ""
   }
 
-  return segment("initial", first, steps.slice(1))
+  return segment("initial", first, steps.slice(1)).replace("z", "")
 }
 
 export function Main() {
@@ -225,6 +237,34 @@ export function Main() {
             { type: "up", d: 60 },
             { type: "right", d: 40 },
             { type: "down", d: 20 },
+          ])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(55, 125, [
+            { type: "up", d: 20 },
+            { type: "left", d: 20 },
+            { type: "down", d: 60 },
+            { type: "right", d: 20 },
+            { type: "up", d: 20 },
+            { type: "right", d: 20 },
+          ])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(85, 85, [{ type: "right", d: 40 }])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(85, 105, [
+            { type: "right", d: 40 },
+            { type: "down", d: 40 },
           ])}
         />
       </g>
