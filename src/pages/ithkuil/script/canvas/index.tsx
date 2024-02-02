@@ -15,7 +15,7 @@ export type Step =
   | { readonly type: "right"; readonly d: number }
   | { readonly type: "up"; readonly d: number }
   | { readonly type: "down"; readonly d: number }
-  | { readonly type: "thin"; readonly d: number }
+  | { readonly type: "dl"; readonly d: number }
   | { readonly type: "cap" }
 
 function makePath(
@@ -29,7 +29,7 @@ function makePath(
   /**
    * Here's an in-depth explanation of how this works:
    *
-   * You might think this should be as simple as generating a shape for each
+   * You might dlk this should be as simple as generating a shape for each
    * block and then overlapping them. And while that works, it has several
    * downsides.
    *
@@ -74,6 +74,17 @@ function makePath(
    *
    * The special `cap` step ends the SVG path with the appropriate cap. It is
    * automatically added on if no cap is otherwise found.
+   *
+   * ## Step Offsets
+   *
+   * Each step has an associated distance it travels, specified below.
+   *
+   * - `left(d)` travels `-d, 0` units
+   * - `right(d)` travels `d, 0` units
+   * - `top(d)` travels `0, -d` units
+   * - `bottom(d)` travels `0, d` units
+   * - `dl(d)` travels `2.4-d, d` units
+   * - `cap` does not travel
    *
    * ## Step Shapes
    *
@@ -139,7 +150,7 @@ function makePath(
    * Left segment is `d-10` units long, right segment is `d` units long,
    * diagonal segment is `10,10` units long (10 in both X and Y directions).
    *
-   * **`thin` shape**
+   * **`dl` shape**
    *
    * TODO: add shape
    *
@@ -238,6 +249,13 @@ function makePath(
               h ${-step.d}
               v -10
             `
+
+          case "dl":
+            return path`
+              h ${step.d - 10}
+              ${nextSegment()}
+              h ${-step.d - THIN_LINE_WIDTH}
+            `
         }
       }
 
@@ -306,10 +324,17 @@ function makePath(
           case "up":
           case "down":
             return passSegment()
+
+          case "dl":
+            return path`
+              v ${step.d}
+              ${nextSegment()}
+              v ${-step.d + 10 - THIN_LINE_WIDTH}
+            `
         }
       }
 
-      case "thin": {
+      case "dl": {
         switch (last) {
           case "initial":
             return passSegment() // TODO
@@ -321,17 +346,24 @@ function makePath(
             return path`
               h ${10 + THIN_LINE_WIDTH}
               l ${-step.d} ${step.d}
-              h ${-THIN_LINE_WIDTH}
-              l ${step.d - 10} ${-step.d + 10}
+              ${nextSegment()}
+              l ${step.d - THIN_LINE_WIDTH} ${-step.d + THIN_LINE_WIDTH}
             `
 
           case "up":
             return passSegment() // TODO
 
           case "down":
-            return passSegment() // TODO
+          // return path`
+          //   v ${THIN_LINE_WIDTH}
+          //   l ${-step.d} ${step.d}
+          //   ${nextSegment()}
+          //   l ${step.d} ${-step.d}
+          //   l ${THIN_LINE_WIDTH} ${-THIN_LINE_WIDTH}
+          //   v ${-10}
+          // `
 
-          case "thin":
+          case "dl":
             return passSegment()
         }
       }
@@ -352,11 +384,12 @@ function makePath(
 
           case "down":
             return path`l -10 10 v -10`
+
+          case "dl":
+            return path`l -10 10 h ${-THIN_LINE_WIDTH}`
         }
       }
     }
-
-    return passSegment()
   }
 
   const first = steps[0]
@@ -372,7 +405,6 @@ function Path(props: { x: number; y: number; path: readonly Step[] }) {
   return (
     <path
       // stroke="red"
-      fill-rule="nonzero"
       d={makePath(props.x, props.y, props.path)}
     />
   )
@@ -380,17 +412,49 @@ function Path(props: { x: number; y: number; path: readonly Step[] }) {
 
 export function Main() {
   const GRID = `
-    M 0 000 h 300 M 000 0 v 300
-    M 0 020 h 300 M 020 0 v 300
-    M 0 040 h 300 M 040 0 v 300
-    M 0 060 h 300 M 060 0 v 300
-    M 0 080 h 300 M 080 0 v 300
+    M 0 000 h 400 M 000 0 v 400
+    M 0 010 h 400 M 010 0 v 400
+    M 0 020 h 400 M 020 0 v 400
+    M 0 030 h 400 M 030 0 v 400
+    M 0 040 h 400 M 040 0 v 400
+    M 0 050 h 400 M 050 0 v 400
+    M 0 060 h 400 M 060 0 v 400
+    M 0 070 h 400 M 070 0 v 400
+    M 0 080 h 400 M 080 0 v 400
+    M 0 090 h 400 M 090 0 v 400
 
-    M 0 100 h 300 M 100 0 v 300
-    M 0 120 h 300 M 120 0 v 300
-    M 0 140 h 300 M 140 0 v 300
-    M 0 160 h 300 M 160 0 v 300
-    M 0 180 h 300 M 180 0 v 300
+    M 0 100 h 400 M 100 0 v 400
+    M 0 110 h 400 M 110 0 v 400
+    M 0 120 h 400 M 120 0 v 400
+    M 0 130 h 400 M 130 0 v 400
+    M 0 140 h 400 M 140 0 v 400
+    M 0 150 h 400 M 150 0 v 400
+    M 0 160 h 400 M 160 0 v 400
+    M 0 170 h 400 M 170 0 v 400
+    M 0 180 h 400 M 180 0 v 400
+    M 0 190 h 400 M 190 0 v 400
+
+    M 0 200 h 400 M 200 0 v 400
+    M 0 210 h 400 M 210 0 v 400
+    M 0 220 h 400 M 220 0 v 400
+    M 0 230 h 400 M 230 0 v 400
+    M 0 240 h 400 M 240 0 v 400
+    M 0 250 h 400 M 250 0 v 400
+    M 0 260 h 400 M 260 0 v 400
+    M 0 270 h 400 M 270 0 v 400
+    M 0 280 h 400 M 280 0 v 400
+    M 0 290 h 400 M 290 0 v 400
+
+    M 0 300 h 400 M 300 0 v 400
+    M 0 310 h 400 M 310 0 v 400
+    M 0 320 h 400 M 320 0 v 400
+    M 0 330 h 400 M 330 0 v 400
+    M 0 340 h 400 M 340 0 v 400
+    M 0 350 h 400 M 350 0 v 400
+    M 0 360 h 400 M 360 0 v 400
+    M 0 370 h 400 M 370 0 v 400
+    M 0 380 h 400 M 380 0 v 400
+    M 0 390 h 400 M 390 0 v 400
   `
 
   return (
@@ -399,7 +463,12 @@ export function Main() {
       viewBox="-5 -5 200 200"
     >
       <g>
-        <path d={GRID} stroke="blue" stroke-width={0.1} />
+        <path
+          d={GRID}
+          stroke="blue"
+          transform="scale(0.5)"
+          stroke-width={0.2}
+        />
         <path d={GRID} stroke="blue" transform="scale(5)" stroke-width={0.2} />
 
         <Path
@@ -462,13 +531,16 @@ export function Main() {
         />
 
         <Path
-          x={165}
+          x={145}
           y={65}
           path={[
-            { type: "left", d: 40 },
+            { type: "left", d: 20 },
             { type: "up", d: 40 },
-            { type: "right", d: 40 },
-            { type: "thin", d: 20 },
+            { type: "right", d: 40 - 2.4 },
+            { type: "dl", d: -10 },
+            { type: "down", d: 30 },
+            // { type: "dl", d: 0 },
+            // { type: "down", d: 30 - 2.4 },
           ]}
         />
 
@@ -480,6 +552,9 @@ export function Main() {
             { type: "right", d: 40 },
           ]}
         />
+
+        <path d={GRID} stroke="blue" stroke-width={0.2} />
+        <path d={GRID} stroke="red" transform="scale(0.5)" stroke-width={0.5} />
       </g>
     </svg>
   )
