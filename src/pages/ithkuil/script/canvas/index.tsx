@@ -1,5 +1,3 @@
-import { Lines } from "@zsnout/ithkuil/script"
-
 function path(
   data: TemplateStringsArray,
   ...values: (number | string)[]
