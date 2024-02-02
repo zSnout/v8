@@ -40,8 +40,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
               M ${x + 5} ${y - 5}
               l -10 10
               h ${-step.d + 10}
-              ${nextSegment || "h -10"}
-              l 10 -10
+              ${nextSegment || "h -10 l 10 -10"}
               h ${step.d}
               z
             `
@@ -53,8 +52,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
           case "up":
             return path`
               h ${-step.d + 10}
-              ${nextSegment || "h -10"}
-              l 10 -10
+              ${nextSegment || "h -10 l 10 -10"}
               h ${step.d}
               v 10
             `
@@ -63,8 +61,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             return path`
               l -10 10
               h ${-step.d + 10}
-              ${nextSegment || "h -10"}
-              l 10 -10
+              ${nextSegment || "h -10 l 10 -10"}
               h ${step.d - 10}
             `
         }
@@ -89,9 +86,9 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
           case "up":
             return path`
               l 10 -10
-              h ${step.d}
+              h ${step.d - 10}
               ${nextSegment || "h 10 l -10 10"}
-              h ${-step.d}
+              h ${-step.d + 10}
             `
 
           case "down":
@@ -117,7 +114,12 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
             `
 
           case "left":
-            return "" // TODO
+            return path`
+              h -10
+              v ${-step.d}
+              ${nextSegment || "l 10 -10 v 10"}
+              v ${step.d - 10}
+            `
 
           case "right":
             return path`
@@ -150,6 +152,7 @@ function makePath(x: number, y: number, steps: readonly Step[]): string {
               v ${step.d - 10}
               ${nextSegment || "l -10 10 v -10"}
               v ${-step.d + 10}
+              l 10 -10
             `
 
           case "right":
@@ -265,6 +268,16 @@ export function Main() {
           d={makePath(85, 105, [
             { type: "right", d: 40 },
             { type: "down", d: 40 },
+          ])}
+        />
+
+        <path
+          stroke="red"
+          fill-rule="nonzero"
+          d={makePath(165, 65, [
+            { type: "left", d: 40 },
+            { type: "up", d: 40 },
+            { type: "right", d: 40 },
           ])}
         />
       </g>
