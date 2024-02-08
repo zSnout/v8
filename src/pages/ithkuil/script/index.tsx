@@ -466,7 +466,7 @@ export function Main() {
             icon={faPaperPlane}
             title="Write"
           />{" "}
-          renders your text into block script.
+          re-renders your text (ctrl/cmd-enter works too!)
         </p>
 
         <p>

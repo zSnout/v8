@@ -18,14 +18,14 @@ export type Step =
   | { readonly type: "dl"; readonly d: number }
   | { readonly type: "cap" }
 
+export const THIN_LINE_WIDTH = 2.4
+
 function makePath(
   x: number,
   y: number,
   steps: readonly Step[],
   throwOnError = false,
 ): string {
-  const THIN_LINE_WIDTH = 2.4
-
   /**
    * Here's an in-depth explanation of how this works:
    *
@@ -83,7 +83,8 @@ function makePath(
    * - `right(d)` travels `d, 0` units
    * - `top(d)` travels `0, -d` units
    * - `bottom(d)` travels `0, d` units
-   * - `dl(d)` travels `2.4-d, d` units
+   * - `dl(d)` travels `-d, d` units, and an additional `THIN_LINE_WIDTH` units
+   *   in the direction of the previous instruction
    * - `cap` does not travel
    *
    * ## Step Shapes
@@ -114,10 +115,10 @@ function makePath(
    *   ╱
    *  C
    * ╱
-   * ─────────────B
+   * ───────────B
    * ```
    *
-   * Top segment is `d-10` units long, bottom segment is `d` units long,
+   * Top segment is `d-10` units long, bottom segment is `d-2.4` units long,
    * diagonal segment is `10,10` units long (10 in both X and Y directions).
    *
    * **`up` shape**
@@ -222,8 +223,8 @@ function makePath(
         switch (last) {
           case "initial":
             return path`
-              M ${x - 5 + step.d} ${y + 5}
-              h ${-step.d}
+              M ${x - 5 + step.d - 2.4} ${y + 5}
+              h ${-step.d + 2.4}
               l 10 -10
               h ${step.d - 10}
               ${nextSegment()}
@@ -327,9 +328,9 @@ function makePath(
 
           case "dl":
             return path`
-              v ${step.d}
+              v ${step.d - THIN_LINE_WIDTH}
               ${nextSegment()}
-              v ${-step.d + 10 - THIN_LINE_WIDTH}
+              v ${-step.d + 10}
             `
         }
       }
@@ -337,31 +338,48 @@ function makePath(
       case "dl": {
         switch (last) {
           case "initial":
-            return passSegment() // TODO
+            return path`
+              M ${x + 5} ${y - 5}
+              h ${THIN_LINE_WIDTH}
+              l ${-step.d} ${step.d}
+              ${nextSegment()}
+              l ${step.d} ${-step.d}
+              z
+            `
 
           case "left":
-            return passSegment() // TODO
+            return path`
+              h ${-10 + THIN_LINE_WIDTH}
+              l ${-step.d + 10} ${step.d - 10}
+              ${nextSegment()}
+              l ${step.d} ${-step.d}
+            `
 
           case "right":
             return path`
-              h ${10 + THIN_LINE_WIDTH}
+              h ${10}
               l ${-step.d} ${step.d}
               ${nextSegment()}
-              l ${step.d - THIN_LINE_WIDTH} ${-step.d + THIN_LINE_WIDTH}
+              l ${step.d - 10} ${-step.d + 10}
             `
 
           case "up":
-            return passSegment() // TODO
+            return path`
+              l ${-step.d + 10} ${step.d - 10}
+              ${nextSegment()}
+              l ${step.d + THIN_LINE_WIDTH} ${-step.d - THIN_LINE_WIDTH}
+              l 10 -10
+              v 10
+            `
 
           case "down":
-          // return path`
-          //   v ${THIN_LINE_WIDTH}
-          //   l ${-step.d} ${step.d}
-          //   ${nextSegment()}
-          //   l ${step.d} ${-step.d}
-          //   l ${THIN_LINE_WIDTH} ${-THIN_LINE_WIDTH}
-          //   v ${-10}
-          // `
+            return path`
+              v ${THIN_LINE_WIDTH}
+              l ${-step.d} ${step.d}
+              ${nextSegment()}
+              l ${step.d + THIN_LINE_WIDTH} ${-step.d - THIN_LINE_WIDTH}
+              v -10
+            `
 
           case "dl":
             return passSegment()
@@ -386,7 +404,7 @@ function makePath(
             return path`l -10 10 v -10`
 
           case "dl":
-            return path`l -10 10 h ${-THIN_LINE_WIDTH}`
+            return path`l -10 10 h ${-THIN_LINE_WIDTH} l 10 -10`
         }
       }
     }
@@ -398,13 +416,14 @@ function makePath(
     return ""
   }
 
-  return segment("initial", first, steps.slice(1))
+  return segment("initial", first, steps.slice(1)).replace("z", "")
 }
 
 function Path(props: { x: number; y: number; path: readonly Step[] }) {
   return (
     <path
-      // stroke="red"
+      stroke="red"
+      class="fill-black transition dark:fill-white"
       d={makePath(props.x, props.y, props.path)}
     />
   )
@@ -489,7 +508,7 @@ export function Main() {
             { type: "left", d: 40 },
             { type: "down", d: 60 },
             { type: "right", d: 40 },
-            { type: "down", d: 60 },
+            { type: "down", d: 40 },
             { type: "left", d: 40 },
           ]}
         />
@@ -519,7 +538,7 @@ export function Main() {
           ]}
         />
 
-        <Path x={85} y={85} path={[{ type: "right", d: 40 }]} />
+        <Path x={85} y={85} path={[{ type: "right", d: 20 }]} />
 
         <Path
           x={85}
@@ -532,15 +551,12 @@ export function Main() {
 
         <Path
           x={145}
-          y={65}
+          y={85}
           path={[
             { type: "left", d: 20 },
-            { type: "up", d: 40 },
-            { type: "right", d: 40 - 2.4 },
-            { type: "dl", d: -10 },
-            { type: "down", d: 30 },
-            // { type: "dl", d: 0 },
-            // { type: "down", d: 30 - 2.4 },
+            { type: "up", d: 80 },
+            { type: "right", d: 40 },
+            { type: "down", d: 20 },
           ]}
         />
 
@@ -553,8 +569,52 @@ export function Main() {
           ]}
         />
 
+        <Path x={165} y={85} path={[{ type: "dl", d: 20 }]} />
+
+        <Path
+          x={175}
+          y={85}
+          path={[
+            { type: "right", d: 20 },
+            { type: "dl", d: 20 },
+          ]}
+        />
+
+        <Path
+          x={175}
+          y={125}
+          path={[
+            { type: "left", d: 20 },
+            { type: "dl", d: 20 },
+          ]}
+        />
+
+        <Path
+          x={175}
+          y={135}
+          path={[
+            { type: "down", d: 20 },
+            { type: "dl", d: 10 },
+          ]}
+        />
+
+        <Path
+          x={185}
+          y={195}
+          path={[
+            { type: "up", d: 20 - 2.4 },
+            { type: "dl", d: 20 },
+            // { type: "down", d: 20 },
+          ]}
+        />
+
         <path d={GRID} stroke="blue" stroke-width={0.2} />
-        <path d={GRID} stroke="red" transform="scale(0.5)" stroke-width={0.5} />
+        <path
+          d={GRID}
+          stroke="red"
+          transform="scale(0.5)"
+          stroke-width={0.25}
+        />
       </g>
     </svg>
   )
