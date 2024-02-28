@@ -1,0 +1,21 @@
+---
+import { Heading } from "@/components/Heading"
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+---
+
+<DocumentLayout
+  description="TODO"
+  title="Logarithmic Dice"
+  og={{
+    imageSrc: "TODO",
+    imageAlt: "TODO",
+    title: "Logarithmic Dice",
+  }}
+>
+  <div class="m-auto flex flex-col">
+    <Heading center>Logarithmic Dice</Heading>
+
+    <Main client:load />
+  </div>
+</DocumentLayout>
