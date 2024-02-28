@@ -13,9 +13,9 @@ import { Main } from "."
     title: "Logarithmic Dice",
   }}
 >
-  <div class="m-auto flex flex-col">
+  <div class="m-auto flex w-[30rem] max-w-full flex-col">
     <Heading center>Logarithmic Dice</Heading>
 
-    <Main client:load />
+    <Main client:load count={10} />
   </div>
 </DocumentLayout>

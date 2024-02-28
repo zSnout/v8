@@ -1,4 +1,4 @@
-import { Index, Show, createSignal } from "solid-js"
+import { Index, createSignal } from "solid-js"
 
 function floor(x: number) {
   if (x < 10) {
@@ -27,20 +27,6 @@ function floor(x: number) {
 
   return <span>{Math.floor(x)}</span>
 }
-
-const labels = {
-  3: "thousand",
-  6: "million",
-  9: "billion",
-  12: "trillion",
-  15: "quadrillion",
-  18: "quintillion",
-  21: "sextillion",
-  24: "septillion",
-  27: "octillion",
-  30: "nonillion",
-  33: "decillion",
-} as Record<number, string>
 
 function Display(props: { die: number | "" }) {
   if (props.die == "") {
@@ -89,26 +75,54 @@ function choose() {
   return Math.floor(1 / (1 - Math.random()))
 }
 
-export function Main() {
+type DieValue = number | "" | { old: number | "" }
+
+export function Main(props: { count: number }) {
   const [canRoll, setCanRoll] = createSignal(true)
 
-  const [dice, setDice] = createSignal<readonly (number | "")[]>([
-    "",
-    "",
-    "",
-    "",
-    "",
-  ])
+  const [dice, setDice] = createSignal<readonly DieValue[]>(
+    Array(props.count).fill(""),
+  )
+
+  function Die(props: { die: () => DieValue; index: number }) {
+    return (
+      <button
+        class="z-field flex h-20 w-20 items-center justify-center text-3xl font-light"
+        classList={{ "opacity-30": typeof props.die() == "object" }}
+        onClick={() =>
+          setDice((d) => {
+            const dice = d.slice()
+            const die = dice[props.index]
+
+            if (typeof die == "number" || die == "") {
+              dice[props.index] = { old: die }
+            }
+
+            return dice
+          })
+        }
+      >
+        {
+          (props.die(),
+          (
+            <Display
+              die={
+                typeof props.die() == "object"
+                  ? (props.die() as { old: number | "" }).old
+                  : (props.die() as number | "")
+              }
+            />
+          ))
+        }
+      </button>
+    )
+  }
 
   return (
     <div class="flex w-full flex-col">
       <div class="mt-4 flex flex-wrap justify-center gap-2">
         <Index each={dice()}>
-          {(die) => (
-            <div class="z-field flex h-20 w-20 items-center justify-center text-3xl font-light">
-              {(die(), (<Display die={die()} />))}
-            </div>
-          )}
+          {(die, index) => <Die die={die} index={index} />}
         </Index>
       </div>
 
@@ -122,7 +136,6 @@ export function Main() {
 
           setCanRoll(false)
 
-          const count = dice().length
           const time = 1000
           const start = Date.now()
 
@@ -132,7 +145,9 @@ export function Main() {
               setCanRoll(true)
             }
 
-            setDice(Array(count).fill(0).map(choose))
+            setDice((dice) =>
+              dice.map((die) => (typeof die == "object" ? die : choose())),
+            )
           })
         }}
       >
