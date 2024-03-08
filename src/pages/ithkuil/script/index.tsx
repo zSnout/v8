@@ -1,6 +1,7 @@
 import { Fa } from "@/components/Fa"
 import { AutoResizeTextarea } from "@/components/fields/AutoResizeTextarea"
 import {
+  faArrowsTurnToDots,
   faBars,
   faDownload,
   faMagicWandSparkles,
@@ -38,6 +39,7 @@ export function Main() {
   const [lineSpace, setLineSpace] = createSignal(70)
   const [showGuides, setShowGuides] = createSignal(true)
   const [elidePrimaries, setElidePrimaries] = createSignal(true)
+  const [elideQuaternaries, setElideQuaternaries] = createSignal(true)
   const [strokeWidth, setStrokeWidth] = createSignal(0)
 
   let isFast = true
@@ -64,12 +66,16 @@ export function Main() {
       const spaceBetweenLines = lineSpace()
       const willShowGuides = showGuides()
       const willElidePrimaries = elidePrimaries()
+      const willElideQuaternaries = elideQuaternaries()
       const renderedStrokeWidth = strokeWidth()
 
       let maxWidth = 0
 
       const rows = content.split("\n").map((line, index) => {
-        const parsed = textToScript(line, renderedStrokeWidth != 0)
+        const parsed = textToScript(line, {
+          handwritten: renderedStrokeWidth != 0,
+          useCaseIllValDiacritics: willElideQuaternaries,
+        })
 
         const characters = AnchorX({
           at: "l",
@@ -264,7 +270,7 @@ export function Main() {
 
         <div class="flex w-full gap-2">
           <input
-            class="z-field w-full px-0 text-center"
+            class="z-field w-full px-0 text-center placeholder:text-xs"
             min={0}
             onInput={(event) => {
               const value = +event.currentTarget.value
@@ -275,6 +281,7 @@ export function Main() {
 
               setLineSpace(value)
             }}
+            value={lineSpace()}
             type="number"
             placeholder="Spacing..."
             disabled={!inputText().includes("\n")}
@@ -303,6 +310,19 @@ export function Main() {
               class="h-4 w-4"
               icon={faTextSlash}
               title="Toggle whether sentence-initial primaries may be elided"
+            />
+          </button>
+
+          <button
+            class="z-field flex items-center justify-center"
+            classList={{ "bg-z-field-selected": elideQuaternaries() }}
+            type="submit"
+            onClick={() => setElideQuaternaries((x) => !x)}
+          >
+            <Fa
+              class="h-4 w-4"
+              icon={faArrowsTurnToDots}
+              title="Toggle whether case/ill+val quaternaries may be elided"
             />
           </button>
 
@@ -436,6 +456,15 @@ export function Main() {
         <p>
           <Fa
             class="relative -top-px mx-1 inline h-4 w-4"
+            icon={faArrowsTurnToDots}
+            title="Toggle whether case/ill+val quaternaries may be elided"
+          />{" "}
+          toggles whether quaternaries may be elided.
+        </p>
+
+        <p>
+          <Fa
+            class="relative -top-px mx-1 inline h-4 w-4"
             icon={faBars}
             title="Toggle guides"
           />{" "}
@@ -471,7 +500,8 @@ export function Main() {
 
         <p>
           The "Spacing" field controls the spacing between multiple lines of
-          text. It defaults to 70.
+          text. It defaults to 70 and is disabled unless you have multiple lines
+          of text.
         </p>
 
         <p class="mt-4">

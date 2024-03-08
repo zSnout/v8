@@ -1,0 +1,20 @@
+---
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+---
+
+<DocumentLayout
+  title="TODO"
+  description="TODO"
+  og={{
+    imageAlt: "TODO",
+    imageSrc: "TODO",
+    title: "TODO",
+  }}
+>
+  <p class="rw33 m-auto w-96 max-w-full">
+    Loading formative generator. Please wait a moment.
+  </p>
+
+  <Main client:only />
+</DocumentLayout>
