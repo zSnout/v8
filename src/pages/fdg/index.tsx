@@ -156,6 +156,7 @@ export function Main() {
   const [scale] = createSignal(100)
   const [speed] = createSignal(5)
   const [showNodes, setShowNodes] = createSignal(true)
+  const [makeLinksOnClick, setMakeLinksOnClick] = createSignal(true)
   const [dragging, setDragging] = createSignal<Dragged>()
   const [linking, setLinking] = createSignal<Linking>()
 
@@ -328,7 +329,7 @@ export function Main() {
 
         observer.observe(el)
       }}
-      onClick={(event) => {
+      onPointerDown={(event) => {
         event.preventDefault()
 
         const cx = event.clientX
@@ -345,14 +346,6 @@ export function Main() {
               locked: false,
             }),
           )
-
-          // setLinks((links) =>
-          //   links.concat({
-          //     a: links.length + 1,
-          //     b: Math.floor(Math.random() * links.length),
-          //     n: 1,
-          //   }),
-          // )
         }
 
         click(cx, cy)
@@ -404,8 +397,9 @@ export function Main() {
                   }}
                   onPointerDown={(event) => {
                     event.preventDefault()
+                    event.stopImmediatePropagation()
 
-                    if (event.button == 2) {
+                    if ((event.button == 2) != makeLinksOnClick()) {
                       const cursor = mouseToSVG(event.screenX, event.screenY)
 
                       setLinking({
@@ -427,11 +421,9 @@ export function Main() {
                   }}
                   onClick={(event) => {
                     event.preventDefault()
-                    event.stopImmediatePropagation()
                   }}
                   onContextMenu={(event) => {
                     event.preventDefault()
-                    event.stopImmediatePropagation()
                   }}
                 >
                   {index}
@@ -448,9 +440,13 @@ export function Main() {
     <div class="relative h-full w-full">
       {svg}
 
-      <div class="absolute left-4 top-4 select-none backdrop-blur">
+      <div class="absolute left-4 top-4 flex select-none flex-col backdrop-blur">
         <button onClick={() => setShowNodes((x) => !x)}>
           {showNodes() ? "click to hide nodes" : "click to show nodes"}
+        </button>
+
+        <button onClick={() => setMakeLinksOnClick((x) => !x)}>
+          {makeLinksOnClick() ? "make links on click" : "drag on click"}
         </button>
       </div>
     </div>
