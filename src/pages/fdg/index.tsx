@@ -10,6 +10,7 @@ interface Node {
 interface Link {
   readonly a: number
   readonly b: number
+  readonly n: number
 }
 
 interface Position {
@@ -28,13 +29,21 @@ interface Dragged {
   readonly index: number
   readonly mx: number
   readonly my: number
+  readonly moved: boolean
+}
+
+interface Linking {
+  readonly index: number
+  readonly x2: number
+  readonly y2: number
+  readonly moved: boolean
 }
 
 export function Main() {
   function iterate(time: number) {
     const { attraction, center, repulsion } = forces()
     const list = nodes()
-    const currentHeld = drag()?.index
+    const currentHeld = dragging()?.index
 
     const diffs = list.map(({ x, y }) => ({ x: -center * x, y: -center * y }))
     const attractions = list.map(() => ({ x: 0, y: 0, n: 0 }))
@@ -55,42 +64,38 @@ export function Main() {
       }
     }
 
-    for (const { a, b } of links()) {
+    for (const { a, b, n } of links()) {
       const na = list[a]!
       const nb = list[b]!
       const d = Math.hypot(na.x - nb.x, na.y - nb.y)
       const atan = Math.atan2(na.y - nb.y, na.x - nb.x)
 
       attractions[a] = {
-        x: attractions[a]!.x - attraction * (Math.cos(atan) * d),
-        y: attractions[a]!.y - attraction * (Math.sin(atan) * d),
-        n: attractions[a]!.n + 1,
+        x: attractions[a]!.x - n * attraction * (Math.cos(atan) * d),
+        y: attractions[a]!.y - n * attraction * (Math.sin(atan) * d),
+        n: attractions[a]!.n + n,
       }
 
       attractions[b] = {
-        x: attractions[b]!.x + attraction * (Math.cos(atan) * d),
-        y: attractions[b]!.y + attraction * (Math.sin(atan) * d),
-        n: attractions[b]!.n + 1,
+        x: attractions[b]!.x + n * attraction * (Math.cos(atan) * d),
+        y: attractions[b]!.y + n * attraction * (Math.sin(atan) * d),
+        n: attractions[b]!.n + n,
       }
     }
 
-    return list.map((node, index) =>
-      node.locked || currentHeld == index
-        ? node
-        : {
-            ...node,
-            x:
-              node.x +
-              (diffs[index]!.x +
-                attractions[index]!.x / attractions[index]!.n) *
-                time,
-            y:
-              node.y +
-              (diffs[index]!.y +
-                attractions[index]!.y / attractions[index]!.n) *
-                time,
-          },
-    )
+    return list.map((node, index) => {
+      if (node.locked || currentHeld == index) {
+        return node
+      }
+
+      const n = Math.max(1, attractions[index]!.n)
+
+      return {
+        ...node,
+        x: node.x + (diffs[index]!.x + attractions[index]!.x / n) * time,
+        y: node.y + (diffs[index]!.y + attractions[index]!.y / n) * time,
+      }
+    })
   }
 
   let lastTime = Date.now()
@@ -135,9 +140,9 @@ export function Main() {
   })
 
   const [links, setLinks] = createSignal<readonly Link[]>([
-    { a: 1, b: 0 },
-    { a: 1, b: 2 },
-    { a: 1, b: 3 },
+    { a: 1, b: 0, n: 1 },
+    { a: 1, b: 2, n: 1 },
+    { a: 1, b: 3, n: 1 },
   ])
 
   const [forces] = createSignal<Forces>({
@@ -151,7 +156,8 @@ export function Main() {
   const [scale] = createSignal(100)
   const [speed] = createSignal(5)
   const [showNodes, setShowNodes] = createSignal(true)
-  const [drag, setDrag] = createSignal<Dragged>()
+  const [dragging, setDragging] = createSignal<Dragged>()
+  const [linking, setLinking] = createSignal<Linking>()
 
   const svgBox = createMemo(() => {
     const { x: xb, y: yb, w: wb } = position()
@@ -169,7 +175,7 @@ export function Main() {
 
   onMount(() => {
     document.addEventListener("pointermove", (event) => {
-      setDrag((dragged) => {
+      setDragging((dragged) => {
         if (!dragged) {
           return
         }
@@ -198,12 +204,98 @@ export function Main() {
           index,
           mx: event.screenX,
           my: event.screenY,
+          moved: true,
+        }
+      })
+
+      setLinking((linking) => {
+        if (!linking) {
+          return
+        }
+
+        const { index } = linking
+
+        const cursor = mouseToSVG(event.screenX, event.screenY)
+
+        return {
+          index,
+          x2: cursor.x / scale(),
+          y2: cursor.y / scale(),
+          moved: true,
         }
       })
     })
 
     document.addEventListener("pointerup", () => {
-      setDrag(undefined)
+      setDragging((drag): undefined => {
+        if (!drag) {
+          return
+        }
+
+        if (!drag.moved) {
+          setNodes((nodes) => {
+            const next = [...nodes]
+
+            next[drag.index] = {
+              ...next[drag.index]!,
+              locked: !next[drag.index]!.locked,
+            }
+
+            return next
+          })
+        }
+
+        return
+      })
+
+      setLinking((link): undefined => {
+        if (!link) {
+          return
+        }
+
+        if (!link.moved) {
+          return
+        }
+
+        const closestNode = nodes()
+          .map((node, index) => ({
+            ...node,
+            distance: Math.hypot(node.x - link.x2, node.y - link.y2),
+            index,
+          }))
+          .filter((node) => node.index != link.index)
+          .filter((node) => node.distance < 48 / scale())
+          .sort((a, b) => a.distance - b.distance)[0]
+
+        if (!closestNode) {
+          return
+        }
+
+        setLinks((links) => {
+          const existing = links.findIndex(
+            ({ a, b }) =>
+              (a == link.index && b == closestNode.index) ||
+              (a == closestNode.index && b == link.index),
+          )
+
+          if (existing != -1) {
+            const next = [...links]
+
+            next[existing] = {
+              ...next[existing]!,
+              n: next[existing]!.n + 1,
+            }
+
+            return next
+          } else {
+            return links.concat({
+              a: link.index,
+              b: closestNode.index,
+              n: 1,
+            })
+          }
+        })
+      })
     })
   })
 
@@ -254,22 +346,37 @@ export function Main() {
             }),
           )
 
-          setLinks((links) =>
-            links.concat({
-              a: links.length + 1,
-              b: Math.floor(Math.random() * links.length),
-            }),
-          )
+          // setLinks((links) =>
+          //   links.concat({
+          //     a: links.length + 1,
+          //     b: Math.floor(Math.random() * links.length),
+          //     n: 1,
+          //   }),
+          // )
         }
 
         click(cx, cy)
       }}
     >
+      <Show when={linking()}>
+        {(link) => (
+          <line
+            x1={nodes()[link().index]!.x * scale()}
+            y1={nodes()[link().index]!.y * scale()}
+            x2={link().x2 * scale()}
+            y2={link().y2 * scale()}
+            class="stroke-z-text-heading"
+            stroke-dasharray="4px 2px"
+            stroke-width={1}
+          />
+        )}
+      </Show>
+
       <For each={links()}>
         {(link) => (
           <line
-            class="stroke-black"
-            stroke-width={1}
+            class="stroke-z-text-heading"
+            stroke-width={link.n}
             x1={nodes()[link.a]!.x * scale()}
             y1={nodes()[link.a]!.y * scale()}
             x2={nodes()[link.b]!.x * scale()}
@@ -290,19 +397,33 @@ export function Main() {
                 height={96}
               >
                 <div
-                  class="flex h-full w-full select-none items-center justify-center rounded-full border border-black text-black"
+                  class="flex h-full w-full select-none items-center justify-center rounded-full border border-z-text-heading text-z-text"
                   classList={{
-                    "bg-white": !node().locked,
+                    "bg-z-body": !node().locked,
                     "bg-z-body-selected": node().locked,
                   }}
                   onPointerDown={(event) => {
                     event.preventDefault()
 
-                    setDrag({
-                      index,
-                      mx: event.screenX,
-                      my: event.screenY,
-                    })
+                    if (event.button == 2) {
+                      const cursor = mouseToSVG(event.screenX, event.screenY)
+
+                      setLinking({
+                        index,
+                        x1: node().x,
+                        y1: node().y,
+                        x2: cursor.x / scale(),
+                        y2: cursor.y / scale(),
+                        moved: false,
+                      })
+                    } else {
+                      setDragging({
+                        index,
+                        mx: event.screenX,
+                        my: event.screenY,
+                        moved: false,
+                      })
+                    }
                   }}
                   onClick={(event) => {
                     event.preventDefault()
@@ -310,17 +431,7 @@ export function Main() {
                   }}
                   onContextMenu={(event) => {
                     event.preventDefault()
-
-                    setNodes((nodes) => {
-                      const next = [...nodes]
-
-                      next[index] = {
-                        ...next[index]!,
-                        locked: !nodes[index]!.locked,
-                      }
-
-                      return next
-                    })
+                    event.stopImmediatePropagation()
                   }}
                 >
                   {index}
@@ -337,7 +448,7 @@ export function Main() {
     <div class="relative h-full w-full">
       {svg}
 
-      <div class="absolute left-4 top-4 bg-white backdrop-blur">
+      <div class="absolute left-4 top-4 select-none backdrop-blur">
         <button onClick={() => setShowNodes((x) => !x)}>
           {showNodes() ? "click to hide nodes" : "click to show nodes"}
         </button>
