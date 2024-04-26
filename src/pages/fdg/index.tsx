@@ -28,7 +28,7 @@ interface Forces {
   readonly center: number
 }
 
-interface Dragged {
+interface Dragging {
   readonly index: number
   readonly mx: number
   readonly my: number
@@ -96,7 +96,9 @@ export function Main() {
       return {
         ...node,
         x: node.x + (diffs[index]!.x + attractions[index]!.x / n) * time,
-        y: node.y + (diffs[index]!.y + attractions[index]!.y / n) * time,
+        y:
+          node.y +
+          +moveY() * (diffs[index]!.y + attractions[index]!.y / n) * time,
       }
     })
   }
@@ -148,10 +150,10 @@ export function Main() {
     { a: 1, b: 3, n: 1 },
   ])
 
-  const [forces] = createSignal<Forces>({
+  const [forces, setForces] = createSignal<Forces>({
     center: 1,
     repulsion: 1,
-    attraction: 0.1,
+    attraction: 0.25,
   })
 
   const [width, setWidth] = createSignal(1)
@@ -160,8 +162,9 @@ export function Main() {
   const [speed] = createSignal(5)
   const [showNodes, setShowNodes] = createSignal(true)
   const [makeLinksOnClick, setMakeLinksOnClick] = createSignal(true)
-  const [dragging, setDragging] = createSignal<Dragged>()
+  const [dragging, setDragging] = createSignal<Dragging>()
   const [linking, setLinking] = createSignal<Linking>()
+  const [moveY, setMoveY] = createSignal(true)
 
   const svgBox = createMemo(() => {
     const { x: xb, y: yb, w: wb } = position()
@@ -343,6 +346,10 @@ export function Main() {
     return { x: cursor.x, y: cursor.y }
   }
 
+  const values = Array(51)
+    .fill(0)
+    .map((_, i) => (i * 20) / 51 - 10)
+
   const svg = (
     <svg
       viewBox={svgBox()}
@@ -382,6 +389,46 @@ export function Main() {
         click(cx, cy)
       }}
     >
+      <For each={values}>
+        {(x) => (
+          <For each={values}>
+            {(y) => {
+              const strength = createMemo(() => {
+                let sx = 0
+                let sy = 0
+
+                const self = { x, y }
+                const list = nodes()
+                const { repulsion } = forces()
+
+                for (const { x, y } of list) {
+                  const d = Math.hypot(x - self.x, y - self.y)
+                  const atan = Math.atan2(y - self.y, x - self.x)
+
+                  sx += repulsion * (Math.cos(atan) / d)
+                  sy += repulsion * (Math.sin(atan) / d)
+                }
+
+                const norm = Math.hypot(sx, sy) * 5
+
+                return { x: -sx / norm, y: -sy / norm, n: norm }
+              })
+
+              return (
+                <line
+                  x1={scale() * x}
+                  y1={scale() * y}
+                  x2={scale() * (x + strength().x)}
+                  y2={scale() * (y + strength().y)}
+                  stroke-width={1}
+                  class="stroke-z-text-heading"
+                />
+              )
+            }}
+          </For>
+        )}
+      </For>
+
       <Show when={linking()}>
         {(link) => (
           <line
@@ -471,7 +518,7 @@ export function Main() {
     <div class="relative h-full w-full">
       {svg}
 
-      <div class="absolute left-4 top-4 flex select-none flex-col backdrop-blur">
+      <div class="absolute left-4 top-4 flex select-none flex-col gap-2 backdrop-blur">
         <button onClick={() => setShowNodes((x) => !x)} class="text-left">
           {showNodes() ? "click to hide nodes" : "click to show nodes"}
         </button>
@@ -505,6 +552,61 @@ export function Main() {
           </p>
           <strong>click here to toggle mouse buttons</strong>
         </button>
+
+        <button onClick={() => setMoveY((x) => !x)} class="text-left">
+          {moveY() ? "click to stop y movement" : "click to allow y movement"}
+        </button>
+
+        <label>
+          <input
+            min={0}
+            max={5}
+            value={forces().center}
+            step="any"
+            type="range"
+            onInput={(event) =>
+              setForces((forces) => ({
+                ...forces,
+                center: event.currentTarget.valueAsNumber,
+              }))
+            }
+          />
+          center force
+        </label>
+
+        <label>
+          <input
+            min={0}
+            max={5}
+            value={forces().attraction}
+            step="any"
+            type="range"
+            onInput={(event) =>
+              setForces((forces) => ({
+                ...forces,
+                attraction: event.currentTarget.valueAsNumber,
+              }))
+            }
+          />
+          attraction force
+        </label>
+
+        <label>
+          <input
+            min={0}
+            max={5}
+            value={forces().repulsion}
+            step="any"
+            type="range"
+            onInput={(event) =>
+              setForces((forces) => ({
+                ...forces,
+                repulsion: event.currentTarget.valueAsNumber,
+              }))
+            }
+          />
+          repulsion force
+        </label>
       </div>
     </div>
   )
