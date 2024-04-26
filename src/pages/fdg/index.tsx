@@ -1,3 +1,6 @@
+// gravity should drag towards average of locked nodes
+// make forces adjustable
+
 import { For, Show, batch, createMemo, createSignal, onMount } from "solid-js"
 
 interface Node {
