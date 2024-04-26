@@ -1,4 +1,4 @@
-import { For, Index, Show, createMemo, createSignal, onMount } from "solid-js"
+import { For, Show, batch, createMemo, createSignal, onMount } from "solid-js"
 
 interface Node {
   readonly label: string
@@ -148,7 +148,7 @@ export function Main() {
   const [forces] = createSignal<Forces>({
     center: 1,
     repulsion: 1,
-    attraction: 0.5,
+    attraction: 0.1,
   })
 
   const [width, setWidth] = createSignal(1)
@@ -228,91 +228,101 @@ export function Main() {
     })
 
     document.addEventListener("pointerup", () => {
-      setDragging((drag): undefined => {
-        if (!drag) {
+      batch(() => {
+        setDragging((drag): undefined => {
+          if (!drag) {
+            return
+          }
+
+          if (!drag.moved) {
+            setNodes((nodes) => {
+              const next = [...nodes]
+
+              next[drag.index] = {
+                ...next[drag.index]!,
+                locked: !next[drag.index]!.locked,
+              }
+
+              return next
+            })
+          }
+
           return
-        }
+        })
 
-        if (!drag.moved) {
-          setNodes((nodes) => {
-            const next = [...nodes]
+        setLinking((link): undefined => {
+          if (!link) {
+            return
+          }
 
-            next[drag.index] = {
-              ...next[drag.index]!,
-              locked: !next[drag.index]!.locked,
-            }
+          if (link.moved) {
+            const closestNode = nodes()
+              .map((node, index) => ({
+                ...node,
+                distance: Math.hypot(node.x - link.x2, node.y - link.y2),
+                index,
+              }))
+              .filter((node) => node.index != link.index)
+              .filter((node) => node.distance < 48 / scale())
+              .sort((a, b) => a.distance - b.distance)[0]
 
-            return next
-          })
-        }
+            if (closestNode) {
+              setLinks((links) => {
+                const existing = links.findIndex(
+                  ({ a, b }) =>
+                    (a == link.index && b == closestNode.index) ||
+                    (a == closestNode.index && b == link.index),
+                )
 
-        return
-      })
+                if (existing != -1) {
+                  const next = [...links]
 
-      setLinking((link): undefined => {
-        if (!link) {
-          return
-        }
+                  next[existing] = {
+                    ...next[existing]!,
+                    n: next[existing]!.n + 1,
+                  }
 
-        if (!link.moved) {
-          setNodes((nodes) => {
-            const next = [...nodes]
-            next.splice(link.index, 1)
-            return next
-          })
-
-          setLinks((links) => {
-            return links
-              .map(({ a, b, n }) => {
-                if (a == link.index || b == link.index) {
-                  return undefined
-                }
-
-                return {
-                  a: a > link.index ? a - 1 : a,
-                  b: b > link.index ? b - 1 : b,
-                  n,
+                  return next
+                } else {
+                  return links.concat({
+                    a: link.index,
+                    b: closestNode.index,
+                    n: 1,
+                  })
                 }
               })
-              .filter((x): x is typeof x & {} => !!x)
-          })
-        }
-
-        const closestNode = nodes()
-          .map((node, index) => ({
-            ...node,
-            distance: Math.hypot(node.x - link.x2, node.y - link.y2),
-            index,
-          }))
-          .filter((node) => node.index != link.index)
-          .filter((node) => node.distance < 48 / scale())
-          .sort((a, b) => a.distance - b.distance)[0]
-
-        if (!closestNode) {
-          return
-        }
-
-        setLinks((links) => {
-          const existing = links.findIndex(
-            ({ a, b }) =>
-              (a == link.index && b == closestNode.index) ||
-              (a == closestNode.index && b == link.index),
-          )
-
-          if (existing != -1) {
-            const next = [...links]
-
-            next[existing] = {
-              ...next[existing]!,
-              n: next[existing]!.n + 1,
             }
-
-            return next
           } else {
-            return links.concat({
-              a: link.index,
-              b: closestNode.index,
-              n: 1,
+            const linkIndex = link.index
+
+            batch(() => {
+              setNodes((nodes) => {
+                const next = [...nodes]
+                next.splice(link.index, 1)
+                return next
+              })
+
+              setLinks((links) => {
+                const next = links
+                  .map(({ a, b, n }) => {
+                    if (a == linkIndex || b == linkIndex) {
+                      return undefined
+                    }
+
+                    const next = {
+                      a: a > linkIndex ? a - 1 : a,
+                      b: b > linkIndex ? b - 1 : b,
+                      n,
+                    }
+
+                    return next
+                  })
+                  .filter((x): x is typeof x & {} => !!x)
+
+                console.log(next)
+
+                return next
+              })
             })
           }
         })
@@ -400,20 +410,20 @@ export function Main() {
       </For>
 
       <Show when={showNodes()}>
-        <Index each={nodes()}>
+        <For each={nodes()}>
           {(node, index) => (
             <>
               <foreignObject
-                x={scale() * node().x - 48}
-                y={scale() * node().y - 48}
+                x={scale() * node.x - 48}
+                y={scale() * node.y - 48}
                 width={96}
                 height={96}
               >
                 <div
                   class="flex h-full w-full select-none items-center justify-center rounded-full border border-z-text-heading text-z-text"
                   classList={{
-                    "bg-z-body": !node().locked,
-                    "bg-z-body-selected": node().locked,
+                    "bg-z-body": !node.locked,
+                    "bg-z-body-selected": node.locked,
                   }}
                   onPointerDown={(event) => {
                     event.preventDefault()
@@ -423,16 +433,16 @@ export function Main() {
                       const cursor = mouseToSVG(event.clientX, event.clientY)
 
                       setLinking({
-                        index,
-                        x1: node().x,
-                        y1: node().y,
+                        index: index(),
+                        x1: node.x,
+                        y1: node.y,
                         x2: cursor.x / scale(),
                         y2: cursor.y / scale(),
                         moved: false,
                       })
                     } else {
                       setDragging({
-                        index,
+                        index: index(),
                         mx: event.clientX,
                         my: event.clientY,
                         moved: false,
@@ -446,12 +456,12 @@ export function Main() {
                     event.preventDefault()
                   }}
                 >
-                  {index}
+                  {index()}
                 </div>
               </foreignObject>
             </>
           )}
-        </Index>
+        </For>
       </Show>
     </svg>
   )
