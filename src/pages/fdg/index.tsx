@@ -295,34 +295,32 @@ export function Main() {
           } else {
             const linkIndex = link.index
 
-            batch(() => {
-              setNodes((nodes) => {
-                const next = [...nodes]
-                next.splice(link.index, 1)
-                return next
-              })
+            setNodes((nodes) => {
+              const next = [...nodes]
+              next.splice(link.index, 1)
+              return next
+            })
 
-              setLinks((links) => {
-                const next = links
-                  .map(({ a, b, n }) => {
-                    if (a == linkIndex || b == linkIndex) {
-                      return undefined
-                    }
+            setLinks((links) => {
+              const next = links
+                .map(({ a, b, n }) => {
+                  if (a == linkIndex || b == linkIndex) {
+                    return undefined
+                  }
 
-                    const next = {
-                      a: a > linkIndex ? a - 1 : a,
-                      b: b > linkIndex ? b - 1 : b,
-                      n,
-                    }
+                  const next = {
+                    a: a > linkIndex ? a - 1 : a,
+                    b: b > linkIndex ? b - 1 : b,
+                    n,
+                  }
 
-                    return next
-                  })
-                  .filter((x): x is typeof x & {} => !!x)
+                  return next
+                })
+                .filter((x): x is typeof x & {} => !!x)
 
-                console.log(next)
+              console.log(next)
 
-                return next
-              })
+              return next
             })
           }
         })
@@ -471,12 +469,38 @@ export function Main() {
       {svg}
 
       <div class="absolute left-4 top-4 flex select-none flex-col backdrop-blur">
-        <button onClick={() => setShowNodes((x) => !x)}>
+        <button onClick={() => setShowNodes((x) => !x)} class="text-left">
           {showNodes() ? "click to hide nodes" : "click to show nodes"}
         </button>
 
-        <button onClick={() => setMakeLinksOnClick((x) => !x)}>
-          {makeLinksOnClick() ? "make links on click" : "drag on click"}
+        <button
+          class="flex flex-col text-left"
+          onClick={() => setMakeLinksOnClick((x) => !x)}
+        >
+          <strong>left button can:</strong>
+          <p>
+            {makeLinksOnClick()
+              ? "click a node to delete it"
+              : "click a node to lock it"}
+          </p>
+          <p>
+            {makeLinksOnClick()
+              ? "drag to connect nodes"
+              : "drag a node to to move it"}
+          </p>
+          <p>click empty space to make a node</p>
+          <strong>right button can:</strong>
+          <p>
+            {makeLinksOnClick()
+              ? "click a node to lock it"
+              : "click a node to delete it"}
+          </p>
+          <p>
+            {makeLinksOnClick()
+              ? "drag a node to move it"
+              : "drag to connect nodes"}
+          </p>
+          <strong>click here to toggle mouse buttons</strong>
         </button>
       </div>
     </div>
