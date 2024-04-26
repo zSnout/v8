@@ -183,10 +183,10 @@ export function Main() {
 
         const { index, mx, my } = dragged
 
-        const dx = ((event.screenX - mx) / innerWidth) * position().w
+        const dx = ((event.clientX - mx) / innerWidth) * position().w
 
         const dy =
-          (((event.screenY - my) / innerHeight) * position().w * height()) /
+          (((event.clientY - my) / innerHeight) * position().w * height()) /
           width()
 
         setNodes((nodes) => {
@@ -203,8 +203,8 @@ export function Main() {
 
         return {
           index,
-          mx: event.screenX,
-          my: event.screenY,
+          mx: event.clientX,
+          my: event.clientY,
           moved: true,
         }
       })
@@ -216,7 +216,7 @@ export function Main() {
 
         const { index } = linking
 
-        const cursor = mouseToSVG(event.screenX, event.screenY)
+        const cursor = mouseToSVG(event.clientX, event.clientY)
 
         return {
           index,
@@ -400,7 +400,7 @@ export function Main() {
                     event.stopImmediatePropagation()
 
                     if ((event.button == 2) != makeLinksOnClick()) {
-                      const cursor = mouseToSVG(event.screenX, event.screenY)
+                      const cursor = mouseToSVG(event.clientX, event.clientY)
 
                       setLinking({
                         index,
@@ -413,8 +413,8 @@ export function Main() {
                     } else {
                       setDragging({
                         index,
-                        mx: event.screenX,
-                        my: event.screenY,
+                        mx: event.clientX,
+                        my: event.clientY,
                         moved: false,
                       })
                     }
