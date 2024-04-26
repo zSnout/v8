@@ -255,7 +255,27 @@ export function Main() {
         }
 
         if (!link.moved) {
-          return
+          setNodes((nodes) => {
+            const next = [...nodes]
+            next.splice(link.index, 1)
+            return next
+          })
+
+          setLinks((links) => {
+            return links
+              .map(({ a, b, n }) => {
+                if (a == link.index || b == link.index) {
+                  return undefined
+                }
+
+                return {
+                  a: a > link.index ? a - 1 : a,
+                  b: b > link.index ? b - 1 : b,
+                  n,
+                }
+              })
+              .filter((x): x is typeof x & {} => !!x)
+          })
         }
 
         const closestNode = nodes()
