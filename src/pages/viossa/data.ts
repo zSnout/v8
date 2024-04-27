@@ -1,4 +1,4 @@
-export const RISOLI = "/viossa63.pdf"
+export const RISOLI = "/viossa71.pdf"
 
 export type Content =
   | string // shorthand for taught words
@@ -16,7 +16,7 @@ export type WordType =
   | "namae"
 
 export interface WordData {
-  readonly emoji?: (string & {}) | "" | undefined
+  readonly emoji?: string | undefined
   readonly fal?: WordType | undefined
   readonly falnen?: "varge" | "fami" | "fraut" | "ovashi" | undefined
   readonly imi?: string | undefined
@@ -26,7 +26,8 @@ export interface WordData {
   readonly tatoeba?: readonly string[] | undefined
 }
 
-export const slides: Record<number, Content> = {
+// #region riso
+export const riso: Record<number, Content> = {
   11: "jaa",
   12: ["akk nai fshto ka bluma", "eins kotoba -ara danke nil ie"],
   13: ["un du sore vi dok hej", "pashun kotoba"],
@@ -82,7 +83,7 @@ export const slides: Record<number, Content> = {
     "li sit iske",
     "au du nai glug iske sjinu vil lera viossa da hanu angl-",
   ],
-  51: ["jam gaia sot magasin", "pashun na ringo nai banan nil ting mange"],
+  51: ["jam gaja sot magasin", "pashun na ringo nai banan nil ting mange"],
   52: ["grun naze cola jalaka", "ka afto pashun nai mange sore deki"],
   53: ["kara made rzinzai huomi", "pashun jalaka"],
   54: ["tsui", "sore hanu ringo"],
@@ -95,10 +96,31 @@ export const slides: Record<number, Content> = {
   61: ["uwaki", "ka na viossa nai deki hanu afto grun angl- kotoba ie espanj-"],
   62: "heljo vulcanis aifroidis gaja airis jainos crenos mirairis posaidis",
   63: ["plasdai sol gaja avara luna -dai samui vapa lantdai", "kundr stuur"],
+  64: ["-yena libre na circas kaku", "pashun kini sore"],
+  65: ["-yena auki kini kot dvera na", "kundr"],
+  66: "auki kini",
+  67: [
+    "fraut ringo crusca portocale lemo banan bestfraut uva vinjafraut cerfraut ahavja nihunfraut persefraut mago ananas niog afefraut fugelfraut",
+    "al afto du deki nam",
+  ],
+  68: ["fal -ki", "jam ni fu pashun dare ka viossa au nai"],
+  69: [
+    "spor",
+    "un vil huin jainos mange stuur jam baum na gaja du os nai nam ting sot ie bra warui tyd ima ka",
+  ],
+  70: [
+    "spor dare doko cosce naze perka hur katai atai",
+    "dare vinjafraut fraut har un jam ringo tre skoi du jainos kara bruk",
+  ],
+  71: [
+    "fugel maraidur atechi riobohna protofugel bihmidur njudur dur bagge",
+    "al",
+  ],
 }
 
+// #region koto
 const others =
-  "-a -ara -dai -djin -ki -yena -s un -tsa afefraut afto ahavia aifroidis ain airis aistia akk akote al ananas anta apar apu aschor asoko atai atechi au auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bonaplas bra breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cunin curo da daag dan danke dare darem daremdjin davai deer deki den discord doich- dok doko dronet du dua dush dur dvera dzikjaan ecso efles ein eksi ende enterrena ergo fami farge farza fi film flacha fraut froreenj fshto fu fuga fugel fugelfraut funn gaia gammel gavat gaia gelt glau glossa glug go godja gomen gris grun gvir haaste hadji hana hant hanu hapigo har hanj her hej hel helenakaku heljo henci hiven hjerne hor huin huomilehti hur hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kjannos kjomi klar kntre kolarum kompju corva kot kotnen kotoba kuchi kun kundr kury kyajdz kzin lacsaq lacte lapsi lasku lezi lehti lemo lera li libre lik ljeta luft luna luvan made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksu mulkaban murasace mwuai na naht nai nam namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur noito nord non njui ogoi ohare ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pashun per persefraut festako piel piman pinue pinuno pisma pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri ringo rinj riso rjoho roza ru rum ryodjin sakana sama samui sawi scecso sceer sdanie se shiro shirutro sho sidt sjikno silba simpel sini siru sisco skhola skwalo slucha sol sore sot spara spil spor sporko stift strela stuur sud sukha suksu suru suruko syryjna tajkadjin tak talvi tatuiba te tel ter terbi timba ting torta toshitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tyd ufne un uno upasnen uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa we west ze- zedvera zehant zeme zespil zeus jetta"
+  "-a -ara -dai -djin -ki -yena -s un -tsa afefraut afto ahavja aifroidis ain airis aistia akk akote al ananas anta apar apu aschor asoko atai atechi au auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bonaplas bra breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cunin curo da daag dan danke dare darem daremdjin davai deer deki den discord doich- dok doko dronet du dua dush dur dvera dzikjaan ecso efles ein eksi ende enterrena ergo fami farge farza fi film flacha fraut froreenj fshto fu fuga fugel fugelfraut funn gaja gammel gavat gaja gelt glau glossa glug go godja gomen gris grun gvir haaste hadji hana hant hanu hapigo har hanj her hej hel helenakaku heljo henci hiven hjerne hor huin huomilehti hur hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kjannos kjomi klar kntre kolarum kompju corva kot kotnen kotoba kuchi kun kundr kury kyajdz kzin lacsaq lacte lapsi lasku lezi lehti lemo lera li libre lik ljeta luft luna luvan made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksu mulkaban murasace mwuai na naht nai nam namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur noito nord non njui ogoi ohare ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pashun per persefraut festako piel piman pinue pinuno pisma pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri ringo rinj riso rjoho roza ru rum ryodjin sakana sama samui sawi scecso sceer sdanie se shiro shirutro sho sidt sjikno silba simpel sini siru sisco skhola skwalo slucha sol sore sot spara spil spor sporko stift strela stuur sud sukha suksu suru suruko syryjna tajkadjin tak talvi tatuiba te tel ter terbi timba ting torta toshitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tyd ufne un uno upasnen uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa we west ze- zedvera zehant zeme zespil zeus jetta"
 
 export interface Word extends WordData {
   readonly kotoba: string
@@ -127,7 +149,7 @@ export interface MutableSlide {
 export function makeWordList(): ReadonlyMap<string, Word> {
   const map = new Map<string, MutableWord>()
 
-  for (const [index, slide] of Object.entries(slides)) {
+  for (const [index, slide] of Object.entries(riso)) {
     const taught =
       typeof slide == "string" ? slide.split(" ") : slide[0].split(" ")
 
@@ -200,7 +222,7 @@ export function makeWordList(): ReadonlyMap<string, Word> {
 export function makeSlideList(): ReadonlyMap<number, Slide> {
   const map = new Map<number, MutableSlide>()
 
-  for (const [index, slide] of Object.entries(slides)) {
+  for (const [index, slide] of Object.entries(riso)) {
     const opetako =
       typeof slide == "string" ? slide.split(" ") : slide[0].split(" ")
 
@@ -282,7 +304,7 @@ export const data: Record<string, WordData> = {
   afto: {
     emoji: "",
   },
-  ahavia: {
+  ahavja: {
     emoji: "🫐",
   },
   aifroidis: {
@@ -342,6 +364,9 @@ export const data: Record<string, WordData> = {
   auto: {
     emoji: "🚗🚓🚘🚖",
   },
+  avara: {
+    emoji: "🌌",
+  },
   awen: {
     emoji: "",
   },
@@ -373,6 +398,10 @@ export const data: Record<string, WordData> = {
   },
   bestfraut: {
     emoji: "🍉🍈",
+  },
+  bihmidur: {
+    emoji: "🦄🐲",
+    imi: "dur ka na gvir",
   },
   bite: {
     emoji: "🥺🙏",
@@ -616,7 +645,7 @@ export const data: Record<string, WordData> = {
   },
 
   // #region G
-  gaia: {
+  gaja: {
     emoji: "🌏🌍🌎",
   },
   gammel: {
@@ -894,6 +923,9 @@ export const data: Record<string, WordData> = {
   lacte: {
     emoji: "",
   },
+  lantdai: {
+    emoji: "",
+  },
   lapsi: {
     emoji: "",
   },
@@ -956,6 +988,9 @@ export const data: Record<string, WordData> = {
   mama: {
     emoji: "",
   },
+  maraidur: {
+    emoji: "",
+  },
   mange: {
     emoji: "",
   },
@@ -995,7 +1030,7 @@ export const data: Record<string, WordData> = {
   milyon: {
     emoji: "",
   },
-  minairis: {
+  mirairis: {
     emoji: "",
   },
   minus: {
@@ -1163,6 +1198,10 @@ export const data: Record<string, WordData> = {
   per: {
     emoji: "",
   },
+  perka: {
+    emoji: "",
+    imi: "ka per?",
+  },
   persefraut: {
     emoji: "🍑",
   },
@@ -1186,6 +1225,9 @@ export const data: Record<string, WordData> = {
   },
   plas: {
     emoji: "🏠🏞️🏔️🎑🗺️",
+  },
+  plasdai: {
+    emoji: "",
   },
   plus: {
     emoji: "",
@@ -1226,6 +1268,9 @@ export const data: Record<string, WordData> = {
     emoji: "",
   },
   ri: {
+    emoji: "",
+  },
+  riobohna: {
     emoji: "",
   },
   ringo: {
@@ -1552,7 +1597,7 @@ export const data: Record<string, WordData> = {
   vil: {
     emoji: "",
   },
-  vinaphrayt: {
+  vinjafraut: {
     emoji: "🍇",
   },
   viossa: {
@@ -1609,4 +1654,20 @@ A: braa. un dua huin.`,
   100: {
     emoji: "🤣😂😆",
   },
+}
+
+if (import.meta.env.DEV) {
+  let missing: string[] = []
+
+  for (const word of Object.values(riso).flat().join(" ").split(" ")) {
+    if (!(word in data)) {
+      if (!missing.includes(word)) {
+        missing.push(word)
+      }
+    }
+  }
+
+  if (missing.length) {
+    throw new Error("Missing words " + missing.join(", ") + " from dictionary.")
+  }
 }

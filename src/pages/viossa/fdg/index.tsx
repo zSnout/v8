@@ -1,12 +1,12 @@
 import { MutableLink, MutableNode, createForceDirectedGraph } from "../../fdg"
-import { makeWordList, slides } from "../data"
+import { makeWordList, riso } from "../data"
 
 const list = makeWordList()
 
 export function Main() {
-  const items = Object.keys(slides).concat(...list.keys())
+  const items = Object.keys(riso).concat(...list.keys())
 
-  const nodes: MutableNode[] = Object.keys(slides).map((slide) => ({
+  const nodes: MutableNode[] = Object.keys(riso).map((slide) => ({
     label: slide,
     locked: false,
     x: Math.random(),
