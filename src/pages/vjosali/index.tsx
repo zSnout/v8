@@ -1,5 +1,5 @@
 import { search } from "fast-fuzzy"
-import { GlobalWorkerOptions, getDocument } from "pdfjs-dist"
+import { GlobalWorkerOptions, PDFPageProxy, getDocument } from "pdfjs-dist"
 import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import {
   For,
@@ -39,12 +39,14 @@ function Pdf(
       {...props}
       ref={async (canvas) => {
         let pageIndex = untrack(() => props.page)
-        let page = await (await pdf).getPage(pageIndex)
+        let page: PDFPageProxy | undefined
 
         async function render() {
-          if (props.page != pageIndex) {
-            page = await (await pdf).getPage(props.page)
-            pageIndex = props.page
+          const nowIndex = props.page
+
+          if (!page || nowIndex != pageIndex) {
+            page = await (await pdf).getPage(nowIndex)
+            pageIndex = nowIndex
           }
 
           if (canvas.clientWidth == 0) {
@@ -66,6 +68,7 @@ function Pdf(
           page.render({
             canvasContext: context,
             transform: transform,
+
             viewport: viewport,
           })
         }
@@ -75,7 +78,10 @@ function Pdf(
         let resizeTimeout: any = -1
         window.addEventListener("resize", () => {
           clearTimeout(resizeTimeout)
-          resizeTimeout = setTimeout(render, 1000)
+
+          resizeTimeout = setTimeout(() => {
+            untrack(render)
+          }, 1000)
         })
       }}
     />
@@ -449,7 +455,12 @@ function RisoliSidebar(props: {
       </div>
 
       <div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
-        <For each={props.maximized().opetako.concat(props.maximized().hanuko)}>
+        <For
+          each={props
+            .maximized()
+            .opetako.toSorted()
+            .concat(props.maximized().hanuko.toSorted())}
+        >
           {(word) => (
             <Kotoba
               word={wordMap.get(word)!}
