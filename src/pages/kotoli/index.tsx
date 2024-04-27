@@ -5,6 +5,7 @@ import {
   For,
   JSX,
   Show,
+  batch,
   createEffect,
   createMemo,
   createSignal,
@@ -305,7 +306,7 @@ function KotoliSidebar(props: {
       <For each={props.maximized().opetaNa}>
         {(page) => (
           <div
-            class="cursor-zoom-in"
+            class="mt-2 cursor-zoom-in"
             onClick={() => props.setMaximizedSlide(slideMap.get(page)!)}
           >
             <Page page={page} />
@@ -316,7 +317,7 @@ function KotoliSidebar(props: {
       <For each={props.maximized().hanuNa}>
         {(page) => (
           <div
-            class="cursor-zoom-in"
+            class="mt-2 cursor-zoom-in"
             onClick={() => props.setMaximizedSlide(slideMap.get(page)!)}
           >
             <Page page={page} />
@@ -439,7 +440,7 @@ export function Kotoli() {
         <Kotobara query={query} setMaximized={setMaximized} />
       </div>
 
-      <div class="fixed right-5 top-12 flex h-[calc(100%_-_3rem)] w-[24.5rem] flex-col gap-2 overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
+      <div class="fixed right-5 top-12 h-[calc(100%_-_3rem)] w-[24.5rem] overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
         <Sukhatro query={query} setQuery={setQuery} />
 
         <KotoliSidebar
@@ -463,7 +464,7 @@ export function Risoli() {
         <Risoara query={query} setMaximized={setMaximized} />
       </div>
 
-      <div class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] flex-col gap-2 overflow-auto px-14 pb-8 pt-8 scrollbar:hidden">
+      <div class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] overflow-auto px-14 pb-8 pt-8 scrollbar:hidden">
         <Sukhatro query={query} setQuery={setQuery} />
 
         <RisoliSidebar
@@ -471,6 +472,58 @@ export function Risoli() {
           setMaximizedSlide={setMaximized}
           setMaximizedWord={() => {}}
         />
+      </div>
+    </div>
+  )
+}
+
+export function Vjosali() {
+  const [query, setQuery] = createSignal("")
+  const [word, __setWord] = createSignal<Word>(wordMap.get("sakawi")!)
+  const [slide, __setSlide] = createSignal<Slide>(slideMap.get(12)!)
+  const [isSlide, setIsSlide] = createSignal(false)
+
+  function setMaximizedWord(word: Word) {
+    batch(() => {
+      setIsSlide(false)
+      __setWord(word)
+    })
+  }
+
+  function setMaximizedSlide(slide: Slide) {
+    batch(() => {
+      setIsSlide(true)
+      __setSlide(slide)
+    })
+  }
+
+  return (
+    <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
+      <div class="flex flex-1 flex-col gap-2">
+        <Header />
+        <Kotobara query={query} setMaximized={setMaximizedWord} />
+        <Risoara query={query} setMaximized={setMaximizedSlide} />
+      </div>
+
+      <div class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] overflow-auto px-14 pb-8 pt-8 scrollbar:hidden">
+        <Sukhatro query={query} setQuery={setQuery} />
+
+        <Show
+          when={isSlide()}
+          fallback={
+            <KotoliSidebar
+              maximized={word}
+              setMaximizedSlide={setMaximizedSlide}
+              setMaximizedWord={setMaximizedWord}
+            />
+          }
+        >
+          <RisoliSidebar
+            maximized={slide}
+            setMaximizedSlide={setMaximizedSlide}
+            setMaximizedWord={setMaximizedWord}
+          />
+        </Show>
       </div>
     </div>
   )
