@@ -108,6 +108,18 @@ export interface MutableWord {
   hanuNa: number[]
 }
 
+export interface Slide {
+  readonly index: number
+  readonly opetako: readonly string[]
+  readonly hanuko: readonly string[]
+}
+
+export interface MutableSlide {
+  index: number
+  opetako: string[]
+  hanuko: string[]
+}
+
 export function makeWordList(): ReadonlyMap<string, Word> {
   const map = new Map<string, MutableWord>()
 
@@ -179,6 +191,25 @@ export function makeWordList(): ReadonlyMap<string, Word> {
       return a > b ? 1 : -1
     }),
   )
+}
+
+export function makeSlideList(): ReadonlyMap<number, Slide> {
+  const map = new Map<number, MutableSlide>()
+
+  for (const [index, slide] of Object.entries(slides)) {
+    const opetako =
+      typeof slide == "string" ? slide.split(" ") : slide[0].split(" ")
+
+    const hanuko = typeof slide == "string" ? [] : slide[1].split(" ")
+
+    map.set(+index, {
+      index: +index,
+      hanuko,
+      opetako,
+    })
+  }
+
+  return map
 }
 
 export const data: Record<string, WordData> = {

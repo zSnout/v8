@@ -11,12 +11,13 @@ import {
   onMount,
   untrack,
 } from "solid-js"
-import { Word, makeWordList } from "../viossa/data"
+import { Slide, Word, makeSlideList, makeWordList } from "../viossa/data"
 
 GlobalWorkerOptions.workerSrc = worker
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" })
-const list = makeWordList()
+const wordMap = makeWordList()
+const slideMap = makeSlideList()
 const pdf = getDocument("/viossa.pdf").promise
 
 function Pdf(
@@ -33,6 +34,10 @@ function Pdf(
           if (props.page != pageIndex) {
             page = await (await pdf).getPage(props.page)
             pageIndex = props.page
+          }
+
+          if (canvas.clientWidth == 0) {
+            return
           }
 
           const scale = window.devicePixelRatio || 1
@@ -55,15 +60,23 @@ function Pdf(
         }
 
         createEffect(render)
-        window.addEventListener("resize", render)
+
+        let resizeTimeout: any = -1
+        window.addEventListener("resize", () => {
+          clearTimeout(resizeTimeout)
+          resizeTimeout = setTimeout(render, 1000)
+        })
       }}
     />
   )
 }
 
-function Page(props: { page: number }) {
+function Page(props: { class?: string; page: number; onClick?: () => void }) {
   return (
-    <div class="relative">
+    <div
+      class={"relative" + (props.class ? " " + props.class : "")}
+      onClick={props.onClick}
+    >
       <Pdf
         class="aspect-video w-full rounded-xl border border-z"
         page={props.page}
@@ -128,7 +141,7 @@ function Kotobara(props: {
   setMaximized: (word: Word) => void
   query: () => string
 }) {
-  const words = Array.from(list.values())
+  const words = Array.from(wordMap.values())
 
   const filtered = createMemo(() => {
     const q = props.query()
@@ -160,11 +173,11 @@ function KotoliHeader() {
   return (
     <div class="grid w-full gap-2 sm:grid-cols-2">
       <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
-        jam {list.size} kotobara na vikoli afto.
+        jam {wordMap.size} kotobara na kotoli afto.
         <br />
         jam{" "}
         {
-          Array.from(list.keys()).filter(
+          Array.from(wordMap.keys()).filter(
             (x) => localStorage["word+" + x] != ".",
           ).length
         }{" "}
@@ -260,7 +273,7 @@ function KotoliSidebar(props: {
 
 export function Kotoli() {
   const [query, setQuery] = createSignal("")
-  const [maximized, setMaximized] = createSignal<Word>(list.get("sakawi")!)
+  const [maximized, setMaximized] = createSignal<Word>(wordMap.get("sakawi")!)
 
   onMount(() => {
     document.addEventListener("keydown", (event): void => {
@@ -285,6 +298,159 @@ export function Kotoli() {
 
       <div class="fixed right-5 top-12 flex h-[calc(100%_-_3rem)] w-[24.5rem] flex-col gap-2 overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
         <KotoliSidebar
+          query={query}
+          setQuery={setQuery}
+          maximized={maximized}
+        />
+      </div>
+    </div>
+  )
+}
+
+function Risoara(props: {
+  query: () => string
+  setMaximized: (slide: Slide) => void
+}) {
+  const slides = Array.from(slideMap.values())
+
+  const filtered = createMemo(() => {
+    const q = props.query()
+
+    if (!q) {
+      return slides
+    }
+
+    return search(q, slides, {
+      keySelector(word) {
+        return word.opetako.concat(word.hanuko)
+      },
+      ignoreSymbols: false,
+      ignoreCase: true,
+      normalizeWhitespace: true,
+    })
+  })
+
+  return (
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(18rem,1fr))] gap-2">
+      <For each={slides}>
+        {(slide) => (
+          <div
+            classList={{
+              hidden: !filtered().includes(slide),
+            }}
+          >
+            <Page
+              class="cursor-zoom-in"
+              page={slide.index}
+              onClick={() => props.setMaximized(slide)}
+            />
+          </div>
+        )}
+      </For>
+    </div>
+  )
+}
+
+function RisoliHeader() {
+  return (
+    <div class="grid w-full gap-2 sm:grid-cols-2">
+      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
+        jam {slideMap.size} risoara na risoli afto.
+        <br />
+        sakawi maxa afto na 2024t 4m.
+      </div>
+      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
+        da lera na{" "}
+        <a
+          class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
+          href="https://bit.ly/davilera"
+        >
+          https://bit.ly/davilera
+        </a>
+        !
+        <br />
+        jam riso mange au opeta kotoba mange.
+      </div>
+    </div>
+  )
+}
+
+function RisoliSidebar(props: {
+  query: () => string
+  setQuery: (query: string) => void
+  maximized: () => Slide
+}) {
+  return (
+    <>
+      <input
+        id="sukhatro"
+        class="z-field mb-4 rounded-xl shadow-none placeholder:italic"
+        type="text"
+        value={props.query()}
+        onInput={(event) => props.setQuery(event.currentTarget.value)}
+        placeholder="da sukha (du deki kaku / per afto)..."
+      />
+
+      <Page page={props.maximized().index} />
+
+      <Show when={props.maximized().opetako.length}>
+        <div class="flex flex-wrap gap-px overflow-hidden rounded-xl border border-z bg-z-border transition">
+          <For each={props.maximized().opetako.toSorted()}>
+            {(kotoba) => (
+              <p class="flex-1 whitespace-nowrap bg-z-body px-2 py-1 text-center text-z transition">
+                {kotoba}
+              </p>
+            )}
+          </For>
+
+          <p class="flex-[1000] bg-z-body transition" />
+        </div>
+      </Show>
+
+      <Show when={props.maximized().hanuko.length}>
+        <div class="flex flex-wrap gap-px overflow-hidden rounded-xl border border-z bg-z-border transition">
+          <For each={props.maximized().hanuko.toSorted()}>
+            {(kotoba) => (
+              <p class="flex-1 whitespace-nowrap bg-z-body px-2 py-1 text-center text-z transition">
+                {kotoba}
+              </p>
+            )}
+          </For>
+
+          <p class="flex-[1000] bg-z-body transition" />
+        </div>
+      </Show>
+    </>
+  )
+}
+
+export function Risoli() {
+  const [query, setQuery] = createSignal("")
+  const [maximized, setMaximized] = createSignal<Slide>(slideMap.get(12)!)
+
+  onMount(() => {
+    document.addEventListener("keydown", (event): void => {
+      if (
+        event.key == "/" &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !event.metaKey
+      ) {
+        document.getElementById("sukhatro")?.focus()
+        event.preventDefault()
+      }
+    })
+  })
+
+  return (
+    <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
+      <div class="flex flex-1 flex-col gap-2">
+        <RisoliHeader />
+        <Risoara query={query} setMaximized={setMaximized} />
+      </div>
+
+      <div class="fixed right-5 top-12 flex h-[calc(100%_-_3rem)] w-[24.5rem] flex-col gap-2 overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
+        <RisoliSidebar
           query={query}
           setQuery={setQuery}
           maximized={maximized}
