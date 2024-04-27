@@ -14,6 +14,8 @@ import {
 } from "solid-js"
 import { Slide, Word, makeSlideList, makeWordList } from "../viossa/data"
 
+type Mode = "kotoba" | "riso" | undefined
+
 GlobalWorkerOptions.workerSrc = worker
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" })
@@ -107,6 +109,8 @@ function Page(props: {
 function Sukhatro(props: {
   query: () => string
   setQuery: (query: string) => void
+  mode: () => Mode
+  setMode: (mode: Mode) => void
 }) {
   onMount(() => {
     window.addEventListener("keydown", (event): void => {
@@ -123,14 +127,39 @@ function Sukhatro(props: {
   })
 
   return (
-    <input
-      id="sukhatro"
-      class="z-field mb-4 block w-full rounded-xl shadow-none placeholder:italic"
-      type="text"
-      value={props.query()}
-      onInput={(event) => props.setQuery(event.currentTarget.value)}
-      placeholder="da sukha (du deki kaku / per afto)..."
-    />
+    <div class="mb-4 grid grid-cols-2 grid-rows-2 gap-px rounded-xl border border-z bg-z-border ring-z-focus transition focus-within:border-z-focus focus-within:ring">
+      <input
+        id="sukhatro"
+        class="z-field col-span-2 block w-full rounded-b-none rounded-t-[calc(0.75rem_-_1px)] border-0 bg-z-body text-z shadow-none transition placeholder:italic focus-visible:outline-none focus-visible:ring-0"
+        type="text"
+        value={props.query()}
+        onInput={(event) => props.setQuery(event.currentTarget.value)}
+        placeholder="da sukha (du deki kaku / per afto)..."
+        autocomplete="off"
+      />
+
+      <button
+        class="rounded-bl-[calc(0.75rem_-_1px)] bg-z-body px-3 py-2 text-z transition focus-within:bg-z-body-selected focus-visible:outline-none"
+        onClick={() => props.setMode("kotoba")}
+        classList={{
+          "bg-z-field-selected": props.mode() == "kotoba",
+          "focus:bg-z-field-selected": props.mode() == "kotoba",
+        }}
+      >
+        kotoba mono
+      </button>
+
+      <button
+        class="rounded-br-[calc(0.75rem_-_1px)] bg-z-body px-3 py-2 text-z transition focus-within:bg-z-body-selected focus-visible:outline-none"
+        onClick={() => props.setMode("riso")}
+        classList={{
+          "bg-z-field-selected": props.mode() == "riso",
+          "focus:bg-z-field-selected": props.mode() == "riso",
+        }}
+      >
+        riso mono
+      </button>
+    </div>
   )
 }
 
@@ -429,64 +458,20 @@ function RisoliSidebar(props: {
   )
 }
 
-export function Kotoli() {
-  const [query, setQuery] = createSignal("")
-  const [maximized, setMaximized] = createSignal<Word>(wordMap.get("sakawi")!)
-
-  return (
-    <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
-      <div class="flex flex-1 flex-col gap-2">
-        <Header />
-        <Kotobara query={query} setMaximized={setMaximized} />
-      </div>
-
-      <div class="fixed right-5 top-12 h-[calc(100%_-_3rem)] w-[24.5rem] overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
-        <Sukhatro query={query} setQuery={setQuery} />
-
-        <KotoliSidebar
-          maximized={maximized}
-          setMaximizedWord={setMaximized}
-          setMaximizedSlide={() => {}}
-        />
-      </div>
-    </div>
-  )
-}
-
-export function Risoli() {
-  const [query, setQuery] = createSignal("")
-  const [maximized, setMaximized] = createSignal<Slide>(slideMap.get(12)!)
-
-  return (
-    <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
-      <div class="flex flex-1 flex-col gap-2">
-        <Header />
-        <Risoara query={query} setMaximized={setMaximized} />
-      </div>
-
-      <div class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] overflow-auto px-14 pb-8 pt-8 scrollbar:hidden">
-        <Sukhatro query={query} setQuery={setQuery} />
-
-        <RisoliSidebar
-          maximized={maximized}
-          setMaximizedSlide={setMaximized}
-          setMaximizedWord={() => {}}
-        />
-      </div>
-    </div>
-  )
-}
-
 export function Vjosali() {
   const [query, setQuery] = createSignal("")
   const [word, __setWord] = createSignal<Word>(wordMap.get("sakawi")!)
   const [slide, __setSlide] = createSignal<Slide>(slideMap.get(12)!)
   const [isSlide, setIsSlide] = createSignal(false)
+  const [mode, setMode] = createSignal<Mode>()
 
   function setMaximizedWord(word: Word) {
     batch(() => {
       setIsSlide(false)
       __setWord(word)
+      document
+        .getElementById("sidebar")
+        ?.scrollTo({ behavior: "smooth", top: 0 })
     })
   }
 
@@ -494,6 +479,9 @@ export function Vjosali() {
     batch(() => {
       setIsSlide(true)
       __setSlide(slide)
+      document
+        .getElementById("sidebar")
+        ?.scrollTo({ behavior: "smooth", top: 0 })
     })
   }
 
@@ -501,12 +489,26 @@ export function Vjosali() {
     <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
       <div class="flex flex-1 flex-col gap-2">
         <Header />
-        <Kotobara query={query} setMaximized={setMaximizedWord} />
-        <Risoara query={query} setMaximized={setMaximizedSlide} />
+
+        <div classList={{ hidden: mode() == "riso" }}>
+          <Kotobara query={query} setMaximized={setMaximizedWord} />
+        </div>
+
+        <div classList={{ hidden: mode() == "kotoba" }}>
+          <Risoara query={query} setMaximized={setMaximizedSlide} />
+        </div>
       </div>
 
-      <div class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] overflow-auto px-14 pb-8 pt-8 scrollbar:hidden">
-        <Sukhatro query={query} setQuery={setQuery} />
+      <div
+        class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] overflow-auto px-14 pb-8 pt-8 scrollbar:hidden"
+        id="sidebar"
+      >
+        <Sukhatro
+          query={query}
+          setQuery={setQuery}
+          mode={mode}
+          setMode={setMode}
+        />
 
         <Show
           when={isSlide()}
