@@ -8,6 +8,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  onMount,
   untrack,
 } from "solid-js"
 import { Word, makeWordList } from "../viossa/data"
@@ -198,6 +199,7 @@ export function Main() {
     return (
       <>
         <input
+          id="sukhatro"
           class="z-field mb-4 rounded-xl shadow-none placeholder:italic"
           type="text"
           value={query()}
@@ -277,6 +279,20 @@ export function Main() {
       </div>
     )
   }
+
+  onMount(() => {
+    document.addEventListener("keydown", (event): void => {
+      if (
+        event.key == "/" &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !event.metaKey
+      ) {
+        document.getElementById("sukhatro")?.focus()
+        event.preventDefault()
+      }
+    })
+  })
 
   return <TwoColumnLayout />
 }
