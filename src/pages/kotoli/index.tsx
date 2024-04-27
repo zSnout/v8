@@ -71,34 +71,54 @@ function Pdf(
   )
 }
 
-function Page(props: { class?: string; page: number; onClick?: () => void }) {
+function Page(props: {
+  class?: string | undefined
+  page: number
+  onClick?: (() => void) | undefined
+  small?: boolean | undefined
+}) {
   return (
     <div
       class={"relative" + (props.class ? " " + props.class : "")}
       onClick={props.onClick}
     >
       <Pdf
-        class="aspect-video w-full rounded-xl border border-z"
+        class="aspect-video w-full border border-z"
+        classList={{ rounded: props.small, "rounded-xl": !props.small }}
         page={props.page}
       />
 
-      <div class="absolute bottom-0 right-0 flex h-8 w-12 items-center justify-center rounded-br-xl rounded-tl-xl border border-z bg-z-body text-z transition">
+      <div
+        class="absolute bottom-0 right-0 flex h-8 w-12 items-center justify-center border border-z bg-z-body text-z transition"
+        classList={{
+          "rounded-tl": props.small,
+          "rounded-tl-xl": !props.small,
+          "rounded-br": props.small,
+          "rounded-br-xl": !props.small,
+        }}
+      >
         {props.page}
       </div>
     </div>
   )
 }
 
-function Kotoba(props: { word: Word; setMaximized: (word: Word) => void }) {
+function Kotoba(props: {
+  word: Word
+  setMaximized: (word: Word) => void
+  sidebar?: boolean | undefined
+}) {
   const opetayena =
     props.word.opetaNa.length > 0 || props.word.hanuNa.length > 0
 
   return (
     <div
-      class="group relative aspect-square rounded border-z px-3 py-2 text-z transition"
+      class="group relative aspect-square border-z px-3 py-2 text-z transition"
       classList={{
         border: !opetayena,
         "bg-z-body-selected": opetayena,
+        rounded: !props.sidebar,
+        "rounded-xl": props.sidebar,
       }}
       onClick={() => props.setMaximized(props.word)}
     >
@@ -338,8 +358,12 @@ function Risoara(props: {
             classList={{
               hidden: !filtered().includes(slide),
             }}
+            style={{
+              order: filtered().indexOf(slide),
+            }}
           >
             <Page
+              small
               class="cursor-zoom-in"
               page={slide.index}
               onClick={() => props.setMaximized(slide)}
@@ -380,11 +404,29 @@ function RisoliSidebar(props: {
   setQuery: (query: string) => void
   maximized: () => Slide
 }) {
+  const related = createMemo(() => {
+    const { opetako } = props.maximized()
+
+    const slideMap = new Map<number, number>()
+
+    for (const word of opetako) {
+      for (const index of wordMap.get(word)?.opetaNa || []) {
+        slideMap.set(index, (slideMap.get(index) || 0) + 1)
+      }
+    }
+
+    return Array.from(slideMap.entries())
+      .filter(([x]) => x != props.maximized().index) // not this slide
+      .sort(([a], [b]) => a - b) // earlier slides get priority
+      .sort(([, a], [, b]) => b - a) // slides with more words get priority
+      .map(([x]) => x)
+  })
+
   return (
     <>
       <input
         id="sukhatro"
-        class="z-field mb-4 rounded-xl shadow-none placeholder:italic"
+        class="z-field mb-4 block w-full rounded-xl shadow-none placeholder:italic"
         type="text"
         value={props.query()}
         onInput={(event) => props.setQuery(event.currentTarget.value)}
@@ -393,33 +435,21 @@ function RisoliSidebar(props: {
 
       <Page page={props.maximized().index} />
 
-      <Show when={props.maximized().opetako.length}>
-        <div class="flex flex-wrap gap-px overflow-hidden rounded-xl border border-z bg-z-border transition">
-          <For each={props.maximized().opetako.toSorted()}>
-            {(kotoba) => (
-              <p class="flex-1 whitespace-nowrap bg-z-body px-2 py-1 text-center text-z transition">
-                {kotoba}
-              </p>
-            )}
-          </For>
+      <div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
+        <For each={props.maximized().opetako.concat(props.maximized().hanuko)}>
+          {(word) => (
+            <Kotoba word={wordMap.get(word)!} setMaximized={() => {}} sidebar />
+          )}
+        </For>
+      </div>
 
-          <p class="flex-[1000] bg-z-body transition" />
-        </div>
-      </Show>
-
-      <Show when={props.maximized().hanuko.length}>
-        <div class="flex flex-wrap gap-px overflow-hidden rounded-xl border border-z bg-z-border transition">
-          <For each={props.maximized().hanuko.toSorted()}>
-            {(kotoba) => (
-              <p class="flex-1 whitespace-nowrap bg-z-body px-2 py-1 text-center text-z transition">
-                {kotoba}
-              </p>
-            )}
-          </For>
-
-          <p class="flex-[1000] bg-z-body transition" />
-        </div>
-      </Show>
+      <For each={related()}>
+        {(x) => (
+          <div class="mt-2">
+            <Page page={x} />
+          </div>
+        )}
+      </For>
     </>
   )
 }
@@ -449,7 +479,7 @@ export function Risoli() {
         <Risoara query={query} setMaximized={setMaximized} />
       </div>
 
-      <div class="fixed right-5 top-12 flex h-[calc(100%_-_3rem)] w-[24.5rem] flex-col gap-2 overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
+      <div class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] flex-col gap-2 overflow-auto px-14 pb-8 pt-8 scrollbar:hidden">
         <RisoliSidebar
           query={query}
           setQuery={setQuery}
