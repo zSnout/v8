@@ -60,7 +60,7 @@ export function Main() {
   function Header() {
     return (
       <div class="grid w-full gap-2 sm:grid-cols-2">
-        <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center">
+        <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
           jam {list.size} kotobara na vikoli afto.
           <br />
           jam{" "}
@@ -73,7 +73,7 @@ export function Main() {
           <br />
           afto kakutropos fu sakawi.
         </div>
-        <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center">
+        <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
           da lera na{" "}
           <a
             class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
@@ -103,7 +103,7 @@ export function Main() {
 
             return (
               <div
-                class="group relative aspect-square rounded border-z px-3 py-2"
+                class="group relative aspect-square rounded border-z px-3 py-2 text-z transition"
                 classList={{
                   border: !opetayena,
                   "bg-z-body-selected": opetayena,
@@ -111,31 +111,35 @@ export function Main() {
                 onClick={() => setMaximized(word)}
               >
                 {word.emoji && (
-                  <p class="absolute left-0 top-0 flex h-full w-full select-none items-center justify-center p-1 text-8xl opacity-30 blur-[2px]">
+                  <p class="absolute -top-px left-0 flex h-full w-full select-none items-center justify-center p-1 text-7xl text-z opacity-30 blur-[2px] transition">
                     {segmenter.segment(word.emoji).containing(0).segment}
                   </p>
                 )}
 
-                <p class="relative">{word.kotoba}</p>
-                <p class="relative">{word.emoji || ""}</p>
+                <p class="relative text-z transition">{word.kotoba}</p>
+                <p class="relative text-z transition">{word.emoji || ""}</p>
 
                 <div
-                  class="absolute left-1/2 top-1/2 z-20 hidden h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2 cursor-zoom-in select-none flex-col rounded-lg border border-z px-3 py-2 group-hover:flex"
+                  class="absolute left-1/2 top-1/2 z-20 hidden h-[150%] w-[150%] -translate-x-1/2 -translate-y-1/2 cursor-zoom-in select-none flex-col rounded-lg border border-z px-3 py-2 transition group-hover:flex"
                   classList={{
                     "bg-z-body": !opetayena,
                     "bg-z-body-selected": opetayena,
                   }}
                 >
                   <div class="flex flex-wrap text-lg font-semibold">
-                    <p class="mr-auto">{word.kotoba}</p>
-                    <p>{word.emoji || ""}</p>
+                    <p class="mr-auto text-z transition">{word.kotoba}</p>
+                    <p class="text-z transition">{word.emoji || ""}</p>
                   </div>
 
-                  <p>{word.imi ? "imi: " + word.imi : "(nai har imi)"}</p>
+                  <p class="text-z transition">
+                    {word.imi ? "imi: " + word.imi : "(nai har imi)"}
+                  </p>
 
                   <ul>
                     <For each={word.tatoeba}>
-                      {(tatoeba) => <li>{tatoeba}</li>}
+                      {(tatoeba) => (
+                        <li class="text-z transition">{tatoeba}</li>
+                      )}
                     </For>
                   </ul>
                 </div>
@@ -155,7 +159,7 @@ export function Main() {
           page={props.page}
         />
 
-        <div class="absolute bottom-0 right-0 flex h-8 w-12 items-center justify-center rounded-br-xl rounded-tl-xl border border-z bg-z-body">
+        <div class="absolute bottom-0 right-0 flex h-8 w-12 items-center justify-center rounded-br-xl rounded-tl-xl border border-z bg-z-body text-z transition">
           {props.page}
         </div>
       </div>
@@ -165,13 +169,13 @@ export function Main() {
   function Maximized(props: { sidebar?: boolean | undefined }) {
     return (
       <>
-        <div class="z-20 flex h-72 min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg">
+        <div class="z-20 flex h-72 min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg transition">
           <div class="flex flex-wrap text-2xl font-semibold">
-            <p class="mr-auto">{maximized().kotoba}</p>
-            <p>{maximized().emoji || ""}</p>
+            <p class="mr-auto text-z transition">{maximized().kotoba}</p>
+            <p class="text-z transition">{maximized().emoji || ""}</p>
           </div>
 
-          <p class="text-lg">
+          <p class="text-lg text-z transition">
             {maximized().imi ? (
               <>
                 <em>imi:</em> {maximized().imi}
@@ -185,7 +189,7 @@ export function Main() {
             <ul class="relative flex flex-col gap-2">
               <For each={maximized().tatoeba}>
                 {(tatoeba) => (
-                  <li class="whitespace-pre-line border-l border-z pl-2">
+                  <li class="whitespace-pre-line border-l border-z pl-2 text-z transition">
                     {tatoeba}
                   </li>
                 )}
@@ -231,7 +235,7 @@ export function Main() {
           <WordList />
         </div>
 
-        <div class="fixed right-6 top-12 flex h-[calc(100%_-_3rem)] w-96 flex-col gap-2 overflow-auto pb-4 pt-8">
+        <div class="fixed right-6 top-12 flex h-[calc(100%_-_3rem)] w-96 flex-col gap-2 overflow-auto pb-8 pt-8 scrollbar:hidden">
           <Maximized sidebar />
         </div>
       </div>
