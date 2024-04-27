@@ -2,6 +2,17 @@ export type Content =
   | string // shorthand for taught words
   | [taught: string, exposed: string]
 
+export type WordType = "tingko" | "suruko" | "pashko"
+
+export interface WordData {
+  readonly emoji?: (string & {}) | "" | undefined
+  readonly type?: WordType | undefined
+  readonly imi?: string | undefined
+  readonly lyk?: readonly string[] | undefined
+  readonly kundr?: readonly string[] | undefined
+  readonly riso?: string | undefined
+}
+
 export const slides: Record<number, Content> = {
   11: "jaa",
   12: ["akk nai fshto ka bluma", "eins kotoba -ara danke nil ie"],
@@ -72,9 +83,1323 @@ export const slides: Record<number, Content> = {
 }
 
 const others =
-  "-a -ara -dai -deki -djin -ki -yena un -tsa afefraut afto ahavia aifroidis ain airis aistia akk akote al ananas anglosssa anta apar apu aschor asoko atai atechi au auau auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bom bonaplas bra braa breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cuaiz cunin curo da daag dan danke dare darem daremdjin davai de deer deki den discord doichlant dok doko dronet du dua dus dur dvera dzikjaan ecso efd efles ein eksi ende enterrena ergo espanossa faac fami farge farza fi film flacha fraas frasto fraut froreenj fshto fu fuga fugel fugelfraut fun funn gaia gammel gavat gaia gelt glau glossa glug go godja gomen gris grun gvir h haaste hadji han hana hant hanu hapigo har hara hanj her hej hel helenakaku heljo henci hiven hjacu hjerne hor https huin huome huomilehti hur huskie hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kirkas kjannos kjomi klar kntre kolarum kompju korva kot kotnen kotoba ktoeba kuchi kun kundr kury kyajdz kytsi kzin lacsaq lacte lapsi lasku leezy lehti lemo lera lestevikti li liber libre lik ljeta luft luna luvan likke made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksy mulkaban murasace mwuai na naht nai naisjiru nam namae namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur njyi noito nord non njui ogoi ohare oishi ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pas pashun per persefraut phestako phrayt piel piman pinue pinuno pisma pitkataj pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri rin ringo rinj riso rjoho rnai roza ru rum ryodjin rzinjsai saada sakana sakawi sama samui sawi scecso sceer schiknu sdanie se sevas shiro shirytro shker sho sidt sikno silba simpel sini siru siruting sisco sjacy sjiny sjirudan skoi skhola skwalo slucha sol solh sore sot spara spil spilsto spor sporko stift stolspil strela stuur sud sukha suksu suru suruko syryjna tajkadzin tak talvi tatuiba te tel ter terbi timba ting torta tosjitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tuyn tyd uarue ue ufne un uno upasnen uscoe uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa waryj we west ze- zedvera zehant zeme zespil zeus jetta"
+  "-a -ara -dai -djin -ki -yena -s un -tsa afefraut afto ahavia aifroidis ain airis aistia akk akote al ananas anta apar apu aschor asoko atai atechi au auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bonaplas bra breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cunin curo da daag dan danke dare darem daremdjin davai deer deki den discord doich- dok doko dronet du dua dush dur dvera dzikjaan ecso efles ein eksi ende enterrena ergo fami farge farza fi film flacha fraut froreenj fshto fu fuga fugel fugelfraut funn gaia gammel gavat gaia gelt glau glossa glug go godja gomen gris grun gvir haaste hadji hana hant hanu hapigo har hanj her hej hel helenakaku heljo henci hiven hjacu hjerne hor huin huomilehti hur hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kjannos kjomi klar kntre kolarum kompju corva kot kotnen kotoba kuchi kun kundr kury kyajdz kzin lacsaq lacte lapsi lasku lezi lehti lemo lera li libre lik ljeta luft luna luvan made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksu mulkaban murasace mwuai na naht nai nam namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur noito nord non njui ogoi ohare ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pashun per persefraut phestako piel piman pinue pinuno pisma pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri ringo rinj riso rjoho roza ru rum ryodjin sakana sama samui sawi scecso sceer sdanie se shiro shirutro sho sidt sjikno silba simpel sini siru sisco skhola skwalo slucha sol sore sot spara spil spor sporko stift strela stuur sud sukha suksu suru suruko syryjna tajkadzin tak talvi tatuiba te tel ter terbi timba ting torta toshitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tyd ufne un uno upasnen uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa we west ze- zedvera zehant zeme zespil zeus jetta"
 
-export interface Word {
+export const data: Record<string, WordData> = {
+  "-a": {
+    emoji: "",
+  },
+  "-ara": {
+    emoji: "",
+  },
+  "-dai": {
+    emoji: "",
+  },
+  "-djin": {
+    emoji: "🧑🧓🧒",
+  },
+  "-ki": {
+    emoji: "",
+  },
+  "-ossa": {
+    emoji: "",
+  },
+  "-s": {
+    emoji: "",
+  },
+  "-tsa": {
+    emoji: "",
+  },
+  "-yena": {
+    emoji: "",
+  },
+  "angl-": {
+    emoji: "🇬🇧🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+  },
+  "bli-": {
+    emoji: "",
+  },
+  "doich-": {
+    emoji: "🇩🇪",
+  },
+  "espanj-": {
+    emoji: "🇪🇸",
+  },
+  "ip-": {
+    emoji: "",
+  },
+  "kn-": {
+    emoji: "",
+  },
+  "nihon-": {
+    emoji: "🇯🇵",
+  },
+  "po-": {
+    emoji: "🏁",
+  },
+  "ze-": {
+    emoji: "⚡",
+  },
+  afefraut: {
+    emoji: "🥝",
+  },
+  afto: {
+    emoji: "",
+  },
+  ahavia: {
+    emoji: "🫐",
+  },
+  aifroidis: {
+    emoji: "",
+  },
+  ain: {
+    emoji: "1️⃣",
+  },
+  airis: {
+    emoji: "",
+  },
+  aistia: {
+    emoji: "",
+  },
+  aja: {
+    emoji: "",
+  },
+  akk: {
+    emoji: "",
+  },
+  akote: {
+    emoji: "",
+  },
+  al: {
+    emoji: "",
+  },
+  ananas: {
+    emoji: "🍍",
+  },
+  anta: {
+    emoji: "🫴",
+  },
+  apar: {
+    emoji: "",
+  },
+  apu: {
+    emoji: "",
+  },
+  aschor: {
+    emoji: "🤑🏦💸",
+  },
+  asoko: {
+    emoji: "",
+  },
+  atai: {
+    emoji: "",
+  },
+  atechi: {
+    emoji: "🦎",
+  },
+  au: {
+    emoji: "➕",
+  },
+  auauau: {
+    emoji: "➕...",
+  },
+  auki: {
+    emoji: "",
+  },
+  auto: {
+    emoji: "🚗🚓🚘🚖",
+  },
+  awen: {
+    emoji: "",
+  },
+  azyci: {
+    emoji: "🫘",
+  },
+  bagge: {
+    emoji: "🐛🐜🐝🪲",
+  },
+  baksu: {
+    emoji: "📦🎁🗳️🥡",
+  },
+  bamba: {
+    emoji: "💣",
+  },
+  banan: {
+    emoji: "🍌",
+  },
+  baum: {
+    emoji: "🌴🌳🌲🎄",
+  },
+  benj: {
+    emoji: "",
+  },
+  berk: {
+    emoji: "🗻⛰️🏔️",
+  },
+  bestfraut: {
+    emoji: "🍉🍈",
+  },
+  bite: {
+    emoji: "🥺🙏",
+  },
+  bjelu: {
+    emoji: "🔔🛎️",
+  },
+  bjurki: {
+    emoji: "🤮🤒🤧🤢",
+  },
+  bjurkiplas: {
+    emoji: "🏥",
+  },
+  blau: {
+    emoji: "💙🔵🟦🔷",
+  },
+  bli: {
+    emoji: "",
+  },
+  blin: {
+    emoji: "",
+  },
+  bluma: {
+    emoji: "🪷🌷🌺💐🌻🪻🌸🌹🌼",
+  },
+  bonaplas: {
+    emoji: "",
+  },
+  boozy: {
+    emoji: "😡😠",
+  },
+  bra: {
+    emoji: "👍",
+  },
+  breska: {
+    emoji: "🐢",
+  },
+  bruk: {
+    emoji: "",
+  },
+  brun: {
+    emoji: "🤎🟤🟫",
+  },
+  bruur: {
+    emoji: "",
+  },
+  cafe: {
+    emoji: "☕🤎🟤🟫",
+  },
+  catie: {
+    emoji: "",
+  },
+  cer: {
+    emoji: "🫀",
+  },
+  cerfraut: {
+    emoji: "🍓",
+  },
+  cine: {
+    emoji: "",
+  },
+  circas: {
+    emoji: "💡🔦🔆🏮",
+  },
+  ciro: {
+    emoji: "💛🟡🟨",
+  },
+  cocro: {
+    emoji: "",
+  },
+  cola: {
+    emoji: "😴💤🛌",
+  },
+  corva: {
+    emoji: "👂",
+  },
+  cosce: {
+    emoji: "",
+  },
+  crenos: {
+    emoji: "",
+  },
+  crusca: {
+    emoji: "🍐",
+  },
+  cunin: {
+    emoji: "",
+  },
+  curo: {
+    emoji: "⚫🖤⬛",
+  },
+  da: {
+    emoji: "",
+  },
+  daag: {
+    emoji: "",
+  },
+  dan: {
+    emoji: "⬅️🕰️",
+  },
+  danke: {
+    emoji: "🙏😁",
+  },
+  dare: {
+    emoji: "",
+  },
+  darem: {
+    emoji: "",
+  },
+  daremdjin: {
+    emoji: "👮👮‍♂️👮‍♀️",
+  },
+  davai: {
+    emoji: "🥳🎉🎊",
+  },
+  deer: {
+    emoji: "",
+  },
+  deki: {
+    emoji: "",
+  },
+  den: {
+    emoji: "🔟",
+  },
+  discord: {
+    emoji: "",
+  },
+  dok: {
+    emoji: "",
+  },
+  doko: {
+    emoji: "",
+  },
+  dronet: {
+    emoji: "👸",
+  },
+  du: {
+    emoji: "🫵",
+  },
+  dua: {
+    emoji: "😍🥰🫶",
+  },
+  dur: {
+    emoji: "",
+  },
+  dush: {
+    emoji: "🛀🚿",
+  },
+  dvera: {
+    emoji: "🚪",
+  },
+  dzikjaan: {
+    emoji: "",
+  },
+  ecso: {
+    emoji: "📤",
+  },
+  efles: {
+    emoji: "👃👍",
+  },
+  ein: {
+    emoji: "1️⃣",
+  },
+  eins: {
+    emoji: "",
+  },
+  eksi: {
+    emoji: "6️⃣",
+  },
+  ende: {
+    emoji: "",
+  },
+  enterrena: {
+    emoji: "",
+  },
+  ergo: {
+    emoji: "👷🧑‍🏫🧑‍💼",
+  },
+  fami: {
+    emoji: "👪👨‍👨‍👧‍👧👨‍👩‍👦‍👦👨‍👨‍👧‍👦",
+  },
+  farge: {
+    emoji: "🎨❤️💚🟨🔷🟧🔴🟩🔵",
+  },
+  farza: {
+    emoji: "🌡️📏⚖️📐",
+  },
+  fi: {
+    emoji: "",
+  },
+  film: {
+    emoji: "🎞️",
+  },
+  flacha: {
+    emoji: "🏁🏳️‍🌈🏳️🚩",
+  },
+  fras: {
+    emoji: "",
+  },
+  fraut: {
+    emoji: "🍎🍓🥝🍑🍒🍋🍌🥭",
+  },
+  froreenj: {
+    emoji: "👃👎",
+  },
+  fshto: {
+    emoji: "📥🧠👍",
+  },
+  fu: {
+    emoji: "",
+  },
+  fuga: {
+    emoji: "",
+  },
+  fugel: {
+    emoji: "🐧🦉🦅🐥🦜🐦🦆🐔",
+  },
+  fugelfraut: {
+    emoji: "🥝",
+  },
+  funn: {
+    emoji: "",
+  },
+  fura: {
+    emoji: "",
+  },
+  gaia: {
+    emoji: "🌏🌍🌎",
+  },
+  gammel: {
+    emoji: "🧓👵👴",
+  },
+  gavat: {
+    emoji: "🎁",
+  },
+  gelt: {
+    emoji: "💰💵🪙",
+  },
+  glau: {
+    emoji: "😁😄😃😀",
+  },
+  glossa: {
+    emoji: "",
+  },
+  glug: {
+    emoji: "",
+  },
+  go: {
+    emoji: "5️⃣",
+  },
+  godja: {
+    emoji: "",
+  },
+  gomen: {
+    emoji: "😔🙏🙇",
+  },
+  gris: {
+    emoji: "🩶",
+  },
+  grun: {
+    emoji: "",
+  },
+  gvir: {
+    emoji: "",
+  },
+  haaste: {
+    emoji: "",
+  },
+  hadji: {
+    emoji: "",
+  },
+  hana: {
+    emoji: "👃",
+  },
+  hanj: {
+    emoji: "½",
+  },
+  hant: {
+    emoji: "🖐️✋",
+  },
+  hanu: {
+    emoji: "🗣️",
+  },
+  hapigo: {
+    emoji: "",
+  },
+  har: {
+    emoji: "",
+  },
+  hej: {
+    emoji: "",
+  },
+  hel: {
+    emoji: "",
+  },
+  helenakaku: {
+    emoji: "",
+  },
+  heljo: {
+    emoji: "🪐🌎",
+  },
+  henci: {
+    emoji: "💭👃➡️🫁",
+  },
+  her: {
+    emoji: "",
+  },
+  hina: {
+    emoji: "",
+  },
+  hir: {
+    emoji: "🔉➡️👂",
+  },
+  hiven: {
+    emoji: "🍨🍦",
+  },
+  hjacu: {
+    emoji: "💯",
+  },
+  hjaku: {
+    emoji: "💯",
+  },
+  hjerne: {
+    emoji: "🧠",
+  },
+  hor: {
+    emoji: "",
+  },
+  huin: {
+    emoji: "🐶",
+  },
+  huomi: {
+    emoji: "🏠🏡🏚️",
+  },
+  huomilehti: {
+    emoji: "",
+  },
+  hur: {
+    emoji: "",
+  },
+  hyske: {
+    emoji: "",
+  },
+  ie: {
+    emoji: "",
+  },
+  ima: {
+    emoji: "🕰️➡️",
+  },
+  imang: {
+    emoji: "🧲",
+  },
+  imi: {
+    emoji: "",
+  },
+  inje: {
+    emoji: "📥",
+  },
+  ipkiere: {
+    emoji: "",
+  },
+  ipni: {
+    emoji: "",
+  },
+  iptre: {
+    emoji: "",
+  },
+  isi: {
+    emoji: "🪨",
+  },
+  iske: {
+    emoji: "🚰💧💦🌊",
+  },
+  ivel: {
+    emoji: "🌆",
+  },
+  jaa: {
+    emoji: "👋",
+  },
+  jainos: {
+    emoji: "",
+  },
+  jalaka: {
+    emoji: "🚶🚶‍♂️🚶‍♀️",
+  },
+  jam: {
+    emoji: "",
+  },
+  jamete: {
+    emoji: "🛑",
+  },
+  jetta: {
+    emoji: "✈️🛩️🛫🛬",
+  },
+  joki: {
+    emoji: ">50%",
+  },
+  joku: {
+    emoji: "",
+  },
+  "k'": {
+    emoji: "",
+  },
+  ka: {
+    emoji: "¿❓❔?",
+  },
+  kaku: {
+    emoji: "✍️",
+  },
+  kara: {
+    emoji: "",
+  },
+  karroqhn: {
+    emoji: "🥕",
+  },
+  kase: {
+    emoji: "8️⃣",
+  },
+  katai: {
+    emoji: "#?",
+  },
+  katana: {
+    emoji: "🔪🗡️",
+  },
+  kawaji: {
+    emoji: "🥺❤️✨",
+  },
+  kiere: {
+    emoji: "4️⃣",
+  },
+  kini: {
+    emoji: "",
+  },
+  kirain: {
+    emoji: ".,",
+  },
+  kjannos: {
+    emoji: "",
+  },
+  kjomi: {
+    emoji: "",
+  },
+  klar: {
+    emoji: "",
+  },
+  kntre: {
+    emoji: "",
+  },
+  kolarum: {
+    emoji: "",
+  },
+  kompju: {
+    emoji: "🖥️💻",
+  },
+  kot: {
+    emoji: "🐱",
+  },
+  kotnen: {
+    emoji: "🐱🤏",
+  },
+  kotoba: {
+    emoji: "",
+  },
+  kuchi: {
+    emoji: "👄",
+  },
+  kun: {
+    emoji: "♀️♂️⚧︎",
+  },
+  kundr: {
+    emoji: "",
+  },
+  kury: {
+    emoji: "🌑🕶️",
+  },
+  kyajdz: {
+    emoji: "🥢",
+  },
+  kzin: {
+    emoji: "",
+  },
+  lacsaq: {
+    emoji: "",
+  },
+  lacte: {
+    emoji: "",
+  },
+  lapsi: {
+    emoji: "",
+  },
+  larava: {
+    emoji: "⬅️",
+  },
+  lasku: {
+    emoji: "🔢",
+  },
+  lehti: {
+    emoji: "",
+  },
+  lemo: {
+    emoji: "🍋",
+  },
+  lera: {
+    emoji: "🧑‍🎓",
+  },
+  lezi: {
+    emoji: "👀📘",
+  },
+  li: {
+    emoji: "",
+  },
+  libre: {
+    emoji: "📘📖📔📚",
+  },
+  lik: {
+    emoji: "",
+  },
+  ljeta: {
+    emoji: "🪽✈️🦋🐦🪰",
+  },
+  ljeva: {
+    emoji: "⬅️",
+  },
+  luft: {
+    emoji: "",
+  },
+  luna: {
+    emoji: "🌑🌕",
+  },
+  luvan: {
+    emoji: "🥕",
+  },
+  made: {
+    emoji: "",
+  },
+  magasin: {
+    emoji: "🏬🏪",
+  },
+  mago: {
+    emoji: "🥭",
+  },
+  maha: {
+    emoji: "",
+  },
+  mama: {
+    emoji: "",
+  },
+  mange: {
+    emoji: "",
+  },
+  maredur: {
+    emoji: "🐟🦈🦐🐙🦑🐬🐠",
+  },
+  marojzschine: {
+    emoji: "🍦🍨",
+  },
+  matetun: {
+    emoji: "💍🧑",
+  },
+  matetundjin: {
+    emoji: "💍🧑",
+  },
+  me: {
+    emoji: "👁️",
+  },
+  mellan: {
+    emoji: "",
+  },
+  men: {
+    emoji: "",
+  },
+  midore: {
+    emoji: "🟩💚🟢",
+  },
+  mietta: {
+    emoji: "🤔💭",
+  },
+  migi: {
+    emoji: "➡️",
+  },
+  milenjal: {
+    emoji: "🥑",
+  },
+  milyon: {
+    emoji: "",
+  },
+  minairis: {
+    emoji: "",
+  },
+  minus: {
+    emoji: "",
+  },
+  mipi: {
+    emoji: "",
+  },
+  mirai: {
+    emoji: "🕰️➡️",
+  },
+  mis: {
+    emoji: "🐭🐁",
+  },
+  mit: {
+    emoji: "",
+  },
+  mjes: {
+    emoji: "♀︎👦👨👴",
+  },
+  mono: {
+    emoji: "",
+  },
+  mora: {
+    emoji: "🌅",
+  },
+  mucc: {
+    emoji: "",
+  },
+  mulbaksu: {
+    emoji: "🗑️",
+  },
+  mulkaban: {
+    emoji: "",
+  },
+  murasace: {
+    emoji: "💜🟣🟪",
+  },
+  mwuai: {
+    emoji: "",
+  },
+  na: {
+    emoji: "",
+  },
+  naht: {
+    emoji: "🌉🌃🌑",
+  },
+  nai: {
+    emoji: "❌",
+  },
+  nam: {
+    emoji: "🍱➡️👄",
+  },
+  namai: {
+    emoji: "📛",
+  },
+  namting: {
+    emoji: "🍌🥭🐟🥗🥐🥖🍗🍳",
+  },
+  nana: {
+    emoji: "7️⃣",
+  },
+  nasi: {
+    emoji: "",
+  },
+  naze: {
+    emoji: "",
+  },
+  neo: {
+    emoji: "👶✨📱",
+  },
+  ni: {
+    emoji: "2️⃣",
+  },
+  nia: {
+    emoji: "",
+  },
+  niden: {
+    emoji: "20",
+  },
+  nihunfraut: {
+    emoji: "🍒",
+  },
+  nil: {
+    emoji: "0️⃣",
+  },
+  nilting: {
+    emoji: "",
+  },
+  niog: {
+    emoji: "🥥",
+  },
+  njudur: {
+    emoji: "🐶🐱🐘🐯🦓",
+  },
+  njui: {
+    emoji: "💭➡️👃",
+  },
+  noito: {
+    emoji: "🧵🧶",
+  },
+  non: {
+    emoji: "9️⃣",
+  },
+  nord: {
+    emoji: "",
+  },
+  oba: {
+    emoji: "⬆️",
+  },
+  ogoi: {
+    emoji: "🔊📢",
+  },
+  ohare: {
+    emoji: "🙏🥺🥗🍱",
+  },
+  ojogi: {
+    emoji: "🏊🏊‍♂️🏊‍♀️",
+  },
+  ojogidzin: {
+    emoji: "",
+  },
+  onna: {
+    emoji: "♀︎👧👩👵",
+  },
+  opeta: {
+    emoji: "🧑‍🏫👨‍🏫👩‍🏫",
+  },
+  os: {
+    emoji: "",
+  },
+  ost: {
+    emoji: "",
+  },
+  ovashi: {
+    emoji: "🥗🥕🥬🫑",
+  },
+  owari: {
+    emoji: "🏁",
+  },
+  oy: {
+    emoji: "",
+  },
+  paara: {
+    emoji: "",
+  },
+  pan: {
+    emoji: "🥐🥖🍞🥨",
+  },
+  papa: {
+    emoji: "",
+  },
+  paperi: {
+    emoji: "📰📃📄📝",
+  },
+  pashun: {
+    emoji: "👶🧒👧👦🧑👩👨🧑‍🦱",
+  },
+  per: {
+    emoji: "",
+  },
+  persefraut: {
+    emoji: "🍑",
+  },
+  phestako: {
+    emoji: "",
+  },
+  piel: {
+    emoji: "",
+  },
+  piman: {
+    emoji: "🫑🌶️",
+  },
+  pinue: {
+    emoji: "🐧",
+  },
+  pinuno: {
+    emoji: "🔇🔈",
+  },
+  pisma: {
+    emoji: "📩",
+  },
+  pitsa: {
+    emoji: "🍕",
+  },
+  plas: {
+    emoji: "🏠🏞️🏔️🎑🗺️",
+  },
+  plus: {
+    emoji: "",
+  },
+  pojk: {
+    emoji: "",
+  },
+  portocale: {
+    emoji: "🍊🟧🧡🟠",
+  },
+  posaidis: {
+    emoji: "",
+  },
+  praapa: {
+    emoji: "",
+  },
+  pranvera: {
+    emoji: "",
+  },
+  prapataj: {
+    emoji: "",
+  },
+  pravda: {
+    emoji: "✅",
+  },
+  protofugel: {
+    emoji: "🦕🦖",
+  },
+  punkt: {
+    emoji: "",
+  },
+  ranjako: {
+    emoji: "",
+  },
+  ri: {
+    emoji: "",
+  },
+  ringo: {
+    emoji: "🍎🍏",
+  },
+  rinj: {
+    emoji: "📞",
+  },
+  riso: {
+    emoji: "🖼️",
+  },
+  rjoho: {
+    emoji: "",
+  },
+  roza: {
+    emoji: "🩷💗🎀",
+  },
+  ru: {
+    emoji: "🔴🟥❤️",
+  },
+  rum: {
+    emoji: "",
+  },
+  ryo: {
+    emoji: "",
+  },
+  ryodjin: {
+    emoji: "",
+  },
+  rzinzai: {
+    emoji: "🏃🏃‍♂️🏃‍♀️",
+  },
+  sakana: {
+    emoji: "🐟🐠",
+  },
+  sama: {
+    emoji: "",
+  },
+  samui: {
+    emoji: "🥶🧊❄️",
+  },
+  sawi: {
+    emoji: "",
+  },
+  scecso: {
+    emoji: "📤🚶",
+  },
+  sceer: {
+    emoji: "📥🚶",
+  },
+  sdanie: {
+    emoji: "🏠🏬🏢⛪",
+  },
+  se: {
+    emoji: "👀",
+  },
+  shiro: {
+    emoji: "🤍⚪⬜🏳️",
+  },
+  shirutro: {
+    emoji: "🧫🧪🧬🔬",
+  },
+  sho: {
+    emoji: "",
+  },
+  sidt: {
+    emoji: "",
+  },
+  silba: {
+    emoji: "",
+  },
+  simpel: {
+    emoji: "",
+  },
+  sini: {
+    emoji: "🩵",
+  },
+  siru: {
+    emoji: "📥🧠",
+  },
+  sisco: {
+    emoji: "",
+  },
+  sit: {
+    emoji: "",
+  },
+  sjikno: {
+    emoji: "🍲🦵👨‍🦰",
+  },
+  sjinu: {
+    emoji: "☠️💀😵⚰️🪦",
+  },
+  skhola: {
+    emoji: "🏫",
+  },
+  skoi: {
+    emoji: "🚶‍♀️✈️🚝🚴🚘",
+  },
+  skwalo: {
+    emoji: "🦈",
+  },
+  slucha: {
+    emoji: "",
+  },
+  sol: {
+    emoji: "🌞☀️",
+  },
+  sore: {
+    emoji: "",
+  },
+  sot: {
+    emoji: "🧁🍩🎂🍦🍯🍡🍭",
+  },
+  spara: {
+    emoji: "",
+  },
+  spil: {
+    emoji: "🎲🏏🎮👾🎳🎰🀄",
+  },
+  spor: {
+    emoji: "",
+  },
+  sporko: {
+    emoji: "",
+  },
+  stift: {
+    emoji: "🖊️🖋️",
+  },
+  strela: {
+    emoji: "←↖↓↔⇅",
+  },
+  stuur: {
+    emoji: "",
+  },
+  sud: {
+    emoji: "",
+  },
+  sukha: {
+    emoji: "",
+  },
+  suksu: {
+    emoji: "🍂🍁🎃",
+  },
+  suru: {
+    emoji: "",
+  },
+  suruko: {
+    emoji: "",
+  },
+  syryjna: {
+    emoji: "",
+  },
+  tajka: {
+    emoji: "✨🧙🪄",
+  },
+  tajkadzin: {
+    emoji: "🧙🧙‍♀️🧙‍♂️",
+  },
+  tak: {
+    emoji: "",
+  },
+  talvi: {
+    emoji: "❄️🏔️⛷️🧤",
+  },
+  tasti: {
+    emoji: "🖱️👆",
+  },
+  tatuiba: {
+    emoji: "",
+  },
+  te: {
+    emoji: "",
+  },
+  tel: {
+    emoji: "",
+  },
+  ter: {
+    emoji: "",
+  },
+  terbi: {
+    emoji: "📺",
+  },
+  timba: {
+    emoji: "🛎️🔔",
+  },
+  ting: {
+    emoji: "🔮🥒🐀🧠🎂🫀🚽🎁🖼️🔪",
+  },
+  torta: {
+    emoji: "🧁🎂🍰",
+  },
+  toshitel: {
+    emoji: "",
+  },
+  tosui: {
+    emoji: "",
+  },
+  tre: {
+    emoji: "3️⃣",
+  },
+  treng: {
+    emoji: "",
+  },
+  trict: {
+    emoji: "😭😢😥",
+  },
+  tropos: {
+    emoji: "",
+  },
+  tsatain: {
+    emoji: "🎯",
+  },
+  tsigau: {
+    emoji: "",
+  },
+  tsisai: {
+    emoji: "🤏",
+  },
+  tsui: {
+    emoji: "",
+  },
+  tualet: {
+    emoji: "🚽",
+  },
+  tuhat: {
+    emoji: "",
+  },
+  tulla: {
+    emoji: "🧑➡️🚪",
+  },
+  tun: {
+    emoji: "",
+  },
+  tuo: {
+    emoji: "",
+  },
+  tutr: {
+    emoji: "",
+  },
+  tyd: {
+    emoji: "🕰️⏳⏰⌚",
+  },
+  ufne: {
+    emoji: "⏺️🎦",
+  },
+  un: {
+    emoji: "",
+  },
+  unna: {
+    emoji: "⬇️",
+  },
+  uno: {
+    emoji: "",
+  },
+  upasnen: {
+    emoji: "🍦🍨",
+  },
+  uso: {
+    emoji: "❌",
+  },
+  uten: {
+    emoji: "",
+  },
+  utenvona: {
+    emoji: "🪨🎸🚀",
+  },
+  uuk: {
+    emoji: "",
+  },
+  uva: {
+    emoji: "🍇",
+  },
+  uwaki: {
+    emoji: "❌🚫⛔",
+  },
+  valtsa: {
+    emoji: "💃🕺",
+  },
+  vapa: {
+    emoji: "🥵",
+  },
+  vasu: {
+    emoji: "",
+  },
+  vauva: {
+    emoji: "👶",
+  },
+  velt: {
+    emoji: "🌎🗺️🌐",
+  },
+  vera: {
+    emoji: "☀️😎🏄‍♂️🏖️",
+  },
+  vet: {
+    emoji: "🫁",
+  },
+  vi: {
+    emoji: "",
+  },
+  viha: {
+    emoji: "😡",
+  },
+  vikoli: {
+    emoji: "",
+  },
+  vil: {
+    emoji: "",
+  },
+  vinaphrayt: {
+    emoji: "🍇",
+  },
+  viossa: {
+    emoji: "",
+  },
+  vona: {
+    emoji: "🌺🧒🦋",
+  },
+  vratsch: {
+    emoji: "",
+  },
+  vulcanis: {
+    emoji: "",
+  },
+  wa: {
+    emoji: "",
+  },
+  warui: {
+    emoji: "👎",
+  },
+  we: {
+    emoji: "",
+  },
+  west: {
+    emoji: "",
+  },
+  zedvera: {
+    emoji: "",
+  },
+  zehant: {
+    emoji: "🖱️",
+  },
+  zeme: {
+    emoji: "📸🎥📷",
+  },
+  zespil: {
+    emoji: "🎮",
+  },
+  zeus: {
+    emoji: "⚡",
+  },
+}
+
+export interface Word extends WordData {
   readonly word: string
   readonly taughtIn: readonly number[]
   readonly referencedIn: readonly number[]
@@ -134,5 +1459,27 @@ export function makeWordList(): ReadonlyMap<string, Word> {
     }
   }
 
-  return map
+  for (const [key, value] of Object.entries(data)) {
+    let mapval = map.get(key)
+
+    if (!mapval) {
+      mapval = { referencedIn: [], taughtIn: [], word: key }
+      map.set(key, mapval)
+    }
+
+    Object.assign(mapval, value)
+  }
+
+  return new Map(
+    Array.from(map).sort(([a], [b]) => {
+      const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
+      const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
+
+      if (ax - bx != 0) {
+        return ax - bx
+      }
+
+      return a > b ? 1 : -1
+    }),
+  )
 }
