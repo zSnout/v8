@@ -510,7 +510,7 @@ export function createForceDirectedGraph() {
                 height={96}
               >
                 <div
-                  class="flex h-full w-full select-none items-center justify-center rounded-full border border-z-text-heading text-z-text"
+                  class="flex h-full w-full select-none items-center justify-center rounded-full border border-z-text-heading text-3xl"
                   classList={{
                     "bg-z-body": !node.locked,
                     "bg-z-body-selected": node.locked,

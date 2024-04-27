@@ -149,24 +149,26 @@ export function Main() {
       links.push({
         a: nodes.length - 1,
         b: items.indexOf("" + taught),
-        n: 1,
+        n: 5,
       })
     }
 
-    // for (const referenced of referencedIn) {
-    //   links.push({
-    //     a: nodes.length - 1,
-    //     b: items.indexOf("" + referenced),
-    //     n: 1,
-    //   })
-    // }
+    for (const referenced of referencedIn) {
+      links.push({
+        a: nodes.length - 1,
+        b: items.indexOf("" + referenced),
+        n: 0.1,
+      })
+    }
   }
 
-  const { svg, setNodes, setLinks, setPosition } = createForceDirectedGraph()
+  const { svg, setNodes, setLinks, setPosition, setForces } =
+    createForceDirectedGraph()
 
   setPosition({ x: 0, y: 0, w: 20 })
   setNodes(nodes)
   setLinks(links)
+  // setForces((forces) => ({ ...forces, repulsion: forces.repulsion / 2 }))
 
   return <div class="relative h-full w-full">{svg}</div>
 }
