@@ -88,5 +88,13 @@ export default defineConfig({
         compress: true,
       }),
     ],
+    optimizeDeps: {
+      esbuildOptions: {
+        target: "esnext",
+      },
+    },
+    build: {
+      target: "esnext",
+    },
   },
 })

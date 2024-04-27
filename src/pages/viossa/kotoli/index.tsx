@@ -1,5 +1,53 @@
-import { For, Show, createSignal } from "solid-js"
+import { GlobalWorkerOptions, getDocument } from "pdfjs-dist"
+import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
+import { For, JSX, Show, createEffect, createSignal, untrack } from "solid-js"
 import { Word, makeWordList } from "../data"
+
+GlobalWorkerOptions.workerSrc = worker
+
+function Pdf(
+  props: JSX.CanvasHTMLAttributes<HTMLCanvasElement> & { page: number },
+) {
+  return (
+    <canvas
+      {...props}
+      ref={async (canvas) => {
+        const pdf = await getDocument("/viossa.pdf").promise
+
+        let pageIndex = untrack(() => props.page)
+        let page = await pdf.getPage(pageIndex)
+
+        async function render() {
+          if (props.page != pageIndex) {
+            page = await pdf.getPage(props.page)
+            pageIndex = props.page
+          }
+
+          const scale = window.devicePixelRatio || 1
+          const viewport = page.getViewport({
+            scale: canvas.clientWidth / page.getViewport({ scale: 1 }).width,
+          })
+
+          const context = canvas.getContext("2d")!
+
+          canvas.width = Math.floor(viewport.width * scale)
+          canvas.height = Math.floor(viewport.height * scale)
+
+          const transform = scale !== 1 ? [scale, 0, 0, scale, 0, 0] : undefined
+
+          page.render({
+            canvasContext: context,
+            transform: transform,
+            viewport: viewport,
+          })
+        }
+
+        createEffect(render)
+        window.addEventListener("resize", render)
+      }}
+    />
+  )
+}
 
 export function Main() {
   const list = makeWordList()
@@ -8,9 +56,11 @@ export function Main() {
 
   const [maximized, setMaximized] = createSignal<Word>(list.get("gen")!)
 
+  const [page, setPage] = createSignal(1)
+
   return (
-    <div>
-      <div class="mb-2 grid w-full gap-2 sm:grid-cols-2">
+    <div class="flex flex-col gap-2">
+      <div class="grid w-full gap-2 sm:grid-cols-2">
         <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center">
           jam {list.size} kotobara na vikoli afto.
           <br />
@@ -24,7 +74,6 @@ export function Main() {
           <br />
           afto kakutropos fu sakawi.
         </div>
-
         <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center">
           da lera na{" "}
           <a
@@ -84,33 +133,40 @@ export function Main() {
         </div>
       </div>
 
-      <div class="fixed bottom-4 right-4 flex h-96 w-96 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg">
-        <div class="flex flex-wrap text-2xl font-semibold">
-          <p class="mr-auto">{maximized().kotoba}</p>
-          <p>{maximized().emoji || ""}</p>
+      <div class="fixed bottom-4 right-4 flex w-96 flex-col gap-2">
+        <div class="flex h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg">
+          <div class="flex flex-wrap text-2xl font-semibold">
+            <p class="mr-auto">{maximized().kotoba}</p>
+            <p>{maximized().emoji || ""}</p>
+          </div>
+
+          <p class="text-lg">
+            {maximized().imi ? (
+              <>
+                <em>imi:</em> {maximized().imi}
+              </>
+            ) : (
+              <em>(nai har imi)</em>
+            )}
+          </p>
+
+          <Show when={maximized().tatoeba?.length != 0}>
+            <ul class="relative flex flex-col gap-2">
+              <For each={maximized().tatoeba}>
+                {(tatoeba) => (
+                  <li class="whitespace-pre-line border-l border-z pl-2">
+                    {tatoeba}
+                  </li>
+                )}
+              </For>
+            </ul>
+          </Show>
         </div>
 
-        <p class="text-lg">
-          {maximized().imi ? (
-            <>
-              <em>imi:</em> {maximized().imi}
-            </>
-          ) : (
-            <em>(nai har imi)</em>
-          )}
-        </p>
-
-        <Show when={maximized().tatoeba?.length != 0}>
-          <ul class="relative flex flex-col gap-2">
-            <For each={maximized().tatoeba}>
-              {(tatoeba) => (
-                <li class="whitespace-pre-line border-l border-z pl-2">
-                  {tatoeba}
-                </li>
-              )}
-            </For>
-          </ul>
-        </Show>
+        <Pdf
+          class="w-full rounded-xl border border-z"
+          page={maximized().opetaNa[0] || maximized().hanuNa[0] || 1}
+        />
       </div>
     </div>
   )

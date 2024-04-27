@@ -8,6 +8,7 @@
     "paths": {
       "~/assets/*": ["src/assets/*"],
       "@/*": ["src/*"]
-    }
+    },
+    "module": "ESNext"
   }
 }
