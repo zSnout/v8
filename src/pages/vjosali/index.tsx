@@ -12,7 +12,15 @@ import {
   onMount,
   untrack,
 } from "solid-js"
-import { Slide, Word, makeSlideList, makeWordList } from "../viossa/data"
+import {
+  RISOLI,
+  Slide,
+  Word,
+  makeSlideList,
+  makeWordList,
+} from "../viossa/data"
+import { Fa } from "@/components/Fa"
+import { faClose } from "@fortawesome/free-solid-svg-icons"
 
 type Mode = "kotoba" | "riso" | undefined
 
@@ -21,7 +29,7 @@ GlobalWorkerOptions.workerSrc = worker
 const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" })
 const wordMap = makeWordList()
 const slideMap = makeSlideList()
-const pdf = getDocument("/viossa.pdf").promise
+const pdf = getDocument(RISOLI).promise
 
 function Pdf(
   props: JSX.CanvasHTMLAttributes<HTMLCanvasElement> & { page: number },
@@ -110,7 +118,7 @@ function Sukhatro(props: {
   query: () => string
   setQuery: (query: string) => void
   mode: () => Mode
-  setMode: (mode: Mode) => void
+  setMode: (mode: Mode | ((mode: Mode) => Mode)) => void
 }) {
   onMount(() => {
     window.addEventListener("keydown", (event): void => {
@@ -139,22 +147,24 @@ function Sukhatro(props: {
       />
 
       <button
-        class="rounded-bl-[calc(0.75rem_-_1px)] bg-z-body px-3 py-2 text-z transition focus-within:bg-z-body-selected focus-visible:outline-none"
-        onClick={() => props.setMode("kotoba")}
+        class="rounded-bl-[calc(0.75rem_-_1px)] bg-z-body px-3 py-2 text-z transition focus-visible:outline-none"
+        onClick={() =>
+          props.setMode((mode) => (mode == "kotoba" ? undefined : "kotoba"))
+        }
         classList={{
           "bg-z-field-selected": props.mode() == "kotoba",
-          "focus:bg-z-field-selected": props.mode() == "kotoba",
         }}
       >
         kotoba mono
       </button>
 
       <button
-        class="rounded-br-[calc(0.75rem_-_1px)] bg-z-body px-3 py-2 text-z transition focus-within:bg-z-body-selected focus-visible:outline-none"
-        onClick={() => props.setMode("riso")}
+        class="rounded-br-[calc(0.75rem_-_1px)] bg-z-body px-3 py-2 text-z transition focus-visible:outline-none"
+        onClick={() =>
+          props.setMode((mode) => (mode == "riso" ? undefined : "riso"))
+        }
         classList={{
           "bg-z-field-selected": props.mode() == "riso",
-          "focus:bg-z-field-selected": props.mode() == "riso",
         }}
       >
         riso mono
@@ -191,7 +201,7 @@ function Header() {
         <br />
         sakawi maxa afto na 2024t 4m.
         <br />
-        jam riso mange au opeta kotoba mange.
+        da lera braa mit sore!
       </div>
     </div>
   )
@@ -409,6 +419,7 @@ function RisoliSidebar(props: {
   maximized: () => Slide
   setMaximizedWord: (word: Word) => void
   setMaximizedSlide: (slide: Slide) => void
+  setDialogSlide: (slide: Slide) => void
 }) {
   const related = createMemo(() => {
     const { opetako } = props.maximized()
@@ -430,7 +441,12 @@ function RisoliSidebar(props: {
 
   return (
     <>
-      <Page page={props.maximized().index} />
+      <div
+        class="cursor-zoom-in"
+        onClick={() => props.setDialogSlide(props.maximized())}
+      >
+        <Page page={props.maximized().index} />
+      </div>
 
       <div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
         <For each={props.maximized().opetako.concat(props.maximized().hanuko)}>
@@ -464,6 +480,7 @@ export function Vjosali() {
   const [slide, __setSlide] = createSignal<Slide>(slideMap.get(12)!)
   const [isSlide, setIsSlide] = createSignal(false)
   const [mode, setMode] = createSignal<Mode>()
+  const [dialogSlide, setDialogSlide] = createSignal<Slide>()
 
   function setMaximizedWord(word: Word) {
     batch(() => {
@@ -524,9 +541,38 @@ export function Vjosali() {
             maximized={slide}
             setMaximizedSlide={setMaximizedSlide}
             setMaximizedWord={setMaximizedWord}
+            setDialogSlide={setDialogSlide}
           />
         </Show>
       </div>
+
+      <dialog
+        class="flex h-full w-full cursor-zoom-out items-center justify-center overflow-visible bg-transparent backdrop:backdrop-blur-lg focus:outline-none"
+        classList={{ hidden: !dialogSlide() }}
+        ref={(el) => {
+          createEffect(() => {
+            if (dialogSlide()) {
+              el.showModal()
+            } else {
+              el.close()
+            }
+          })
+        }}
+        onClose={(el) => {
+          setDialogSlide(undefined)
+        }}
+        onClick={() => {
+          setDialogSlide(undefined)
+        }}
+      >
+        <div class="relative flex aspect-video max-h-full flex-1 justify-center">
+          <Page class="aspect-video" page={dialogSlide()?.index || 1} />
+
+          <div class="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-xl border border-z bg-z-body">
+            <Fa class="h-8 w-8" icon={faClose} title="da kini riso" />
+          </div>
+        </div>
+      </dialog>
     </div>
   )
 }

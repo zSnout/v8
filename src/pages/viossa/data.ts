@@ -1,3 +1,5 @@
+export const RISOLI = "/viossa63.pdf"
+
 export type Content =
   | string // shorthand for taught words
   | [taught: string, exposed: string]
@@ -91,6 +93,8 @@ export const slides: Record<number, Content> = {
   59: ["hadji owari bli- po-", "un nai nam kundr glau"],
   60: ["benj jamete", "un jalaka nai lik sama kundr"],
   61: ["uwaki", "ka na viossa nai deki hanu afto grun angl- kotoba ie espanj-"],
+  62: "heljo vulcanis aifroidis gaja airis jainos crenos mirairis posaidis",
+  63: ["plasdai sol gaja avara luna -dai samui vapa lantdai", "kundr stuur"],
 }
 
 const others =
