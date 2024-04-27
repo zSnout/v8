@@ -558,7 +558,7 @@ export function Vjosali() {
             }
           })
         }}
-        onClose={(el) => {
+        onClose={() => {
           setDialogSlide(undefined)
         }}
         onClick={() => {
