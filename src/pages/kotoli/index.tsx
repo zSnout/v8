@@ -1,7 +1,7 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist"
 import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import { For, JSX, Show, createEffect, createSignal, untrack } from "solid-js"
-import { Word, makeWordList } from "../data"
+import { Word, makeWordList } from "../viossa/data"
 
 GlobalWorkerOptions.workerSrc = worker
 
@@ -71,7 +71,7 @@ export function Main() {
           }{" "}
           kotoba k'har risonen.
           <br />
-          afto kakutropos fu sakawi.
+          kotoli afto mahena na sakawi.
         </div>
         <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
           da lera na{" "}
@@ -185,8 +185,15 @@ export function Main() {
             )}
           </p>
 
-          <Show when={maximized().tatoeba?.length != 0}>
-            <ul class="relative flex flex-col gap-2">
+          <Show
+            when={maximized().tatoeba?.length}
+            fallback={
+              <em class="-mx-6 -mb-4 mt-auto border-t border-z px-3 py-2 text-z opacity-30 transition">
+                afto kotoba nai har tatoeba
+              </em>
+            }
+          >
+            {/* <ul class="relative flex flex-col gap-2">
               <For each={maximized().tatoeba}>
                 {(tatoeba) => (
                   <li class="whitespace-pre-line border-l border-z pl-2 text-z transition">
@@ -194,7 +201,23 @@ export function Main() {
                   </li>
                 )}
               </For>
-            </ul>
+            </ul> */}
+
+            <div class="-mx-6 -mb-4 mt-auto grid grid-cols-2 gap-px overflow-hidden rounded-b-xl border-t border-z bg-z-border transition">
+              <For
+                each={
+                  maximized().tatoeba!?.length % 2
+                    ? maximized().tatoeba?.concat("")
+                    : maximized().tatoeba
+                }
+              >
+                {(tatoeba) => (
+                  <p class="whitespace-pre-line bg-z-body px-3 py-2 text-z transition">
+                    {tatoeba}
+                  </p>
+                )}
+              </For>
+            </div>
           </Show>
         </div>
 

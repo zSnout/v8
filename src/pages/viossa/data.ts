@@ -253,9 +253,6 @@ export const data: Record<string, WordData> = {
   aifroidis: {
     emoji: "",
   },
-  ain: {
-    emoji: "1️⃣",
-  },
   airis: {
     emoji: "",
   },
