@@ -1,3 +1,4 @@
+import { search } from "fast-fuzzy"
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist"
 import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import {
@@ -10,7 +11,6 @@ import {
   untrack,
 } from "solid-js"
 import { Word, makeWordList } from "../viossa/data"
-import { search, sortKind } from "fast-fuzzy"
 
 GlobalWorkerOptions.workerSrc = worker
 
@@ -209,7 +209,6 @@ export function Main() {
           <div class="flex flex-wrap text-2xl font-semibold">
             <p class="mr-auto text-z transition">{maximized().kotoba}</p>
             <p class="text-z transition">{maximized().emoji || ""}</p>
-            di
           </div>
 
           <p class="text-lg text-z transition">
