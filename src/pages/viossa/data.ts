@@ -49,7 +49,7 @@ export const slides: Record<number, Content> = {
   29: ["os gelt aschor", "vil nam glug du un mange"],
   30: [
     "ein ni tre kiere go eksi nana kase non den apar mange lasku",
-    "os tsisai sama au auauau ie",
+    "os tsisai sama au ie",
   ],
   31: ["mit kuchi se me hir corva njui hana", "du nam"],
   32: "tropos per nam skoi siru maha",
@@ -1229,6 +1229,11 @@ export const data: Record<string, WordData> = {
   sakana: {
     emoji: "🐟🐠",
   },
+  sakawi: {
+    emoji: "",
+    fal: "namae",
+    imi: "mahadjin fu afto kotoli",
+  },
   sama: {
     emoji: "",
   },
@@ -1537,6 +1542,12 @@ export const data: Record<string, WordData> = {
   },
   we: {
     emoji: "",
+    imi: "akk os nai?",
+    tatoeba: [
+      `A: du har huin we?
+B: un har huin, akk.
+A: braa. un dua huin.`,
+    ],
   },
   west: {
     emoji: "",

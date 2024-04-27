@@ -1,7 +1,16 @@
 import { GlobalWorkerOptions, getDocument } from "pdfjs-dist"
 import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
-import { For, JSX, Show, createEffect, createSignal, untrack } from "solid-js"
+import {
+  For,
+  JSX,
+  Show,
+  createEffect,
+  createMemo,
+  createSignal,
+  untrack,
+} from "solid-js"
 import { Word, makeWordList } from "../viossa/data"
+import { search, sortKind } from "fast-fuzzy"
 
 GlobalWorkerOptions.workerSrc = worker
 
@@ -54,8 +63,8 @@ export function Main() {
 
   const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" })
 
-  const [maximized, setMaximized] = createSignal<Word>(list.get("gen")!)
-  const [dualLayout, setDualLayout] = createSignal(true)
+  const [query, setQuery] = createSignal("")
+  const [maximized, setMaximized] = createSignal<Word>(list.get("sakawi")!)
 
   function Header() {
     return (
@@ -92,12 +101,31 @@ export function Main() {
   }
 
   function WordList(props: { padded?: boolean | undefined }) {
+    const words = Array.from(list.values())
+
+    const filtered = createMemo(() => {
+      const q = query()
+
+      if (!q) {
+        return words
+      }
+
+      return search(q, words, {
+        keySelector(word) {
+          return word.kotoba
+        },
+        ignoreSymbols: false,
+        ignoreCase: true,
+        normalizeWhitespace: true,
+      })
+    })
+
     return (
       <div
         class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2"
         classList={{ "pb-[calc(31.78125rem_+_4px)]": props.padded }}
       >
-        <For each={Array.from(list.values())}>
+        <For each={filtered()}>
           {(word) => {
             const opetayena = word.opetaNa.length > 0 || word.hanuNa.length > 0
 
@@ -166,13 +194,22 @@ export function Main() {
     )
   }
 
-  function Maximized(props: { sidebar?: boolean | undefined }) {
+  function Sidebar() {
     return (
       <>
+        <input
+          class="z-field mb-4 rounded-xl shadow-none placeholder:italic"
+          type="text"
+          value={query()}
+          onInput={(event) => setQuery(event.currentTarget.value)}
+          placeholder="da sukha kotoba..."
+        />
+
         <div class="z-20 flex h-72 min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg transition">
           <div class="flex flex-wrap text-2xl font-semibold">
             <p class="mr-auto text-z transition">{maximized().kotoba}</p>
             <p class="text-z transition">{maximized().emoji || ""}</p>
+            di
           </div>
 
           <p class="text-lg text-z transition">
@@ -221,32 +258,9 @@ export function Main() {
           </Show>
         </div>
 
-        <Show
-          when={props.sidebar}
-          fallback={
-            <Page page={maximized().opetaNa[0] || maximized().hanuNa[0] || 1} />
-          }
-        >
-          <For each={maximized().opetaNa}>{(page) => <Page page={page} />}</For>
-          <For each={maximized().hanuNa}>{(page) => <Page page={page} />}</For>
-        </Show>
+        <For each={maximized().opetaNa}>{(page) => <Page page={page} />}</For>
+        <For each={maximized().hanuNa}>{(page) => <Page page={page} />}</For>
       </>
-    )
-  }
-
-  function LargeLayout() {
-    return (
-      <div class="flex flex-col gap-2">
-        <Header />
-
-        <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] w-[100vw] px-6">
-          <WordList padded />
-        </div>
-
-        <div class="fixed bottom-4 right-4 flex w-96 flex-col gap-2">
-          <Maximized />
-        </div>
-      </div>
     )
   }
 
@@ -258,8 +272,8 @@ export function Main() {
           <WordList />
         </div>
 
-        <div class="fixed right-6 top-12 flex h-[calc(100%_-_3rem)] w-96 flex-col gap-2 overflow-auto pb-8 pt-8 scrollbar:hidden">
-          <Maximized sidebar />
+        <div class="fixed right-5 top-12 flex h-[calc(100%_-_3rem)] w-[24.5rem] flex-col gap-2 overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
+          <Sidebar />
         </div>
       </div>
     )
