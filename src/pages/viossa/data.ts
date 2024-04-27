@@ -1,10 +1,8 @@
-import { MutableLink, MutableNode, createForceDirectedGraph } from "../fdg"
-
-type Content =
+export type Content =
   | string // shorthand for taught words
   | [taught: string, exposed: string]
 
-const slides: Record<number, Content> = {
+export const slides: Record<number, Content> = {
   11: "jaa",
   12: ["akk nai fshto ka bluma", "eins kotoba -ara danke nil ie"],
   13: ["un du sore vi dok hej", "pashun kotoba"],
@@ -16,7 +14,7 @@ const slides: Record<number, Content> = {
   19: "nil joku al ru midore",
   20: "afto tuo asoko ringo huin pashun bluma lera -djin pinue",
   21: "ie fugel baum maredur",
-  22: ["namai fu f- huin", "jaa ie ka du un"],
+  22: ["namai fu huin", "jaa ie ka du un"],
   23: ["ru ciro midore au lezi glug cafe", "ie pashun lera nam sore du lik"],
   24: ["awen slucha bra warui glau trict", "un du au nai ka"],
   25: ["vil nam mis", "afto mama oy pashun"],
@@ -38,7 +36,7 @@ const slides: Record<number, Content> = {
   35: ["men har vil", "ringo banan nai un nam sore ting"],
   36: "tyd dan ima mirai",
   37: [
-    "gammel ryo -djin mama papa fi kzin sawi brur sisco un matetun pojk tutr lapsi mipi nia",
+    "gammel ryo -djin mama papa fi kzin sawi bruur sisco un matetun pojk tutr lapsi mipi nia",
     "un",
   ],
   38: [
@@ -52,37 +50,43 @@ const slides: Record<number, Content> = {
   43: ["sho funn dzikjaan daag", "kotoba per tyd tsisai"],
   44: "prapataj akote paara praapa",
   45: "tsatain tun",
-  46: ["vona sinu uten", "kundr mit"],
+  46: ["vona sjinu uten", "kundr mit"],
   47: "strela nord west ost sud oba ljeva larava hina unna migi fura",
   48: ["klar tun", "kundr"],
   49: ["mietta k'", "pashun huin portocale ie al"],
-  50: ["li sit iske", "au du nai glug iske sinu vil lera viossa da hanu angl-"],
+  50: [
+    "li sit iske",
+    "au du nai glug iske sjinu vil lera viossa da hanu angl-",
+  ],
   51: ["jam gaia sot magasin", "pashun na ringo nai banan nil ting mange"],
   52: ["grun naze cola jalaka", "ka afto pashun nai mange sore deki"],
   53: ["kara made rzinzai huomi", "pashun jalaka"],
   54: ["tsui", "sore hanu ringo"],
   55: ["plus minus gammel glau vapa bjurki ka", "stuur"],
   56: ["kjomi", "sore vil siru plus tsui afto os"],
-  57: ["ine ecso kot huin baksu huomi", "kundr"],
+  57: ["inje ecso kot huin baksu huomi", "kundr"],
   58: ["ein den hjaku tuhat lacsaq catie ip- kn-", "lasku ni tre kiere go"],
   59: ["hadji owari bli- po-", "un nai nam kundr glau"],
   60: ["benj jamete", "un jalaka nai lik sama kundr"],
   61: ["uwaki", "ka na viossa nai deki hanu afto grun angl- kotoba ie espanj-"],
 }
 
-interface Word {
+const others =
+  "-a -ara -dai -deki -djin -ki -yena un -tsa afefraut afto ahavia aifroidis ain airis aistia akk akote al ananas anglosssa anta apar apu aschor asoko atai atechi au auau auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bom bonaplas bra braa breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cuaiz cunin curo da daag dan danke dare darem daremdjin davai de deer deki den discord doichlant dok doko dronet du dua dus dur dvera dzikjaan ecso efd efles ein eksi ende enterrena ergo espanossa faac fami farge farza fi film flacha fraas frasto fraut froreenj fshto fu fuga fugel fugelfraut fun funn gaia gammel gavat gaia gelt glau glossa glug go godja gomen gris grun gvir h haaste hadji han hana hant hanu hapigo har hara hanj her hej hel helenakaku heljo henci hiven hjacu hjerne hor https huin huome huomilehti hur huskie hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kirkas kjannos kjomi klar kntre kolarum kompju korva kot kotnen kotoba ktoeba kuchi kun kundr kury kyajdz kytsi kzin lacsaq lacte lapsi lasku leezy lehti lemo lera lestevikti li liber libre lik ljeta luft luna luvan likke made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksy mulkaban murasace mwuai na naht nai naisjiru nam namae namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur njyi noito nord non njui ogoi ohare oishi ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pas pashun per persefraut phestako phrayt piel piman pinue pinuno pisma pitkataj pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri rin ringo rinj riso rjoho rnai roza ru rum ryodjin rzinjsai saada sakana sakawi sama samui sawi scecso sceer schiknu sdanie se sevas shiro shirytro shker sho sidt sikno silba simpel sini siru siruting sisco sjacy sjiny sjirudan skoi skhola skwalo slucha sol solh sore sot spara spil spilsto spor sporko stift stolspil strela stuur sud sukha suksu suru suruko syryjna tajkadzin tak talvi tatuiba te tel ter terbi timba ting torta tosjitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tuyn tyd uarue ue ufne un uno upasnen uscoe uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa waryj we west ze- zedvera zehant zeme zespil zeus jetta"
+
+export interface Word {
   readonly word: string
   readonly taughtIn: readonly number[]
   readonly referencedIn: readonly number[]
 }
 
-interface MutableWord {
+export interface MutableWord {
   word: string
   taughtIn: number[]
   referencedIn: number[]
 }
 
-function makeWordList(): ReadonlyMap<string, Word> {
+export function makeWordList(): ReadonlyMap<string, Word> {
   const map = new Map<string, MutableWord>()
 
   for (const [index, slide] of Object.entries(slides)) {
@@ -120,55 +124,15 @@ function makeWordList(): ReadonlyMap<string, Word> {
     }
   }
 
-  return map
-}
-
-const list = makeWordList()
-
-export function Main() {
-  const items = Object.keys(slides).concat(...list.keys())
-
-  const nodes: MutableNode[] = Object.keys(slides).map((slide) => ({
-    label: slide,
-    locked: false,
-    x: Math.random(),
-    y: Math.random(),
-  }))
-
-  const links: MutableLink[] = []
-
-  for (const { taughtIn, referencedIn, word } of list.values()) {
-    nodes.push({
-      label: word,
-      locked: false,
-      x: Math.random(),
-      y: Math.random(),
-    })
-
-    for (const taught of taughtIn) {
-      links.push({
-        a: nodes.length - 1,
-        b: items.indexOf("" + taught),
-        n: 5,
-      })
-    }
-
-    for (const referenced of referencedIn) {
-      links.push({
-        a: nodes.length - 1,
-        b: items.indexOf("" + referenced),
-        n: 0.1,
+  for (const word of others.split(" ")) {
+    if (!map.has(word)) {
+      map.set(word, {
+        referencedIn: [],
+        taughtIn: [],
+        word,
       })
     }
   }
 
-  const { svg, setNodes, setLinks, setPosition, setForces } =
-    createForceDirectedGraph()
-
-  setPosition({ x: 0, y: 0, w: 20 })
-  setNodes(nodes)
-  setLinks(links)
-  // setForces((forces) => ({ ...forces, repulsion: forces.repulsion / 2 }))
-
-  return <div class="relative h-full w-full">{svg}</div>
+  return map
 }
