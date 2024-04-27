@@ -16,8 +16,8 @@ import { Word, makeWordList } from "../viossa/data"
 GlobalWorkerOptions.workerSrc = worker
 
 const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" })
-
 const list = makeWordList()
+const pdf = getDocument("/viossa.pdf").promise
 
 function Pdf(
   props: JSX.CanvasHTMLAttributes<HTMLCanvasElement> & { page: number },
@@ -26,14 +26,12 @@ function Pdf(
     <canvas
       {...props}
       ref={async (canvas) => {
-        const pdf = await getDocument("/viossa.pdf").promise
-
         let pageIndex = untrack(() => props.page)
-        let page = await pdf.getPage(pageIndex)
+        let page = await (await pdf).getPage(pageIndex)
 
         async function render() {
           if (props.page != pageIndex) {
-            page = await pdf.getPage(props.page)
+            page = await (await pdf).getPage(props.page)
             pageIndex = props.page
           }
 
