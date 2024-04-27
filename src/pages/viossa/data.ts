@@ -2,15 +2,25 @@ export type Content =
   | string // shorthand for taught words
   | [taught: string, exposed: string]
 
-export type WordType = "tingko" | "suruko" | "pashko"
+export type WordType =
+  | "tingko"
+  | "suruko"
+  | "lihko"
+  | "pashko"
+  | "medko"
+  | "troposko"
+  | "sporko"
+  | "kotobanen"
+  | "namae"
 
 export interface WordData {
   readonly emoji?: (string & {}) | "" | undefined
-  readonly type?: WordType | undefined
+  readonly fal?: WordType | undefined
   readonly imi?: string | undefined
   readonly lyk?: readonly string[] | undefined
   readonly kundr?: readonly string[] | undefined
   readonly riso?: string | undefined
+  readonly tatoeba?: readonly string[] | undefined
 }
 
 export const slides: Record<number, Content> = {
@@ -83,36 +93,95 @@ export const slides: Record<number, Content> = {
 }
 
 const others =
-  "-a -ara -dai -djin -ki -yena -s un -tsa afefraut afto ahavia aifroidis ain airis aistia akk akote al ananas anta apar apu aschor asoko atai atechi au auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bonaplas bra breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cunin curo da daag dan danke dare darem daremdjin davai deer deki den discord doich- dok doko dronet du dua dush dur dvera dzikjaan ecso efles ein eksi ende enterrena ergo fami farge farza fi film flacha fraut froreenj fshto fu fuga fugel fugelfraut funn gaia gammel gavat gaia gelt glau glossa glug go godja gomen gris grun gvir haaste hadji hana hant hanu hapigo har hanj her hej hel helenakaku heljo henci hiven hjacu hjerne hor huin huomilehti hur hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kjannos kjomi klar kntre kolarum kompju corva kot kotnen kotoba kuchi kun kundr kury kyajdz kzin lacsaq lacte lapsi lasku lezi lehti lemo lera li libre lik ljeta luft luna luvan made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksu mulkaban murasace mwuai na naht nai nam namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur noito nord non njui ogoi ohare ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pashun per persefraut phestako piel piman pinue pinuno pisma pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri ringo rinj riso rjoho roza ru rum ryodjin sakana sama samui sawi scecso sceer sdanie se shiro shirutro sho sidt sjikno silba simpel sini siru sisco skhola skwalo slucha sol sore sot spara spil spor sporko stift strela stuur sud sukha suksu suru suruko syryjna tajkadzin tak talvi tatuiba te tel ter terbi timba ting torta toshitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tyd ufne un uno upasnen uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa we west ze- zedvera zehant zeme zespil zeus jetta"
+  "-a -ara -dai -djin -ki -yena -s un -tsa afefraut afto ahavia aifroidis ain airis aistia akk akote al ananas anta apar apu aschor asoko atai atechi au auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bonaplas bra breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cunin curo da daag dan danke dare darem daremdjin davai deer deki den discord doich- dok doko dronet du dua dush dur dvera dzikjaan ecso efles ein eksi ende enterrena ergo fami farge farza fi film flacha fraut froreenj fshto fu fuga fugel fugelfraut funn gaia gammel gavat gaia gelt glau glossa glug go godja gomen gris grun gvir haaste hadji hana hant hanu hapigo har hanj her hej hel helenakaku heljo henci hiven hjacu hjerne hor huin huomilehti hur hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kjannos kjomi klar kntre kolarum kompju corva kot kotnen kotoba kuchi kun kundr kury kyajdz kzin lacsaq lacte lapsi lasku lezi lehti lemo lera li libre lik ljeta luft luna luvan made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksu mulkaban murasace mwuai na naht nai nam namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur noito nord non njui ogoi ohare ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pashun per persefraut festako piel piman pinue pinuno pisma pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri ringo rinj riso rjoho roza ru rum ryodjin sakana sama samui sawi scecso sceer sdanie se shiro shirutro sho sidt sjikno silba simpel sini siru sisco skhola skwalo slucha sol sore sot spara spil spor sporko stift strela stuur sud sukha suksu suru suruko syryjna tajkadzin tak talvi tatuiba te tel ter terbi timba ting torta toshitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tyd ufne un uno upasnen uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa we west ze- zedvera zehant zeme zespil zeus jetta"
+
+export interface Word extends WordData {
+  readonly word: string
+  readonly taughtIn: readonly number[]
+  readonly referencedIn: readonly number[]
+}
+
+export interface MutableWord {
+  word: string
+  taughtIn: number[]
+  referencedIn: number[]
+}
+
+export function makeWordList(): ReadonlyMap<string, Word> {
+  const map = new Map<string, MutableWord>()
+
+  for (const [index, slide] of Object.entries(slides)) {
+    const taught =
+      typeof slide == "string" ? slide.split(" ") : slide[0].split(" ")
+
+    const referenced = typeof slide == "string" ? [] : slide[1].split(" ")
+
+    for (const word of taught) {
+      const existing = map.get(word) || {
+        word,
+        taughtIn: [],
+        referencedIn: [],
+      }
+
+      if (!existing.taughtIn.includes(+index)) {
+        existing.taughtIn.push(+index)
+      }
+
+      map.set(word, existing)
+    }
+
+    for (const word of referenced) {
+      const existing = map.get(word) || {
+        word,
+        taughtIn: [],
+        referencedIn: [],
+      }
+
+      if (!existing.referencedIn.includes(+index)) {
+        existing.referencedIn.push(+index)
+      }
+
+      map.set(word, existing)
+    }
+  }
+
+  for (const word of others.split(" ")) {
+    if (!map.has(word)) {
+      map.set(word, {
+        referencedIn: [],
+        taughtIn: [],
+        word,
+      })
+    }
+  }
+
+  for (const [key, value] of Object.entries(data)) {
+    let mapval = map.get(key)
+
+    if (!mapval) {
+      mapval = { referencedIn: [], taughtIn: [], word: key }
+      map.set(key, mapval)
+    }
+
+    Object.assign(mapval, value)
+  }
+
+  return new Map(
+    Array.from(map).sort(([a], [b]) => {
+      const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
+      const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
+
+      if (ax - bx != 0) {
+        return ax - bx
+      }
+
+      return a > b ? 1 : -1
+    }),
+  )
+}
 
 export const data: Record<string, WordData> = {
-  "-a": {
-    emoji: "",
-  },
-  "-ara": {
-    emoji: "",
-  },
-  "-dai": {
-    emoji: "",
-  },
-  "-djin": {
-    emoji: "🧑🧓🧒",
-  },
-  "-ki": {
-    emoji: "",
-  },
-  "-ossa": {
-    emoji: "",
-  },
-  "-s": {
-    emoji: "",
-  },
-  "-tsa": {
-    emoji: "",
-  },
-  "-yena": {
-    emoji: "",
-  },
+  // #region ranjako
   "angl-": {
     emoji: "🇬🇧🏴󠁧󠁢󠁥󠁮󠁧󠁿",
   },
@@ -140,6 +209,37 @@ export const data: Record<string, WordData> = {
   "ze-": {
     emoji: "⚡",
   },
+
+  // #region festako
+  "-a": {
+    emoji: "",
+  },
+  "-ara": {
+    emoji: "",
+  },
+  "-dai": {
+    emoji: "",
+  },
+  "-djin": {
+    emoji: "🧑🧓🧒",
+  },
+  "-ki": {
+    emoji: "",
+  },
+  "-ossa": {
+    emoji: "",
+  },
+  "-s": {
+    emoji: "",
+  },
+  "-tsa": {
+    emoji: "",
+  },
+  "-yena": {
+    emoji: "",
+  },
+
+  // #region A
   afefraut: {
     emoji: "🥝",
   },
@@ -215,6 +315,8 @@ export const data: Record<string, WordData> = {
   azyci: {
     emoji: "🫘",
   },
+
+  // #region B
   bagge: {
     emoji: "🐛🐜🐝🪲",
   },
@@ -261,7 +363,7 @@ export const data: Record<string, WordData> = {
     emoji: "",
   },
   bluma: {
-    emoji: "🪷🌷🌺💐🌻🪻🌸🌹🌼",
+    emoji: "🪷🌷🌺💐🌻🪻🌸🌹",
   },
   bonaplas: {
     emoji: "",
@@ -284,6 +386,8 @@ export const data: Record<string, WordData> = {
   bruur: {
     emoji: "",
   },
+
+  // #region C
   cafe: {
     emoji: "☕🤎🟤🟫",
   },
@@ -329,6 +433,8 @@ export const data: Record<string, WordData> = {
   curo: {
     emoji: "⚫🖤⬛",
   },
+
+  // #region D
   da: {
     emoji: "",
   },
@@ -392,6 +498,8 @@ export const data: Record<string, WordData> = {
   dzikjaan: {
     emoji: "",
   },
+
+  // #region E
   ecso: {
     emoji: "📤",
   },
@@ -416,14 +524,23 @@ export const data: Record<string, WordData> = {
   ergo: {
     emoji: "👷🧑‍🏫🧑‍💼",
   },
+
+  // #region F
+  fal: {
+    emoji: "🟨🔴🔷",
+    tatoeba: ["yam ni fal fu pershun: dare ka hanuki viossa, a dare ka nai"],
+  },
   fami: {
     emoji: "👪👨‍👨‍👧‍👧👨‍👩‍👦‍👦👨‍👨‍👧‍👦",
   },
   farge: {
-    emoji: "🎨❤️💚🟨🔷🟧🔴🟩🔵",
+    emoji: "🎨❤️💚🟨🔷🟧🔴🟩",
   },
   farza: {
     emoji: "🌡️📏⚖️📐",
+  },
+  festako: {
+    emoji: "",
   },
   fi: {
     emoji: "",
@@ -464,6 +581,8 @@ export const data: Record<string, WordData> = {
   fura: {
     emoji: "",
   },
+
+  // #region G
   gaia: {
     emoji: "🌏🌍🌎",
   },
@@ -475,6 +594,10 @@ export const data: Record<string, WordData> = {
   },
   gelt: {
     emoji: "💰💵🪙",
+  },
+  gen: {
+    emoji: "🕰️+1",
+    imi: "ein plus raz",
   },
   glau: {
     emoji: "😁😄😃😀",
@@ -494,6 +617,11 @@ export const data: Record<string, WordData> = {
   gomen: {
     emoji: "😔🙏🙇",
   },
+  gos: {
+    emoji: "👍➡️🧑",
+    imi: "aparlyk dua",
+    tatoeba: ["du gos ≈ bra na du"],
+  },
   gris: {
     emoji: "🩶",
   },
@@ -503,6 +631,8 @@ export const data: Record<string, WordData> = {
   gvir: {
     emoji: "",
   },
+
+  // #region H
   haaste: {
     emoji: "",
   },
@@ -581,6 +711,8 @@ export const data: Record<string, WordData> = {
   hyske: {
     emoji: "",
   },
+
+  // #region I
   ie: {
     emoji: "",
   },
@@ -614,6 +746,8 @@ export const data: Record<string, WordData> = {
   ivel: {
     emoji: "🌆",
   },
+
+  // #region J
   jaa: {
     emoji: "👋",
   },
@@ -638,6 +772,8 @@ export const data: Record<string, WordData> = {
   joku: {
     emoji: "",
   },
+
+  // #region K
   "k'": {
     emoji: "",
   },
@@ -657,7 +793,7 @@ export const data: Record<string, WordData> = {
     emoji: "8️⃣",
   },
   katai: {
-    emoji: "#?",
+    emoji: "",
   },
   katana: {
     emoji: "🔪🗡️",
@@ -672,7 +808,7 @@ export const data: Record<string, WordData> = {
     emoji: "",
   },
   kirain: {
-    emoji: ".,",
+    emoji: "",
   },
   kjannos: {
     emoji: "",
@@ -719,6 +855,8 @@ export const data: Record<string, WordData> = {
   kzin: {
     emoji: "",
   },
+
+  // #region L
   lacsaq: {
     emoji: "",
   },
@@ -770,6 +908,8 @@ export const data: Record<string, WordData> = {
   luvan: {
     emoji: "🥕",
   },
+
+  // #region M
   made: {
     emoji: "",
   },
@@ -866,6 +1006,8 @@ export const data: Record<string, WordData> = {
   mwuai: {
     emoji: "",
   },
+
+  // #region N
   na: {
     emoji: "",
   },
@@ -932,6 +1074,8 @@ export const data: Record<string, WordData> = {
   nord: {
     emoji: "",
   },
+
+  // #region O
   oba: {
     emoji: "⬆️",
   },
@@ -968,6 +1112,8 @@ export const data: Record<string, WordData> = {
   oy: {
     emoji: "",
   },
+
+  // #region P
   paara: {
     emoji: "",
   },
@@ -988,9 +1134,6 @@ export const data: Record<string, WordData> = {
   },
   persefraut: {
     emoji: "🍑",
-  },
-  phestako: {
-    emoji: "",
   },
   piel: {
     emoji: "",
@@ -1043,7 +1186,12 @@ export const data: Record<string, WordData> = {
   punkt: {
     emoji: "",
   },
+
+  // #region R
   ranjako: {
+    emoji: "",
+  },
+  raz: {
     emoji: "",
   },
   ri: {
@@ -1079,6 +1227,8 @@ export const data: Record<string, WordData> = {
   rzinzai: {
     emoji: "🏃🏃‍♂️🏃‍♀️",
   },
+
+  // #region S
   sakana: {
     emoji: "🐟🐠",
   },
@@ -1196,9 +1346,11 @@ export const data: Record<string, WordData> = {
   suruko: {
     emoji: "",
   },
-  syryjna: {
+  surujna: {
     emoji: "",
   },
+
+  // #region T
   tajka: {
     emoji: "✨🧙🪄",
   },
@@ -1233,7 +1385,7 @@ export const data: Record<string, WordData> = {
     emoji: "🛎️🔔",
   },
   ting: {
-    emoji: "🔮🥒🐀🧠🎂🫀🚽🎁🖼️🔪",
+    emoji: "🔮🥒🐀🧠🎂🫀🚽🎁",
   },
   torta: {
     emoji: "🧁🎂🍰",
@@ -1289,6 +1441,8 @@ export const data: Record<string, WordData> = {
   tyd: {
     emoji: "🕰️⏳⏰⌚",
   },
+
+  // #region U
   ufne: {
     emoji: "⏺️🎦",
   },
@@ -1322,6 +1476,8 @@ export const data: Record<string, WordData> = {
   uwaki: {
     emoji: "❌🚫⛔",
   },
+
+  // #region V
   valtsa: {
     emoji: "💃🕺",
   },
@@ -1370,6 +1526,8 @@ export const data: Record<string, WordData> = {
   vulcanis: {
     emoji: "",
   },
+
+  // #region W
   wa: {
     emoji: "",
   },
@@ -1382,6 +1540,8 @@ export const data: Record<string, WordData> = {
   west: {
     emoji: "",
   },
+
+  // #region Z
   zedvera: {
     emoji: "",
   },
@@ -1397,89 +1557,9 @@ export const data: Record<string, WordData> = {
   zeus: {
     emoji: "⚡",
   },
-}
 
-export interface Word extends WordData {
-  readonly word: string
-  readonly taughtIn: readonly number[]
-  readonly referencedIn: readonly number[]
-}
-
-export interface MutableWord {
-  word: string
-  taughtIn: number[]
-  referencedIn: number[]
-}
-
-export function makeWordList(): ReadonlyMap<string, Word> {
-  const map = new Map<string, MutableWord>()
-
-  for (const [index, slide] of Object.entries(slides)) {
-    const taught =
-      typeof slide == "string" ? slide.split(" ") : slide[0].split(" ")
-
-    const referenced = typeof slide == "string" ? [] : slide[1].split(" ")
-
-    for (const word of taught) {
-      const existing = map.get(word) || {
-        word,
-        taughtIn: [],
-        referencedIn: [],
-      }
-
-      if (!existing.taughtIn.includes(+index)) {
-        existing.taughtIn.push(+index)
-      }
-
-      map.set(word, existing)
-    }
-
-    for (const word of referenced) {
-      const existing = map.get(word) || {
-        word,
-        taughtIn: [],
-        referencedIn: [],
-      }
-
-      if (!existing.referencedIn.includes(+index)) {
-        existing.referencedIn.push(+index)
-      }
-
-      map.set(word, existing)
-    }
-  }
-
-  for (const word of others.split(" ")) {
-    if (!map.has(word)) {
-      map.set(word, {
-        referencedIn: [],
-        taughtIn: [],
-        word,
-      })
-    }
-  }
-
-  for (const [key, value] of Object.entries(data)) {
-    let mapval = map.get(key)
-
-    if (!mapval) {
-      mapval = { referencedIn: [], taughtIn: [], word: key }
-      map.set(key, mapval)
-    }
-
-    Object.assign(mapval, value)
-  }
-
-  return new Map(
-    Array.from(map).sort(([a], [b]) => {
-      const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
-      const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
-
-      if (ax - bx != 0) {
-        return ax - bx
-      }
-
-      return a > b ? 1 : -1
-    }),
-  )
+  // #region 100
+  100: {
+    emoji: "🤣😂😆",
+  },
 }
