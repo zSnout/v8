@@ -686,9 +686,6 @@ export const data: Record<string, WordData> = {
   hiven: {
     emoji: "🍨🍦",
   },
-  hjacu: {
-    emoji: "💯",
-  },
   hjaku: {
     emoji: "💯",
   },
