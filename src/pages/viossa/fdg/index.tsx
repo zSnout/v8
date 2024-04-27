@@ -15,7 +15,11 @@ export function Main() {
 
   const links: MutableLink[] = []
 
-  for (const { taughtIn, referencedIn, word } of list.values()) {
+  for (const {
+    opetaNa: taughtIn,
+    hanuNa: referencedIn,
+    kotoba: word,
+  } of list.values()) {
     nodes.push({
       label: word,
       locked: false,

@@ -96,15 +96,15 @@ const others =
   "-a -ara -dai -djin -ki -yena -s un -tsa afefraut afto ahavia aifroidis ain airis aistia akk akote al ananas anta apar apu aschor asoko atai atechi au auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bonaplas bra breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cunin curo da daag dan danke dare darem daremdjin davai deer deki den discord doich- dok doko dronet du dua dush dur dvera dzikjaan ecso efles ein eksi ende enterrena ergo fami farge farza fi film flacha fraut froreenj fshto fu fuga fugel fugelfraut funn gaia gammel gavat gaia gelt glau glossa glug go godja gomen gris grun gvir haaste hadji hana hant hanu hapigo har hanj her hej hel helenakaku heljo henci hiven hjacu hjerne hor huin huomilehti hur hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kjannos kjomi klar kntre kolarum kompju corva kot kotnen kotoba kuchi kun kundr kury kyajdz kzin lacsaq lacte lapsi lasku lezi lehti lemo lera li libre lik ljeta luft luna luvan made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksu mulkaban murasace mwuai na naht nai nam namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur noito nord non njui ogoi ohare ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pashun per persefraut festako piel piman pinue pinuno pisma pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri ringo rinj riso rjoho roza ru rum ryodjin sakana sama samui sawi scecso sceer sdanie se shiro shirutro sho sidt sjikno silba simpel sini siru sisco skhola skwalo slucha sol sore sot spara spil spor sporko stift strela stuur sud sukha suksu suru suruko syryjna tajkadzin tak talvi tatuiba te tel ter terbi timba ting torta toshitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tyd ufne un uno upasnen uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa we west ze- zedvera zehant zeme zespil zeus jetta"
 
 export interface Word extends WordData {
-  readonly word: string
-  readonly taughtIn: readonly number[]
-  readonly referencedIn: readonly number[]
+  readonly kotoba: string
+  readonly opetaNa: readonly number[]
+  readonly hanuNa: readonly number[]
 }
 
 export interface MutableWord {
-  word: string
-  taughtIn: number[]
-  referencedIn: number[]
+  kotoba: string
+  opetaNa: number[]
+  hanuNa: number[]
 }
 
 export function makeWordList(): ReadonlyMap<string, Word> {
@@ -118,13 +118,13 @@ export function makeWordList(): ReadonlyMap<string, Word> {
 
     for (const word of taught) {
       const existing = map.get(word) || {
-        word,
-        taughtIn: [],
-        referencedIn: [],
+        kotoba: word,
+        opetaNa: [],
+        hanuNa: [],
       }
 
-      if (!existing.taughtIn.includes(+index)) {
-        existing.taughtIn.push(+index)
+      if (!existing.opetaNa.includes(+index)) {
+        existing.opetaNa.push(+index)
       }
 
       map.set(word, existing)
@@ -132,13 +132,13 @@ export function makeWordList(): ReadonlyMap<string, Word> {
 
     for (const word of referenced) {
       const existing = map.get(word) || {
-        word,
-        taughtIn: [],
-        referencedIn: [],
+        kotoba: word,
+        opetaNa: [],
+        hanuNa: [],
       }
 
-      if (!existing.referencedIn.includes(+index)) {
-        existing.referencedIn.push(+index)
+      if (!existing.hanuNa.includes(+index)) {
+        existing.hanuNa.push(+index)
       }
 
       map.set(word, existing)
@@ -148,9 +148,9 @@ export function makeWordList(): ReadonlyMap<string, Word> {
   for (const word of others.split(" ")) {
     if (!map.has(word)) {
       map.set(word, {
-        referencedIn: [],
-        taughtIn: [],
-        word,
+        hanuNa: [],
+        opetaNa: [],
+        kotoba: word,
       })
     }
   }
@@ -159,7 +159,7 @@ export function makeWordList(): ReadonlyMap<string, Word> {
     let mapval = map.get(key)
 
     if (!mapval) {
-      mapval = { referencedIn: [], taughtIn: [], word: key }
+      mapval = { hanuNa: [], opetaNa: [], kotoba: key }
       map.set(key, mapval)
     }
 
@@ -598,6 +598,7 @@ export const data: Record<string, WordData> = {
   gen: {
     emoji: "🕰️+1",
     imi: "ein plus raz",
+    tatoeba: ["A: oy B, da hanu!\nB hanu.\nA: da hanu gen!\nB hanu gen."],
   },
   glau: {
     emoji: "😁😄😃😀",
