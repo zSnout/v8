@@ -1,17 +1,19 @@
 ---
 import FullscreenLayout from "@/layouts/FullscreenLayout.astro"
 import { Main } from "."
-// import openGraphImage from "./open-graph.png"
+// import openGraphImage from "./_home/open-graph.jpg"
 ---
 
 <FullscreenLayout
-  title="TODO"
   description="TODO"
+  title="TODO"
   og={{
     imageSrc: "TODO",
     imageAlt: "TODO",
     title: "TODO",
   }}
 >
-  <Main client:only />
+  <div class="flex h-full w-full">
+    <Main client:only />
+  </div>
 </FullscreenLayout>

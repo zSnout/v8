@@ -3,46 +3,63 @@
 
 import { For, Show, batch, createMemo, createSignal, onMount } from "solid-js"
 
-interface Node {
+export interface Node {
   readonly label: string
   readonly locked: boolean
   readonly x: number
   readonly y: number
 }
 
-interface Link {
+export interface MutableNode {
+  label: string
+  locked: boolean
+  x: number
+  y: number
+}
+
+export interface Link {
   readonly a: number
   readonly b: number
   readonly n: number
 }
 
-interface Position {
+export interface MutableLink {
+  a: number
+  b: number
+  n: number
+}
+
+export interface Position {
   readonly x: number
   readonly y: number
   readonly w: number
 }
 
-interface Forces {
+export interface Forces {
   readonly repulsion: number
   readonly attraction: number
   readonly center: number
 }
 
-interface Dragging {
+export interface Dragging {
   readonly index: number
   readonly mx: number
   readonly my: number
   readonly moved: boolean
 }
 
-interface Linking {
+export interface Linking {
   readonly index: number
   readonly x2: number
   readonly y2: number
   readonly moved: boolean
 }
 
-export function Main() {
+export function createForceDirectedGraph() {
+  if (typeof document == "undefined") {
+    throw new Error("<ForceDirectedGraph /> may only be loaded client-side.")
+  }
+
   function iterate(time: number) {
     const { attraction, center, repulsion } = forces()
     const list = nodes()
@@ -136,12 +153,10 @@ export function Main() {
     },
   ])
 
-  const position = createMemo<Position>(() => {
-    return {
-      x: 0,
-      y: 0,
-      w: 20,
-    }
+  const [position, setPosition] = createSignal<Position>({
+    x: 0,
+    y: 0,
+    w: 20,
   })
 
   const [links, setLinks] = createSignal<readonly Link[]>([
@@ -156,15 +171,20 @@ export function Main() {
     attraction: 0.25,
   })
 
+  // Set internally
   const [width, setWidth] = createSignal(1)
   const [height, setHeight] = createSignal(1)
-  const [scale] = createSignal(100)
-  const [speed] = createSignal(5)
-  const [showNodes, setShowNodes] = createSignal(true)
-  const [makeLinksOnClick, setMakeLinksOnClick] = createSignal(true)
   const [dragging, setDragging] = createSignal<Dragging>()
   const [linking, setLinking] = createSignal<Linking>()
+
+  // May be set externally
+  const [scale, setScale] = createSignal(100)
+  const [speed, setSpeed] = createSignal(5)
+  const [showNodes, setShowNodes] = createSignal(true)
+  const [makeLinksOnClick, setMakeLinksOnClick] = createSignal(true)
   const [moveY, setMoveY] = createSignal(true)
+  const [showField, setShowField] = createSignal(false)
+  const [scrollZoom, setScrollZoom] = createSignal(true)
 
   const svgBox = createMemo(() => {
     const { x: xb, y: yb, w: wb } = position()
@@ -285,7 +305,7 @@ export function Main() {
 
                   next[existing] = {
                     ...next[existing]!,
-                    n: next[existing]!.n + 1,
+                    n: next[existing]!.n + 10,
                   }
 
                   return next
@@ -380,7 +400,7 @@ export function Main() {
             nodes.concat({
               x: cursor.x / scale(),
               y: cursor.y / scale(),
-              label: "",
+              label: String(Math.floor(Math.random() * 900000 + 100000)),
               locked: false,
             }),
           )
@@ -388,46 +408,68 @@ export function Main() {
 
         click(cx, cy)
       }}
+      onWheel={(event) => {
+        const { x: xpos, y: ypos, w } = position()
+        const h = (height() / width()) * w
+
+        const xp = event.clientX / event.currentTarget.clientWidth
+        const yp = event.clientY / event.currentTarget.clientHeight
+
+        const x = (xp - 0.5) * w + xpos
+        const y = (yp - 0.5) * h + ypos
+
+        const size = Math.sign(event.deltaY) * event.deltaY ** 2
+
+        const n = size > 0 ? 1.1 : 0.9
+
+        setPosition({
+          x: w * (n - 1) * (0.5 - xp) + xpos,
+          y: h * (n - 1) * (0.5 - yp) + ypos,
+          w: w * n,
+        })
+      }}
     >
-      <For each={values}>
-        {(x) => (
-          <For each={values}>
-            {(y) => {
-              const strength = createMemo(() => {
-                let sx = 0
-                let sy = 0
+      <Show when={showField()}>
+        <For each={values}>
+          {(x) => (
+            <For each={values}>
+              {(y) => {
+                const strength = createMemo(() => {
+                  let sx = 0
+                  let sy = 0
 
-                const self = { x, y }
-                const list = nodes()
-                const { repulsion } = forces()
+                  const self = { x, y }
+                  const list = nodes()
+                  const { repulsion } = forces()
 
-                for (const { x, y } of list) {
-                  const d = Math.hypot(x - self.x, y - self.y)
-                  const atan = Math.atan2(y - self.y, x - self.x)
+                  for (const { x, y } of list) {
+                    const d = Math.hypot(x - self.x, y - self.y)
+                    const atan = Math.atan2(y - self.y, x - self.x)
 
-                  sx += repulsion * (Math.cos(atan) / d)
-                  sy += repulsion * (Math.sin(atan) / d)
-                }
+                    sx += repulsion * (Math.cos(atan) / d)
+                    sy += repulsion * (Math.sin(atan) / d)
+                  }
 
-                const norm = Math.hypot(sx, sy) * 5
+                  const norm = Math.hypot(sx, sy) * 5
 
-                return { x: -sx / norm, y: -sy / norm, n: norm }
-              })
+                  return { x: -sx / norm, y: -sy / norm, n: norm }
+                })
 
-              return (
-                <line
-                  x1={scale() * x}
-                  y1={scale() * y}
-                  x2={scale() * (x + strength().x)}
-                  y2={scale() * (y + strength().y)}
-                  stroke-width={1}
-                  class="stroke-z-text-heading"
-                />
-              )
-            }}
-          </For>
-        )}
-      </For>
+                return (
+                  <line
+                    x1={scale() * x}
+                    y1={scale() * y}
+                    x2={scale() * (x + strength().x)}
+                    y2={scale() * (y + strength().y)}
+                    stroke-width={1}
+                    class="stroke-z-text-heading"
+                  />
+                )
+              }}
+            </For>
+          )}
+        </For>
+      </Show>
 
       <Show when={linking()}>
         {(link) => (
@@ -504,7 +546,7 @@ export function Main() {
                     event.preventDefault()
                   }}
                 >
-                  {index()}
+                  {node.label}
                 </div>
               </foreignObject>
             </>
@@ -512,7 +554,56 @@ export function Main() {
         </For>
       </Show>
     </svg>
-  )
+  ) as SVGSVGElement
+
+  return {
+    // Displayed objects
+    svg,
+
+    // Core signals
+    forces,
+    setForces,
+    links,
+    setLinks,
+    nodes,
+    setNodes,
+    position,
+    setPosition,
+
+    // Internal signals
+    width,
+    height,
+    dragging,
+    linking,
+
+    // Configuration
+    showNodes,
+    setShowNodes,
+    makeLinksOnClick,
+    setMakeLinksOnClick,
+    moveY,
+    setMoveY,
+    scale,
+    setScale,
+    speed,
+    setSpeed,
+    showField,
+    setShowField,
+  }
+}
+
+export function Main() {
+  const {
+    svg,
+    setShowNodes,
+    showNodes,
+    makeLinksOnClick,
+    setMakeLinksOnClick,
+    moveY,
+    setMoveY,
+    forces,
+    setForces,
+  } = createForceDirectedGraph()
 
   return (
     <div class="relative h-full w-full">
@@ -522,7 +613,6 @@ export function Main() {
         <button onClick={() => setShowNodes((x) => !x)} class="text-left">
           {showNodes() ? "click to hide nodes" : "click to show nodes"}
         </button>
-
         <button
           class="flex flex-col text-left"
           onClick={() => setMakeLinksOnClick((x) => !x)}
@@ -552,11 +642,9 @@ export function Main() {
           </p>
           <strong>click here to toggle mouse buttons</strong>
         </button>
-
         <button onClick={() => setMoveY((x) => !x)} class="text-left">
           {moveY() ? "click to stop y movement" : "click to allow y movement"}
         </button>
-
         <label>
           <input
             min={0}
@@ -573,7 +661,6 @@ export function Main() {
           />
           center force
         </label>
-
         <label>
           <input
             min={0}
@@ -590,7 +677,6 @@ export function Main() {
           />
           attraction force
         </label>
-
         <label>
           <input
             min={0}
@@ -607,6 +693,7 @@ export function Main() {
           />
           repulsion force
         </label>
+        F
       </div>
     </div>
   )
