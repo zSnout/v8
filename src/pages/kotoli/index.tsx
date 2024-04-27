@@ -103,6 +103,70 @@ function Page(props: {
   )
 }
 
+function Sukhatro(props: {
+  query: () => string
+  setQuery: (query: string) => void
+}) {
+  onMount(() => {
+    window.addEventListener("keydown", (event): void => {
+      if (
+        event.key == "/" &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey
+      ) {
+        document.getElementById("sukhatro")?.focus()
+        event.preventDefault()
+      }
+    })
+  })
+
+  return (
+    <input
+      id="sukhatro"
+      class="z-field mb-4 block w-full rounded-xl shadow-none placeholder:italic"
+      type="text"
+      value={props.query()}
+      onInput={(event) => props.setQuery(event.currentTarget.value)}
+      placeholder="da sukha (du deki kaku / per afto)..."
+    />
+  )
+}
+
+function Header() {
+  return (
+    <div class="grid w-full gap-2 sm:grid-cols-2">
+      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
+        jam {wordMap.size} kotobara na kotoli afto.
+        <br />
+        jam{" "}
+        {
+          Array.from(wordMap.keys()).filter(
+            (x) => localStorage["word+" + x] != ".",
+          ).length
+        }{" "}
+        kotoba k'har risonen.
+        <br />
+        jam {slideMap.size} risoara na risoli afto.
+      </div>
+      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
+        riso vona na{" "}
+        <a
+          class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
+          href="https://bit.ly/davilera"
+        >
+          https://bit.ly/davilera
+        </a>
+        !
+        <br />
+        sakawi maxa afto na 2024t 4m.
+        <br />
+        jam riso mange au opeta kotoba mange.
+      </div>
+    </div>
+  )
+}
+
 function Kotoba(props: {
   word: Word
   setMaximized: (word: Word) => void
@@ -189,56 +253,13 @@ function Kotobara(props: {
   )
 }
 
-function KotoliHeader() {
-  return (
-    <div class="grid w-full gap-2 sm:grid-cols-2">
-      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
-        jam {wordMap.size} kotobara na kotoli afto.
-        <br />
-        jam{" "}
-        {
-          Array.from(wordMap.keys()).filter(
-            (x) => localStorage["word+" + x] != ".",
-          ).length
-        }{" "}
-        kotoba k'har risonen.
-        <br />
-        kotoli afto mahena na sakawi.
-      </div>
-      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
-        da lera na{" "}
-        <a
-          class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
-          href="https://bit.ly/davilera"
-        >
-          https://bit.ly/davilera
-        </a>
-        !
-        <br />
-        sakawi maxa afto na 2024t 4m.
-        <br />
-        jam riso mange au opeta kotoba mange.
-      </div>
-    </div>
-  )
-}
-
 function KotoliSidebar(props: {
-  query: () => string
-  setQuery: (query: string) => void
   maximized: () => Word
+  setMaximizedWord: (word: Word) => void
+  setMaximizedSlide: (slide: Slide) => void
 }) {
   return (
     <>
-      <input
-        id="sukhatro"
-        class="z-field mb-4 rounded-xl shadow-none placeholder:italic"
-        type="text"
-        value={props.query()}
-        onInput={(event) => props.setQuery(event.currentTarget.value)}
-        placeholder="da sukha (du deki kaku / per afto)..."
-      />
-
       <div class="z-20 flex h-72 min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg transition">
         <div class="flex flex-wrap text-2xl font-semibold">
           <p class="mr-auto text-z transition">{props.maximized().kotoba}</p>
@@ -282,48 +303,27 @@ function KotoliSidebar(props: {
       </div>
 
       <For each={props.maximized().opetaNa}>
-        {(page) => <Page page={page} />}
+        {(page) => (
+          <div
+            class="cursor-zoom-in"
+            onClick={() => props.setMaximizedSlide(slideMap.get(page)!)}
+          >
+            <Page page={page} />
+          </div>
+        )}
       </For>
+
       <For each={props.maximized().hanuNa}>
-        {(page) => <Page page={page} />}
+        {(page) => (
+          <div
+            class="cursor-zoom-in"
+            onClick={() => props.setMaximizedSlide(slideMap.get(page)!)}
+          >
+            <Page page={page} />
+          </div>
+        )}
       </For>
     </>
-  )
-}
-
-export function Kotoli() {
-  const [query, setQuery] = createSignal("")
-  const [maximized, setMaximized] = createSignal<Word>(wordMap.get("sakawi")!)
-
-  onMount(() => {
-    document.addEventListener("keydown", (event): void => {
-      if (
-        event.key == "/" &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        !event.metaKey
-      ) {
-        document.getElementById("sukhatro")?.focus()
-        event.preventDefault()
-      }
-    })
-  })
-
-  return (
-    <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
-      <div class="flex flex-1 flex-col gap-2">
-        <KotoliHeader />
-        <Kotobara query={query} setMaximized={setMaximized} />
-      </div>
-
-      <div class="fixed right-5 top-12 flex h-[calc(100%_-_3rem)] w-[24.5rem] flex-col gap-2 overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
-        <KotoliSidebar
-          query={query}
-          setQuery={setQuery}
-          maximized={maximized}
-        />
-      </div>
-    </div>
   )
 }
 
@@ -375,34 +375,10 @@ function Risoara(props: {
   )
 }
 
-function RisoliHeader() {
-  return (
-    <div class="grid w-full gap-2 sm:grid-cols-2">
-      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
-        jam {slideMap.size} risoara na risoli afto.
-        <br />
-        sakawi maxa afto na 2024t 4m.
-      </div>
-      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
-        da lera na{" "}
-        <a
-          class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
-          href="https://bit.ly/davilera"
-        >
-          https://bit.ly/davilera
-        </a>
-        !
-        <br />
-        jam riso mange au opeta kotoba mange.
-      </div>
-    </div>
-  )
-}
-
 function RisoliSidebar(props: {
-  query: () => string
-  setQuery: (query: string) => void
   maximized: () => Slide
+  setMaximizedWord: (word: Word) => void
+  setMaximizedSlide: (slide: Slide) => void
 }) {
   const related = createMemo(() => {
     const { opetako } = props.maximized()
@@ -424,29 +400,27 @@ function RisoliSidebar(props: {
 
   return (
     <>
-      <input
-        id="sukhatro"
-        class="z-field mb-4 block w-full rounded-xl shadow-none placeholder:italic"
-        type="text"
-        value={props.query()}
-        onInput={(event) => props.setQuery(event.currentTarget.value)}
-        placeholder="da sukha (du deki kaku / per afto)..."
-      />
-
       <Page page={props.maximized().index} />
 
       <div class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
         <For each={props.maximized().opetako.concat(props.maximized().hanuko)}>
           {(word) => (
-            <Kotoba word={wordMap.get(word)!} setMaximized={() => {}} sidebar />
+            <Kotoba
+              word={wordMap.get(word)!}
+              setMaximized={props.setMaximizedWord}
+              sidebar
+            />
           )}
         </For>
       </div>
 
       <For each={related()}>
-        {(x) => (
-          <div class="mt-2">
-            <Page page={x} />
+        {(slideIndex) => (
+          <div
+            class="mt-2 cursor-zoom-in"
+            onClick={() => props.setMaximizedSlide(slideMap.get(slideIndex)!)}
+          >
+            <Page page={slideIndex} />
           </div>
         )}
       </For>
@@ -454,36 +428,48 @@ function RisoliSidebar(props: {
   )
 }
 
-export function Risoli() {
+export function Kotoli() {
   const [query, setQuery] = createSignal("")
-  const [maximized, setMaximized] = createSignal<Slide>(slideMap.get(12)!)
-
-  onMount(() => {
-    document.addEventListener("keydown", (event): void => {
-      if (
-        event.key == "/" &&
-        !event.ctrlKey &&
-        !event.altKey &&
-        !event.metaKey
-      ) {
-        document.getElementById("sukhatro")?.focus()
-        event.preventDefault()
-      }
-    })
-  })
+  const [maximized, setMaximized] = createSignal<Word>(wordMap.get("sakawi")!)
 
   return (
     <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
       <div class="flex flex-1 flex-col gap-2">
-        <RisoliHeader />
+        <Header />
+        <Kotobara query={query} setMaximized={setMaximized} />
+      </div>
+
+      <div class="fixed right-5 top-12 flex h-[calc(100%_-_3rem)] w-[24.5rem] flex-col gap-2 overflow-auto px-1 pb-8 pt-8 scrollbar:hidden">
+        <Sukhatro query={query} setQuery={setQuery} />
+
+        <KotoliSidebar
+          maximized={maximized}
+          setMaximizedWord={setMaximized}
+          setMaximizedSlide={() => {}}
+        />
+      </div>
+    </div>
+  )
+}
+
+export function Risoli() {
+  const [query, setQuery] = createSignal("")
+  const [maximized, setMaximized] = createSignal<Slide>(slideMap.get(12)!)
+
+  return (
+    <div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32rem))] grid w-[100vw] grid-cols-[1fr,24rem] gap-6 px-6">
+      <div class="flex flex-1 flex-col gap-2">
+        <Header />
         <Risoara query={query} setMaximized={setMaximized} />
       </div>
 
       <div class="fixed -right-8 top-12 h-[calc(100%_-_3rem)] w-[31rem] flex-col gap-2 overflow-auto px-14 pb-8 pt-8 scrollbar:hidden">
+        <Sukhatro query={query} setQuery={setQuery} />
+
         <RisoliSidebar
-          query={query}
-          setQuery={setQuery}
           maximized={maximized}
+          setMaximizedSlide={setMaximized}
+          setMaximizedWord={() => {}}
         />
       </div>
     </div>
