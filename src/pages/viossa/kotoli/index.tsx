@@ -163,10 +163,16 @@ export function Main() {
           </Show>
         </div>
 
-        <Pdf
-          class="w-full rounded-xl border border-z"
-          page={maximized().opetaNa[0] || maximized().hanuNa[0] || 1}
-        />
+        <div class="relative">
+          <Pdf
+            class="w-full rounded-xl border border-z"
+            page={maximized().opetaNa[0] || maximized().hanuNa[0] || 1}
+          />
+
+          <div class="absolute bottom-0 right-0 flex h-8 w-12 items-center justify-center rounded-br-xl rounded-tl-xl border border-z bg-z-body">
+            {maximized().opetaNa[0] || maximized().hanuNa[0] || 1}
+          </div>
+        </div>
       </div>
     </div>
   )
