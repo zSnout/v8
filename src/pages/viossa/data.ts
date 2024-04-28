@@ -32,7 +32,7 @@ export type Fal =
   | "sporko"
   | "kotobanen"
   | "namae"
-  | "hofli"
+  | "hofliko"
   | "atai"
   | "etuniko"
 
@@ -69,7 +69,11 @@ export interface BaseWordData {
   readonly kundr?: readonly string[] | undefined
 }
 
-export type WordData = BaseWordData & ImiOsTatoeba
+export type RawWordData = BaseWordData & ImiOsTatoeba
+
+export type WordData = RawWordData & {
+  readonly eins: boolean
+}
 
 // #region riso
 export const riso: Record<number, Content> = {
@@ -225,7 +229,7 @@ export function makeWordList(): ReadonlyMap<string, Word> {
     }
   }
 
-  for (const [key, value] of Object.entries(data)) {
+  for (const [key, value] of Object.entries(kotobasirupravda)) {
     let mapval = map.get(key)
 
     if (!mapval) {
@@ -238,7 +242,7 @@ export function makeWordList(): ReadonlyMap<string, Word> {
 
   let missing: string[] = []
   for (const key of map.keys()) {
-    if (!(key in data)) {
+    if (!(key in kotobasirupravda)) {
       missing.push(key)
     }
   }
@@ -279,7 +283,7 @@ export function makeSlideList(): ReadonlyMap<number, Slide> {
   return map
 }
 
-const rawData: Record<string, WordData> = {
+const kotobasirumahena: Record<string, RawWordData> = {
   // #region ranjako
   "angl-": {
     emoji: "🇬🇧🏴󠁧󠁢󠁥󠁮󠁧󠁿",
@@ -407,7 +411,7 @@ const rawData: Record<string, WordData> = {
   },
   akk: {
     emoji: "",
-    fal: "hofli",
+    fal: "hofliko",
     falnen: "(shiranai)",
     kundr: ["nai"],
   },
@@ -553,34 +557,66 @@ A: un bra auen!`,
   },
   bamba: {
     emoji: "💣",
+    fal: "tingko",
+    falnen: "vonating",
   },
   banan: {
     emoji: "🍌",
+    fal: "tingko",
+    falnen: "vonating",
   },
   baum: {
     emoji: "🌴🌳🌲🎄",
+    fal: "tingko",
+    falnen: "vonating",
   },
   benj: {
     emoji: "",
+    fal: "troko",
+    falnen: "raz",
+    kundr: ["jamete"],
+    tatoeba: [
+      "un nam. li un benj nam, sidt un nam. li un jamete nam, sidt un nai nam.",
+    ],
   },
   berk: {
     emoji: "🗻⛰️🏔️",
+    fal: "tingko",
+    falnen: "(shiranai)",
   },
   bestfraut: {
     emoji: "🍉🍈",
+    fal: "tingko",
+    falnen: "fraut",
   },
   bihmidur: {
     emoji: "🦄🐲",
+    fal: "tingko",
+    falnen: "vonating",
     imi: "dur ka na gvir",
   },
   bite: {
     emoji: "🥺🙏",
+    fal: "hofliko",
+    falnen: "(shiranai)",
+    imi: "brukena grun du vil hofli",
+    tatoeba: [
+      `A: bite, da pinuno!
+B: du hofli mange 😊! un pinuno 🤫.`,
+      `A: da pinuno!
+B: du nai hofli 😠! un benj hanu 🗣️.`,
+    ],
   },
   bjelu: {
     emoji: "🔔🛎️",
+    fal: "tingko",
+    falnen: "(shiranai)",
   },
   bjurki: {
     emoji: "🤮🤒🤧🤢",
+    fal: "lihko",
+    falnen: "(shiranai)",
+    imi: "vona waryj",
   },
   bjurkiplas: {
     emoji: "🏥",
@@ -1890,10 +1926,10 @@ A: braa. un dua huin.`,
   },
 }
 
-const data: Record<string, WordData> = Object.fromEntries(
-  Object.entries(rawData)
+const kotobasirupravda: Record<string, WordData> = Object.fromEntries(
+  Object.entries(kotobasirumahena)
     .flatMap<[string, WordData]>(([key, value]) => [
-      [key, value],
+      [key, { ...value, eins: true }],
       ...(value.kakutro?.map(
         (kotoba) =>
           [
@@ -1904,6 +1940,7 @@ const data: Record<string, WordData> = Object.fromEntries(
                 .kakutro!.filter((x) => x != kotoba)
                 .concat(key)
                 .sort(sort),
+              eins: false,
             },
           ] satisfies [string, WordData],
       ) || []),

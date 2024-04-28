@@ -1,3 +1,5 @@
+import { Fa } from "@/components/Fa"
+import { faClose } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import { GlobalWorkerOptions, PDFPageProxy, getDocument } from "pdfjs-dist"
 import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
@@ -19,8 +21,6 @@ import {
   makeSlideList,
   makeWordList,
 } from "../viossa/data"
-import { Fa } from "@/components/Fa"
-import { faClose } from "@fortawesome/free-solid-svg-icons"
 
 type Mode = "kotoba" | "riso" | undefined
 
@@ -180,34 +180,51 @@ function Sukhatro(props: {
 }
 
 function Header() {
+  const known = Array.from(wordMap.values()).filter((x) => x.eins)
+
   return (
-    <div class="grid w-full gap-2 sm:grid-cols-2">
-      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
-        jam {wordMap.size} kotobara na kotoli afto.
-        <br />
-        jam{" "}
-        {
-          Array.from(wordMap.keys()).filter(
-            (x) => localStorage["word+" + x] != ".",
-          ).length
-        }{" "}
-        kotoba k'har risonen.
-        <br />
-        jam {slideMap.size} risoara na risoli afto.
+    <div class="w-full">
+      <div class="mb-2 flex w-full flex-col rounded bg-z-body-selected px-3 py-2">
+        <p class="text-center text-xl font-extralight">
+          kotoba libre maxena na sakawi
+        </p>
+
+        <p class="text-center text-sm">
+          risoli fsore vona na{" "}
+          <a
+            class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
+            href="https://bit.ly/davilera"
+          >
+            bit.ly/davilera
+          </a>
+        </p>
       </div>
-      <div class="flex-1 rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
-        riso vona na{" "}
-        <a
-          class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
-          href="https://bit.ly/davilera"
-        >
-          https://bit.ly/davilera
-        </a>
-        !
-        <br />
-        sakawi maxa afto na 2024t 4m.
-        <br />
-        da lera braa mit sore!
+
+      <div class="grid w-full gap-2 sm:grid-cols-2">
+        <div class="flex flex-1 flex-col rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
+          <p>jam {known.length} kotobara na kotoli afto.</p>
+
+          <p>jam {known.filter((x) => x.emoji).length} kotoba k'har risonen.</p>
+
+          <p>
+            kotoli nai sirubraa{" "}
+            {known.length - known.filter((x) => x.fal).length} kotoba.
+          </p>
+        </div>
+
+        <div class="flex flex-1 flex-col rounded bg-z-bg-body-selected px-3 py-2 text-center text-z transition">
+          <p>jam {slideMap.size} riso na risoli afto.</p>
+
+          <p>
+            risoli opeta {known.filter((x) => x.opetaNa.length).length} kotoba.
+          </p>
+
+          <p>
+            risoli hanu tsui{" "}
+            {known.filter((x) => x.opetaNa.length || x.hanuNa.length).length}{" "}
+            kotoba.
+          </p>
+        </div>
       </div>
     </div>
   )
@@ -253,15 +270,17 @@ function Kotoba(props: {
           <p class="text-z transition">{props.word.emoji || ""}</p>
         </div>
 
-        <p class="text-z transition">
-          {props.word.imi ? "imi: " + props.word.imi : "(nai har imi)"}
-        </p>
+        <div class="line-clamp-4">
+          <p class="text-z transition">
+            {props.word.imi ? "imi: " + props.word.imi : "(nai har imi)"}
+          </p>
 
-        <ul>
-          <For each={props.word.tatoeba}>
-            {(tatoeba) => <li class="text-z transition">{tatoeba}</li>}
-          </For>
-        </ul>
+          <ul>
+            <For each={props.word.tatoeba}>
+              {(tatoeba) => <li class="text-z transition">{tatoeba}</li>}
+            </For>
+          </ul>
+        </div>
       </div>
     </div>
   )
