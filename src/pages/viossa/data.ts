@@ -1,4 +1,24 @@
+import type { unknown } from "astro/zod"
+
 export const RISOLI = "/viossa71.pdf"
+
+function sort(a: string, b: string) {
+  const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
+  const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
+
+  if (ax - bx != 0) {
+    return ax - bx
+  }
+
+  return a > b ? 1 : -1
+}
+
+function sortPairs(
+  [a]: readonly [string, ...unknown[]],
+  [b]: readonly [string, ...unknown[]],
+) {
+  return sort(a, b)
+}
 
 export type Content =
   | string // shorthand for taught words
@@ -14,17 +34,42 @@ export type WordType =
   | "sporko"
   | "kotobanen"
   | "namae"
+  | "svar"
 
-export interface WordData {
-  readonly emoji?: string | undefined
-  readonly fal?: WordType | undefined
-  readonly falnen?: "varge" | "fami" | "fraut" | "ovashi" | undefined
-  readonly imi?: string | undefined
+export type Falnen =
+  | "varge"
+  | "fami"
+  | "fraut"
+  | "hanutro"
+  | "lasku"
+  | "ovashi"
+  | "pashko"
+  | "plasnamae"
+  | "raz" // lyk ima, ende
+  | "tyd" // lyk sho, mwuai
+  | "vonating"
+  | "(naishiru)"
+
+export type ImiOsTatoeba =
+  | {
+      readonly imi: string
+      readonly tatoeba?: readonly string[] | undefined
+    }
+  | {
+      readonly imi?: string
+      readonly tatoeba: readonly string[]
+    }
+
+export interface BaseWordData {
+  readonly emoji: string
+  readonly fal: WordType
+  readonly falnen: Falnen
   readonly lyk?: readonly string[] | undefined
+  readonly kakutro?: readonly string[] | undefined
   readonly kundr?: readonly string[] | undefined
-  readonly riso?: string | undefined
-  readonly tatoeba?: readonly string[] | undefined
 }
+
+export type WordData = BaseWordData & ImiOsTatoeba
 
 // #region riso
 export const riso: Record<number, Content> = {
@@ -76,7 +121,7 @@ export const riso: Record<number, Content> = {
   44: "prapataj akote paara praapa",
   45: "tsatain tun",
   46: ["vona sjinu uten", "kundr mit"],
-  47: "strela nord west ost sud oba ljeva larava hina unna migi fura",
+  47: "strela nord west ost sud oba ljeva hina unna migi fura",
   48: ["klar tun", "kundr"],
   49: ["mietta k'", "pashun huin portocale ie al"],
   50: [
@@ -105,8 +150,8 @@ export const riso: Record<number, Content> = {
   ],
   68: ["fal -ki", "jam ni fu pashun dare ka viossa au nai"],
   69: [
-    "spor",
-    "un vil huin jainos mange stuur jam baum na gaja du os nai nam ting sot ie bra warui tyd ima ka",
+    "spor svar",
+    "du vil os nai nam ting sot ie bra os warui na du ka tyd ima un mange -s mwuai dag",
   ],
   70: [
     "spor dare doko cosce naze perka hur katai atai",
@@ -118,11 +163,7 @@ export const riso: Record<number, Content> = {
   ],
 }
 
-// #region koto
-const others =
-  "-a -ara -dai -djin -ki -yena -s un -tsa afefraut afto ahavja aifroidis ain airis aistia akk akote al ananas anta apar apu aschor asoko atai atechi au auauau auki auto azyci aja bagge baksu bamba banan baum berk bestfraut bite bjelu bjurki bjurkiplas blau bli bli- blin bluma bonaplas bra breska bruk brun bruur boozy catie cer cerfraut cine circas ciro cocro cola corva cosce crenos crusca cunin curo da daag dan danke dare darem daremdjin davai deer deki den discord doich- dok doko dronet du dua dush dur dvera dzikjaan ecso efles ein eksi ende enterrena ergo fami farge farza fi film flacha fraut froreenj fshto fu fuga fugel fugelfraut funn gaja gammel gavat gaja gelt glau glossa glug go godja gomen gris grun gvir haaste hadji hana hant hanu hapigo har hanj her hej hel helenakaku heljo henci hiven hjerne hor huin huomilehti hur hir hyske ie ima imang imi inje ipkiere ipni iptre isi iske ivel jaa jainos jalaka jam jamete joki joku ka kaku kara karroqhn kase katai katana kawaji kiere kini kirain kjannos kjomi klar kntre kolarum kompju corva kot kotnen kotoba kuchi kun kundr kury kyajdz kzin lacsaq lacte lapsi lasku lezi lehti lemo lera li libre lik ljeta luft luna luvan made mago maha mama mange maredur marojzschine matetundjin me mellan men midore milenjal milyon minairis mipi mirai mis mit mjes mono mora mucc mulbaksu mulkaban murasace mwuai na naht nai nam namting nana nasi naze neo ni nia niden nihunfraut nil nilting niog njudur noito nord non njui ogoi ohare ojogidzin onna opeta os ost ovashi owari oy paara pan papa paperi pashun per persefraut festako piel piman pinue pinuno pisma pitsa plas po- pojk portocale godja posaidis praapa pranvera prapataj pravda protofugel punkt ranjako ri ringo rinj riso rjoho roza ru rum ryodjin sakana sama samui sawi scecso sceer sdanie se shiro shirutro sho sidt sjikno silba simpel sini siru sisco skhola skwalo slucha sol sore sot spara spil spor sporko stift strela stuur sud sukha suksu suru suruko syryjna tajkadjin tak talvi tatuiba te tel ter terbi timba ting torta toshitel tosui tre treng trict tropos tsatain tsigau tsisai tsui tualet tuhat tulla tun tuo tutr tyd ufne un uno upasnen uso uten utenvona uuk uva valtsa vapa vasu vauva velt vera vet vi viha vikoli vil vinaphrayt vona vratsch vulcanis wa we west ze- zedvera zehant zeme zespil zeus jetta"
-
-export interface Word extends WordData {
+export type Word = WordData & {
   readonly kotoba: string
   readonly opetaNa: readonly number[]
   readonly hanuNa: readonly number[]
@@ -184,16 +225,6 @@ export function makeWordList(): ReadonlyMap<string, Word> {
     }
   }
 
-  for (const word of others.split(" ")) {
-    if (!map.has(word)) {
-      map.set(word, {
-        hanuNa: [],
-        opetaNa: [],
-        kotoba: word,
-      })
-    }
-  }
-
   for (const [key, value] of Object.entries(data)) {
     let mapval = map.get(key)
 
@@ -205,8 +236,18 @@ export function makeWordList(): ReadonlyMap<string, Word> {
     Object.assign(mapval, value)
   }
 
+  let missing: string[] = []
+  for (const key of map.keys()) {
+    if (!(key in data)) {
+      missing.push(key)
+    }
+  }
+  if (missing.length) {
+    throw new Error("Missing words " + missing.join(", ") + " from database.")
+  }
+
   return new Map(
-    Array.from(map).sort(([a], [b]) => {
+    Array.from(map as any as Map<string, Word>).sort(([a], [b]) => {
       const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
       const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
 
@@ -238,80 +279,121 @@ export function makeSlideList(): ReadonlyMap<number, Slide> {
   return map
 }
 
-export const data: Record<string, WordData> = {
+const rawData: Record<string, WordData> = {
   // #region ranjako
   "angl-": {
     emoji: "🇬🇧🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  },
-  "bli-": {
-    emoji: "",
+    fal: "namae",
+    falnen: "plasnamae",
+    imi: "fu anglant os anglossa",
   },
   "doich-": {
     emoji: "🇩🇪",
+    fal: "namae",
+    falnen: "plasnamae",
+    imi: "fu doichlant os doichossa",
   },
   "espanj-": {
     emoji: "🇪🇸",
+    fal: "namae",
+    falnen: "plasnamae",
+    imi: "fu espanjalant os espanjossa",
   },
   "ip-": {
     emoji: "",
+    fal: "kotobanen",
+    falnen: "lasku",
+    tatoeba: [
+      "ipni sama 1,000,000 sama milyon.",
+      "iptre sama 1,000,000,000.",
+      "ipkiere sama 1,000,000,000,000.",
+    ],
   },
   "kn-": {
-    emoji: "",
+    emoji: "–",
+    fal: "kotobanen",
+    falnen: "lasku",
+    imi: "nil uten lasku",
+    tatoeba: [
+      "kntre sama nil uten tre.",
+      "kn-lasku sama nil uten lasku afto. ",
+    ],
   },
   "nihon-": {
     emoji: "🇯🇵",
-  },
-  "po-": {
-    emoji: "🏁",
-  },
-  "ze-": {
-    emoji: "⚡",
+    fal: "namae",
+    falnen: "plasnamae",
+    imi: "fu nihonlant os nihonossa",
   },
 
   // #region festako
   "-a": {
-    emoji: "",
+    emoji: "2️⃣",
+    fal: "kotobanen",
+    falnen: "lasku",
+    imi: "jam ni fu afto",
+    tatoeba: ["un har ein huin. un har ni huina. un har tre huinara."],
   },
   "-ara": {
-    emoji: "",
+    emoji: "🔢",
+    fal: "kotobanen",
+    falnen: "lasku",
+    imi: "jam plusni fu afto",
+    tatoeba: ["un har ein huin. un har ni huina. un har tre huinara."],
   },
   "-dai": {
     emoji: "",
-  },
-  "-djin": {
-    emoji: "🧑🧓🧒",
-  },
-  "-ki": {
-    emoji: "",
-  },
-  "-ossa": {
-    emoji: "",
+    fal: "kotobanen",
+    falnen: "(naishiru)",
+    imi: "afto ie plustuur de altyd.",
+    tatoeba: [
+      "amerikalant ie lant. noramerikalantdai ie lantdai (sore har lant mange inje sore).",
+    ],
   },
   "-s": {
-    emoji: "",
+    emoji: "🥇🥈🥉",
+    fal: "kotobanen",
+    falnen: "lasku",
+    tatoeba: [
+      "un nam sotting. un nammirai ovashi. eins, un nam sotting. nis, un nam ovashi.",
+      "un au du rzinsaj. un rzinsaj mit tsisai tyd. du rzinsaj mit stuur tyd. un owari eins, au du owari nis.",
+    ],
   },
   "-tsa": {
     emoji: "",
+    fal: "kotobanen",
+    falnen: "(naishiru)",
   },
   "-yena": {
     emoji: "",
+    fal: "kotobanen",
+    falnen: "hanutro",
+    tatoeba: [
+      "kot auki circas. circas aukiyena na kot.",
+      "un kaku libre. libre kakuyena (na un).",
+    ],
   },
 
   // #region A
-  afefraut: {
-    emoji: "🥝",
-  },
   afto: {
     emoji: "",
   },
   ahavja: {
     emoji: "🫐",
+    fal: "tingko",
+    falnen: "fraut",
   },
   aifroidis: {
     emoji: "",
+    fal: "namae",
+    falnen: "plasnamae",
+    imi: "heljo nis na pandos fun",
   },
   airis: {
     emoji: "",
+    fal: "namae",
+    falnen: "plasnamae",
+    imi: "heljo kieres na pandos fun",
   },
   aistia: {
     emoji: "",
@@ -324,9 +406,16 @@ export const data: Record<string, WordData> = {
   },
   akote: {
     emoji: "",
+    fal: "lihko",
+    imi: "prapataj tsisai",
+    kundr: ["praapa"],
+    tatoeba: [
+      "nuyorkplas na akote fu newarkplas, men sore na praapa fu nihonlant",
+    ],
   },
   al: {
     emoji: "",
+    fal: "",
   },
   ananas: {
     emoji: "🍍",
@@ -526,6 +615,7 @@ export const data: Record<string, WordData> = {
   },
   deki: {
     emoji: "",
+    kakutro: ["-ki"],
   },
   den: {
     emoji: "🔟",
@@ -636,6 +726,7 @@ export const data: Record<string, WordData> = {
   },
   fugelfraut: {
     emoji: "🥝",
+    kakutro: ["afefraut"],
   },
   funn: {
     emoji: "",
@@ -665,8 +756,18 @@ export const data: Record<string, WordData> = {
   glau: {
     emoji: "😁😄😃😀",
   },
+  glaubi: {
+    emoji: "½",
+    imi: "mellan akk au nai",
+    tatoeba: [
+      `100 = akk
+50 = glaubi
+0 = nai`,
+    ],
+  },
   glossa: {
     emoji: "",
+    kakutro: ["-ossa"],
   },
   glug: {
     emoji: "",
@@ -701,6 +802,7 @@ export const data: Record<string, WordData> = {
   },
   hadji: {
     emoji: "",
+    kakutro: ["bli-"],
   },
   hana: {
     emoji: "👃",
@@ -929,9 +1031,6 @@ export const data: Record<string, WordData> = {
   lapsi: {
     emoji: "",
   },
-  larava: {
-    emoji: "⬅️",
-  },
   lasku: {
     emoji: "🔢",
   },
@@ -961,6 +1060,7 @@ export const data: Record<string, WordData> = {
   },
   ljeva: {
     emoji: "⬅️",
+    awenkakulyk: ["larava"],
   },
   luft: {
     emoji: "",
@@ -1174,6 +1274,7 @@ export const data: Record<string, WordData> = {
   },
   owari: {
     emoji: "🏁",
+    kakutro: ["po-"],
   },
   oy: {
     emoji: "",
@@ -1186,6 +1287,15 @@ export const data: Record<string, WordData> = {
   pan: {
     emoji: "🥐🥖🍞🥨",
   },
+  pandos: {
+    emoji: "",
+    fal: "tingko",
+    falnen: "plasnamae",
+    imi: "pandos har sol au heljo mange. jam mange pandos",
+    tatoeba: [
+      "pandos fun har solh au un au du au gaja au luna au heljo mange.",
+    ],
+  },
   papa: {
     emoji: "",
   },
@@ -1194,6 +1304,7 @@ export const data: Record<string, WordData> = {
   },
   pashun: {
     emoji: "👶🧒👧👦🧑👩👨🧑‍🦱",
+    kakutro: ["-djin"],
   },
   per: {
     emoji: "",
@@ -1261,8 +1372,20 @@ export const data: Record<string, WordData> = {
   },
 
   // #region R
+  ranja: {
+    emoji: "🫚",
+    fal: "tingko",
+    falnen: "vonating",
+    tatoeba: ["baum har ranha unna ter"],
+  },
   ranjako: {
     emoji: "",
+    fal: "tingko",
+    falnen: "hanutro",
+    imi: "li jam festako lyk kotobanen, kotobastuur ie ranjako.",
+    tatoeba: [
+      "inje ko 'amerikalant', jam ranjako 'amerika' au kotobanen 'lant'",
+    ],
   },
   raz: {
     emoji: "",
@@ -1386,6 +1509,15 @@ export const data: Record<string, WordData> = {
   },
   slucha: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(naishiru)",
+    imi: "~ suru ke jam",
+    kakutro: ["hlutsza"],
+    tatoeba: [
+      `A: ka slucha na du?
+B: un braa! danki, au na du?
+A: un bra auen!`,
+    ],
   },
   sol: {
     emoji: "🌞☀️",
@@ -1434,6 +1566,10 @@ export const data: Record<string, WordData> = {
   },
   surujna: {
     emoji: "",
+  },
+  svar: {
+    emoji: "",
+    kundr: ["spor"],
   },
 
   // #region T
@@ -1648,6 +1784,7 @@ A: braa. un dua huin.`,
   },
   zeus: {
     emoji: "⚡",
+    kakutro: ["ze-"],
   },
 
   // #region 100
@@ -1656,18 +1793,23 @@ A: braa. un dua huin.`,
   },
 }
 
-if (import.meta.env.DEV) {
-  let missing: string[] = []
-
-  for (const word of Object.values(riso).flat().join(" ").split(" ")) {
-    if (!(word in data)) {
-      if (!missing.includes(word)) {
-        missing.push(word)
-      }
-    }
-  }
-
-  if (missing.length) {
-    throw new Error("Missing words " + missing.join(", ") + " from dictionary.")
-  }
-}
+const data: Record<string, WordData> = Object.fromEntries(
+  Object.entries(rawData)
+    .flatMap<[string, WordData]>(([key, value]) => [
+      [key, value],
+      ...(value.kakutro?.map(
+        (kotoba) =>
+          [
+            kotoba,
+            {
+              ...value,
+              kakutro: value
+                .kakutro!.filter((x) => x != kotoba)
+                .concat(key)
+                .sort(sort),
+            },
+          ] satisfies [string, WordData],
+      ) || []),
+    ])
+    .sort(sortPairs),
+)

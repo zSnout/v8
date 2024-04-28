@@ -348,18 +348,14 @@ function KotoliSidebar(props: {
         </Show>
       </div>
 
-      <For each={props.maximized().opetaNa}>
-        {(page) => (
-          <div
-            class="mt-2 cursor-zoom-in"
-            onClick={() => props.setMaximizedSlide(slideMap.get(page)!)}
-          >
-            <Page page={page} />
+      <For
+        each={props.maximized().opetaNa.concat(props.maximized().hanuNa)}
+        fallback={
+          <div class="mt-2 rounded-xl border border-z px-3 py-2 italic text-z opacity-30 transition">
+            kotoba afto nai har riso.
           </div>
-        )}
-      </For>
-
-      <For each={props.maximized().hanuNa}>
+        }
+      >
         {(page) => (
           <div
             class="mt-2 cursor-zoom-in"
