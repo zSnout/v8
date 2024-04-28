@@ -910,27 +910,51 @@ B: nil wil!`,
   // #region E
   ecso: {
     emoji: "📤",
+    fal: "medko",
+    falnen: "(shiranai)",
+    kundr: ["inje"],
   },
   efles: {
     emoji: "👃👍",
+    fal: "lihko",
+    falnen: "(shiranai)",
+    imi: "braa na njui",
+    kundr: ["froreenj"],
   },
   ein: {
     emoji: "1️⃣",
+    fal: "tingko",
+    falnen: "lasku",
+    imi: "1",
   },
   eins: {
-    emoji: "",
+    emoji: "🥇",
+    fal: "lihko",
+    falnen: "lasku",
+    imi: "ein + -s",
   },
   eksi: {
     emoji: "6️⃣",
+    fal: "tingko",
+    falnen: "lasku",
+    imi: "6",
   },
   ende: {
     emoji: "",
+    fal: "troko",
+    falnen: "raz",
+    imi: "dan au ima",
   },
   enterrena: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    imi: "inje + ter + -yena",
   },
   ergo: {
     emoji: "👷🧑‍🏫🧑‍💼",
+    fal: "suruko",
+    falnen: "(shiranai)",
   },
 
   // #region F
