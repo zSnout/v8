@@ -3,13 +3,15 @@ import {
   faArrowLeft,
   faArrowRight,
   faClose,
+  faMap,
 } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import {
   GlobalWorkerOptions,
   PDFPageProxy,
+  RenderTask,
+  RenderingCancelledException,
   getDocument,
-  setLayerDimensions,
 } from "pdfjs-dist"
 import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import {
@@ -49,37 +51,50 @@ function Pdf(
       ref={async (canvas) => {
         let pageIndex = untrack(() => props.page)
         let page: PDFPageProxy | undefined
+        let currentTask: RenderTask | undefined
 
         async function render() {
-          const nowIndex = props.page
+          try {
+            if (currentTask) {
+              currentTask.cancel()
+            }
 
-          if (!page || nowIndex != pageIndex) {
-            page = await (await pdf).getPage(nowIndex)
-            pageIndex = nowIndex
+            const nowIndex = props.page
+
+            if (!page || nowIndex != pageIndex) {
+              page = await (await pdf).getPage(nowIndex)
+              pageIndex = nowIndex
+            }
+
+            if (canvas.clientWidth == 0) {
+              return
+            }
+
+            const scale = window.devicePixelRatio || 1
+            const viewport = page.getViewport({
+              scale: canvas.clientWidth / page.getViewport({ scale: 1 }).width,
+            })
+
+            const context = canvas.getContext("2d")!
+
+            canvas.width = Math.floor(viewport.width * scale)
+            canvas.height = Math.floor(viewport.height * scale)
+
+            const transform =
+              scale !== 1 ? [scale, 0, 0, scale, 0, 0] : undefined
+
+            currentTask = page.render({
+              canvasContext: context,
+              transform: transform,
+              viewport: viewport,
+            })
+
+            await currentTask.promise
+          } catch (error) {
+            if (!(error instanceof RenderingCancelledException)) {
+              throw error
+            }
           }
-
-          if (canvas.clientWidth == 0) {
-            return
-          }
-
-          const scale = window.devicePixelRatio || 1
-          const viewport = page.getViewport({
-            scale: canvas.clientWidth / page.getViewport({ scale: 1 }).width,
-          })
-
-          const context = canvas.getContext("2d")!
-
-          canvas.width = Math.floor(viewport.width * scale)
-          canvas.height = Math.floor(viewport.height * scale)
-
-          const transform = scale !== 1 ? [scale, 0, 0, scale, 0, 0] : undefined
-
-          page.render({
-            canvasContext: context,
-            transform: transform,
-
-            viewport: viewport,
-          })
         }
 
         createEffect(render)
@@ -90,7 +105,7 @@ function Pdf(
 
           resizeTimeout = setTimeout(() => {
             untrack(render)
-          }, 1000)
+          }, 250)
         })
       }}
     />
@@ -109,13 +124,13 @@ function Page(props: {
       onClick={props.onClick}
     >
       <Pdf
-        class="aspect-video w-full border border-z"
+        class="aspect-video w-full border border-z transition"
         classList={{ rounded: props.small, "rounded-xl": !props.small }}
         page={props.page}
       />
 
       <div
-        class="absolute bottom-0 right-0 flex h-8 w-12 items-center justify-center border border-z bg-z-body text-z transition"
+        class="absolute bottom-0 right-0 flex h-8 w-12 select-none items-center justify-center border border-z bg-z-body text-z transition"
         classList={{
           "rounded-tl": props.small,
           "rounded-tl-xl": !props.small,
@@ -517,6 +532,8 @@ function RisoliDialog(props: {
   dialogSlide: () => Slide | undefined
   setDialogSlide: (slide: Slide | undefined) => void
 }) {
+  const [dictionary, setDictionary] = createSignal(false)
+
   props.setDialogSlide(slideMap.get(67)!)
 
   return (
@@ -539,17 +556,26 @@ function RisoliDialog(props: {
         props.setDialogSlide(undefined)
       }}
     >
-      <div class="flex h-full w-full flex-col justify-center gap-2">
-        <div class="flex aspect-video max-h-[calc(100%_-_7.5rem)] w-full justify-center">
+      <div class="flex h-full w-full flex-col justify-center gap-6">
+        <div
+          class="flex aspect-video w-full justify-center"
+          classList={{
+            "max-h-full": !dictionary(),
+            "max-h-[calc(100%_-_8rem)]": dictionary(),
+          }}
+        >
           <div class="relative aspect-video h-full">
             <Page class="aspect-video" page={props.dialogSlide()?.index || 1} />
 
-            <div class="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-xl border border-z bg-z-body">
+            <button
+              class="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-xl border border-z bg-z-body ring-z-focus transition focus-visible:border-z-focus focus-visible:bg-z-body-selected focus-visible:outline-none focus-visible:ring"
+              autofocus
+            >
               <Fa class="h-8 w-8" icon={faClose} title="da kini riso" />
-            </div>
+            </button>
 
             <button
-              class="absolute -left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
+              class="absolute -left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body ring-z-focus transition focus-visible:border-z-focus focus-visible:bg-z-body-selected focus-visible:outline-none focus-visible:ring"
               onClick={(event) => {
                 const index = props.dialogSlide()?.index
                 if (index == null) {
@@ -563,11 +589,11 @@ function RisoliDialog(props: {
                 )
               }}
             >
-              <Fa class="h-8 w-8" icon={faArrowLeft} title="da kini riso" />
+              <Fa class="h-8 w-8" icon={faArrowLeft} title="da se risodan" />
             </button>
 
             <button
-              class="absolute -right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
+              class="absolute -right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body ring-z-focus transition focus-visible:border-z-focus focus-visible:bg-z-body-selected focus-visible:outline-none focus-visible:ring"
               onClick={(event) => {
                 const index = props.dialogSlide()?.index
                 if (index == null) {
@@ -581,26 +607,45 @@ function RisoliDialog(props: {
                 )
               }}
             >
-              <Fa class="h-8 w-8" icon={faArrowRight} title="da kini riso" />
+              <Fa class="h-8 w-8" icon={faArrowRight} title="da se risomirai" />
+            </button>
+
+            <button
+              class="absolute -bottom-2 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-xl border border-z bg-z-body ring-z-focus transition focus-visible:border-z-focus focus-visible:bg-z-body-selected focus-visible:outline-none focus-visible:ring"
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopImmediatePropagation()
+                setDictionary((x) => !x)
+              }}
+            >
+              <Fa
+                class="h-8 w-8"
+                icon={faMap}
+                title="da kinauki kotoli na unna"
+              />
             </button>
           </div>
         </div>
 
-        <div class="-mx-6 -my-6 flex h-40 min-h-40 w-[calc(100%_+_3rem)] gap-2 overflow-auto px-6 py-6 scrollbar:hidden">
-          <For
-            each={(props.dialogSlide()?.opetako || []).concat(
-              props.dialogSlide()?.hanuko || [],
-            )}
-          >
-            {(word) => (
-              <Kotoba
-                sidebar
-                word={wordMap.get(word)!}
-                setMaximized={() => {}}
-              />
-            )}
-          </For>
-        </div>
+        <Show when={dictionary()}>
+          <div class="-mx-6 -my-6 flex h-40 min-h-40 w-[calc(100%_+_3rem)] gap-2 overflow-x-auto overflow-y-hidden px-6 py-6 scrollbar:hidden">
+            <For
+              each={(props.dialogSlide()?.opetako || []).concat(
+                props.dialogSlide()?.hanuko || [],
+              )}
+            >
+              {(word) => (
+                <div class="flex h-28 w-28">
+                  <Kotoba
+                    sidebar
+                    word={wordMap.get(word)!}
+                    setMaximized={() => {}}
+                  />
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
       </div>
     </dialog>
   )
