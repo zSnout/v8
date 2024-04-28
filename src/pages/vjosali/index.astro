@@ -2,7 +2,6 @@
 import DocumentLayout from "@/layouts/DocumentLayout.astro"
 import { Vjosali } from "."
 import openGraphImage from "./open-graph.png"
-import worker from "pdfjs-dist/build/pdf.worker.mjs?url"
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -11,7 +10,7 @@ import worker from "pdfjs-dist/build/pdf.worker.mjs?url"
   href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap"
   rel="stylesheet"
 />
-{worker}
+
 <DocumentLayout
   description="libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. da lera kotoba f'viossa mit riso!"
   title="Vjosali"
