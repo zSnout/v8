@@ -578,6 +578,7 @@ function RisoliSidebar(props: {
 function RisoliDialog(props: {
   dialogSlide: () => Slide | undefined
   setDialogSlide: (slide: Slide | undefined) => void
+  setMaximizedWord: (word: Word) => void
 }) {
   const [dictionary, setDictionary] = createSignal(false)
 
@@ -673,7 +674,7 @@ function RisoliDialog(props: {
         </div>
 
         <Show when={dictionary()}>
-          <div class="-mx-6 -my-6 flex h-40 min-h-40 w-[calc(100%_+_3rem)] gap-2 overflow-x-auto overflow-y-hidden px-6 py-6 scrollbar:hidden">
+          <div class="-mx-6 -my-7 flex h-48 min-h-48 w-[calc(100%_+_3rem)] gap-2 overflow-x-auto overflow-y-hidden px-6 py-7 scrollbar:hidden">
             <For
               each={(props.dialogSlide()?.opetako || []).concat(
                 props.dialogSlide()?.hanuko || [],
@@ -684,7 +685,10 @@ function RisoliDialog(props: {
                   <Kotoba
                     sidebar
                     word={wordMap.get(word)!}
-                    setMaximized={() => {}}
+                    setMaximized={(word) => {
+                      props.setDialogSlide(undefined)
+                      props.setMaximizedWord(word)
+                    }}
                   />
                 </div>
               )}
@@ -776,6 +780,7 @@ export function Vjosali() {
           }
           setDialogSlide(slide)
         }}
+        setMaximizedWord={setMaximizedWord}
       />
     </div>
   )
