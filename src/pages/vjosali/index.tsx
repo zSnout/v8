@@ -7,13 +7,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import {
-  GlobalWorkerOptions,
+  PDFDocumentProxy,
   PDFPageProxy,
   RenderTask,
   RenderingCancelledException,
   getDocument,
 } from "pdfjs-dist"
-import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
+import "pdfjs-dist/build/pdf.worker.mjs"
 import {
   For,
   JSX,
@@ -35,12 +35,11 @@ import {
 
 type Mode = "kotoba" | "riso" | undefined
 
-GlobalWorkerOptions.workerSrc = worker
-
 const segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" })
 const wordMap = makeWordList()
 const slideMap = makeSlideList()
-const pdf = getDocument(RISOLI).promise
+
+let pdf: Promise<PDFDocumentProxy> | undefined
 
 function Pdf(
   props: JSX.CanvasHTMLAttributes<HTMLCanvasElement> & { page: number },
@@ -49,6 +48,10 @@ function Pdf(
     <canvas
       {...props}
       ref={async (canvas) => {
+        if (!pdf) {
+          pdf = getDocument(RISOLI).promise
+        }
+
         let pageIndex = untrack(() => props.page)
         let page: PDFPageProxy | undefined
         let currentTask: RenderTask | undefined

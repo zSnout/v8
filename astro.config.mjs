@@ -55,7 +55,6 @@ function traverse(/** @type {import("mdast").Content} */ node) {
 export default defineConfig({
   integrations: [
     solidJs(),
-    // @ts-ignore
     mdx(),
     tailwind({
       config: {
