@@ -157,18 +157,18 @@ const nonBlogPages: readonly Page[] = [
     imageSrc: tropeHighlighterOpenGraph,
   },
 
-  {
-    title: "Vjosali",
-    href: "/vjosali",
-    subtitle:
-      "Libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. Jam riso klarmange au siruting mange. Da lera os leragen kotoba f'viossa mit librafto, vjosali!",
+  // {
+  //   title: "Vjosali",
+  //   href: "/vjosali",
+  //   subtitle:
+  //     "Libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. Jam riso klarmange au siruting mange. Da lera os leragen kotoba f'viossa mit librafto, vjosali!",
 
-    tags: ["language", "tool"],
+  //   tags: ["language", "tool"],
 
-    imageAlt:
-      "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
-    imageSrc: vjosaliOpenGraph,
-  },
+  //   imageAlt:
+  //     "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
+  //   imageSrc: vjosaliOpenGraph,
+  // },
 
   {
     title: "Ithkuil Script Generator",
