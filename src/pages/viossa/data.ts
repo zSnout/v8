@@ -1245,6 +1245,12 @@ B: nil wil!`,
   grun: {
     emoji: "",
   },
+  gus: {
+    emoji: "👍",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    tatoeba: ["li du gus ting, ting bra na du."],
+  },
   gvir: {
     emoji: "🐴🌲✅",
     fal: "suruko",
@@ -1590,6 +1596,10 @@ B: nil wil!`,
   },
   me: {
     emoji: "👁️",
+  },
+  mekji: {
+    emoji: "👉",
+    tatoeba: ["🫵 hantnen mëkiiqh na du", "👇 hantnen mëkji na unna"],
   },
   mellan: {
     emoji: "",
