@@ -1,5 +1,3 @@
-import type { unknown } from "astro/zod"
-
 export const RISOLI = "/viossa71.pdf"
 
 function sort(a: string, b: string) {
@@ -21,20 +19,22 @@ function sortPairs(
 }
 
 export type Content =
-  | string // shorthand for taught words
+  | string // shorthand for no exposed words
   | [taught: string, exposed: string]
 
-export type WordType =
+export type Fal =
   | "tingko"
   | "suruko"
   | "lihko"
+  | "troko"
   | "pashko"
   | "medko"
-  | "troposko"
   | "sporko"
   | "kotobanen"
   | "namae"
-  | "svar"
+  | "hofli"
+  | "atai"
+  | "etuniko"
 
 export type Falnen =
   | "varge"
@@ -48,7 +48,7 @@ export type Falnen =
   | "raz" // lyk ima, ende
   | "tyd" // lyk sho, mwuai
   | "vonating"
-  | "(naishiru)"
+  | "(shiranai)"
 
 export type ImiOsTatoeba =
   | {
@@ -62,7 +62,7 @@ export type ImiOsTatoeba =
 
 export interface BaseWordData {
   readonly emoji: string
-  readonly fal: WordType
+  readonly fal: Fal
   readonly falnen: Falnen
   readonly lyk?: readonly string[] | undefined
   readonly kakutro?: readonly string[] | undefined
@@ -344,7 +344,7 @@ const rawData: Record<string, WordData> = {
   "-dai": {
     emoji: "",
     fal: "kotobanen",
-    falnen: "(naishiru)",
+    falnen: "(shiranai)",
     imi: "afto ie plustuur de altyd.",
     tatoeba: [
       "amerikalant ie lant. noramerikalantdai ie lantdai (sore har lant mange inje sore).",
@@ -362,7 +362,7 @@ const rawData: Record<string, WordData> = {
   "-tsa": {
     emoji: "",
     fal: "kotobanen",
-    falnen: "(naishiru)",
+    falnen: "(shiranai)",
   },
   "-yena": {
     emoji: "",
@@ -377,6 +377,10 @@ const rawData: Record<string, WordData> = {
   // #region A
   afto: {
     emoji: "",
+    fal: "atai",
+    falnen: "(shiranai)",
+    // imi: "afto ting ie ting ka du deki ", // TODO: 🫵👆👉📥
+    lyk: ["asoko", "tuo"],
   },
   ahavja: {
     emoji: "🫐",
@@ -403,10 +407,13 @@ const rawData: Record<string, WordData> = {
   },
   akk: {
     emoji: "",
+    fal: "hofli",
+    falnen: "(shiranai)",
+    kundr: ["nai"],
   },
   akote: {
     emoji: "",
-    fal: "lihko",
+    fal: "medko",
     imi: "prapataj tsisai",
     kundr: ["praapa"],
     tatoeba: [
@@ -415,60 +422,134 @@ const rawData: Record<string, WordData> = {
   },
   al: {
     emoji: "",
-    fal: "",
+    fal: "atai",
+    falnen: "lasku",
+    kundr: ["nil"],
+    lyk: ["joku", "joki"],
+    tatoeba: ["al ringo ru: 🍎🍎🍎🍎🍎. nai al ringo ru: 🍎🍎🍎🍏🍎."],
   },
   ananas: {
     emoji: "🍍",
+    fal: "tingko",
+    falnen: "fraut",
   },
   anta: {
     emoji: "🫴",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    tatoeba: ["un har ringo. un anta ringo na du. ima, du har ringo."],
   },
   apar: {
     emoji: "",
+    fal: "atai",
+    falnen: "lasku",
+    imi: "atai fu afto ting ie tsisai.",
+    tatoeba: [
+      "un har apar ringo: 🍎🍎🍎. du har mange ringo: 🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎.",
+    ],
   },
   apu: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    tatoeba: [
+      `🧑‍🎓: ka 'atai'?
+🧑: nai siru. oy gammeldjin, da apu!
+🧑‍🏫: 'atai' lyk 'lasku'. inje 🍎🍎, atai fu ringo ie ni. ringo nai har lasku.
+opetadjin apu mellandjin na opeta.`,
+    ],
   },
   aschor: {
     emoji: "🤑🏦💸",
+    fal: "lihko",
+    falnen: "(shiranai)",
+    imi: "aschordjin har mange gelt.",
+    lyk: ["gelt"],
   },
   asoko: {
     emoji: "",
+    fal: "atai",
+    falnen: "(shiranai)",
+    imi: "asoko ting ie na prapa fu un",
+    lyk: ["afto", "tuo"],
   },
   atai: {
-    emoji: "",
+    emoji: "🔢",
+    fal: "tingko",
+    falnen: "lasku",
+    tatoeba: [
+      "atai fu ringo inje 🍎🍎 ie ni",
+      "atai fu ringo inje 🍎🍎🍎🍎 ie kiere",
+    ],
   },
   atechi: {
-    emoji: "🦎",
+    emoji: "🦎🐍",
+    fal: "tingko",
+    falnen: "vonating",
   },
   au: {
     emoji: "➕",
+    fal: "etuniko",
+    falnen: "(shiranai)",
+    imi: "'X au Y suru' imi 'X suru. Y suru sama.'",
+    tatoeba: ["un har ringo au banan. un: 💁🍎🍌"],
   },
   auauau: {
     emoji: "➕...",
+    fal: "troko",
+    falnen: "(shiranai)",
+    imi: "'X au Y au Z auauau' imi 'X au Y au Z au ting sama'",
+    tatoeba: ["kotoba fraut imi ringo au banan au ananas au cerfraut auau"],
+    kakutro: ["auau"],
   },
   auki: {
-    emoji: "",
+    emoji: "🔓📖📭📂",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    kundr: ["kini"],
+    tatoeba: ["🔓📖📭📂 ie auki. 🔒📘📪📁 ie kini."],
   },
   auto: {
     emoji: "🚗🚓🚘🚖",
+    fal: "tingko",
+    falnen: "(shiranai)",
   },
   avara: {
     emoji: "🌌",
+    fal: "tingko",
+    falnen: "plasnamae",
+    imi: "mangenilting",
+    tatoeba: [
+      "inje pandos, jam solh au heljara au avara mange.",
+      "avara plas stuur. mange tsisai ting ie inje sore.",
+    ],
   },
   awen: {
     emoji: "",
+    fal: "troko",
+    falnen: "(shiranai)",
+    tatoeba: [
+      `A: ka slucha?
+B: un bra? au na du?
+A: un bra auen!`,
+    ],
   },
   azyci: {
     emoji: "🫘",
+    fal: "tingko",
+    falnen: "ovashi",
   },
 
   // #region B
   bagge: {
     emoji: "🐛🐜🐝🪲",
+    fal: "tingko",
+    falnen: "vonating",
   },
   baksu: {
     emoji: "📦🎁🗳️🥡",
+    fal: "tingko",
+    falnen: "vonating",
   },
   bamba: {
     emoji: "💣",
@@ -855,6 +936,14 @@ const rawData: Record<string, WordData> = {
   hjerne: {
     emoji: "🧠",
   },
+  hofli: {
+    emoji: "🙂🙇🙏",
+    fal: "suruko",
+    kundr: ["kushipa"],
+    tatoeba: [
+      "li pashun hanu 'danke' au 'nil' au 'gomen', sore hofli. li sore hanu 'blin' au 'shaisa', sore kushipa.",
+    ],
+  },
   hor: {
     emoji: "",
   },
@@ -1007,6 +1096,14 @@ const rawData: Record<string, WordData> = {
   },
   kundr: {
     emoji: "",
+  },
+  kushipa: {
+    emoji: "🤪🤬🖕",
+    fal: "suruko",
+    kundr: ["hofli"],
+    tatoeba: [
+      "li pashun hanu 'danke' au 'nil' au 'gomen', sore hofli. li sore hanu 'blin' au 'shaisa', sore kushipa.",
+    ],
   },
   kury: {
     emoji: "🌑🕶️",
@@ -1510,7 +1607,7 @@ const rawData: Record<string, WordData> = {
   slucha: {
     emoji: "",
     fal: "suruko",
-    falnen: "(naishiru)",
+    falnen: "(shiranai)",
     imi: "~ suru ke jam",
     kakutro: ["hlutsza"],
     tatoeba: [
