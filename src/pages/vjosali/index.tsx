@@ -539,20 +539,6 @@ function RisoliDialog(props: {
         props.setDialogSlide(undefined)
       }}
     >
-      {/* Layout with words attached to bottom of screen */}
-      {/* <div class="flex h-full w-full flex-1 flex-col gap-2 bg-green-500">
-        <div class="flex max-h-[calc(100%_-_7.5rem)] flex-1 items-center bg-blue-500">
-          <div class="flex aspect-video max-h-full flex-1 justify-center bg-purple-500">
-            <div class="relative aspect-video h-full bg-yellow-500"></div>
-          </div>
-        </div>
-
-        <div class="-mx-6 -my-6 flex h-40 min-h-40 w-[calc(100%_+_3rem)] gap-2 overflow-auto px-6 py-6">
-          <div class="flex-1 bg-orange-500"></div>
-        </div>
-      </div> */}
-
-      {/* Layout with words attached to bottom of slide */}
       <div class="flex h-full w-full flex-col justify-center gap-2">
         <div class="flex aspect-video max-h-[calc(100%_-_7.5rem)] w-full justify-center">
           <div class="relative aspect-video h-full">
@@ -616,64 +602,6 @@ function RisoliDialog(props: {
           </For>
         </div>
       </div>
-
-      {/* <div class="flex max-h-full w-full max-w-full flex-1 flex-col gap-4">
-        <div class="relative flex aspect-video max-h-full flex-1 justify-center">
-          <Page class="aspect-video" page={props.dialogSlide()?.index || 1} />
-
-          <div class="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-xl border border-z bg-z-body">
-            <Fa class="h-8 w-8" icon={faClose} title="da kini riso" />
-          </div>
-
-          <button
-            class="absolute -left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
-            onClick={(event) => {
-              const index = props.dialogSlide()?.index
-              if (index == null) {
-                return
-              }
-
-              event.preventDefault()
-              event.stopImmediatePropagation()
-              props.setDialogSlide(
-                slideMap.get(index - 1) || props.dialogSlide(),
-              )
-            }}
-          >
-            <Fa class="h-8 w-8" icon={faArrowLeft} title="da kini riso" />
-          </button>
-
-          <button
-            class="absolute -right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
-            onClick={(event) => {
-              const index = props.dialogSlide()?.index
-              if (index == null) {
-                return
-              }
-
-              event.preventDefault()
-              event.stopImmediatePropagation()
-              props.setDialogSlide(
-                slideMap.get(index + 1) || props.dialogSlide(),
-              )
-            }}
-          >
-            <Fa class="h-8 w-8" icon={faArrowRight} title="da kini riso" />
-          </button>
-        </div>
-
-        <div class="flex h-28 min-h-28 w-full max-w-full gap-2 overflow-auto scrollbar:hidden">
-          <For
-            each={(props.dialogSlide()?.opetako || []).concat(
-              props.dialogSlide()?.hanuko || [],
-            )}
-          >
-            {(word) => (
-              <Kotoba word={wordMap.get(word)!} setMaximized={() => {}} />
-            )}
-          </For>
-        </div>
-      </div> */}
     </dialog>
   )
 }
