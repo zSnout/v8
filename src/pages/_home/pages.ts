@@ -10,6 +10,7 @@ import ithkuilScriptCheatSheetOpenGraph from "../ithkuil/script/cheat-sheet/open
 import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import sitelenPonaTypistOpenGraph from "../toki-pona/typist/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
+import vjosaliOpenGraph from "../vjosali/open-graph.png"
 
 export type Tag =
   | "art"
@@ -144,19 +145,6 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
-    title: "Ithkuil Script Generator",
-    href: "/ithkuil/script",
-    subtitle:
-      "Quickly write in the block script of the constructed language Ithkuil using our simple online SVG generator. Handles formatives, referentials, and adjuncts.",
-
-    tags: ["language", "tool"],
-
-    imageAlt:
-      'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
-    imageSrc: ithkuilScriptGeneratorOpenGraph,
-  },
-
-  {
     title: "Trope Highlighter",
     href: "/trope-highlighter",
     subtitle:
@@ -167,6 +155,32 @@ const nonBlogPages: readonly Page[] = [
     imageAlt:
       "A paragraph of Hebrew text where each word has a background color depending on its trope.",
     imageSrc: tropeHighlighterOpenGraph,
+  },
+
+  {
+    title: "Vjosali",
+    href: "/vjosali",
+    subtitle:
+      "Libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. Jam riso klarmange au siruting mange. Da lera os leragen kotoba f'viossa mit librafto, vjosali!",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
+    imageSrc: vjosaliOpenGraph,
+  },
+
+  {
+    title: "Ithkuil Script Generator",
+    href: "/ithkuil/script",
+    subtitle:
+      "Quickly write in the block script of the constructed language Ithkuil using our simple online SVG generator. Handles formatives, referentials, and adjuncts.",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
+    imageSrc: ithkuilScriptGeneratorOpenGraph,
   },
 
   {

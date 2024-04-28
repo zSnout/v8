@@ -1,7 +1,7 @@
 ---
 import DocumentLayout from "@/layouts/DocumentLayout.astro"
 import { Vjosali } from "."
-// import openGraphImage from "./_home/open-graph.jpg"
+import openGraphImage from "./open-graph.png"
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -12,12 +12,13 @@ import { Vjosali } from "."
 />
 
 <DocumentLayout
-  description="TODO"
-  title="TODO"
+  description="libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. da lera kotoba f'viossa mit riso!"
+  title="Vjosali"
   og={{
-    imageSrc: "TODO",
-    imageAlt: "TODO",
-    title: "TODO",
+    imageSrc: openGraphImage,
+    imageAlt:
+      "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
+    title: "Vjosali",
   }}
 >
   <Vjosali client:only />

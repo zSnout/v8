@@ -214,7 +214,7 @@ function Header() {
         </p>
 
         <p class="text-center text-sm">
-          risoli fsore vona na{" "}
+          risoli vona na{" "}
           <a
             class="text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
             href="https://bit.ly/davilera"
