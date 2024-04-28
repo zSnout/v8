@@ -151,7 +151,7 @@ export const riso: Record<number, Content> = {
   68: ["fal -ki", "jam ni fu pashun dare ka viossa au nai"],
   69: [
     "spor svar",
-    "du vil os nai nam ting sot ie bra os warui na du ka tyd ima un mange -s mwuai dag",
+    "du vil os nai nam ting sot ie bra os warui na du ka tyd ima un mange -s mwuai daag",
   ],
   70: [
     "spor dare doko cosce naze perka hur katai atai",
