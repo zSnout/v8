@@ -561,7 +561,7 @@ function RisoliDialog(props: {
           class="flex aspect-video w-full justify-center"
           classList={{
             "max-h-full": !dictionary(),
-            "max-h-[calc(100%_-_8rem)]": dictionary(),
+            "max-h-[calc(100%_-_8.5rem)]": dictionary(),
           }}
         >
           <div class="relative aspect-video h-full">
