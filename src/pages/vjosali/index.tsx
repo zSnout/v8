@@ -395,6 +395,53 @@ function KotoliSidebar(props: {
         </Show>
       </div>
 
+      <Show when={props.maximized().lyk?.length}>
+        <div class="mt-2 rounded-tl-2xl border-l border-z pb-1 pl-2 pt-1 text-sm italic text-z transition">
+          lyk kotoba:
+        </div>
+
+        <div
+          class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2 border-l border-z pb-2 pl-2 text-z transition"
+          classList={{
+            "rounded-br-2xl": !props.maximized().kundr?.length,
+          }}
+        >
+          <For each={props.maximized().lyk}>
+            {(word) => (
+              <Kotoba
+                word={wordMap.get(word)!}
+                setMaximized={props.setMaximizedWord}
+                sidebar
+              />
+            )}
+          </For>
+        </div>
+      </Show>
+
+      <Show when={props.maximized().kundr?.length}>
+        <div
+          class="mt-2 border-l border-z pb-1 pl-2 pt-1 text-sm italic text-z transition"
+          classList={{
+            "mt-2": !props.maximized().lyk?.length,
+            "rounded-tl-2xl": !props.maximized().lyk?.length,
+          }}
+        >
+          kundr kotoba:
+        </div>
+
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2 rounded-bl-2xl border-l border-z pb-2 pl-2 text-z transition">
+          <For each={props.maximized().kundr}>
+            {(word) => (
+              <Kotoba
+                word={wordMap.get(word)!}
+                setMaximized={props.setMaximizedWord}
+                sidebar
+              />
+            )}
+          </For>
+        </div>
+      </Show>
+
       <For
         each={props.maximized().opetaNa.concat(props.maximized().hanuNa)}
         fallback={
@@ -534,8 +581,6 @@ function RisoliDialog(props: {
 }) {
   const [dictionary, setDictionary] = createSignal(false)
 
-  props.setDialogSlide(slideMap.get(67)!)
-
   return (
     <dialog
       class="flex h-full w-full cursor-zoom-out items-center justify-center overflow-visible bg-transparent p-6 backdrop-blur-lg backdrop:bg-z-body backdrop:opacity-70 focus:outline-none [&:modal]:max-h-full [&:modal]:max-w-full"
@@ -653,7 +698,7 @@ function RisoliDialog(props: {
 
 export function Vjosali() {
   const [query, setQuery] = createSignal("")
-  const [word, __setWord] = createSignal<Word>(wordMap.get("sakawi")!)
+  const [word, __setWord] = createSignal<Word>(wordMap.get("al")!)
   const [slide, __setSlide] = createSignal<Slide>(slideMap.get(12)!)
   const [isSlide, setIsSlide] = createSignal(false)
   const [mode, setMode] = createSignal<Mode>()
