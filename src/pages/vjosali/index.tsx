@@ -538,7 +538,7 @@ function RisoliDialog(props: {
 
   return (
     <dialog
-      class="flex h-full w-full cursor-zoom-out items-center justify-center overflow-visible bg-transparent p-6 backdrop:backdrop-blur-lg focus:outline-none [&:modal]:max-h-full [&:modal]:max-w-full"
+      class="flex h-full w-full cursor-zoom-out items-center justify-center overflow-visible bg-transparent p-6 backdrop-blur-lg backdrop:bg-z-body backdrop:opacity-70 focus:outline-none [&:modal]:max-h-full [&:modal]:max-w-full"
       classList={{ hidden: !props.dialogSlide() }}
       ref={(el) => {
         createEffect(() => {
