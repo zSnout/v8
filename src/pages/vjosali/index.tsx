@@ -325,13 +325,17 @@ function KotoliSidebar(props: {
 }) {
   return (
     <>
-      <div class="z-20 flex h-72 min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg transition">
-        <div class="flex flex-wrap text-2xl font-semibold">
+      <div class="relative z-20 flex min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg transition">
+        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl opacity-30 blur-[2px]">
+          {segmenter.segment(props.maximized().emoji).containing(0)?.segment}
+        </div>
+
+        <div class="relative flex flex-wrap text-2xl font-semibold">
           <p class="mr-auto text-z transition">{props.maximized().kotoba}</p>
           <p class="text-z transition">{props.maximized().emoji || ""}</p>
         </div>
 
-        <p class="text-lg text-z transition">
+        <p class="relative text-lg text-z transition">
           {props.maximized().imi ? (
             <>
               <em>imi:</em> {props.maximized().imi}
@@ -344,12 +348,12 @@ function KotoliSidebar(props: {
         <Show
           when={props.maximized().tatoeba?.length}
           fallback={
-            <em class="-mx-6 -mb-4 mt-auto border-t border-z px-3 py-2 text-z opacity-30 transition">
+            <em class="relative -mx-6 -mb-4 mt-auto border-t border-z px-3 py-2 text-z opacity-30 transition">
               afto kotoba nai har tatoeba
             </em>
           }
         >
-          <div class="-mx-6 -mb-4 mt-auto grid grid-cols-2 gap-px overflow-hidden rounded-b-xl border-t border-z bg-z-border transition">
+          <div class="relative -mx-6 -mb-4 mt-auto grid grid-cols-2 gap-px overflow-hidden rounded-b-xl border-t border-z bg-z-border transition">
             <For
               each={
                 props.maximized().tatoeba!?.length % 2

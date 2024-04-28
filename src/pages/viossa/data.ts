@@ -52,20 +52,173 @@ export type Falnen =
   | "kokoro"
   | "(shiranai)"
 
+export type Priority1 =
+  | "-tsa"
+  | "aistia"
+  | "aja"
+  | "cocro"
+  | "darem"
+  | "diskord"
+  | "festako"
+  | "fuga"
+  | "godja"
+  | "gvir"
+  | "hapigo"
+  | "hel"
+  | "helenakaku"
+  | "her"
+  | "hor"
+  | "huomilehti"
+  | "hyske"
+  | "imi"
+  | "ipkiere"
+  | "ipni"
+  | "iptre"
+  | "kjannos"
+  | "kntre"
+  | "kokoro"
+  | "kolarum"
+  | "lacte"
+  | "lehti"
+  | "luft"
+  | "mellan"
+  | "milyon"
+  | "mono"
+  | "mucc"
+  | "mulkaban"
+  | "nasi"
+  | "nilting"
+  | "ojogidzin"
+  | "piel"
+  | "pranvera"
+  | "raz"
+  | "ri"
+  | "rjoho"
+  | "rum"
+  | "sidt"
+  | "spara"
+  | "sporko"
+  | "sukha"
+  | "surujna"
+  | "suruko"
+  | "tak"
+  | "tatuiba"
+  | "te"
+  | "tel"
+  | "ter"
+  | "toshitel"
+  | "treng"
+  | "uno"
+  | "vasu"
+  | "vikoli"
+  | "viossa"
+  | "vratsch"
+  | "wa"
+  | "zedvera"
+
+export type Priority2 =
+  | "ze-"
+  | "100"
+  | "auto"
+  | "azyci"
+  | "bamba"
+  | "berk"
+  | "bjelu"
+  | "breska"
+  | "cunin"
+  | "daremdjin"
+  | "dua"
+  | "dush"
+  | "farza"
+  | "film"
+  | "flacha"
+  | "froreenj"
+  | "hanj"
+  | "hant"
+  | "henci"
+  | "hiven"
+  | "imang"
+  | "isi"
+  | "ivel"
+  | "jetta"
+  | "joki"
+  | "karroqhn"
+  | "kawaji"
+  | "kompju"
+  | "kotnen"
+  | "kun"
+  | "kury"
+  | "kyajdz"
+  | "ljeta"
+  | "luvan"
+  | "marojzschine"
+  | "milenjal"
+  | "mjes"
+  | "mora"
+  | "mulbaksu"
+  | "naht"
+  | "namting"
+  | "neo"
+  | "niden"
+  | "noito"
+  | "ogoi"
+  | "ohare"
+  | "onna"
+  | "ovashi"
+  | "pan"
+  | "paperi"
+  | "piman"
+  | "pisma"
+  | "pitsa"
+  | "pravda"
+  | "rinj"
+  | "sakana"
+  | "sdanie"
+  | "shirutro"
+  | "sjikno"
+  | "skhola"
+  | "skwalo"
+  | "spil"
+  | "stift"
+  | "suksu"
+  | "tajkadzin"
+  | "talvi"
+  | "terbi"
+  | "timba"
+  | "tulla"
+  | "ufne"
+  | "upasnen"
+  | "uso"
+  | "utenvona"
+  | "varge"
+  | "vauva"
+  | "velt"
+  | "vera"
+  | "vet"
+  | "viha"
+  | "zehant"
+  | "zeme"
+  | "zespil"
+  | "zeus"
+
 export type ImiOsTatoeba =
   | {
       readonly imi: string
       readonly tatoeba?: readonly string[] | undefined
     }
   | {
-      readonly imi?: string
+      readonly imi?: string | undefined
       readonly tatoeba: readonly string[]
+    }
+  | {
+      readonly imi?: string | undefined
+      readonly tatoeba?: readonly string[] | undefined
     }
 
 export interface BaseWordData {
   readonly emoji: string
-  readonly fal: Fal | readonly Fal[]
-  readonly falnen: Falnen
+  readonly fal?: Fal | readonly Fal[] | undefined
+  readonly falnen?: Falnen | undefined
   readonly lyk?: readonly string[] | undefined
   readonly kakutro?: readonly string[] | undefined
   readonly kundr?: readonly string[] | undefined
@@ -112,12 +265,12 @@ export const riso: Record<number, Content> = {
   35: ["men har vil", "ringo banan nai un nam sore ting"],
   36: "tyd dan ima mirai",
   37: [
-    "gammel ryo -djin mama papa fi kzin sawi bruur sisco un matetun pojk tutr lapsi mipi nia",
+    "gammel ryo -djin ryodjin mama papa fi kzin sawi bruur sisco un matetun matetundjin pojk tutr lapsi mipi nia fami",
     "un",
   ],
   38: [
     "roza ru portocale ciro midore sini blau murasace shiro gris curo cafe",
-    "al kotoba afto farge tsigau nai sama",
+    "al kotoba afto varge tsigau nai sama",
   ],
   39: "tsisai stuur",
   40: "simpel haaste",
@@ -285,7 +438,11 @@ export function makeSlideList(): ReadonlyMap<number, Slide> {
   return map
 }
 
-const kotobasirumahena: Record<string, RawWordData> = {
+const kotobasirumahena: Record<string, RawWordData> &
+  Record<
+    Priority1,
+    { readonly fal: string | readonly string[] } & RawWordData
+  > = {
   // #region ranjako
   "angl-": {
     emoji: "🇬🇧🏴󠁧󠁢󠁥󠁮󠁧󠁿",
@@ -965,14 +1122,18 @@ B: nil wil!`,
   fami: {
     emoji: "👪👨‍👨‍👧‍👧👨‍👩‍👦‍👦👨‍👨‍👧‍👦",
   },
-  farge: {
-    emoji: "🎨❤️💚🟨🔷🟧🔴🟩",
-  },
   farza: {
     emoji: "🌡️📏⚖️📐",
   },
   festako: {
     emoji: "",
+    fal: "tingko",
+    falnen: "hanutro",
+    imi: "kotobanen ka akote na ranjako",
+    tatoeba: [
+      "inje kotoba 'amerikalant', -lant ie festako",
+      "inje kotoba 'tres', -s ie festako.",
+    ],
   },
   fi: {
     emoji: "",
@@ -999,7 +1160,11 @@ B: nil wil!`,
     emoji: "",
   },
   fuga: {
-    emoji: "",
+    emoji: "🃏🪪💳",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "librenen ka opeta sirunen",
+    tatoeba: ["vi spil mit fuga"],
   },
   fugel: {
     emoji: "🐧🦉🦅🐥🦜🐦🦆🐔",
@@ -1057,6 +1222,14 @@ B: nil wil!`,
   },
   godja: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "ka akote na ecso fu ting",
+    tatoeba: [
+      "aldjin har godja",
+      "godja fu pashun ie lacte stuur vonatro na sore",
+      "li du vil nam portocale 🍊, sit du mus mahanaigvir godja fsore",
+    ],
   },
   gomen: {
     emoji: "😔🙏🙇",
@@ -1073,7 +1246,11 @@ B: nil wil!`,
     emoji: "",
   },
   gvir: {
-    emoji: "",
+    emoji: "🐴🌲✅",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    imi: "ein os plusein afto ie na velt. ~ jam afto.",
+    tatoeba: ["🐴 gvir. 🦄 nai gvir."],
   },
 
   // #region H
@@ -1097,7 +1274,11 @@ B: nil wil!`,
     emoji: "🗣️",
   },
   hapigo: {
-    emoji: "",
+    emoji: "📍👉",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "asoko plas",
+    lyk: ["her", "der"],
   },
   har: {
     emoji: "",
@@ -1361,7 +1542,7 @@ B: nil wil!`,
   },
   ljeva: {
     emoji: "⬅️",
-    awenkakulyk: ["larava"],
+    kakutro: ["larava"],
   },
   luft: {
     emoji: "",
@@ -1450,7 +1631,7 @@ B: nil wil!`,
     emoji: "",
   },
   mjes: {
-    emoji: "♀︎👦👨👴",
+    emoji: "♂️👦👨👴",
   },
   mono: {
     emoji: "",
@@ -2006,6 +2187,9 @@ A: un bra auen!`,
   },
   vapa: {
     emoji: "🥵🔥",
+  },
+  varge: {
+    emoji: "🎨❤️💚🟨🔷🟧🔴🟩",
   },
   vasu: {
     emoji: "",
