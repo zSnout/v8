@@ -439,6 +439,7 @@ export function makeSlideList(): ReadonlyMap<number, Slide> {
 }
 
 const kotobasirumahena: Record<string, RawWordData> &
+  // errors on words which we should have more info on
   Record<
     Priority1,
     { readonly fal: string | readonly string[] } & RawWordData
