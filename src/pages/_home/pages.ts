@@ -10,7 +10,7 @@ import ithkuilScriptCheatSheetOpenGraph from "../ithkuil/script/cheat-sheet/open
 import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import sitelenPonaTypistOpenGraph from "../toki-pona/typist/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
-import vjosaliOpenGraph from "../vjosali/open-graph.png"
+// import vjosaliOpenGraph from "../vjosali/open-graph.png"
 
 export type Tag =
   | "art"

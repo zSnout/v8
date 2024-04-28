@@ -563,9 +563,6 @@ const kotobasirumahena: Record<string, RawWordData> &
     falnen: "plasnamae",
     imi: "heljo kieres na pandos fun",
   },
-  aistia: {
-    emoji: "",
-  },
   aja: {
     emoji: "",
   },
@@ -887,7 +884,7 @@ A: un warui 👎.`,
     emoji: "",
     fal: ["tingko", "suruko"],
     falnen: "(shiranai)",
-    kakutro: ["kokoro"],
+    kakutro: ["kokoro", "aistia"],
   },
   cola: {
     emoji: "😴💤🛌",
@@ -1295,9 +1292,17 @@ B: nil wil!`,
   },
   hel: {
     emoji: "",
+    fal: "lihko",
+    falnen: "(shiranai)",
+    imi: "al fu afto ting",
+    kundr: ["tel"],
+    tatoeba: ["🎂 hel torta. 🍰 tel torta."],
   },
   helenakaku: {
-    emoji: "",
+    emoji: "𝓀𝒶𝓀𝓊",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    tatoeba: ["𝒶𝒻𝓉ℴ 𝒽ℯ𝓁ℯ𝓃𝒶𝓀𝒶𝓀𝓊. afto nai helenakaku."],
   },
   heljo: {
     emoji: "🪐🌎",
@@ -1306,7 +1311,10 @@ B: nil wil!`,
     emoji: "💭👃➡️🫁",
   },
   her: {
-    emoji: "",
+    emoji: "📍⬇️",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "afto plas",
   },
   hina: {
     emoji: "",
@@ -1341,13 +1349,20 @@ B: nil wil!`,
     emoji: "🏠🏡🏚️",
   },
   huomilehti: {
-    emoji: "",
+    emoji: "🏠📄",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "lehti ka du se cosce du eins se libre",
   },
   hur: {
     emoji: "",
   },
   hyske: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    imi: "siru dan au benj shiru ima",
+    kundr: ["vasu"],
   },
 
   // #region I
@@ -2203,7 +2218,10 @@ A: un bra auen!`,
     emoji: "🎨❤️💚🟨🔷🟧🔴🟩",
   },
   vasu: {
-    emoji: "",
+    emoji: "🫥🧠",
+    fal: "suruko",
+    falnen: "(shiranai)",
+    imi: "shiru dan men nai shiru ima",
   },
   vauva: {
     emoji: "👶",
