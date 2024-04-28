@@ -1,7 +1,16 @@
 import { Fa } from "@/components/Fa"
-import { faClose } from "@fortawesome/free-solid-svg-icons"
+import {
+  faArrowLeft,
+  faArrowRight,
+  faClose,
+} from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
-import { GlobalWorkerOptions, PDFPageProxy, getDocument } from "pdfjs-dist"
+import {
+  GlobalWorkerOptions,
+  PDFPageProxy,
+  getDocument,
+  setLayerDimensions,
+} from "pdfjs-dist"
 import worker from "pdfjs-dist/build/pdf.worker.min.mjs?url"
 import {
   For,
@@ -504,6 +513,171 @@ function RisoliSidebar(props: {
   )
 }
 
+function RisoliDialog(props: {
+  dialogSlide: () => Slide | undefined
+  setDialogSlide: (slide: Slide | undefined) => void
+}) {
+  props.setDialogSlide(slideMap.get(67)!)
+
+  return (
+    <dialog
+      class="flex h-full w-full cursor-zoom-out items-center justify-center overflow-visible bg-transparent p-6 backdrop:backdrop-blur-lg focus:outline-none [&:modal]:max-h-full [&:modal]:max-w-full"
+      classList={{ hidden: !props.dialogSlide() }}
+      ref={(el) => {
+        createEffect(() => {
+          if (props.dialogSlide()) {
+            el.showModal()
+          } else {
+            el.close()
+          }
+        })
+      }}
+      onClose={() => {
+        props.setDialogSlide(undefined)
+      }}
+      onClick={() => {
+        props.setDialogSlide(undefined)
+      }}
+    >
+      {/* Layout with words attached to bottom of screen */}
+      {/* <div class="flex h-full w-full flex-1 flex-col gap-2 bg-green-500">
+        <div class="flex max-h-[calc(100%_-_7.5rem)] flex-1 items-center bg-blue-500">
+          <div class="flex aspect-video max-h-full flex-1 justify-center bg-purple-500">
+            <div class="relative aspect-video h-full bg-yellow-500"></div>
+          </div>
+        </div>
+
+        <div class="-mx-6 -my-6 flex h-40 min-h-40 w-[calc(100%_+_3rem)] gap-2 overflow-auto px-6 py-6">
+          <div class="flex-1 bg-orange-500"></div>
+        </div>
+      </div> */}
+
+      {/* Layout with words attached to bottom of slide */}
+      <div class="flex h-full w-full flex-col justify-center gap-2">
+        <div class="flex aspect-video max-h-[calc(100%_-_7.5rem)] w-full justify-center">
+          <div class="relative aspect-video h-full">
+            <Page class="aspect-video" page={props.dialogSlide()?.index || 1} />
+
+            <div class="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-xl border border-z bg-z-body">
+              <Fa class="h-8 w-8" icon={faClose} title="da kini riso" />
+            </div>
+
+            <button
+              class="absolute -left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
+              onClick={(event) => {
+                const index = props.dialogSlide()?.index
+                if (index == null) {
+                  return
+                }
+
+                event.preventDefault()
+                event.stopImmediatePropagation()
+                props.setDialogSlide(
+                  slideMap.get(index - 1) || props.dialogSlide(),
+                )
+              }}
+            >
+              <Fa class="h-8 w-8" icon={faArrowLeft} title="da kini riso" />
+            </button>
+
+            <button
+              class="absolute -right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
+              onClick={(event) => {
+                const index = props.dialogSlide()?.index
+                if (index == null) {
+                  return
+                }
+
+                event.preventDefault()
+                event.stopImmediatePropagation()
+                props.setDialogSlide(
+                  slideMap.get(index + 1) || props.dialogSlide(),
+                )
+              }}
+            >
+              <Fa class="h-8 w-8" icon={faArrowRight} title="da kini riso" />
+            </button>
+          </div>
+        </div>
+
+        <div class="-mx-6 -my-6 flex h-40 min-h-40 w-[calc(100%_+_3rem)] gap-2 overflow-auto px-6 py-6 scrollbar:hidden">
+          <For
+            each={(props.dialogSlide()?.opetako || []).concat(
+              props.dialogSlide()?.hanuko || [],
+            )}
+          >
+            {(word) => (
+              <Kotoba
+                sidebar
+                word={wordMap.get(word)!}
+                setMaximized={() => {}}
+              />
+            )}
+          </For>
+        </div>
+      </div>
+
+      {/* <div class="flex max-h-full w-full max-w-full flex-1 flex-col gap-4">
+        <div class="relative flex aspect-video max-h-full flex-1 justify-center">
+          <Page class="aspect-video" page={props.dialogSlide()?.index || 1} />
+
+          <div class="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-xl border border-z bg-z-body">
+            <Fa class="h-8 w-8" icon={faClose} title="da kini riso" />
+          </div>
+
+          <button
+            class="absolute -left-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
+            onClick={(event) => {
+              const index = props.dialogSlide()?.index
+              if (index == null) {
+                return
+              }
+
+              event.preventDefault()
+              event.stopImmediatePropagation()
+              props.setDialogSlide(
+                slideMap.get(index - 1) || props.dialogSlide(),
+              )
+            }}
+          >
+            <Fa class="h-8 w-8" icon={faArrowLeft} title="da kini riso" />
+          </button>
+
+          <button
+            class="absolute -right-2 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-xl border border-z bg-z-body"
+            onClick={(event) => {
+              const index = props.dialogSlide()?.index
+              if (index == null) {
+                return
+              }
+
+              event.preventDefault()
+              event.stopImmediatePropagation()
+              props.setDialogSlide(
+                slideMap.get(index + 1) || props.dialogSlide(),
+              )
+            }}
+          >
+            <Fa class="h-8 w-8" icon={faArrowRight} title="da kini riso" />
+          </button>
+        </div>
+
+        <div class="flex h-28 min-h-28 w-full max-w-full gap-2 overflow-auto scrollbar:hidden">
+          <For
+            each={(props.dialogSlide()?.opetako || []).concat(
+              props.dialogSlide()?.hanuko || [],
+            )}
+          >
+            {(word) => (
+              <Kotoba word={wordMap.get(word)!} setMaximized={() => {}} />
+            )}
+          </For>
+        </div>
+      </div> */}
+    </dialog>
+  )
+}
+
 export function Vjosali() {
   const [query, setQuery] = createSignal("")
   const [word, __setWord] = createSignal<Word>(wordMap.get("sakawi")!)
@@ -576,33 +750,15 @@ export function Vjosali() {
         </Show>
       </div>
 
-      <dialog
-        class="flex h-full w-full cursor-zoom-out items-center justify-center overflow-visible bg-transparent backdrop:backdrop-blur-lg focus:outline-none"
-        classList={{ hidden: !dialogSlide() }}
-        ref={(el) => {
-          createEffect(() => {
-            if (dialogSlide()) {
-              el.showModal()
-            } else {
-              el.close()
-            }
-          })
+      <RisoliDialog
+        dialogSlide={dialogSlide}
+        setDialogSlide={(slide) => {
+          if (slide) {
+            setMaximizedSlide(slide)
+          }
+          setDialogSlide(slide)
         }}
-        onClose={() => {
-          setDialogSlide(undefined)
-        }}
-        onClick={() => {
-          setDialogSlide(undefined)
-        }}
-      >
-        <div class="relative flex aspect-video max-h-full flex-1 justify-center">
-          <Page class="aspect-video" page={dialogSlide()?.index || 1} />
-
-          <div class="absolute -right-2 -top-2 flex h-12 w-12 items-center justify-center rounded-xl border border-z bg-z-body">
-            <Fa class="h-8 w-8" icon={faClose} title="da kini riso" />
-          </div>
-        </div>
-      </dialog>
+      />
     </div>
   )
 }
