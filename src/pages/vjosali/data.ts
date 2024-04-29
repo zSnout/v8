@@ -2612,7 +2612,7 @@ A: un bra auen!`,
     emoji: "",
     fal: "medko",
     falnen: "(sjiranai)",
-    imi: "lik afto | ~ mange/stuur",
+    imi: "na afto tropos; mange MANGE",
   },
   talvi: {
     emoji: "❄️🏔️⛷️🧤",
