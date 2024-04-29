@@ -1182,6 +1182,7 @@ B: nil wil!`,
     emoji: "",
     fal: "tingko",
     falnen: "strela",
+    kundr: ["hina"],
   },
 
   // #region G
@@ -1592,6 +1593,7 @@ B: nil wil!`,
   },
   kirain: {
     emoji: "",
+    lyk: ["silba", "kotoba"],
   },
   kjannos: {
     emoji: "文↔A",
@@ -1631,6 +1633,7 @@ B: nil wil!`,
   },
   kotoba: {
     emoji: "",
+    lyk: ["kirain", "silba", "fras"],
   },
   kuchi: {
     emoji: "👄",
@@ -1687,6 +1690,7 @@ B: nil wil!`,
     fal: "tingko",
     falnen: "(sjiranai)",
     imi: "punkt mange",
+    lyk: ["punkt", "pisma"],
     tatoeba: [
       `jaa,
 ima, un ergomange.
@@ -1865,6 +1869,7 @@ ka slucha na du?
   },
   nam: {
     emoji: "🍱➡️👄",
+    lyk: ["glug"],
   },
   namai: {
     emoji: "📛",
@@ -2029,6 +2034,7 @@ ka slucha na du?
   },
   pisma: {
     emoji: "📩",
+    lyk: ["lehti"],
   },
   pitsa: {
     emoji: "🍕",
@@ -2074,6 +2080,7 @@ ka slucha na du?
   },
   punkt: {
     emoji: "",
+    lyk: ["fras", "lehti"],
   },
 
   // #region R
@@ -2207,6 +2214,7 @@ B: un vil cafe AU iske! un vil rjoho!`,
   },
   silba: {
     emoji: "",
+    lyk: ["kirain", "kotoba"],
   },
   simpel: {
     emoji: "",
@@ -2216,6 +2224,7 @@ B: un vil cafe AU iske! un vil rjoho!`,
   },
   siru: {
     emoji: "📥🧠",
+    lyk: ["fshto"],
   },
   sisco: {
     emoji: "",
@@ -2259,6 +2268,7 @@ A: un bra auen!`,
   },
   sore: {
     emoji: "",
+    lyk: ["hej"],
   },
   sot: {
     emoji: "🧁🍩🎂🍦🍯🍡🍭",
