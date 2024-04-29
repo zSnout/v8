@@ -50,6 +50,7 @@ export type Falnen =
   | "tyd" // lyk sho, mwuai
   | "vonating"
   | "kokoro"
+  | "toshitel"
   | "(shiranai)"
 
 export type Priority1 =
@@ -88,14 +89,14 @@ export type Priority1 =
   | "mulkaban"
   | "nasi"
   | "nilting"
-  | "ojogidzin"
+  | "ojogidjin"
   | "piel"
   | "pranvera"
   | "raz"
   | "ri"
   | "rjoho"
   | "rum"
-  | "sidt"
+  | "sit"
   | "spara"
   | "sporko"
   | "sukha"
@@ -740,7 +741,7 @@ A: un bra auen!`,
     falnen: "raz",
     kundr: ["jamete"],
     tatoeba: [
-      "un nam. li un benj nam, sidt un nam. li un jamete nam, sidt un nai nam.",
+      "un nam. li un benj nam, sit un nam. li un jamete nam, sit un nai nam.",
     ],
   },
   berk: {
@@ -1246,6 +1247,7 @@ B: nil wil!`,
     fal: "tingko",
     falnen: "(shiranai)",
     imi: "ka akote na ecso fu ting",
+    lyk: ["piel"],
     tatoeba: [
       "aldjin har godja",
       "godja fu pashun ie lacte stuur vonatro na sore",
@@ -1821,6 +1823,9 @@ ka slucha na du?
   },
   nilting: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "nil ting",
   },
   niog: {
     emoji: "🥥",
@@ -1853,9 +1858,15 @@ ka slucha na du?
   },
   ojogi: {
     emoji: "🏊🏊‍♂️🏊‍♀️",
+    imi: "sjkoi na iske",
+    lyk: ["ojogidjin"],
   },
-  ojogidzin: {
-    emoji: "",
+  ojogidjin: {
+    emoji: "🏊🏊‍♀️🏊‍♂️",
+    fal: "tingko",
+    falnen: "vonating",
+    imi: "pashun ke ojogi",
+    lyk: ["ojogi"],
   },
   onna: {
     emoji: "♀︎👧👩👵",
@@ -1918,6 +1929,10 @@ ka slucha na du?
   },
   piel: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "godja fu pashun",
+    lyk: ["godja"],
   },
   piman: {
     emoji: "🫑🌶️",
@@ -1956,7 +1971,10 @@ ka slucha na du?
     emoji: "",
   },
   pranvera: {
-    emoji: "",
+    emoji: "🌹⛅🌱☔",
+    fal: "tingko",
+    falnen: "toshitel",
+    imi: "toshitel ke mwuai 3s au 4s au 5s inje",
   },
   prapataj: {
     emoji: "",
@@ -1988,10 +2006,22 @@ ka slucha na du?
     ],
   },
   raz: {
-    emoji: "",
+    emoji: "🕰️",
+    fal: "tingko",
+    falnen: "raz",
+    imi: "katai suru",
+    tatoeba: [
+      "un hanu ni raz. un 🗣️. un 🗣️.",
+      "un hanu kiere raz. un 🗣️. un 🗣️. un 🗣️. un 🗣️.",
+    ],
   },
   ri: {
     emoji: "",
+    fal: "medko",
+    falnen: "(shiranai)",
+    imi: "ting suru ka?",
+    lyk: ["te"],
+    tatoeba: ["un nam ringo", "un te ringo ri nam"],
   },
   riobohna: {
     emoji: "",
@@ -2007,6 +2037,13 @@ ka slucha na du?
   },
   rjoho: {
     emoji: "",
+    fal: "atai",
+    falnen: "(shiranai)",
+    imi: "al hej",
+    tatoeba: [
+      `A: du vil cafe os iske?
+B: un vil cafe AU iske! un vil rjoho!`,
+    ],
   },
   roza: {
     emoji: "🩷💗🎀",
@@ -2016,6 +2053,8 @@ ka slucha na du?
   },
   rum: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(shiranai)",
   },
   ryo: {
     emoji: "",
@@ -2071,9 +2110,6 @@ ka slucha na du?
   sho: {
     emoji: "",
   },
-  sidt: {
-    emoji: "",
-  },
   siha: {
     emoji: "🐱🐟",
     fal: "lihko",
@@ -2099,6 +2135,9 @@ ka slucha na du?
   },
   sit: {
     emoji: "",
+    fal: "troko",
+    falnen: "(shiranai)",
+    tatoeba: ["li du nai glug iske, sit du sinu ☠️"],
   },
   sjikno: {
     emoji: "🍲🦵👨‍🦰",
@@ -2147,6 +2186,10 @@ A: un bra auen!`,
   },
   sporko: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(shiranai)",
+    imi: "spor kotoba",
+    tatoeba: ["ka?", "naze?", "dare?", "doko?"],
   },
   stift: {
     emoji: "🖊️🖋️",
@@ -2161,7 +2204,9 @@ A: un bra auen!`,
     emoji: "",
   },
   sukha: {
-    emoji: "",
+    emoji: "👀🏹",
+    fal: "suruko",
+    falnen: "(shiranai)",
   },
   suksu: {
     emoji: "🍂🍁🎃",
