@@ -1391,9 +1391,15 @@ B: nil wil!`,
   },
   hina: {
     emoji: "",
+    fal: "tingko",
+    falnen: "strela",
+    kundr: ["fura"],
   },
   hir: {
     emoji: "🔉➡️👂",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "zan sjkoi na corva fdu",
   },
   hiras: {
     emoji: "🚄🐆⚡",
@@ -1404,6 +1410,7 @@ B: nil wil!`,
   },
   hiven: {
     emoji: "🍨🍦",
+    kakutro: ["marojzschine", "upasnen"],
   },
   hjaku: {
     emoji: "💯",
@@ -1418,6 +1425,11 @@ B: nil wil!`,
     tatoeba: [
       "li pashun hanu 'danke' au 'nil' au 'gomen', sore hofli. li sore hanu 'blin' au 'shaisa', sore kushipa.",
     ],
+  },
+  hono: {
+    emoji: "🔥",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   hor: {
     emoji: "💇💇‍♂️💇‍♀️",
@@ -1448,6 +1460,15 @@ B: nil wil!`,
   },
 
   // #region I
+  icen: {
+    emoji: "🤔",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "icen oba X = hur du mietta oba X",
+    tatoeba: [
+      "icen oba ringo: UN VIHA RINGO, un dua ringo, ringo nai bra au nai warui",
+    ],
+  },
   ie: {
     emoji: "",
   },
@@ -1736,9 +1757,6 @@ ka slucha na du?
   },
   maredur: {
     emoji: "🐟🦈🦐🐙🦑🐬🐠",
-  },
-  marojzschine: {
-    emoji: "🍦🍨",
   },
   matetun: {
     emoji: "💍🧑",
@@ -2445,9 +2463,6 @@ A: un bra auen!`,
       `A: uno huin?
 B: huin maha huomi.`,
     ],
-  },
-  upasnen: {
-    emoji: "🍦🍨",
   },
   uso: {
     emoji: "❌",
