@@ -444,7 +444,7 @@ function KotoliSidebar(props: {
 
       <Show when={props.maximized().kundr?.length}>
         <div
-          class="mt-2 border-l border-z pb-1 pl-2 pt-1 text-sm italic text-z transition"
+          class="border-l border-z pb-1 pl-2 pt-1 text-sm italic text-z transition"
           classList={{
             "mt-2": !props.maximized().lyk?.length,
             "rounded-tl-2xl": !props.maximized().lyk?.length,
