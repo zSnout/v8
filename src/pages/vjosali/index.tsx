@@ -31,7 +31,6 @@ import {
   Word,
   makeSlideList,
   makeWordList,
-  sortPairs,
   sortWords,
 } from "./data"
 
