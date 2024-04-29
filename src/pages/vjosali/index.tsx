@@ -48,10 +48,6 @@ function Pdf(
     <canvas
       {...props}
       ref={async (canvas) => {
-        if (!pdf) {
-          pdf = getDocument(RISOLI).promise
-        }
-
         let pageIndex = untrack(() => props.page)
         let page: PDFPageProxy | undefined
         let currentTask: RenderTask | undefined
@@ -65,6 +61,10 @@ function Pdf(
             const nowIndex = props.page
 
             if (!page || nowIndex != pageIndex) {
+              if (!pdf) {
+                pdf = getDocument(RISOLI).promise
+              }
+
               page = await (await pdf).getPage(nowIndex)
               pageIndex = nowIndex
             }
