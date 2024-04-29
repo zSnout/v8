@@ -1,4 +1,4 @@
-export const RISOLI = "/viossa71.pdf"
+export const RISOLI = "/viossa72.pdf"
 
 export function sortWords(a: string, b: string) {
   const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
@@ -52,12 +52,14 @@ export type Falnen =
   | "kokoro"
   | "toshitel"
   | "strela"
+  | "namting"
+  | "glugting"
   | "(sjiranai)"
 
 // TODO: add info about all priority two words
 export type Priority2 =
   | "ze-"
-  | "100"
+  | 100
   | "auto"
   | "azyci"
   | "bamba"
@@ -81,8 +83,8 @@ export type Priority2 =
   | "ivel"
   | "jetta"
   | "joki"
-  | "karroqhn"
-  | "kawaji"
+  | "luvan"
+  | "kawari"
   | "kompju"
   | "kotnen"
   | "kun"
@@ -180,82 +182,83 @@ export const riso: Record<number, Content> = {
   17: "sama lik tsigau",
   18: "kirain silba kotoba fras punkt",
   19: "nil joku al ru midore",
-  20: "afto tuo asoko ringo huin pashun bluma lera -djin pinue",
-  21: "ie fugel baum maredur",
-  22: ["namai fu huin", "jaa ie ka du un"],
-  23: ["ru ciro midore au lezi glug cafe", "ie pashun lera nam sore du lik"],
-  24: ["awen slucha bra warui glau trict", "un du au nai ka"],
-  25: ["vil nam mis", "afto mama oy pashun"],
-  26: ["da pinuno hanu oy", "os vil afto nai"],
-  27: [
+  20: ["per ringo torta cola bra warui cafe", "kotoba du al pashun"],
+  21: "afto tuo asoko ringo huin pashun bluma lera -djin pinue",
+  22: "ie fugel baum maredur",
+  23: ["namai fu huin", "jaa ie ka du un"],
+  24: ["ru ciro midore au lezi glug cafe", "ie pashun lera nam sore du lik"],
+  25: ["awen slucha bra warui glau trict", "un du au nai ka"],
+  26: ["vil nam mis", "afto mama oy pashun"],
+  27: ["da pinuno hanu oy", "os vil afto nai"],
+  28: [
     "bite danke nil gomen cer ringo banan",
     "ka da pinuno nai hanu vil anta na un bra",
   ],
-  28: "jalaka hanu kaku siru cola valtsa tasti ergo suru kotoba",
-  29: ["os gelt aschor", "vil nam glug du un mange"],
-  30: [
+  29: "jalaka hanu kaku siru cola valtsa tasti ergo suru kotoba",
+  30: ["os gelt aschor", "vil nam glug du un mange"],
+  31: [
     "ein ni tre kiere go eksi nana kase non den apar mange lasku",
     "os tsisai sama au ie",
   ],
-  31: ["mit kuchi se me hir corva njui hana", "du nam"],
-  32: "tropos per nam sjkoi siru maha",
-  33: ["deki", "un nam jalaka hanu nai"],
-  34: ["ting hjerne torta cer tualet gavat riso katana plas", "kotoba nam"],
-  35: ["men har vil", "ringo banan nai un nam sore ting"],
-  36: "tyd dan ima mirai",
-  37: [
+  32: ["mit kuchi se me hir corva njui hana", "du nam"],
+  33: "tropos per nam sjkoi siru maha",
+  34: ["deki", "un nam jalaka hanu nai"],
+  35: ["ting hjerne torta cer tualet gavat riso katana plas", "kotoba nam"],
+  36: ["men har vil", "ringo banan nai un nam sore ting"],
+  37: "tyd dan ima mirai",
+  38: [
     "gammel ryo -djin ryodjin mama papa fi kzin sawi bruur sisco un matetun matetundjin pojk tutr lapsi mipi nia fami",
     "un",
   ],
-  38: [
+  39: [
     "roza ru portocale ciro midore sini blau murasace shiro gris curo cafe",
     "al kotoba afto varge tsigau nai sama",
   ],
-  39: "tsisai stuur",
-  40: "simpel haaste",
-  41: ["na", "un hanu du maha riso afto ergo plas hej vikoli"],
-  42: ["daag uuk mwuai tosui", "kotoba per tyd stuur"],
-  43: ["sho funn dzikjaan daag", "kotoba per tyd tsisai"],
-  44: "prapataj akote paara praapa",
-  45: "tsatain tun",
-  46: ["vona sjinu uten", "kundr mit"],
-  47: "strela nord west ost sud oba ljeva hina unna migi fura",
-  48: ["klar tun", "kundr"],
-  49: ["mietta k'", "pashun huin portocale ie al"],
-  50: [
+  40: "tsisai stuur",
+  41: "simpel haaste",
+  42: ["na", "un hanu du maha riso afto ergo plas hej vikoli"],
+  43: ["daag uuk mwuai tosui", "kotoba per tyd stuur"],
+  44: ["sho funn dzikjaan daag", "kotoba per tyd tsisai"],
+  45: "prapataj akote paara praapa",
+  46: "tsatain tun",
+  47: ["vona sjinu uten", "kundr mit"],
+  48: "strela nord west ost sud oba ljeva hina unna migi fura",
+  49: ["klar tun", "kundr"],
+  50: ["mietta k'", "pashun huin portocale ie al"],
+  51: [
     "li sit iske",
     "au du nai glug iske sjinu vil lera viossa da hanu angl-",
   ],
-  51: ["jam gaja sot magasin", "pashun na ringo nai banan nil ting mange"],
-  52: ["grun naze cola jalaka", "ka afto pashun nai mange sore deki"],
-  53: ["kara made rzinzai huomi", "pashun jalaka"],
-  54: ["tsui", "sore hanu ringo"],
-  55: ["plus minus gammel glau vapa bjurki ka", "stuur"],
-  56: ["kjomi", "sore vil siru plus tsui afto os"],
-  57: ["inje ecso kot huin baksu huomi", "kundr"],
-  58: ["ein den hjaku tuhat lacsaq catie ip- kn-", "lasku ni tre kiere go"],
-  59: ["hadji owari bli- po-", "un nai nam kundr glau"],
-  60: ["benj jamete", "un jalaka nai lik sama kundr"],
-  61: ["uwaki", "ka na viossa nai deki hanu afto grun angl- kotoba ie espanj-"],
-  62: "heljo vulcanis aifroidis gaja airis jainos crenos mirairis posaidis",
-  63: ["plasdai sol gaja avara luna -dai samui vapa lantdai", "kundr stuur"],
-  64: ["-yena libre na circas kaku", "pashun kini sore"],
-  65: ["-yena auki kini kot dvera na", "kundr"],
-  66: "auki kini",
-  67: [
+  52: ["jam gaja sot magasin", "pashun na ringo nai banan nil ting mange"],
+  53: ["grun naze cola jalaka", "ka afto pashun nai mange sore deki"],
+  54: ["kara made rzinzai huomi", "pashun jalaka"],
+  55: ["tsui", "sore hanu ringo"],
+  56: ["plus minus gammel glau vapa bjurki ka", "stuur"],
+  57: ["kjomi", "sore vil siru plus tsui afto os"],
+  58: ["inje ecso kot huin baksu huomi", "kundr"],
+  59: ["ein den hjaku tuhat lacsaq catie ip- kn-", "lasku ni tre kiere go"],
+  60: ["hadji owari bli- po-", "un nai nam kundr glau"],
+  61: ["benj jamete", "un jalaka nai lik sama kundr"],
+  62: ["uwaki", "ka na viossa nai deki hanu afto grun angl- kotoba ie espanj-"],
+  63: "heljo vulcanis aifroidis gaja airis jainos crenos mirairis posaidis",
+  64: ["plasdai sol gaja avara luna -dai samui vapa lantdai", "kundr stuur"],
+  65: ["-yena libre na circas kaku", "pashun kini sore"],
+  66: ["-yena auki kini kot dvera na", "kundr"],
+  67: "auki kini",
+  68: [
     "fraut ringo crusca portocale lemo banan bestfraut uva vinjafraut cerfraut ahavja nihunfraut persefraut mago ananas niog afefraut fugelfraut",
     "al afto du deki nam",
   ],
-  68: ["fal -ki", "jam ni fu pashun dare ka viossa au nai"],
-  69: [
+  69: ["fal -ki", "jam ni fu pashun dare ka viossa au nai"],
+  70: [
     "spor svar",
     "du vil os nai nam ting sot ie bra os warui na du ka tyd ima un mange -s mwuai daag",
   ],
-  70: [
+  71: [
     "spor dare doko cosce naze perka hur katai atai",
     "dare vinjafraut fraut har un jam ringo tre sjkoi du jainos kara bruk",
   ],
-  71: [
+  72: [
     "fugel maraidur atechi riobohna protofugel bihmidur njudur dur bagge",
     "al",
   ],
@@ -973,6 +976,13 @@ B: nil wil!`,
     falnen: "lasku",
     imi: "10",
   },
+  denwa: {
+    emoji: "📱",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "~ kompjunen",
+    lyk: ["kompju"],
+  },
   diskord: {
     emoji: "",
     fal: "tingko",
@@ -1411,17 +1421,25 @@ B: nil wil!`,
   },
   hiven: {
     emoji: "🍨🍦",
+    fal: "tingko",
+    falnen: "namting",
     kakutro: ["marojzschine", "upasnen"],
   },
   hjaku: {
     emoji: "💯",
+    fal: "tingko",
+    falnen: "lasku",
+    imi: "100 (denden)",
   },
   hjerne: {
     emoji: "🧠",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   hofli: {
     emoji: "🙂🙇🙏",
-    fal: "suruko",
+    fal: "lihko",
+    falnen: "(sjiranai)",
     kundr: ["kushipa"],
     tatoeba: [
       "li pashun hanu 'danke' au 'nil' au 'gomen', sore hofli. li sore hanu 'blin' au 'shaisa', sore kushipa.",
@@ -1439,9 +1457,13 @@ B: nil wil!`,
   },
   huin: {
     emoji: "🐶",
+    fal: "tingko",
+    falnen: "vonating",
   },
   huomi: {
     emoji: "🏠🏡🏚️",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   huomilehti: {
     emoji: "🏠📄",
@@ -1451,6 +1473,9 @@ B: nil wil!`,
   },
   hur: {
     emoji: "",
+    fal: "sporko",
+    falnen: "(sjiranai)",
+    imi: "ka tropos? mit ka?",
   },
   hyske: {
     emoji: "",
@@ -1472,12 +1497,21 @@ B: nil wil!`,
   },
   ie: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "suruko ke mangedjin bruk akote lihko os tingko cosce hej vil suruko per tingko os lihko",
   },
   ima: {
-    emoji: "🕰️➡️",
+    emoji: "🕰️⬇️",
+    fal: "troko",
+    falnen: "raz",
+    imi: "afto tyd",
+    lyk: ["dan", "mirai"],
   },
   imang: {
     emoji: "🧲",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   imi: {
     emoji: "",
@@ -1488,6 +1522,8 @@ B: nil wil!`,
   },
   inje: {
     emoji: "📥",
+    fal: "medko",
+    falnen: "(sjiranai)",
     lyk: ["mellan"],
     kundr: ["ecso"],
   },
@@ -1517,70 +1553,114 @@ B: nil wil!`,
   },
   iske: {
     emoji: "🚰💧💦🌊",
+    fal: "tingko",
+    falnen: "glugting",
   },
   ivel: {
     emoji: "🌆",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "tyd akote owari fu daag cosce daag bli naht",
   },
 
   // #region J
   jaa: {
     emoji: "👋",
+    fal: "hofliko",
+    falnen: "(sjiranai)",
   },
   jainos: {
     emoji: "",
+    fal: "tingko",
+    falnen: "plasnamae",
   },
   jalaka: {
     emoji: "🚶🚶‍♂️🚶‍♀️",
+    fal: "suruko",
+    falnen: "(sjiranai)",
   },
   jam: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
   },
   jamete: {
     emoji: "🛑",
+    fal: "suruko",
+    falnen: "(sjiranai)",
     kundr: ["benj"],
   },
   jetta: {
     emoji: "✈️🛩️🛫🛬",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   joki: {
     emoji: ">50%",
-    lyk: ["al"],
+    fal: "atai",
+    falnen: "(sjiranai)",
+    lyk: ["al", "joku"],
   },
   joku: {
     emoji: "",
-    lyk: ["al"],
+    fal: "atai",
+    falnen: "(sjiranai)",
+    lyk: ["al", "joki"],
   },
 
   // #region K
   "k'": {
     emoji: "",
+    fal: "troko",
+    falnen: "(sjiranai)",
+    kakutro: ["ke"],
   },
   ka: {
     emoji: "¿❓❔?",
+    fal: "sporko",
+    falnen: "(sjiranai)",
   },
   kaku: {
     emoji: "✍️",
+    fal: "suruko",
+    falnen: "(sjiranai)",
   },
   kara: {
     emoji: "",
-  },
-  karroqhn: {
-    emoji: "🥕",
+    fal: "medko",
+    falnen: "(sjiranai)",
+    kundr: ["made"],
+    tatoeba: ["pashun jalaka huomi kara = 🚶 ⬅️ 🏠"],
   },
   kase: {
     emoji: "8️⃣",
+    fal: "tingko",
+    falnen: "lasku",
   },
   katai: {
     emoji: "",
+    fal: "sporko",
+    falnen: "lasku",
+    imi: "ka atai?",
   },
   katana: {
     emoji: "🔪🗡️",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
-  kawaji: {
+  kawari: {
     emoji: "🥺❤️✨",
+    fal: "kokoroko",
+    falnen: "(sjiranai)",
+    tatoeba: [
+      `A se 🐶.
+A: kawari!!! ❤️😍✨💖`,
+    ],
   },
   kiere: {
     emoji: "4️⃣",
+    fal: "tingko",
+    falnen: "lasku",
   },
   kini: {
     emoji: "🔒🚪📪📁",
@@ -1593,7 +1673,10 @@ B: nil wil!`,
   },
   kirain: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(sjiranai)",
     lyk: ["silba", "kotoba"],
+    tatoeba: ["K-I-R-A-I-N"],
   },
   kjannos: {
     emoji: "文↔A",
@@ -1603,10 +1686,17 @@ B: nil wil!`,
     tatoeba: ["'hello' na anglossa ie 'hola' na espanjossa"],
   },
   kjomi: {
-    emoji: "",
+    emoji: "🤔",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "vil suru plus tsui jokuting",
   },
   klar: {
-    emoji: "",
+    emoji: "🪟🧊🔍◌",
+    fal: "lihko",
+    falnen: "(sjiranai)",
+    imi: "du deki se inje afto ting",
+    kundr: ["tun"],
   },
   kntre: {
     emoji: "-3",
@@ -1624,6 +1714,8 @@ B: nil wil!`,
   },
   kompju: {
     emoji: "🖥️💻",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   kot: {
     emoji: "🐱",
@@ -1647,6 +1739,7 @@ B: nil wil!`,
   kushipa: {
     emoji: "🤪🤬🖕",
     fal: "suruko",
+    falnen: "(sjiranai)",
     kundr: ["hofli"],
     tatoeba: [
       "li pashun hanu 'danke' au 'nil' au 'gomen', sore hofli. li sore hanu 'blin' au 'shaisa', sore kushipa.",
@@ -1763,10 +1856,12 @@ ka slucha na du?
     emoji: "🐟🦈🦐🐙🦑🐬🐠",
   },
   matetun: {
-    emoji: "💍🧑",
+    emoji: "💍",
+    lyk: ["matetundjin"],
   },
   matetundjin: {
     emoji: "💍🧑",
+    lyk: ["matetun"],
   },
   me: {
     emoji: "👁️",
@@ -1899,7 +1994,7 @@ ka slucha na du?
     emoji: "",
   },
   niden: {
-    emoji: "20",
+    emoji: 20,
   },
   nihunfraut: {
     emoji: "🍒",
