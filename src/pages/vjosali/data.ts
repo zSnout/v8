@@ -54,6 +54,7 @@ export type Falnen =
   | "strela"
   | "namting"
   | "glugting"
+  | "kun"
   | "(sjiranai)"
 
 // TODO: add info about all priority two words
@@ -259,7 +260,7 @@ export const riso: Record<number, Content> = {
     "dare vinjafraut fraut har un jam ringo tre sjkoi du jainos kara bruk",
   ],
   72: [
-    "fugel maraidur atechi riobohna protofugel bihmidur njudur dur bagge",
+    "fugel maredur atechi riobohna protofugel bihmidur njudur dur bagge",
     "al",
   ],
 }
@@ -519,6 +520,7 @@ const kotobasirumahena: Record<string, RawWordData> = {
   akote: {
     emoji: "",
     fal: "medko",
+    falnen: "(sjiranai)",
     imi: "prapataj tsisai",
     kundr: ["praapa"],
     lyk: ["paara"],
@@ -539,6 +541,18 @@ const kotobasirumahena: Record<string, RawWordData> = {
     fal: "tingko",
     falnen: "fraut",
   },
+  ander: {
+    emoji: "",
+    fal: "atai",
+    falnen: "(sjiranai)",
+    tatoeba: [
+      `A har ringo au banan.
+B: da anta fraut na un.
+A anta ringo.
+B: nai ringo, da anta ander fraut.
+A anta banan.`,
+    ],
+  },
   anta: {
     emoji: "🫴",
     fal: "suruko",
@@ -550,6 +564,7 @@ const kotobasirumahena: Record<string, RawWordData> = {
     fal: "atai",
     falnen: "lasku",
     imi: "atai fu afto ting ie tsisai.",
+    kundr: ["mange"],
     tatoeba: [
       "un har apar ringo: 🍎🍎🍎. du har mange ringo: 🍎🍎🍎🍎🍎🍎🍎🍎🍎🍎.",
     ],
@@ -583,6 +598,7 @@ opetadjin apu mellandjin na opeta.`,
     emoji: "🔢",
     fal: "tingko",
     falnen: "lasku",
+    lyk: ["lasku"],
     tatoeba: [
       "atai fu ringo inje 🍎🍎 ie ni",
       "atai fu ringo inje 🍎🍎🍎🍎 ie kiere",
@@ -656,6 +672,7 @@ A: un bra auen!`,
     emoji: "📦🎁🗳️🥡",
     fal: "tingko",
     falnen: "vonating",
+    lyk: ["mulbaksu"],
   },
   bamba: {
     emoji: "💣",
@@ -788,6 +805,7 @@ A: un warui 👎.`,
     fal: "suruko",
     falnen: "(sjiranai)",
     imi: "suruko per mit. li du bruk ting, du (suruko) mit sore.",
+    lyk: ["mit"],
   },
   bruur: {
     emoji: "",
@@ -826,6 +844,7 @@ A: un warui 👎.`,
     emoji: "💡🔦🔆🏮",
     fal: "tingko",
     falnen: "(sjiranai)",
+    kundr: ["kury"],
   },
   ciro: {
     emoji: "💛🟡🟨",
@@ -909,6 +928,8 @@ A pinuno 🤐.`,
     fal: "troko",
     falnen: "raz",
     imi: "tyd ka nai ieima na her",
+    lyk: ["ima"],
+    kundr: ["mirai"],
     tatoeba: [
       `A nam.
 A nai nam.
@@ -1716,25 +1737,41 @@ A: kawari!!! ❤️😍✨💖`,
     emoji: "🖥️💻",
     fal: "tingko",
     falnen: "(sjiranai)",
+    lyk: ["denwa"],
   },
   kot: {
     emoji: "🐱",
+    fal: "tingko",
+    falnen: "vonating",
+    lyk: ["kotnen"],
   },
   kotnen: {
     emoji: "🐱🤏",
+    fal: "tingko",
+    falnen: "vonating",
+    imi: "neo kot, kot ka bli gvir na tyd akote",
+    lyk: ["kot"],
   },
   kotoba: {
     emoji: "",
+    fal: "tingko",
+    falnen: "hanutro",
     lyk: ["kirain", "silba", "fras"],
   },
   kuchi: {
     emoji: "👄",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   kun: {
     emoji: "♀️♂️⚧︎",
+    fal: "tingko",
+    falnen: "kun",
   },
   kundr: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
   },
   kushipa: {
     emoji: "🤪🤬🖕",
@@ -1747,17 +1784,28 @@ A: kawari!!! ❤️😍✨💖`,
   },
   kury: {
     emoji: "🌑🕶️",
+    fal: "lihko",
+    falnen: "(sjiranai)",
+    kundr: ["circas"],
   },
   kyajdz: {
     emoji: "🥢",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   kzin: {
     emoji: "",
+    fal: "tingko",
+    falnen: "fami",
+    imi: "lapsi fu fi",
   },
 
   // #region L
   lacsaq: {
     emoji: "",
+    fal: "tingko",
+    falnen: "lasku",
+    imi: "10,000",
   },
   latsty: {
     emoji: "⋙⋘",
@@ -1771,12 +1819,22 @@ A: kawari!!! ❤️😍✨💖`,
   },
   lantdai: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "lant stuur ka har mange lant inje sore",
   },
   lapsi: {
     emoji: "",
+    fal: "tingko",
+    falnen: "fami",
+    imi: "pashun ke ryodjin mahagvir",
+    kundr: ["ryodjin"],
   },
   lasku: {
     emoji: "🔢",
+    fal: "tingko",
+    falnen: "lasku",
+    lyk: ["atai"],
   },
   lehti: {
     emoji: "",
@@ -1793,28 +1851,54 @@ ka slucha na du?
   },
   lemo: {
     emoji: "🍋",
+    fal: "tingko",
+    falnen: "fraut",
   },
   lera: {
     emoji: "🧑‍🎓",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    kundr: ["opeta"],
   },
   lezi: {
     emoji: "👀📘",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "se libre",
+    lyk: ["libre"],
   },
   li: {
     emoji: "",
+    fal: "etuniko",
+    falnen: "(sjiranai)",
+    lyk: ["sit"],
+    tatoeba: ["li du nai nam, sit du sjiny"],
   },
   libre: {
     emoji: "📘📖📔📚",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    lyk: ["lezi"],
   },
   lik: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    lyk: ["sama"],
+    kundr: ["tsigau"],
   },
   ljeta: {
     emoji: "🪽✈️🦋🐦🪰",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "sjkoi na luft",
   },
   ljeva: {
     emoji: "⬅️",
+    fal: "tingko",
+    falnen: "strela",
     kakutro: ["larava"],
+    kundr: ["migi"],
   },
   luft: {
     emoji: "💨💭☁️",
@@ -1825,50 +1909,84 @@ ka slucha na du?
   },
   luna: {
     emoji: "🌑🌕",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    lyk: ["sol"],
   },
   luvan: {
     emoji: "🥕",
+    fal: "tingko",
+    falnen: "ovashi",
+    kakutro: ["karroqhn"],
   },
 
   // #region M
   made: {
     emoji: "",
+    fal: "medko",
+    falnen: "(sjiranai)",
+    kundr: ["kara"],
+    tatoeba: ["pershun jalaka huomi made = 🏠 ⬅️ 🚶"],
   },
   magasin: {
     emoji: "🏬🏪",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   mago: {
     emoji: "🥭",
+    fal: "tingko",
+    falnen: "fraut",
   },
   maha: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
   },
   mama: {
     emoji: "",
-  },
-  maraidur: {
-    emoji: "",
+    fal: "tingko",
+    falnen: "fami",
+    imi: "ryodjin onna",
+    lyk: ["ryodjin", "papa"],
   },
   mange: {
     emoji: "",
+    fal: "lihko",
+    falnen: "lasku",
+    kundr: ["apar"],
   },
   maredur: {
     emoji: "🐟🦈🦐🐙🦑🐬🐠",
+    fal: "tingko",
+    falnen: "vonating",
   },
   matetun: {
     emoji: "💍",
+    fal: "suruko",
+    falnen: "fami",
     lyk: ["matetundjin"],
   },
   matetundjin: {
     emoji: "💍🧑",
+    fal: "tingko",
+    falnen: "fami",
     lyk: ["matetun"],
   },
   me: {
     emoji: "👁️",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   mekji: {
     emoji: "👉",
-    tatoeba: ["🫵 hantnen mëkiiqh na du", "👇 hantnen mëkji na unna"],
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    tatoeba: [
+      "🫵 hantnen mëkiiqh na du",
+      "👇 hantnen mëkji na unna",
+      "du mekji ting grun du vil k'anderdjin kjomi sore",
+    ],
   },
   mellan: {
     emoji: "",
@@ -1879,40 +1997,72 @@ ka slucha na du?
   },
   men: {
     emoji: "",
+    fal: "etuniko",
+    falnen: "(sjiranai)",
   },
   midore: {
     emoji: "🟩💚🟢",
+    fal: "lihko",
+    falnen: "varge",
   },
   mietta: {
     emoji: "🤔💭",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "~ hanu inje hjerne fdu",
   },
   migi: {
     emoji: "➡️",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    kundr: ["ljeva"],
   },
   milenjal: {
     emoji: "🥑",
+    fal: "tingko",
+    falnen: "ovashi",
   },
   mirairis: {
     emoji: "",
+    fal: "tingko",
+    falnen: "plasnamae",
+    imi: "heljo nanas na pandos fun",
   },
   minus: {
     emoji: "",
+    fal: "troko",
+    falnen: "(sjiranai)",
     lyk: ["latsty"],
+    kundr: ["plus"],
   },
   mipi: {
     emoji: "",
+    fal: "tingko",
+    falnen: "fami",
+    imi: "pershun ka har ryodjin sama",
   },
   mirai: {
     emoji: "🕰️➡️",
+    fal: "tingko",
+    falnen: "raz",
+    kundr: ["dan"],
+    lyk: ["ima"],
   },
   mis: {
     emoji: "🐭🐁",
+    fal: "tingko",
+    falnen: "vonating",
   },
   mit: {
     emoji: "",
+    fal: "medko",
+    falnen: "(sjiranai)",
+    lyk: ["bruk"],
   },
   mjes: {
     emoji: "♂️👦👨👴",
+    fal: "lihko",
+    falnen: "kun",
   },
   mono: {
     emoji: "",
@@ -1926,18 +2076,27 @@ ka slucha na du?
   },
   mora: {
     emoji: "🌅",
+    fal: "tingko",
+    falnen: "raz",
+    imi: "tyd cosce sol bligvir",
   },
   mul: {
     emoji: "🗑️",
     lyk: ["mulbaksu"],
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   mulbaksu: {
     emoji: "🗑️",
-    imi: "ting ke du ",
-    lyk: ["mul"],
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "ting ke du anta mul inje",
+    lyk: ["mul", "baksu"],
   },
   murasace: {
     emoji: "💜🟣🟪",
+    fal: "lihko",
+    falnen: "varge",
   },
   mus: {
     emoji: "",
@@ -1949,11 +2108,15 @@ ka slucha na du?
   },
   mwuai: {
     emoji: "",
+    fal: "tingko",
+    falnen: "tyd",
   },
 
   // #region N
   na: {
     emoji: "",
+    fal: "medko",
+    falnen: "(sjiranai)",
   },
   naht: {
     emoji: "🌉🌃🌑",
@@ -2056,6 +2219,7 @@ ka slucha na du?
   },
   opeta: {
     emoji: "🧑‍🏫👨‍🏫👩‍🏫",
+    kundr: ["lera"],
   },
   os: {
     emoji: "",
@@ -2093,6 +2257,7 @@ ka slucha na du?
   },
   papa: {
     emoji: "",
+    lyk: ["ryodjin", "mama"],
   },
   paperi: {
     emoji: "📰📃📄📝",
@@ -2142,6 +2307,7 @@ ka slucha na du?
   },
   plus: {
     emoji: "",
+    kundr: ["minus"],
     lyk: ["latsty"],
   },
   pojk: {
@@ -2251,6 +2417,8 @@ B: un vil cafe AU iske! un vil rjoho!`,
   ryodjin: {
     emoji: "",
     imi: "mama au papa. ryodjin fu du maha du. du vona ryodjin kara.",
+    lyk: ["mama", "papa"],
+    kundr: ["lapsi"],
   },
   rzinzai: {
     emoji: "🏃🏃‍♂️🏃‍♀️",
@@ -2267,6 +2435,8 @@ B: un vil cafe AU iske! un vil rjoho!`,
   },
   sama: {
     emoji: "",
+    lyk: ["lik"],
+    kundr: ["tsigau"],
   },
   samui: {
     emoji: "🥶🧊❄️",
@@ -2328,6 +2498,7 @@ B: un vil cafe AU iske! un vil rjoho!`,
     emoji: "",
     fal: "troko",
     falnen: "(sjiranai)",
+    lyk: ["li"],
     tatoeba: ["li du nai glug iske, sit du sinu ☠️"],
   },
   sjikno: {
@@ -2360,6 +2531,7 @@ A: un bra auen!`,
   },
   sol: {
     emoji: "🌞☀️",
+    lyk: ["luna"],
   },
   sore: {
     emoji: "",
@@ -2519,6 +2691,7 @@ A: un bra auen!`,
   },
   tsigau: {
     emoji: "",
+    kundr: ["sama", "lik"],
   },
   tsisai: {
     emoji: "🤏",
@@ -2537,6 +2710,7 @@ A: un bra auen!`,
   },
   tun: {
     emoji: "",
+    kundr: ["klar"],
   },
   tuo: {
     emoji: "",
