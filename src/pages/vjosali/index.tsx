@@ -25,7 +25,15 @@ import {
   onMount,
   untrack,
 } from "solid-js"
-import { RISOLI, Slide, Word, makeSlideList, makeWordList } from "./data"
+import {
+  RISOLI,
+  Slide,
+  Word,
+  makeSlideList,
+  makeWordList,
+  sortPairs,
+  sortWords,
+} from "./data"
 
 type Mode = "kotoba" | "riso" | undefined
 
@@ -806,6 +814,94 @@ export function Vjosali() {
         }}
         setMaximizedWord={setMaximizedWord}
       />
+    </div>
+  )
+}
+
+function Siruting(props: { children: JSX.Element }) {
+  return (
+    <div class="aspect-square rounded bg-z-body-selected px-3 py-2 transition">
+      {props.children}
+    </div>
+  )
+}
+
+function Sirutingara(props: { namae: string; children: JSX.Element[] }) {
+  return (
+    <div class="rounded-xl border border-z px-6 pb-6 pt-4 text-z transition">
+      <h2 class="mb-4 text-lg font-light">{props.namae}</h2>
+
+      {props.children.length ? (
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
+          {props.children}
+        </div>
+      ) : (
+        <p class="rounded bg-z-body-selected px-3 py-2 italic">nai jam. bra!</p>
+      )}
+    </div>
+  )
+}
+
+export function Siru() {
+  return (
+    <div class="flex flex-col gap-4">
+      <Sirutingara namae="kundrko k'nai inje siruli">
+        {Array.from(wordMap.values())
+          .filter((x) => x.eins)
+          .flatMap((x) => x.kundr || [])
+          .filter((x) => !wordMap.has(x))
+          .sort(sortWords)
+          .map((x) => (
+            <Siruting>{x}</Siruting>
+          ))}
+      </Sirutingara>
+
+      <Sirutingara namae="lykko k'nai inje siruli">
+        {Array.from(wordMap.values())
+          .filter((x) => x.eins)
+          .flatMap((x) => x.lyk || [])
+          .filter((x) => !wordMap.has(x))
+          .sort(sortWords)
+          .map((x) => (
+            <Siruting>{x}</Siruting>
+          ))}
+      </Sirutingara>
+
+      <Sirutingara namae="kotoba oba vil har lykko unna">
+        {Array.from(wordMap.values())
+          .filter((x) => x.eins)
+          .flatMap(
+            (x) =>
+              x.lyk
+                ?.filter((lyk) => !wordMap.get(lyk)?.lyk?.includes(x.kotoba))
+                .map((lyk) => [x.kotoba, lyk] as const) || [],
+          )
+          .map(([a, b]) => (
+            <Siruting>
+              <p>{b}</p>
+              <p>{a}</p>
+            </Siruting>
+          ))}
+      </Sirutingara>
+
+      <Sirutingara namae="kotoba oba vil har kundrko unna">
+        {Array.from(wordMap.values())
+          .filter((x) => x.eins)
+          .flatMap(
+            (x) =>
+              x.kundr
+                ?.filter(
+                  (kundr) => !wordMap.get(kundr)?.kundr?.includes(x.kotoba),
+                )
+                .map((kundr) => [x.kotoba, kundr] as const) || [],
+          )
+          .map(([a, b]) => (
+            <Siruting>
+              <p>{b}</p>
+              <p>{a}</p>
+            </Siruting>
+          ))}
+      </Sirutingara>
     </div>
   )
 }

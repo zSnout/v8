@@ -1,6 +1,6 @@
 export const RISOLI = "/viossa71.pdf"
 
-function sort(a: string, b: string) {
+export function sortWords(a: string, b: string) {
   const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
   const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
 
@@ -11,11 +11,11 @@ function sort(a: string, b: string) {
   return a > b ? 1 : -1
 }
 
-function sortPairs(
+export function sortPairs(
   [a]: readonly [string, ...unknown[]],
   [b]: readonly [string, ...unknown[]],
 ) {
-  return sort(a, b)
+  return sortWords(a, b)
 }
 
 export type Content =
@@ -2473,7 +2473,7 @@ const kotobasirupravda: Record<string, WordData> = Object.fromEntries(
               kakutro: value
                 .kakutro!.filter((x) => x != kotoba)
                 .concat(key)
-                .sort(sort),
+                .sort(sortWords),
               eins: false,
             },
           ] satisfies [string, WordData],
