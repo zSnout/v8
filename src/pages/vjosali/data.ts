@@ -51,6 +51,7 @@ export type Falnen =
   | "vonating"
   | "kokoro"
   | "toshitel"
+  | "strela"
   | "(sjiranai)"
 
 // TODO: add info about all priority two words
@@ -155,8 +156,8 @@ export type ImiOsTatoeba =
 
 export interface BaseWordData {
   readonly emoji: string
-  readonly fal?: Fal | readonly Fal[] | undefined
-  readonly falnen?: Falnen | undefined
+  readonly fal: Fal | readonly Fal[]
+  readonly falnen: Falnen
   readonly lyk?: readonly string[] | undefined
   readonly kakutro?: readonly string[] | undefined
   readonly kundr?: readonly string[] | undefined
@@ -693,6 +694,13 @@ A: un bra auen!`,
     falnen: "vonating",
     imi: "dur ka na gvir",
   },
+  bistra: {
+    emoji: "🐌🚋🐢",
+    fal: "lihko",
+    falnen: "(sjiranai)",
+    imi: "bruk tyd stuur",
+    kundr: ["hiras"],
+  },
   bite: {
     emoji: "🥺🙏",
     fal: "hofliko",
@@ -1073,13 +1081,20 @@ B: nil wil!`,
   // #region F
   fal: {
     emoji: "🟨🔴🔷",
+    fal: "tingko",
+    falnen: "(sjiranai)",
     tatoeba: ["yam ni fal fu pershun: dare ka hanuki viossa, a dare ka nai"],
   },
   fami: {
     emoji: "👪👨‍👨‍👧‍👧👨‍👩‍👦‍👦👨‍👨‍👧‍👦",
+    fal: "tingko",
+    falnen: "fami",
   },
   farza: {
     emoji: "🌡️📏⚖️📐",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "ting per sjiru ka vecht os pitka osos",
   },
   festako: {
     emoji: "",
@@ -1093,28 +1108,51 @@ B: nil wil!`,
   },
   fi: {
     emoji: "",
+    fal: "tingko",
+    falnen: "fami",
+    imi: "mipi fu ryodjin os matetundjin fsore",
   },
   film: {
     emoji: "🎞️",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "ting ke 📹 ufne",
   },
   flacha: {
     emoji: "🏁🏳️‍🌈🏳️🚩",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   fras: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "~ kotoba mange",
+    lyk: ["kotoba", "punkt"],
   },
   fraut: {
     emoji: "🍎🍓🥝🍑🍒🍋🍌🥭",
+    fal: "tingko",
+    falnen: "fraut",
   },
   froreenj: {
     emoji: "👃👎",
+    fal: "lihko",
+    falnen: "(sjiranai)",
+    imi: "warui na njyi",
     kundr: ["efles"],
   },
   fshto: {
     emoji: "📥🧠👍",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "'un siru braa'",
+    lyk: ["siru"],
   },
   fu: {
     emoji: "",
+    fal: "medko",
+    falnen: "(sjiranai)",
   },
   fuga: {
     emoji: "🃏🪪💳",
@@ -1125,42 +1163,66 @@ B: nil wil!`,
   },
   fugel: {
     emoji: "🐧🦉🦅🐥🦜🐦🦆🐔",
+    fal: "tingko",
+    falnen: "vonating",
   },
   fugelfraut: {
     emoji: "🥝",
+    fal: "tingko",
+    falnen: "fraut",
     kakutro: ["afefraut"],
   },
   funn: {
     emoji: "",
+    fal: "tingko",
+    falnen: "tyd",
+    tatoeba: ["jam 60 funn na ein dzikjann", "jan 1440 funn na ein daag"],
   },
   fura: {
     emoji: "",
+    fal: "tingko",
+    falnen: "strela",
   },
 
   // #region G
   gaja: {
     emoji: "🌏🌍🌎",
+    fal: "tingko",
+    falnen: "plasnamae",
+    imi: "heljo ke un au du vona na",
   },
   gammel: {
     emoji: "🧓👵👴",
+    fal: "lihko",
+    falnen: "(sjiranai)",
   },
   gavat: {
     emoji: "🎁",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   gelt: {
     emoji: "💰💵🪙",
+    fal: "tingko",
+    falnen: "(sjiranai)",
     lyk: ["aschor"],
   },
   gen: {
     emoji: "🕰️+1",
+    fal: "troko",
+    falnen: "raz",
     imi: "ein plus raz",
     tatoeba: ["A: oy B, da hanu!\nB hanu.\nA: da hanu gen!\nB hanu gen."],
   },
   glau: {
     emoji: "😁😄😃😀",
+    fal: "lihko",
+    falnen: "kokoro",
   },
   glaubi: {
     emoji: "½",
+    fal: "troko",
+    falnen: "(sjiranai)",
     imi: "mellan akk au nai",
     tatoeba: [
       `100 = akk
@@ -1170,13 +1232,22 @@ B: nil wil!`,
   },
   glossa: {
     emoji: "",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "ting ke al pershun hanu mit",
     kakutro: ["-ossa"],
   },
   glug: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "nam iske os cafe osos",
+    lyk: ["nam"],
   },
   go: {
     emoji: "5️⃣",
+    fal: "tingko",
+    falnen: "lasku",
   },
   godja: {
     emoji: "",
@@ -1192,17 +1263,25 @@ B: nil wil!`,
   },
   gomen: {
     emoji: "😔🙏🙇",
+    fal: "kokoroko",
+    falnen: "(sjiranai)",
   },
   gos: {
     emoji: "👍➡️🧑",
-    imi: "aparlyk dua",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "bra na hanudjin; aparlyk dua",
     tatoeba: ["du gos ≈ bra na du"],
   },
   gris: {
     emoji: "🩶",
+    fal: "lihko",
+    falnen: "varge",
   },
   grun: {
     emoji: "",
+    fal: "medko",
+    falnen: "(sjiranai)",
   },
   gus: {
     emoji: "👍",
@@ -1221,22 +1300,42 @@ B: nil wil!`,
   // #region H
   haaste: {
     emoji: "",
+    fal: "lihko",
+    falnen: "(sjiranai)",
   },
   hadji: {
     emoji: "",
+    fal: "suruko",
+    falnen: "raz",
     kakutro: ["bli-"],
+  },
+  haesa: {
+    emoji: "🗣️📛",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    tatoeba: [`A haesa B "C". namae fu B "C" na A`],
   },
   hana: {
     emoji: "👃",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    lyk: ["njui"],
   },
   hanj: {
     emoji: "½",
+    fal: "tingko",
+    falnen: "lasku",
+    imi: "mellan tsatain na al au nil",
   },
   hant: {
     emoji: "🖐️✋",
+    fal: "tingko",
+    falnen: "(sjiranai)",
   },
   hanu: {
     emoji: "🗣️",
+    fal: "suruko",
+    falnen: "(sjiranai)",
   },
   hapigo: {
     emoji: "📍👉",
@@ -1247,9 +1346,15 @@ B: nil wil!`,
   },
   har: {
     emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
   },
   hej: {
     emoji: "",
+    fal: "pashko",
+    falnen: "(sjiranai)",
+    imi: "sore mange",
+    lyk: ["sore"],
   },
   hel: {
     emoji: "",
@@ -1267,9 +1372,15 @@ B: nil wil!`,
   },
   heljo: {
     emoji: "🪐🌎",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "plasdaidai",
   },
   henci: {
     emoji: "💭👃➡️🫁",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    imi: "",
   },
   her: {
     emoji: "📍⬇️",
@@ -1283,6 +1394,13 @@ B: nil wil!`,
   },
   hir: {
     emoji: "🔉➡️👂",
+  },
+  hiras: {
+    emoji: "🚄🐆⚡",
+    fal: "lihko",
+    falnen: "(sjiranai)",
+    imi: "bruk tyd tsisai",
+    kundr: ["bistra"],
   },
   hiven: {
     emoji: "🍨🍦",
@@ -1781,6 +1899,7 @@ ka slucha na du?
   },
   njui: {
     emoji: "💭➡️👃",
+    lyk: ["hana"],
   },
   noito: {
     emoji: "🧵🧶",
