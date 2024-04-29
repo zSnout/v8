@@ -25,13 +25,7 @@ import {
   onMount,
   untrack,
 } from "solid-js"
-import {
-  RISOLI,
-  Slide,
-  Word,
-  makeSlideList,
-  makeWordList,
-} from "../viossa/data"
+import { RISOLI, Slide, Word, makeSlideList, makeWordList } from "./data"
 
 type Mode = "kotoba" | "riso" | undefined
 
@@ -51,6 +45,8 @@ function Pdf(
         let pageIndex = untrack(() => props.page)
         let page: PDFPageProxy | undefined
         let currentTask: RenderTask | undefined
+        let needsRedraw = true
+        const [intersecting, setIntersecting] = createSignal(false)
 
         async function render() {
           try {
@@ -93,6 +89,8 @@ function Pdf(
             })
 
             await currentTask.promise
+
+            needsRedraw = false
           } catch (error) {
             if (!(error instanceof RenderingCancelledException)) {
               throw error
@@ -100,16 +98,39 @@ function Pdf(
           }
         }
 
-        createEffect(render)
+        function invalidate() {
+          props.page
+
+          if (untrack(intersecting)) {
+            needsRedraw = false
+            render()
+          } else {
+            needsRedraw = true
+          }
+        }
+
+        createEffect(() => invalidate())
 
         let resizeTimeout: any = -1
         window.addEventListener("resize", () => {
           clearTimeout(resizeTimeout)
 
           resizeTimeout = setTimeout(() => {
-            untrack(render)
+            untrack(() => invalidate())
           }, 250)
         })
+
+        new IntersectionObserver(([entry]) => {
+          if (entry?.isIntersecting) {
+            setIntersecting(true)
+
+            if (needsRedraw) {
+              render()
+            }
+          } else {
+            setIntersecting(false)
+          }
+        }).observe(canvas)
       }}
     />
   )
