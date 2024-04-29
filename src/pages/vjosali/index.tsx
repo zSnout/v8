@@ -3,7 +3,8 @@ import {
   faArrowLeft,
   faArrowRight,
   faClose,
-  faMap,
+  faListUl,
+  faNetworkWired,
 } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import {
@@ -127,7 +128,7 @@ function Pdf(
           }, 250)
         })
 
-        new IntersectionObserver(([entry]) => {
+        const observer = new IntersectionObserver(([entry]) => {
           if (entry?.isIntersecting) {
             setIntersecting(true)
 
@@ -137,7 +138,10 @@ function Pdf(
           } else {
             setIntersecting(false)
           }
-        }).observe(canvas)
+        })
+
+        observer.observe(canvas)
+        observer.takeRecords()
       }}
     />
   )
@@ -327,7 +331,7 @@ function Kotoba(props: {
 
         <div class="line-clamp-4">
           <p class="text-z transition">
-            {props.word.imi ? "imi: " + props.word.imi : "(nai har imi)"}
+            <em>{props.word.imi || "(nai har imi)"}</em>
           </p>
 
           <ul>
@@ -373,6 +377,40 @@ function Kotobara(props: {
   )
 }
 
+function RelatedSection(props: { children: JSX.Element[] }) {
+  return (
+    <div class="mt-2 flex flex-col gap-2 rounded-l-2xl border-l border-z pb-2 pl-2 pt-1 text-z transition">
+      {props.children}
+    </div>
+  )
+}
+
+function RelatedGroup(props: {
+  label: string
+  words: readonly string[] | undefined
+  setMaximizedWord: (word: Word) => void
+}) {
+  return (
+    <Show when={props.words?.length}>
+      <div>
+        <div class="mb-1 text-sm italic">{props.label}</div>
+
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2 text-z transition">
+          <For each={props.words}>
+            {(word) => (
+              <Kotoba
+                word={wordMap.get(word)!}
+                setMaximized={props.setMaximizedWord}
+                sidebar
+              />
+            )}
+          </For>
+        </div>
+      </div>
+    </Show>
+  )
+}
+
 function KotoliSidebar(props: {
   maximized: () => Word
   setMaximizedWord: (word: Word) => void
@@ -381,23 +419,13 @@ function KotoliSidebar(props: {
   return (
     <>
       <div class="relative z-20 flex min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg transition">
-        <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-9xl opacity-30 blur-[2px]">
-          {segmenter.segment(props.maximized().emoji).containing(0)?.segment}
-        </div>
-
         <div class="relative flex flex-wrap text-2xl font-semibold">
           <p class="mr-auto text-z transition">{props.maximized().kotoba}</p>
           <p class="text-z transition">{props.maximized().emoji || ""}</p>
         </div>
 
         <p class="relative text-lg text-z transition">
-          {props.maximized().imi ? (
-            <>
-              <em>imi:</em> {props.maximized().imi}
-            </>
-          ) : (
-            <em>(nai har imi)</em>
-          )}
+          <em>{props.maximized().imi || "(nai har imi)"}</em>
         </p>
 
         <Show
@@ -426,58 +454,29 @@ function KotoliSidebar(props: {
         </Show>
       </div>
 
-      <Show when={props.maximized().lyk?.length}>
-        <div class="mt-2 rounded-tl-2xl border-l border-z pb-1 pl-2 pt-1 text-sm italic text-z transition">
-          lyk kotoba:
-        </div>
+      <Show
+        when={props.maximized().lyk?.length || props.maximized().kundr?.length}
+      >
+        <RelatedSection>
+          <RelatedGroup
+            label="lyk kotoba"
+            words={props.maximized().lyk || []}
+            setMaximizedWord={props.setMaximizedWord}
+          />
 
-        <div
-          class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2 border-l border-z pb-2 pl-2 text-z transition"
-          classList={{
-            "rounded-br-2xl": !props.maximized().kundr?.length,
-          }}
-        >
-          <For each={props.maximized().lyk}>
-            {(word) => (
-              <Kotoba
-                word={wordMap.get(word)!}
-                setMaximized={props.setMaximizedWord}
-                sidebar
-              />
-            )}
-          </For>
-        </div>
-      </Show>
-
-      <Show when={props.maximized().kundr?.length}>
-        <div
-          class="border-l border-z pb-1 pl-2 pt-1 text-sm italic text-z transition"
-          classList={{
-            "mt-2": !props.maximized().lyk?.length,
-            "rounded-tl-2xl": !props.maximized().lyk?.length,
-          }}
-        >
-          kundr kotoba:
-        </div>
-
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2 rounded-bl-2xl border-l border-z pb-2 pl-2 text-z transition">
-          <For each={props.maximized().kundr}>
-            {(word) => (
-              <Kotoba
-                word={wordMap.get(word)!}
-                setMaximized={props.setMaximizedWord}
-                sidebar
-              />
-            )}
-          </For>
-        </div>
+          <RelatedGroup
+            label="kundr kotoba"
+            words={props.maximized().kundr || []}
+            setMaximizedWord={props.setMaximizedWord}
+          />
+        </RelatedSection>
       </Show>
 
       <For
         each={props.maximized().opetaNa.concat(props.maximized().hanuNa)}
         fallback={
           <div class="mt-2 rounded-xl border border-z px-3 py-2 italic text-z opacity-30 transition">
-            kotoba afto nai har riso.
+            kotoba afto nai har riso k'opeta sore.
           </div>
         }
       >
@@ -542,14 +541,9 @@ function Risoara(props: {
   )
 }
 
-function RisoliSidebar(props: {
-  maximized: () => Slide
-  setMaximizedWord: (word: Word) => void
-  setMaximizedSlide: (slide: Slide) => void
-  setDialogSlide: (slide: Slide) => void
-}) {
-  const related = createMemo(() => {
-    const { opetako } = props.maximized()
+function createRelated(slide: () => Slide) {
+  return createMemo(() => {
+    const { opetako } = slide()
 
     const slideMap = new Map<number, number>()
 
@@ -560,11 +554,20 @@ function RisoliSidebar(props: {
     }
 
     return Array.from(slideMap.entries())
-      .filter(([x]) => x != props.maximized().index) // not this slide
+      .filter(([x]) => x != slide().index) // not this slide
       .sort(([a], [b]) => a - b) // earlier slides get priority
       .sort(([, a], [, b]) => b - a) // slides with more words get priority
       .map(([x]) => x)
   })
+}
+
+function RisoliSidebar(props: {
+  maximized: () => Slide
+  setMaximizedWord: (word: Word) => void
+  setMaximizedSlide: (slide: Slide) => void
+  setDialogSlide: (slide: Slide) => void
+}) {
+  const related = createRelated(props.maximized)
 
   return (
     <>
@@ -611,7 +614,10 @@ function RisoliDialog(props: {
   setDialogSlide: (slide: Slide | undefined) => void
   setMaximizedWord: (word: Word) => void
 }) {
-  const [dictionary, setDictionary] = createSignal(false)
+  type Anpa = "dictionary" | "slides" | undefined
+
+  const [anpa, setAnpa] = createSignal<Anpa>("slides")
+  const related = createRelated(() => props.dialogSlide() || slideMap.get(11)!)
 
   return (
     <dialog
@@ -637,8 +643,9 @@ function RisoliDialog(props: {
         <div
           class="flex aspect-video w-full justify-center"
           classList={{
-            "max-h-full": !dictionary(),
-            "max-h-[calc(100%_-_8.5rem)]": dictionary(),
+            "max-h-full": anpa() == null,
+            "max-h-[calc(100%_-_8.5rem)]": anpa() == "dictionary",
+            "max-h-[calc(100%_-_11.5rem)]": anpa() == "slides",
           }}
         >
           <div class="relative aspect-video h-full">
@@ -688,23 +695,38 @@ function RisoliDialog(props: {
             </button>
 
             <button
-              class="absolute -bottom-2 left-1/2 flex h-12 w-12 -translate-x-1/2 items-center justify-center rounded-xl border border-z bg-z-body ring-z-focus transition focus-visible:border-z-focus focus-visible:bg-z-body-selected focus-visible:outline-none focus-visible:ring"
+              class="absolute -bottom-2 left-1/2 flex h-12 w-12 translate-x-[calc(-50%_-_50%_-_0.5rem)] items-center justify-center rounded-xl border border-z bg-z-body ring-z-focus transition focus-visible:border-z-focus focus-visible:bg-z-body-selected focus-visible:outline-none focus-visible:ring"
               onClick={(event) => {
                 event.preventDefault()
                 event.stopImmediatePropagation()
-                setDictionary((x) => !x)
+                setAnpa((x) => (x == "dictionary" ? undefined : "dictionary"))
               }}
             >
               <Fa
                 class="h-8 w-8"
-                icon={faMap}
+                icon={faListUl}
                 title="da kinauki kotoli na unna"
+              />
+            </button>
+
+            <button
+              class="absolute -bottom-2 left-1/2 flex h-12 w-12 translate-x-[calc(-50%_+_50%_+_0.5rem)] items-center justify-center rounded-xl border border-z bg-z-body ring-z-focus transition focus-visible:border-z-focus focus-visible:bg-z-body-selected focus-visible:outline-none focus-visible:ring"
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopImmediatePropagation()
+                setAnpa((x) => (x == "slides" ? undefined : "slides"))
+              }}
+            >
+              <Fa
+                class="h-8 w-8"
+                icon={faNetworkWired}
+                title="da kinauki risoli na unna"
               />
             </button>
           </div>
         </div>
 
-        <Show when={dictionary()}>
+        <Show when={anpa() == "dictionary"}>
           <div class="-mx-6 -my-7 flex h-48 min-h-48 w-[calc(100%_+_3rem)] gap-2 overflow-x-auto overflow-y-hidden px-6 py-7 scrollbar:hidden">
             <For
               each={(props.dialogSlide()?.opetako || []).concat(
@@ -726,6 +748,33 @@ function RisoliDialog(props: {
             </For>
           </div>
         </Show>
+
+        <Show when={anpa() == "slides"}>
+          <div class="-mx-6 flex h-40 min-h-40 w-[calc(100%_+_3rem)] gap-2 overflow-x-auto overflow-y-hidden px-6 scrollbar:hidden">
+            <For
+              each={related()}
+              fallback={
+                <div class="flex w-full items-center justify-center rounded-xl border border-z bg-z-body italic">
+                  nai jam riso k'opeta kotoba sama kotoba fu afto riso
+                </div>
+              }
+            >
+              {(slideIndex) => (
+                <div
+                  class="aspect-video h-40 max-h-40 min-h-40 cursor-zoom-in"
+                  onClick={() =>
+                    props.setDialogSlide(slideMap.get(slideIndex)!)
+                  }
+                >
+                  <Page
+                    class="aspect-video h-40 max-h-40 min-h-40"
+                    page={slideIndex}
+                  />
+                </div>
+              )}
+            </For>
+          </div>
+        </Show>
       </div>
     </dialog>
   )
@@ -733,7 +782,7 @@ function RisoliDialog(props: {
 
 export function Vjosali() {
   const [query, setQuery] = createSignal("")
-  const [word, __setWord] = createSignal<Word>(wordMap.get("al")!)
+  const [word, __setWord] = createSignal<Word>(wordMap.get("luft")!)
   const [slide, __setSlide] = createSignal<Slide>(slideMap.get(12)!)
   const [isSlide, setIsSlide] = createSignal(false)
   const [mode, setMode] = createSignal<Mode>()
