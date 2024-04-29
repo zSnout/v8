@@ -828,7 +828,9 @@ function Siruting(props: { children: JSX.Element }) {
 function Sirutingara(props: { namae: string; children: JSX.Element[] }) {
   return (
     <div class="rounded-xl border border-z px-6 pb-6 pt-4 text-z transition">
-      <h2 class="mb-4 text-lg font-light">{props.namae}</h2>
+      <h2 class="mb-4 text-lg font-light">
+        {props.children.length} {props.namae}
+      </h2>
 
       {props.children.length ? (
         <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
@@ -899,6 +901,30 @@ export function Siru() {
               <p>{b}</p>
               <p>{a}</p>
             </Siruting>
+          ))}
+      </Sirutingara>
+
+      <Sirutingara namae="kotoba k'nai har fal">
+        {Array.from(wordMap.values())
+          .filter((x) => x.eins && !x.fal)
+          .map((x) => (
+            <Siruting>{x.kotoba}</Siruting>
+          ))}
+      </Sirutingara>
+
+      <Sirutingara namae="kotoba k'nai har falnen">
+        {Array.from(wordMap.values())
+          .filter((x) => x.eins && !x.falnen)
+          .map((x) => (
+            <Siruting>{x.kotoba}</Siruting>
+          ))}
+      </Sirutingara>
+
+      <Sirutingara namae="kotoba k'nai opetayena mit riso">
+        {Array.from(wordMap.values())
+          .filter((x) => x.eins && !x.opetaNa.length)
+          .map((x) => (
+            <Siruting>{x.kotoba}</Siruting>
           ))}
       </Sirutingara>
     </div>
