@@ -27,6 +27,7 @@ import {
   untrack,
 } from "solid-js"
 import {
+  Falnen,
   RISOLI,
   Slide,
   Word,
@@ -377,7 +378,7 @@ function Kotobara(props: {
   )
 }
 
-function RelatedSection(props: { children: JSX.Element[] }) {
+function RelatedSection(props: { children: JSX.Element }) {
   return (
     <div class="mt-2 flex flex-col gap-2 rounded-l-2xl border-l border-z pb-2 pl-2 pt-1 text-z transition">
       {props.children}
@@ -387,7 +388,7 @@ function RelatedSection(props: { children: JSX.Element[] }) {
 
 function RelatedGroup(props: {
   label: string
-  words: readonly string[] | undefined
+  words: readonly (string | Word)[] | undefined
   setMaximizedWord: (word: Word) => void
 }) {
   return (
@@ -399,7 +400,7 @@ function RelatedGroup(props: {
           <For each={props.words}>
             {(word) => (
               <Kotoba
-                word={wordMap.get(word)!}
+                word={typeof word == "string" ? wordMap.get(word)! : word}
                 setMaximized={props.setMaximizedWord}
                 sidebar
               />
@@ -411,11 +412,49 @@ function RelatedGroup(props: {
   )
 }
 
+function createFalnen(
+  getWord: () => string,
+  getFalnen: () => Falnen | readonly Falnen[],
+) {
+  const words = Array.from(wordMap.values()).filter((x) => x.eins)
+
+  return createMemo(() => {
+    const word = getWord()
+    const falnen = getFalnen()
+    const siru: [string, Word[]][] = []
+
+    for (const fal of typeof falnen == "string" ? [falnen] : falnen) {
+      if (fal == "(sjiranai)") {
+        continue
+      }
+
+      const falnensama = words.filter(
+        (x) =>
+          x.kotoba != word &&
+          (typeof x.falnen == "string"
+            ? x.falnen == falnen
+            : x.falnen.includes(fal)),
+      )
+
+      if (falnensama.length) {
+        siru.push([fal, falnensama])
+      }
+    }
+
+    return siru
+  })
+}
+
 function KotoliSidebar(props: {
   maximized: () => Word
   setMaximizedWord: (word: Word) => void
   setMaximizedSlide: (slide: Slide) => void
 }) {
+  const falnen = createFalnen(
+    () => props.maximized().kotoba,
+    () => props.maximized().falnen,
+  )
+
   return (
     <>
       <div class="relative z-20 flex min-h-72 flex-col gap-4 rounded-xl border border-z bg-z-body-partial px-6 py-4 backdrop-blur-lg transition">
@@ -473,10 +512,42 @@ function KotoliSidebar(props: {
       </Show>
 
       <For
-        each={props.maximized().opetaNa.concat(props.maximized().hanuNa)}
+        each={props.maximized().opetaNa}
         fallback={
           <div class="mt-2 rounded-xl border border-z px-3 py-2 italic text-z opacity-30 transition">
-            kotoba afto nai har riso k'opeta sore.
+            nai jam risu k'opeta afto kotoba.
+          </div>
+        }
+      >
+        {(page) => (
+          <div
+            class="mt-2 cursor-zoom-in"
+            onClick={() => props.setMaximizedSlide(slideMap.get(page)!)}
+          >
+            <Page page={page} />
+          </div>
+        )}
+      </For>
+
+      <Show when={falnen().length}>
+        <RelatedSection>
+          <For each={falnen()}>
+            {([fal, kotoba]) => (
+              <RelatedGroup
+                label={"ander " + fal}
+                words={kotoba}
+                setMaximizedWord={props.setMaximizedWord}
+              />
+            )}
+          </For>
+        </RelatedSection>
+      </Show>
+
+      <For
+        each={props.maximized().hanuNa}
+        fallback={
+          <div class="mt-2 rounded-xl border border-z px-3 py-2 italic text-z opacity-30 transition">
+            nai jam risu k'hanu tsui afto kotoba.
           </div>
         }
       >
