@@ -2,9 +2,11 @@ import { Fa } from "@/components/Fa"
 import {
   faArrowLeft,
   faArrowRight,
+  faCheck,
   faClose,
   faListUl,
   faNetworkWired,
+  faX,
 } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import {
@@ -349,19 +351,22 @@ function Kotoba(props: {
 function Kotobara(props: {
   setMaximized: (word: Word) => void
   query: () => string
+  uten: () => readonly string[]
 }) {
   const words = Array.from(wordMap.values())
 
   const filtered = createMemo(() => {
     const q = props.query()
+    const uten = props.uten()
+    const filtered = words.filter((x) => !uten.includes(x.kotoba))
 
     if (!q) {
-      return words
+      return filtered
     }
 
-    return search(q, words, {
+    return search(q, filtered, {
       keySelector(word) {
-        return word.kotoba
+        return [word.kotoba, word.emoji, word.imi || ""]
       },
       ignoreSymbols: false,
       ignoreCase: true,
@@ -858,6 +863,7 @@ export function Vjosali() {
   const [isSlide, setIsSlide] = createSignal(false)
   const [mode, setMode] = createSignal<Mode>()
   const [dialogSlide, setDialogSlide] = createSignal<Slide>()
+  const [uten, setUten] = createSignal("")
 
   function setMaximizedWord(word: Word) {
     batch(() => {
@@ -885,7 +891,11 @@ export function Vjosali() {
         <Header />
 
         <div classList={{ hidden: mode() == "riso" }}>
-          <Kotobara query={query} setMaximized={setMaximizedWord} />
+          <Kotobara
+            query={query}
+            setMaximized={setMaximizedWord}
+            uten={() => uten().split(/\s+/g)}
+          />
         </div>
 
         <div classList={{ hidden: mode() == "kotoba" }}>
@@ -1047,6 +1057,121 @@ export function Siru() {
             <Siruting>{x.kotoba}</Siruting>
           ))}
       </Sirutingara>
+    </div>
+  )
+}
+
+export function Anki() {
+  const words = Array.from(makeWordList().values()).filter((x) => x.eins)
+  const [data, setData] = createSignal(0)
+
+  return (
+    <div class="grid grid-cols-[1fr,16rem] gap-6">
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-4">
+        <For each={words}>
+          {(word) => (
+            <div
+              class="flex flex-col rounded bg-z-body-selected transition"
+              classList={{
+                hidden:
+                  (data(),
+                  localStorage
+                    .getItem("anki:check")
+                    ?.split(" ")
+                    .includes(word.kotoba) ||
+                    localStorage
+                      .getItem("anki:x")
+                      ?.split(" ")
+                      .includes(word.kotoba)),
+              }}
+            >
+              <div class="px-2 py-1 text-center font-semibold text-z transition">
+                {word.kotoba +
+                  (word.kakutro ? " " + word.kakutro.join(" ") : "")}
+              </div>
+
+              <div class="grid flex-1  grid-cols-2 border-t border-z-bg-body text-z transition">
+                <button
+                  class="flex items-center justify-center rounded-bl border-r border-z-bg-body bg-green-200 px-2 py-1 transition hover:bg-green-400 dark:bg-green-800 dark:hover:bg-green-600"
+                  onClick={() => {
+                    localStorage.setItem(
+                      "anki:check",
+                      (localStorage.getItem("anki:check") || "")
+                        .split(" ")
+                        .filter((x) => x && x != word.kotoba)
+                        .concat(word.kotoba)
+                        .join(" "),
+                    )
+
+                    setData((x) => x + 1)
+                  }}
+                >
+                  <Fa
+                    icon={faCheck}
+                    class="h-4 w-4 fill-green-900 transition dark:fill-green-100"
+                    title="check"
+                  />
+                </button>
+
+                <button
+                  class="flex items-center justify-center rounded-br bg-red-200 px-2 py-1 transition hover:bg-red-400 dark:bg-red-800 dark:hover:bg-red-600"
+                  onClick={() => {
+                    localStorage.setItem(
+                      "anki:x",
+                      (localStorage.getItem("anki:x") || "")
+                        .split(" ")
+                        .filter((x) => x && x != word.kotoba)
+                        .concat(word.kotoba)
+                        .join(" "),
+                    )
+
+                    setData((x) => x + 1)
+                  }}
+                >
+                  <Fa
+                    icon={faClose}
+                    class="h-4 w-4 fill-red-900 transition dark:fill-red-100"
+                    title="x"
+                  />
+                </button>
+              </div>
+            </div>
+          )}
+        </For>
+      </div>
+
+      <div>
+        <div class="fixed bottom-[2rem] top-[5rem] flex w-[16rem] flex-col gap-2">
+          <div>{(data(), localStorage.ankiInput)?.split("\n").length} left</div>
+
+          <textarea
+            class="flex-1 resize-none rounded border border-z bg-z-body px-3 py-2 text-z ring-z-focus transition focus:border-z-focus focus:outline-none focus:ring"
+            value={localStorage.ankiInput}
+            onInput={(event) =>
+              (localStorage.ankiInput = event.currentTarget.value)
+            }
+            onBlur={(event) => {
+              setData((x) => x + 1)
+
+              localStorage.ankiInput = event.currentTarget.value =
+                event.currentTarget.value
+                  .split("\n")
+                  .filter((x, i, a) => a.indexOf(x) == i)
+                  .sort(sortWords)
+                  // .map((word) => {
+                  //   if (wordMap.has(word)) {
+                  //     localStorage["anki:check"] += " " + word
+                  //     return
+                  //   }
+
+                  //   return word
+                  // })
+                  // .filter((x) => x)
+                  .join("\n")
+            }}
+          />
+        </div>
+      </div>
     </div>
   )
 }

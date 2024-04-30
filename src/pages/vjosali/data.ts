@@ -57,118 +57,19 @@ export type Falnen =
   | "kun"
   | "(sjiranai)"
 
-// TODO: add info about all priority two words
-export type Priority2 =
-  | "ze-"
-  | 100
-  | "auto"
-  | "azyci"
-  | "bamba"
-  | "berk"
-  | "bjelu"
-  | "breska"
-  | "cunin"
-  | "daremdjin"
-  | "dua"
-  | "dush"
-  | "farza"
-  | "film"
-  | "flacha"
-  | "froreenj"
-  | "hanj"
-  | "hant"
-  | "henci"
-  | "hiven"
-  | "imang"
-  | "ishi"
-  | "ivel"
-  | "jetta"
-  | "joki"
-  | "luvan"
-  | "kawari"
-  | "kompju"
-  | "kotnen"
-  | "kun"
-  | "kury"
-  | "kyajdz"
-  | "ljeta"
-  | "luvan"
-  | "marojzschine"
-  | "milenjal"
-  | "mjes"
-  | "mora"
-  | "mulbaksu"
-  | "naht"
-  | "namting"
-  | "neo"
-  | "niden"
-  | "noito"
-  | "ogoi"
-  | "ohare"
-  | "onna"
-  | "ovashi"
-  | "pan"
-  | "paperi"
-  | "piman"
-  | "pisma"
-  | "pitsa"
-  | "pravda"
-  | "rinj"
-  | "sakana"
-  | "sdanie"
-  | "shirutro"
-  | "sjikno"
-  | "skhola"
-  | "skwalo"
-  | "spil"
-  | "stift"
-  | "suksu"
-  | "tajkadzin"
-  | "talvi"
-  | "terbi"
-  | "timba"
-  | "tulla"
-  | "ufne"
-  | "upasnen"
-  | "uso"
-  | "utenvona"
-  | "varge"
-  | "vauva"
-  | "velt"
-  | "vera"
-  | "vet"
-  | "viha"
-  | "zehant"
-  | "zeme"
-  | "zespil"
-  | "zeus"
-
-export type ImiOsTatoeba =
-  | {
-      readonly imi: string
-      readonly tatoeba?: readonly string[] | undefined
-    }
-  | {
-      readonly imi?: string | undefined
-      readonly tatoeba: readonly string[]
-    }
-  | {
-      readonly imi?: string | undefined
-      readonly tatoeba?: readonly string[] | undefined
-    }
-
-export interface BaseWordData {
+export interface RawWordData {
+  readonly anki?: boolean | undefined
   readonly emoji: string
   readonly fal: Fal | readonly [Fal, ...Fal[]]
   readonly falnen: Falnen | readonly [Falnen, ...Falnen[]]
+  readonly imi?: string | undefined
   readonly lyk?: readonly string[] | undefined
   readonly kakutro?: readonly string[] | undefined
   readonly kundr?: readonly string[] | undefined
+  readonly tatoeba?: readonly string[] | undefined
 }
 
-export type RawWordData = BaseWordData & ImiOsTatoeba
-
-export type WordData = RawWordData & {
+export interface WordData extends RawWordData {
   readonly eins: boolean
 }
 
@@ -262,7 +163,7 @@ export const riso: Record<number, Content> = {
   72: ["fugel maredur atechi protofugel bihmidur njudur dur bagge", "al"],
 }
 
-export type Word = WordData & {
+export interface Word extends WordData {
   readonly kotoba: string
   readonly opetaNa: readonly number[]
   readonly hanuNa: readonly number[]
@@ -762,7 +663,7 @@ B: du nai hofli 😠! un benj hanu 🗣️.`,
     emoji: "🏥",
     fal: "tingko",
     falnen: "(sjiranai)",
-    imi: "plas ka bjurkidjin sjkoi kara grun sore vil mahanaibjurki", // TODO: kama
+    imi: "plas ka bjurkidjin sjkoi kara grun sore vil bli naibjurki",
   },
   blau: {
     emoji: "💙🔵🟦🔷",
