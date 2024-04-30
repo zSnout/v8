@@ -853,7 +853,7 @@ function RisoliDialog(props: {
 
 export function Vjosali() {
   const [query, setQuery] = createSignal("")
-  const [word, __setWord] = createSignal<Word>(wordMap.get("luft")!)
+  const [word, __setWord] = createSignal<Word>(wordMap.get("al")!)
   const [slide, __setSlide] = createSignal<Slide>(slideMap.get(12)!)
   const [isSlide, setIsSlide] = createSignal(false)
   const [mode, setMode] = createSignal<Mode>()
