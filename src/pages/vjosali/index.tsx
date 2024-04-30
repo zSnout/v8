@@ -1138,6 +1138,27 @@ export function Anki() {
             </div>
           )}
         </For>
+
+        <For each={words}>
+          {(word) => (
+            <div
+              class="flex flex-col rounded bg-z-body-selected transition"
+              classList={{
+                hidden:
+                  (data(),
+                  !localStorage
+                    .getItem("anki:check")
+                    ?.split(" ")
+                    .includes(word.kotoba)),
+              }}
+            >
+              <div class="px-2 py-1 text-center font-semibold text-z transition">
+                {word.kotoba +
+                  (word.kakutro ? " " + word.kakutro.join(" ") : "")}
+              </div>
+            </div>
+          )}
+        </For>
       </div>
 
       <div>
