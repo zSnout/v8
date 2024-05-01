@@ -967,6 +967,7 @@ const kotobasirumahena: Record<string, RawWordData> = {
     lyk: ["kompju"],
   },
   diarper: {
+    anki: true,
     emoji: "🐍",
     fal: "tingko",
     falnen: "vonating",
@@ -1115,6 +1116,7 @@ const kotobasirumahena: Record<string, RawWordData> = {
     imi: "ting per sjiru ka vecht os pitka osos",
   },
   fearie: {
+    anki: true,
     emoji: "🌈",
     fal: "tingko",
     falnen: "(sjiranai)",
@@ -1257,7 +1259,8 @@ const kotobasirumahena: Record<string, RawWordData> = {
     tatoeba: ["A: oy B, da hanu!\nB hanu.\nA: da hanu gen!\nB hanu gen."],
   },
   glas: {
-    emoji: "😎",
+    anki: true,
+    emoji: "😎🕶️",
     fal: "tingko",
     falnen: "(sjiranai)",
   },
@@ -1744,12 +1747,6 @@ const kotobasirumahena: Record<string, RawWordData> = {
     falnen: "(sjiranai)",
     tatoeba: ["A se 🐶.\nA: kawari!!! ❤️😍✨💖"],
   },
-  kiela: {
-    emoji: "☂️",
-    fal: "tingko",
-    falnen: "(sjiranai)",
-    imi: "ting k'du bruk grun jam pluj",
-  },
   kiere: {
     anki: true,
     emoji: "4️⃣",
@@ -1781,6 +1778,13 @@ const kotobasirumahena: Record<string, RawWordData> = {
     falnen: "(sjiranai)",
     imi: "nasi kotoba fu ein glossa ander glossa made",
     tatoeba: ["'hello' na anglossa ie 'hola' na espanjossa"],
+  },
+  kjela: {
+    anki: true,
+    emoji: "☂️",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    imi: "ting k'du bruk grun jam pluj",
   },
   kjomi: {
     anki: true,
@@ -2588,6 +2592,7 @@ const kotobasirumahena: Record<string, RawWordData> = {
     imi: "plas stuur",
   },
   pluj: {
+    anki: true,
     emoji: "🌧️",
     fal: "suruko",
     falnen: "(sjiranai)",
@@ -3304,7 +3309,10 @@ const kotobasirumahena: Record<string, RawWordData> = {
     tatoeba: ["A: uno huin?\nB: huin maha huomi."],
   },
   uslova: {
+    anki: true,
     emoji: "🤝🤔💭🟰",
+    fal: "suruko",
+    falnen: "(sjiranai)",
     imi: "mietta na sama",
     tatoeba: [
       `A: un dua kot!

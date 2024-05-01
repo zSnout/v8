@@ -2,11 +2,9 @@ import { Fa } from "@/components/Fa"
 import {
   faArrowLeft,
   faArrowRight,
-  faCheck,
   faClose,
   faListUl,
   faNetworkWired,
-  faX,
 } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import {
