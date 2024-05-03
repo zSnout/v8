@@ -1,3 +1,0 @@
-import $ from "jquery"
-
-Object.assign(globalThis, { jQuery: $ })

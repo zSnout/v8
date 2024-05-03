@@ -861,7 +861,7 @@ export function Vjosali() {
   const [isSlide, setIsSlide] = createSignal(false)
   const [mode, setMode] = createSignal<Mode>()
   const [dialogSlide, setDialogSlide] = createSignal<Slide>()
-  const [uten, setUten] = createSignal("")
+  const [uten, _setUten] = createSignal("")
 
   function setMaximizedWord(word: Word) {
     batch(() => {

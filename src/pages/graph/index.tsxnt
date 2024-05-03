@@ -1,5 +1,5 @@
-import "./a1"
-import { mq } from "./a2"
+import "./a1.tsnt"
+import { mq } from "./a2.tsnt"
 import "./mathquill.postcss"
 
 function MathField(props: {
