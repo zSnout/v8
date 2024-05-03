@@ -1,0 +1,5 @@
+import "mathquill/build/mathquill.css"
+import "mathquill/build/mathquill.js"
+
+const mq = MathQuill.getInterface(2)
+export { mq }

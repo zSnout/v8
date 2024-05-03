@@ -1,0 +1,18 @@
+.mq-editable-field {
+  @apply !border-none;
+}
+
+.mq-focused {
+  @apply !rounded-none !shadow-none;
+}
+
+.mq-selection,
+.mq-selection *,
+.mq-math-mode .mq-selection,
+.mq-editable-field .mq-selection,
+.mq-math-mode .mq-selection .mq-non-leaf,
+.mq-editable-field .mq-selection .mq-non-leaf,
+.mq-math-mode .mq-selection .mq-scaled,
+.mq-editable-field .mq-selection .mq-scaled {
+  @apply !border-none !text-black ![background:#b4d5fe];
+}
