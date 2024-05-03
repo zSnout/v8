@@ -1,0 +1,53 @@
+---
+import { createTransport } from "nodemailer"
+import type SMTPTransport from "nodemailer/lib/smtp-transport"
+
+export const prerender = false
+
+const config: SMTPTransport.Options = {
+  host: import.meta.env.MAIL_HOST,
+  port: +(import.meta.env.MAIL_PORT || 587),
+  secure: import.meta.env.MAIL_PORT === "465",
+  auth: {
+    user: import.meta.env.MAIL_USER,
+    pass: import.meta.env.MAIL_PASS,
+  },
+}
+
+if (Astro.request.method == "POST") {
+  const transport = createTransport(config)
+
+  const data = await Astro.request.formData()
+  const subject = data.get("subject")?.toString()
+  const text = data.get("text")?.toString()
+  const to = data.get("to")?.toString()
+  const from = data.get("from")?.toString()
+  const password = data.get("password")?.toString()
+
+  if (!subject || !text || !to || !from || !password) {
+    throw new Error("pass everything please")
+  }
+
+  if (password !== import.meta.env.EMAIL_KEY) {
+    throw new Error("wrong password silly")
+  }
+
+  const result = await transport.sendMail({
+    from,
+    to,
+    subject,
+    text,
+  })
+
+  return new Response(JSON.stringify(result))
+}
+---
+
+<form method="post">
+  <input type="text" name="subject" placeholder="subject" required />
+  <input type="text" name="text" placeholder="text" required />
+  <input type="text" name="to" placeholder="to" required />
+  <input type="text" name="from" placeholder="from" required />
+  <input type="password" name="password" placeholder="password" required />
+  <input type="submit" value="submit" />
+</form>
