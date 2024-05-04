@@ -69,8 +69,8 @@ function ref(canvas: HTMLCanvasElement) {
   const width = createMemo(() => rawDimensions().w * scale())
   const height = createMemo(() => rawDimensions().h * scale())
   const [rawPosition, setRawPosition] = createSignal<Position>({
-    x: 5,
-    y: 2,
+    x: 0,
+    y: 0,
     w: 20,
   })
   const position = createMemo(() => {
@@ -148,18 +148,103 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.strokeStyle = "black"
     ctx.lineWidth = 1.5 * scale()
     const { x, y } = convertGraphToCanvas(0, 0)
-    ctx.moveTo(x, 0)
-    ctx.lineTo(x, height())
-    ctx.moveTo(0, y)
-    ctx.lineTo(width(), y)
+    ctx.moveTo(~~x + 1.75, 0)
+    ctx.lineTo(~~x + 1.75, height())
+    ctx.moveTo(0, ~~y + 1.75)
+    ctx.lineTo(width(), ~~y + 1.75)
     ctx.stroke()
+  }
+
+  function drawGridX() {
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = scale()
+
+    const { xmin, xmax } = position()
+
+    ctx.beginPath()
+    ctx.globalAlpha = 0.3
+    const major = 2
+    const majorStart = Math.floor(xmin / major) * major
+    const majorEnd = Math.ceil(xmax / major) * major
+    for (let line = majorStart; line < majorEnd; line += major) {
+      if (Math.abs(line) < 10 ** -15) {
+        continue
+      }
+      const { x } = convertGraphToCanvas(line, 0)
+      ctx.moveTo(~~x + 0.5, 0)
+      ctx.lineTo(~~x + 0.5, height())
+    }
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.globalAlpha = 0.1
+    const minor = 0.5
+    const minorStart = Math.floor(xmin / minor) * minor
+    const minorEnd = Math.ceil(xmax / minor) * minor
+    for (let line = minorStart; line < minorEnd; line += minor) {
+      if (Math.abs(line) < 10 ** -15) {
+        continue
+      }
+      const { x } = convertGraphToCanvas(line, 0)
+      ctx.moveTo(~~x + 0.5, 0)
+      ctx.lineTo(~~x + 0.5, height())
+    }
+    ctx.stroke()
+
+    ctx.globalAlpha = 0
+  }
+
+  function drawGridY() {
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = scale()
+
+    const { ymin, ymax } = position()
+
+    ctx.beginPath()
+    ctx.globalAlpha = 0.3
+    const major = 2
+    const majorStart = Math.floor(ymin / major) * major
+    const majorEnd = Math.ceil(ymax / major) * major
+    for (let line = majorStart; line < majorEnd; line += major) {
+      if (Math.abs(line) < 10 ** -15) {
+        continue
+      }
+      const { y } = convertGraphToCanvas(0, line)
+      ctx.moveTo(0, ~~y + 0.5)
+      ctx.lineTo(width(), ~~y + 0.5)
+    }
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.globalAlpha = 0.13
+    const minor = 0.5
+    const minorStart = Math.floor(ymin / minor) * minor
+    const minorEnd = Math.ceil(ymax / minor) * minor
+    for (let line = minorStart; line < minorEnd; line += minor) {
+      if (Math.abs(line) < 10 ** -15) {
+        continue
+      }
+      const { y } = convertGraphToCanvas(0, line)
+      ctx.moveTo(0, ~~y + 0.5)
+      ctx.lineTo(width(), ~~y + 0.5)
+    }
+    ctx.stroke()
+
+    ctx.globalAlpha = 0
+  }
+
+  function drawGridLines() {
+    drawGridX()
+    drawGridY()
   }
 
   function drawRaw() {
     canvas.width = width()
     canvas.height = height()
     ctx.imageSmoothingEnabled = true
+    ctx.imageSmoothingQuality = "low"
     drawAxes()
+    drawGridLines()
   }
 
   function draw() {
