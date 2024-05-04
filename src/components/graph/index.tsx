@@ -163,7 +163,28 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.fill()
   }
 
-  function drawGridX() {
+  function getGridlineSize(graphSize: number, canvasSize: number) {
+    const MIN_GRIDLINE_SIZE = 15 * scale()
+
+    const graphUnitsInGridlineSize =
+      (MIN_GRIDLINE_SIZE * graphSize) / canvasSize
+    console.log(graphUnitsInGridlineSize)
+
+    const exp = 10 ** Math.floor(Math.log10(graphUnitsInGridlineSize))
+    const mantissa = graphUnitsInGridlineSize / exp
+    if (mantissa > 5) {
+      return { minor: 10 * exp, major: 50 * exp }
+    } else if (mantissa > 2) {
+      return { minor: 5 * exp, major: 20 * exp }
+    } else {
+      return { minor: 2 * exp, major: 10 * exp }
+    }
+  }
+
+  function drawGridlinesX() {
+    const { w } = position()
+    const { minor, major } = getGridlineSize(w, width())
+
     ctx.strokeStyle = "black"
     ctx.lineWidth = scale()
 
@@ -171,7 +192,6 @@ function ref(canvas: HTMLCanvasElement) {
 
     ctx.beginPath()
     ctx.globalAlpha = 0.3
-    const major = 2
     const majorStart = Math.floor(xmin / major) * major
     const majorEnd = Math.ceil(xmax / major) * major
     for (let line = majorStart; line < majorEnd; line += major) {
@@ -185,7 +205,6 @@ function ref(canvas: HTMLCanvasElement) {
 
     ctx.beginPath()
     ctx.globalAlpha = 0.1
-    const minor = 0.5
     const minorStart = Math.floor(xmin / minor) * minor
     const minorEnd = Math.ceil(xmax / minor) * minor
     for (let line = minorStart; line < minorEnd; line += minor) {
@@ -200,7 +219,10 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.globalAlpha = 0
   }
 
-  function drawGridY() {
+  function drawGridlinesY() {
+    const { h } = position()
+    const { minor, major } = getGridlineSize(h, height())
+
     ctx.strokeStyle = "black"
     ctx.lineWidth = scale()
 
@@ -208,7 +230,6 @@ function ref(canvas: HTMLCanvasElement) {
 
     ctx.beginPath()
     ctx.globalAlpha = 0.3
-    const major = 2
     const majorStart = Math.floor(ymin / major) * major
     const majorEnd = Math.ceil(ymax / major) * major
     for (let line = majorStart; line < majorEnd; line += major) {
@@ -222,7 +243,6 @@ function ref(canvas: HTMLCanvasElement) {
 
     ctx.beginPath()
     ctx.globalAlpha = 0.1
-    const minor = 0.5
     const minorStart = Math.floor(ymin / minor) * minor
     const minorEnd = Math.ceil(ymax / minor) * minor
     for (let line = minorStart; line < minorEnd; line += minor) {
@@ -237,9 +257,9 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.globalAlpha = 0
   }
 
-  function drawGridLines() {
-    drawGridX()
-    drawGridY()
+  function drawGridlines() {
+    drawGridlinesX()
+    drawGridlinesY()
   }
 
   function drawRaw() {
@@ -248,7 +268,7 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = "low"
     drawAxes()
-    drawGridLines()
+    drawGridlines()
   }
 
   function draw() {
