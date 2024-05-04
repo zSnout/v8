@@ -1,4 +1,10 @@
-import { batch, createMemo, createSignal, untrack } from "solid-js"
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  untrack,
+} from "solid-js"
 
 export type MutableExpression =
   | { type: "variable"; name: string }
@@ -69,6 +75,8 @@ const THEME_AXIS_NUMBER_ONSCREEN = "black"
 const THEME_AXIS_NUMBER_OFFSCREEN = "#8e8e8e"
 const THEME_AXIS_NUMBER_NEGATIVE_X_OFFSET = -2.5
 
+const THEME_ZOOM_ZERO_SNAP_DISTANCE = 16
+
 function ref(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d")!
 
@@ -80,9 +88,9 @@ function ref(canvas: HTMLCanvasElement) {
   const width = createMemo(() => rawDimensions().w * scale())
   const height = createMemo(() => rawDimensions().h * scale())
   const [rawPosition, setRawPosition] = createSignal<Position>({
-    x: 0,
+    w: 0.5545064108147902,
+    x: -1.930509291345103,
     y: 0,
-    w: 20,
   })
   const position = createMemo(() => {
     const { x, y, w } = rawPosition()
@@ -101,6 +109,32 @@ function ref(canvas: HTMLCanvasElement) {
       h,
     }
   })
+
+  function superscript(value: string): string {
+    return value
+      .replace(/-/g, "⁻")
+      .replace(/0/g, "⁰")
+      .replace(/1/g, "¹")
+      .replace(/2/g, "²")
+      .replace(/3/g, "³")
+      .replace(/4/g, "⁴")
+      .replace(/5/g, "⁵")
+      .replace(/6/g, "⁶")
+      .replace(/7/g, "⁷")
+      .replace(/8/g, "⁸")
+      .replace(/9/g, "⁹")
+  }
+
+  function toString(value: number): string {
+    if (Math.abs(value) <= 0.0001) {
+      const exp = Math.floor(Math.log10(Math.abs(value)))
+      const mantissa = value / 10 ** exp
+
+      return `${mantissa}×10${superscript(exp.toString())}`
+    } else {
+      return value.toString()
+    }
+  }
 
   function addDragLogic() {
     const [, setDragging] = createSignal<Dragging>()
@@ -143,6 +177,37 @@ function ref(canvas: HTMLCanvasElement) {
     addEventListener("pointerup", () => setDragging())
   }
 
+  function addZoomLogic() {
+    canvas.addEventListener("wheel", (event) => {
+      event.preventDefault()
+
+      const { x: xpos, y: ypos, w } = rawPosition()
+      const h = (height() / width()) * w
+
+      const { x: x0, y: y0 } = convertGraphToCanvas(0, 0)
+
+      const xp =
+        (Math.abs(x0 / scale() - event.clientX) < THEME_ZOOM_ZERO_SNAP_DISTANCE
+          ? x0 / scale()
+          : event.clientX) / canvas.clientWidth
+
+      const yp =
+        (Math.abs(y0 / scale() - event.clientY) < THEME_ZOOM_ZERO_SNAP_DISTANCE
+          ? y0 / scale()
+          : event.clientY) / canvas.clientHeight
+
+      const n = event.deltaY > 0 ? 1.08 : 0.92
+
+      setRawPosition({
+        x: xpos + w * (n - 1) * (0.5 - xp),
+        y: ypos - h * (n - 1) * (0.5 - yp),
+        w: w * n,
+      })
+
+      draw()
+    })
+  }
+
   function convertGraphToCanvas(x: number, y: number) {
     const { xmin, ymin, w, h } = position()
     const xp = (x - xmin) / w
@@ -163,11 +228,12 @@ function ref(canvas: HTMLCanvasElement) {
   function drawScreenLineY(y: number, h: number) {
     const t = Math.floor(y - h / 2)
     ctx.fillStyle = "black"
-    ctx.rect(0, t, width(), h)
+    ctx.fillRect(0, t, width(), h)
   }
 
   function drawAxes() {
     ctx.beginPath()
+    ctx.globalAlpha = 1
     const { x, y } = convertGraphToCanvas(0, 0)
     drawScreenLineX(x, THEME_MAIN_AXIS_WIDTH * scale())
     drawScreenLineY(y, THEME_MAIN_AXIS_WIDTH * scale())
@@ -311,7 +377,7 @@ function ref(canvas: HTMLCanvasElement) {
         continue
       }
 
-      const value = "" + line
+      const value = toString(line)
       let { x } = convertGraphToCanvas(line, 0)
       if (line < 0) {
         x += THEME_AXIS_NUMBER_NEGATIVE_X_OFFSET * scale()
@@ -351,7 +417,7 @@ function ref(canvas: HTMLCanvasElement) {
         continue
       }
 
-      const value = "" + line
+      const value = toString(line)
       let { x, y } = convertGraphToCanvas(0, line)
       x -= 6 * scale()
 
@@ -382,6 +448,7 @@ function ref(canvas: HTMLCanvasElement) {
     drawGridlinesY()
     drawAxisNumbersX()
     drawAxisNumbersY()
+    drawAxes()
   }
 
   function drawRaw() {
@@ -394,7 +461,6 @@ function ref(canvas: HTMLCanvasElement) {
     }
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = "low"
-    drawAxes()
     drawGridlines()
   }
 
@@ -418,6 +484,9 @@ function ref(canvas: HTMLCanvasElement) {
   }).observe(canvas)
 
   addDragLogic()
+  addZoomLogic()
+
+  createEffect(() => console.log(position()))
 }
 
 export function Graph(props: { class?: string | undefined }) {
