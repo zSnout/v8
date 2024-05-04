@@ -143,16 +143,24 @@ function ref(canvas: HTMLCanvasElement) {
     }
   }
 
+  function drawScreenLineX(x: number, w: number) {
+    const l = Math.floor(x - w / 2)
+    ctx.fillStyle = "black"
+    ctx.rect(l, 0, w, height())
+  }
+
+  function drawScreenLineY(y: number, h: number) {
+    const t = Math.floor(y - h / 2)
+    ctx.fillStyle = "black"
+    ctx.rect(0, t, width(), h)
+  }
+
   function drawAxes() {
     ctx.beginPath()
-    ctx.strokeStyle = "black"
-    ctx.lineWidth = 1.5 * scale()
     const { x, y } = convertGraphToCanvas(0, 0)
-    ctx.moveTo(~~x + 1.75, 0)
-    ctx.lineTo(~~x + 1.75, height())
-    ctx.moveTo(0, ~~y + 1.75)
-    ctx.lineTo(width(), ~~y + 1.75)
-    ctx.stroke()
+    drawScreenLineX(x, 1.5 * scale())
+    drawScreenLineY(y, 1.5 * scale())
+    ctx.fill()
   }
 
   function drawGridX() {
@@ -171,10 +179,9 @@ function ref(canvas: HTMLCanvasElement) {
         continue
       }
       const { x } = convertGraphToCanvas(line, 0)
-      ctx.moveTo(~~x + 0.5, 0)
-      ctx.lineTo(~~x + 0.5, height())
+      drawScreenLineX(x, 1 * scale())
     }
-    ctx.stroke()
+    ctx.fill()
 
     ctx.beginPath()
     ctx.globalAlpha = 0.1
@@ -186,10 +193,9 @@ function ref(canvas: HTMLCanvasElement) {
         continue
       }
       const { x } = convertGraphToCanvas(line, 0)
-      ctx.moveTo(~~x + 0.5, 0)
-      ctx.lineTo(~~x + 0.5, height())
+      drawScreenLineX(x, 1 * scale())
     }
-    ctx.stroke()
+    ctx.fill()
 
     ctx.globalAlpha = 0
   }
@@ -210,13 +216,12 @@ function ref(canvas: HTMLCanvasElement) {
         continue
       }
       const { y } = convertGraphToCanvas(0, line)
-      ctx.moveTo(0, ~~y + 0.5)
-      ctx.lineTo(width(), ~~y + 0.5)
+      drawScreenLineY(y, 1 * scale())
     }
-    ctx.stroke()
+    ctx.fill()
 
     ctx.beginPath()
-    ctx.globalAlpha = 0.13
+    ctx.globalAlpha = 0.1
     const minor = 0.5
     const minorStart = Math.floor(ymin / minor) * minor
     const minorEnd = Math.ceil(ymax / minor) * minor
@@ -225,10 +230,9 @@ function ref(canvas: HTMLCanvasElement) {
         continue
       }
       const { y } = convertGraphToCanvas(0, line)
-      ctx.moveTo(0, ~~y + 0.5)
-      ctx.lineTo(width(), ~~y + 0.5)
+      drawScreenLineY(y, 1 * scale())
     }
-    ctx.stroke()
+    ctx.fill()
 
     ctx.globalAlpha = 0
   }
