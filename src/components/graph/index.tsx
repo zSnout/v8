@@ -164,7 +164,7 @@ function ref(canvas: HTMLCanvasElement) {
   }
 
   function getGridlineSize(graphSize: number, canvasSize: number) {
-    const MIN_GRIDLINE_SIZE = 15 * scale()
+    const MIN_GRIDLINE_SIZE = 16 * scale()
 
     const graphUnitsInGridlineSize =
       (MIN_GRIDLINE_SIZE * graphSize) / canvasSize
@@ -172,12 +172,12 @@ function ref(canvas: HTMLCanvasElement) {
 
     const exp = 10 ** Math.floor(Math.log10(graphUnitsInGridlineSize))
     const mantissa = graphUnitsInGridlineSize / exp
-    if (mantissa > 5) {
-      return { minor: 10 * exp, major: 50 * exp }
-    } else if (mantissa > 2) {
+    if (mantissa < 2) {
+      return { minor: 2 * exp, major: 10 * exp }
+    } else if (mantissa < 4) {
       return { minor: 5 * exp, major: 20 * exp }
     } else {
-      return { minor: 2 * exp, major: 10 * exp }
+      return { minor: 10 * exp, major: 50 * exp }
     }
   }
 
@@ -257,14 +257,45 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.globalAlpha = 0
   }
 
+  function drawAxisNumbersX() {
+    const { w } = position()
+    const { major } = getGridlineSize(w, width())
+
+    ctx.strokeStyle = "white"
+    ctx.fillStyle = "black"
+    ctx.textAlign = "center"
+    ctx.textBaseline = "top"
+
+    const { xmin, xmax } = position()
+    const majorStart = Math.floor(xmin / major) * major
+    const majorEnd = Math.ceil(xmax / major) * major
+
+    for (let line = majorStart; line < majorEnd; line += major) {
+      if (Math.abs(line) < 10 ** -15) {
+        continue
+      }
+
+      const { x } = convertGraphToCanvas(line, 0)
+      drawScreenLineX(x, 1 * scale())
+    }
+
+    ctx.fill()
+  }
+
   function drawGridlines() {
     drawGridlinesX()
     drawGridlinesY()
+    drawAxisNumbersX()
   }
 
   function drawRaw() {
-    canvas.width = width()
-    canvas.height = height()
+    ctx.reset()
+    if (width() != canvas.width) {
+      canvas.width = width()
+    }
+    if (height() != canvas.height) {
+      canvas.height = height()
+    }
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = "low"
     drawAxes()
