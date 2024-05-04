@@ -76,6 +76,8 @@ const THEME_AXIS_NUMBER_OFFSCREEN = "#8e8e8e"
 const THEME_AXIS_NUMBER_NEGATIVE_X_OFFSET = -2.5
 
 const THEME_ZOOM_ZERO_SNAP_DISTANCE = 16
+const THEME_MINIMUM_WIDTH = 10 ** -10
+const THEME_MAXIMUM_WIDTH = 10 ** 30
 
 function ref(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d")!
@@ -126,13 +128,15 @@ function ref(canvas: HTMLCanvasElement) {
   }
 
   function toString(value: number): string {
-    if (Math.abs(value) <= 0.0001) {
+    if (Math.abs(value) <= 0.0001 || Math.abs(value) >= 10 ** 8) {
       const exp = Math.floor(Math.log10(Math.abs(value)))
       const mantissa = value / 10 ** exp
 
-      return `${mantissa}×10${superscript(exp.toString())}`
+      return `${(+mantissa.toPrecision(15)).toString()}×10${superscript(
+        exp.toString(),
+      )}`
     } else {
-      return value.toString()
+      return (+value.toPrecision(15)).toString()
     }
   }
 
@@ -182,6 +186,7 @@ function ref(canvas: HTMLCanvasElement) {
       event.preventDefault()
 
       const { x: xpos, y: ypos, w } = rawPosition()
+
       const h = (height() / width()) * w
 
       const { x: x0, y: y0 } = convertGraphToCanvas(0, 0)
@@ -197,6 +202,10 @@ function ref(canvas: HTMLCanvasElement) {
           : event.clientY) / canvas.clientHeight
 
       const n = event.deltaY > 0 ? 1.08 : 0.92
+
+      if (w * n < THEME_MINIMUM_WIDTH || w * n > THEME_MAXIMUM_WIDTH) {
+        return
+      }
 
       setRawPosition({
         x: xpos + w * (n - 1) * (0.5 - xp),
@@ -346,8 +355,8 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.font = `${THEME_AXIS_NUMBER_SIZE * scale()}rem sans-serif`
 
     const { xmin, xmax } = position()
-    const majorStart = Math.floor(xmin / major) * major
-    const majorEnd = Math.ceil(xmax / major) * major
+    const majorStart = Math.floor(xmin / major)
+    const majorEnd = Math.ceil(xmax / major)
 
     const zeroMetrics = ctx.measureText("0")
     const letterSize =
@@ -372,14 +381,14 @@ function ref(canvas: HTMLCanvasElement) {
       }
     }
 
-    for (let line = majorStart; line < majorEnd; line += major) {
-      if (Math.abs(line) < 10 ** -15) {
+    for (let line = majorStart; line < majorEnd; line++) {
+      if (line == 0) {
         continue
       }
 
-      const value = toString(line)
-      let { x } = convertGraphToCanvas(line, 0)
-      if (line < 0) {
+      const value = toString(line * major)
+      let { x } = convertGraphToCanvas(line * major, 0)
+      if (line * major < 0) {
         x += THEME_AXIS_NUMBER_NEGATIVE_X_OFFSET * scale()
       }
 
@@ -409,16 +418,16 @@ function ref(canvas: HTMLCanvasElement) {
     ctx.font = `${THEME_AXIS_NUMBER_SIZE * scale()}rem sans-serif`
 
     const { ymin, ymax } = position()
-    const majorStart = Math.floor(ymin / major) * major
-    const majorEnd = Math.ceil(ymax / major) * major
+    const majorStart = Math.floor(ymin / major)
+    const majorEnd = Math.ceil(ymax / major)
 
-    for (let line = majorStart; line < majorEnd; line += major) {
-      if (Math.abs(line) < 10 ** -15) {
+    for (let line = majorStart; line < majorEnd; line++) {
+      if (line == 0) {
         continue
       }
 
-      const value = toString(line)
-      let { x, y } = convertGraphToCanvas(0, line)
+      const value = toString(line * major)
+      let { x, y } = convertGraphToCanvas(0, line * major)
       x -= 6 * scale()
 
       const metrics = ctx.measureText(value)
