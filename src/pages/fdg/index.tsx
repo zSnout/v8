@@ -693,7 +693,6 @@ export function Main() {
           />
           repulsion force
         </label>
-        F
       </div>
     </div>
   )
