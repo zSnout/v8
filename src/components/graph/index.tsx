@@ -79,6 +79,16 @@ const THEME_ZOOM_ZERO_SNAP_DISTANCE = 16
 const THEME_MINIMUM_WIDTH = 10 ** -10
 const THEME_MAXIMUM_WIDTH = 10 ** 30
 
+const THEME_COLOR_RED = "#c74440"
+const THEME_COLOR_BLUE = "#2d70b3"
+const THEME_COLOR_GREEN = "#388c46"
+const THEME_COLOR_ORANGE = "#fa7e19"
+const THEME_COLOR_PURPLE = "#6042a6"
+const THEME_COLOR_BLACK = "#000000"
+
+const THEME_DIRECT_XY_RESOLUTION = 0.1
+const THEME_DIRECT_XY_MAX_DISTANCE = 128
+
 function ref(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d")!
 
@@ -90,8 +100,8 @@ function ref(canvas: HTMLCanvasElement) {
   const width = createMemo(() => rawDimensions().w * scale())
   const height = createMemo(() => rawDimensions().h * scale())
   const [rawPosition, setRawPosition] = createSignal<Position>({
-    w: 0.5545064108147902,
-    x: -1.930509291345103,
+    w: 20,
+    x: 0,
     y: 0,
   })
   const position = createMemo(() => {
@@ -217,6 +227,17 @@ function ref(canvas: HTMLCanvasElement) {
     })
   }
 
+  function convertCanvasToGraphX(x: number) {
+    const { xmin, w } = position()
+    return (x / width()) * w + xmin
+  }
+
+  function convertGraphToCanvasY(y: number) {
+    const { ymin, h } = position()
+    const yp = 1 - (y - ymin) / h
+    return yp * height()
+  }
+
   function convertGraphToCanvas(x: number, y: number) {
     const { xmin, ymin, w, h } = position()
     const xp = (x - xmin) / w
@@ -229,15 +250,21 @@ function ref(canvas: HTMLCanvasElement) {
   }
 
   function drawScreenLineX(x: number, w: number) {
-    const l = Math.floor(x - w / 2)
-    ctx.fillStyle = "black"
-    ctx.rect(l, 0, w, height())
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = w
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, height())
+    ctx.stroke()
   }
 
   function drawScreenLineY(y: number, h: number) {
-    const t = Math.floor(y - h / 2)
-    ctx.fillStyle = "black"
-    ctx.fillRect(0, t, width(), h)
+    ctx.strokeStyle = "black"
+    ctx.lineWidth = h
+    ctx.beginPath()
+    ctx.moveTo(0, y)
+    ctx.lineTo(width(), y)
+    ctx.stroke()
   }
 
   function drawAxes() {
@@ -246,7 +273,6 @@ function ref(canvas: HTMLCanvasElement) {
     const { x, y } = convertGraphToCanvas(0, 0)
     drawScreenLineX(x, THEME_MAIN_AXIS_WIDTH * scale())
     drawScreenLineY(y, THEME_MAIN_AXIS_WIDTH * scale())
-    ctx.fill()
   }
 
   function getGridlineSize(graphSize: number, canvasSize: number) {
@@ -286,7 +312,6 @@ function ref(canvas: HTMLCanvasElement) {
       const { x } = convertGraphToCanvas(line, 0)
       drawScreenLineX(x, 1 * scale())
     }
-    ctx.fill()
 
     ctx.beginPath()
     ctx.globalAlpha = THEME_MINOR_LINE_ALPHA
@@ -299,7 +324,6 @@ function ref(canvas: HTMLCanvasElement) {
       const { x } = convertGraphToCanvas(line, 0)
       drawScreenLineX(x, 1 * scale())
     }
-    ctx.fill()
 
     ctx.globalAlpha = 1
   }
@@ -324,7 +348,6 @@ function ref(canvas: HTMLCanvasElement) {
       const { y } = convertGraphToCanvas(0, line)
       drawScreenLineY(y, 1 * scale())
     }
-    ctx.fill()
 
     ctx.beginPath()
     ctx.globalAlpha = THEME_MINOR_LINE_ALPHA
@@ -337,7 +360,6 @@ function ref(canvas: HTMLCanvasElement) {
       const { y } = convertGraphToCanvas(0, line)
       drawScreenLineY(y, 1 * scale())
     }
-    ctx.fill()
 
     ctx.globalAlpha = 1
   }
@@ -460,6 +482,41 @@ function ref(canvas: HTMLCanvasElement) {
     drawAxes()
   }
 
+  function pathGraphDirectY(getY: (x: number) => number) {
+    const min = 0
+    const max = width()
+    const step = THEME_DIRECT_XY_RESOLUTION * scale()
+
+    const path = new Path2D()
+    let initialized = false
+    let lasty: number | undefined
+
+    for (let canvasX = min - step; canvasX < max + step; canvasX += step) {
+      const graphX = convertCanvasToGraphX(canvasX)
+      const graphY = getY(graphX)
+      const canvasY = convertGraphToCanvasY(graphY)
+
+      if (Number.isFinite(graphY)) {
+        console.log("draw")
+        if (
+          initialized
+          // && lasty != null
+          // && Math.abs(lasty - canvasY) < THEME_DIRECT_XY_MAX_DISTANCE
+        ) {
+          lasty = canvasY
+          path.lineTo(canvasX, canvasY)
+        } else {
+          lasty = canvasY
+          path.moveTo(canvasX, canvasY)
+          initialized = true
+        }
+      } else {
+      }
+    }
+
+    return path
+  }
+
   function drawRaw() {
     ctx.reset()
     if (width() != canvas.width) {
@@ -470,7 +527,16 @@ function ref(canvas: HTMLCanvasElement) {
     }
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = "low"
+
     drawGridlines()
+
+    {
+      ctx.globalAlpha = 1
+      ctx.strokeStyle = THEME_COLOR_RED
+      ctx.lineWidth = 2.5
+      const path = pathGraphDirectY((x) => 1 / x)
+      ctx.stroke(path)
+    }
   }
 
   function draw() {
@@ -494,8 +560,6 @@ function ref(canvas: HTMLCanvasElement) {
 
   addDragLogic()
   addZoomLogic()
-
-  createEffect(() => console.log(position()))
 }
 
 export function Graph(props: { class?: string | undefined }) {
