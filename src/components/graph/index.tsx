@@ -276,18 +276,3 @@ function ref(canvas: HTMLCanvasElement) {
 export function Graph(props: { class?: string | undefined }) {
   return <canvas class={props.class} ref={ref} />
 }
-
-/** Lambdas
- *
- * In Desmos, functions must be declared statically. If a function `f` relies on
- * a function `g`, and you need to call `f` but with a different function `g`,
- * you need to create a new instance of both `f` and `g`. This makes code
- * unwieldy and prone to errors and overduplication.
- *
- * This calculator aims to fix that with lambda functions. Lambda functions are
- * functions which can be passed around at will. Instead of `f` relying on `g`,
- * `f` could take an argument of `g`, and we could pass any lambda to it, or the
- * definition of a standalone function. `f` might be defined as `f(x,g)=g(x)^2`,
- * so that it can be reused for any function `g`. The example is simple, but you
- * can see how it would scale to larger projects.
- */
