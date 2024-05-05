@@ -1,4 +1,3 @@
-import { createSignal } from "solid-js"
 import "./latex.postcss"
 
 export type Bracket = "()" | "[]" | "{}" | "||"
@@ -8,8 +7,14 @@ export type BaseSymbol =
   | { type: "op"; op: string }
   | { type: "," }
   | { type: "var"; letter: string }
+  | { type: "const"; name: string }
   | { type: "cursor" }
   | { type: "sqrt"; contents: Symbol[] }
+  | { type: "root"; root: Symbol[]; contents: Symbol[] }
+  | { type: "frac"; top: Symbol[]; bottom: Symbol[] }
+  | { type: "sup"; contents: Symbol[] }
+  | { type: "sub"; contents: Symbol[] }
+  | { type: "supsub"; sup: Symbol[]; sub: Symbol[] }
   | { type: "bracket"; bracket: Bracket; contents: Symbol[] }
 
 export type Symbol =
@@ -44,8 +49,7 @@ export function drawSymbolArray(list: Symbol[]) {
               type: "digit",
               digit,
               spaceBefore:
-                !(digitIndex == 0 && index == 0) &&
-                (symbol.value.length - digitIndex) % 3 == 0,
+                digitIndex > 0 && (symbol.value.length - digitIndex) % 3 == 0,
             }),
           )
 
@@ -200,25 +204,30 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
   switch (symbol.type) {
     case "digit":
       return (
-        <span class="font-mathnum" classList={{ "pl-0.5": symbol.spaceBefore }}>
+        <span
+          class="font-mathnum"
+          classList={{ "pl-[.125em]": symbol.spaceBefore }}
+        >
           {symbol.digit}
         </span>
       )
     case ".":
       return <span class="font-mathnum">.</span>
     case ",":
-      return <span class="pr-1 font-mathnum">,</span>
+      return <span class="pr-[.2em] font-mathnum">,</span>
     case "op":
-      return <span class="px-1 font-mathnum">{symbol.op}</span>
+      return <span class="px-[.2em] font-mathnum">{symbol.op}</span>
     case "var":
       return <span class="font-mathvar italic">{symbol.letter}</span>
+    case "const":
+      return <span class="font-mathvar">{symbol.name}</span>
     case "fn":
       return (
         <span
           class="font-mathvar"
           classList={{
-            "pl-1": symbol.spaceBefore,
-            "pr-1": symbol.spaceAfter,
+            "pl-[.2em]": symbol.spaceBefore,
+            "pr-[.2em]": symbol.spaceAfter,
           }}
         >
           {symbol.letter}
@@ -247,6 +256,43 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           </span>
         </span>
       )
+    case "root":
+      return (
+        <span class="inline-block">
+          <span class="ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]">
+            {drawSymbolArray(symbol.root)}
+          </span>
+
+          <span class="relative inline-block">
+            <span class="absolute bottom-[.15em] top-px inline-block w-[.95em]">
+              <svg
+                preserveAspectRatio="none"
+                viewBox="0 0 32 54"
+                class="absolute left-0 top-0 h-full w-full fill-current"
+              >
+                <path
+                  d="M0 33 L7 27 L12.5 47 L13 47 L30 0 L32 0 L13 54 L11 54 L4.5 31 L0 33"
+                  class=""
+                />
+              </svg>
+            </span>
+
+            <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
+              {drawSymbolArray(symbol.contents)}
+            </span>
+          </span>
+        </span>
+      )
+    case "frac":
+      return (
+        <span class="inline-block px-[.2em] text-center align-[-.4em] text-[90%]">
+          <span class="block py-[.1em]">{drawSymbolArray(symbol.top)}</span>
+          <span class="float-right block w-full border-t border-t-current p-[.1em]">
+            {drawSymbolArray(symbol.bottom)}
+          </span>
+          <span class="inline-block w-0">​</span>
+        </span>
+      )
     case "bracket": {
       const { w, mx } = getBracketSize(symbol.bracket)
 
@@ -266,6 +312,36 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
         </span>
       )
     }
+    case "sup":
+      return (
+        <span class="mb-[-.2em] inline-block text-left align-[.5em] text-[90%]">
+          <span class="inline-block align-text-bottom">
+            {drawSymbolArray(symbol.contents)}
+          </span>
+        </span>
+      )
+    case "sub":
+      return (
+        <span class="mb-[-.2em] inline-block text-left align-[-.5em] text-[90%]">
+          <span class="float-left block text-[80%]">
+            {drawSymbolArray(symbol.contents)}
+          </span>
+
+          <span class="inline-block w-0">&#8203;</span>
+        </span>
+      )
+    case "supsub":
+      return (
+        <span class="mb-[-.2em] inline-block text-left align-[-.5em] text-[90%]">
+          <span class="block">{drawSymbolArray(symbol.sup)}</span>
+
+          <span class="float-left block text-[80%]">
+            {drawSymbolArray(symbol.sub)}
+          </span>
+
+          <span class="inline-block w-0">​&#8203;</span>
+        </span>
+      )
   }
 
   // @ts-expect-error this should never be reached
@@ -283,45 +359,92 @@ export function Field(props: {
   )
 }
 
-export function Main() {
-  const [symbols, setSymbols] = createSignal<Symbol[]>([
-    { type: "number", value: "40" },
-    { type: "," },
-    { type: "number", value: "623" },
-    { type: "." },
-    { type: "var", letter: "x" },
-    { type: "fn", name: "sin" },
-    {
-      type: "sqrt",
-      contents: [
-        { type: "number", value: "623" },
-        {
-          type: "bracket",
-          bracket: "()",
-          contents: [{ type: "number", value: "623" }],
-        },
-      ],
-    },
-    {
-      type: "bracket",
-      bracket: "[]",
-      contents: [{ type: "number", value: "623" }],
-    },
-    {
-      type: "bracket",
-      bracket: "{}",
-      contents: [{ type: "number", value: "623" }],
-    },
-    {
-      type: "bracket",
-      bracket: "||",
-      contents: [{ type: "number", value: "623" }],
-    },
-  ])
+export function ReadonlyField(props: { symbols: Symbol[] }) {
+  return <Field symbols={() => props.symbols} setSymbols={() => {}} />
+}
 
+export function Main() {
   return (
-    <div>
-      <Field symbols={symbols} setSymbols={setSymbols} />
+    <div class="flex flex-col gap-4">
+      <ReadonlyField
+        symbols={[
+          { type: "var", letter: "x" },
+          { type: "var", letter: "x" },
+          { type: "sup", contents: [{ type: "number", value: "2" }] },
+          { type: "var", letter: "x" },
+          { type: "sub", contents: [{ type: "number", value: "1" }] },
+          { type: "var", letter: "x" },
+          {
+            type: "supsub",
+            sup: [
+              { type: "number", value: "2" },
+              // { type: "sup", contents: [{ type: "number", value: "4" }] },
+            ],
+            sub: [
+              { type: "number", value: "1" },
+              // { type: "sub", contents: [{ type: "number", value: "4" }] },
+            ],
+          },
+          {
+            type: "root",
+            root: [
+              { type: "number", value: "2" },
+              { type: "op", op: "+" },
+              { type: "number", value: "3" },
+            ],
+            contents: [
+              { type: "number", value: "4" },
+              { type: "op", op: "-" },
+              { type: "number", value: "5" },
+            ],
+          },
+          { type: "op", op: "+" },
+          {
+            type: "frac",
+            top: [{ type: "number", value: "2" }],
+            bottom: [{ type: "number", value: "4" }],
+          },
+        ]}
+      />
+
+      <ReadonlyField
+        symbols={[
+          { type: "number", value: "40" },
+          { type: "," },
+          { type: "number", value: "623" },
+          { type: "." },
+          { type: "const", name: "x" },
+          { type: "var", letter: "e" },
+          { type: "const", name: "π" },
+          { type: "fn", name: "sin" },
+          {
+            type: "sqrt",
+            contents: [
+              { type: "number", value: "623" },
+              {
+                type: "bracket",
+                bracket: "()",
+                contents: [{ type: "number", value: "623" }],
+              },
+            ],
+          },
+          {
+            type: "bracket",
+            bracket: "[]",
+            contents: [{ type: "number", value: "623" }],
+          },
+          {
+            type: "bracket",
+            bracket: "{}",
+            contents: [{ type: "number", value: "623" }],
+          },
+          {
+            type: "bracket",
+            bracket: "||",
+            contents: [{ type: "number", value: "623" }],
+          },
+        ]}
+      />
     </div>
   )
 }
