@@ -921,11 +921,22 @@ export function drawSymbol(
                         replaceSelf(
                           [
                             {
-                              ...symbol,
-                              cases: symbol.cases.with(index, {
-                                value: symbols,
-                                when,
-                              }),
+                              type: "cases",
+                              cases: symbol.cases.map(
+                                ({ value, when }, myIndex) => {
+                                  if (index == myIndex) {
+                                    return {
+                                      value: symbols,
+                                      when: prepareSymbolList(when, data),
+                                    }
+                                  } else {
+                                    return {
+                                      value: prepareSymbolList(value, data),
+                                      when: prepareSymbolList(when, data),
+                                    }
+                                  }
+                                },
+                              ),
                             },
                           ],
                           data,
@@ -941,11 +952,22 @@ export function drawSymbol(
                         replaceSelf(
                           [
                             {
-                              ...symbol,
-                              cases: symbol.cases.with(index, {
-                                value,
-                                when: symbols,
-                              }),
+                              type: "cases",
+                              cases: symbol.cases.map(
+                                ({ value, when }, myIndex) => {
+                                  if (index == myIndex) {
+                                    return {
+                                      value: prepareSymbolList(value, data),
+                                      when: symbols,
+                                    }
+                                  } else {
+                                    return {
+                                      value: prepareSymbolList(value, data),
+                                      when: prepareSymbolList(when, data),
+                                    }
+                                  }
+                                },
+                              ),
                             },
                           ],
                           data,
@@ -995,8 +1017,16 @@ export function drawSymbol(
                         replaceSelf(
                           [
                             {
-                              ...symbol,
-                              data: symbol.data.with(i, row.with(j, symbols)),
+                              type: "matrix",
+                              data: symbol.data.map((row, rowI) =>
+                                row.map((cell, cellJ) => {
+                                  if (i == rowI && j == cellJ) {
+                                    return symbols
+                                  } else {
+                                    return prepareSymbolList(cell, data)
+                                  }
+                                }),
+                              ),
                             },
                           ],
                           data,
