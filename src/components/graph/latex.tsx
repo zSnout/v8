@@ -1,4 +1,4 @@
-import { For, createSignal } from "solid-js"
+import { For, Show, createSignal } from "solid-js"
 import "./latex.postcss"
 
 // if you see empty <span>s, they probably have the `​` character. don't delete
@@ -10,7 +10,6 @@ export type PiecewiseSection = { value: Symbol[]; when: Symbol[] }
 export type BaseSymbol =
   | { type: "." }
   | { type: "," }
-  | { type: "op"; op: string }
   | { type: "var"; letter: string }
   | { type: "const"; name: string }
   | { type: "cursor" }
@@ -29,12 +28,19 @@ export type Symbol =
   | { type: "sup"; contents: Symbol[] }
   | { type: "sub"; contents: Symbol[] }
   | { type: "supsub"; sup: Symbol[]; sub: Symbol[] }
+  | { type: "op"; op: string }
   | BaseSymbol
 
 export type ContextualizedSymbol =
-  | { type: "digit"; digit: string; spaceBefore: boolean }
-  | { type: "fn"; letter: string; spaceBefore: boolean; spaceAfter: boolean }
-  | { type: "prefix"; op: "+" | "-" }
+  | { type: "number"; value: string; afterDecimal: boolean; cursor?: number }
+  | {
+      type: "fn"
+      name: string
+      cursor?: number
+      spaceBefore: boolean
+      spaceAfter: boolean
+    }
+  | { type: "op"; op: string; isPrefix: boolean }
   | { type: "sup"; contents: Symbol[]; spaceAfter: boolean }
   | { type: "sub"; contents: Symbol[]; spaceAfter: boolean }
   | { type: "supsub"; sup: Symbol[]; sub: Symbol[]; spaceAfter: boolean }
@@ -43,6 +49,15 @@ export type ContextualizedSymbol =
 export interface ReplacementData {
   removeCursor: boolean
   removeSelection: boolean
+}
+
+// @ts-expect-error this function should never be used
+// its purpose is to ensure that all contextualized symbols are variants
+// of normal symbols, so that replacement works properly
+function assertAllContextualVariantsAreSubtypesOfNormal(
+  contextual: ContextualizedSymbol,
+): Symbol {
+  return contextual
 }
 
 export function isNumericSymbolOnRHS(
@@ -83,7 +98,7 @@ export function spliceSymbols(
   deleteCount: number,
   inserted: ContextualizedSymbol[],
 ): Symbol[] {
-  return current
+  return current.toSpliced(index, deleteCount, ...inserted)
 }
 
 export function SymbolList(props: {
@@ -93,7 +108,7 @@ export function SymbolList(props: {
   return (
     <For each={props.symbols}>
       {(symbol, index) => {
-        function setCursorAndSelf(
+        function replaceSelf(
           symbols: ContextualizedSymbol[],
           data: ReplacementData,
         ) {
@@ -105,25 +120,57 @@ export function SymbolList(props: {
 
         switch (symbol.type) {
           case "number": {
-            const isAfterDecimal = props.symbols[index() - 1]?.type == "."
+            const afterDecimal = props.symbols[index() - 1]?.type == "."
 
-            const array = symbol.value.split("").map((digit, digitIndex) =>
-              drawSymbol({
-                type: "digit",
-                digit,
-                spaceBefore:
-                  !isAfterDecimal &&
-                  digitIndex > 0 &&
-                  (symbol.value.length - digitIndex) % 3 == 0,
-              }),
+            return drawSymbol(
+              {
+                type: "number",
+                value: symbol.value,
+                afterDecimal,
+                cursor: symbol.cursor,
+              },
+              replaceSelf,
             )
-
-            if (symbol.cursor != null) {
-              array.splice(symbol.cursor, 0, drawCursor())
-            }
-
-            return array
           }
+
+          // case "number": {
+          //   const isAfterDecimal = props.symbols[index() - 1]?.type == "."
+
+          //   const array = symbol.value.split("").map((digit, digitIndex) =>
+          //     drawSymbol(
+          //       {
+          //         type: "digit",
+          //         digit,
+          //         spaceBefore:
+          //           !isAfterDecimal &&
+          //           digitIndex > 0 &&
+          //           (symbol.value.length - digitIndex) % 3 == 0,
+          //       },
+          //       (symbols, data) => {
+          //         const digits = symbol.value
+          //           .split("")
+          //           .map<ContextualizedSymbol>((digit) => ({
+          //             type: "digit",
+          //             digit,
+          //             spaceBefore: false,
+          //           }))
+
+          //         digits.splice(digitIndex, 1, ...symbols)
+
+          //         props.replaceSelf(
+          //           spliceSymbols(props.symbols, index(), 1, digits),
+          //           data,
+          //         )
+          //       },
+          //     ),
+          //   )
+
+          //   if (symbol.cursor != null) {
+          //     array.splice(symbol.cursor, 0, drawCursor())
+          //   }
+
+          //   return array
+          // }
 
           case "fn": {
             const next =
@@ -131,33 +178,66 @@ export function SymbolList(props: {
                 ? props.symbols[index() + 2]?.type
                 : props.symbols[index() + 1]?.type
 
-            const nextConsumesSpace =
+            const spaceBefore = index() != 0
+
+            const spaceAfter = !(
               next == null ||
               next == "sub" ||
               next == "sup" ||
               next == "supsub" ||
               next == "," ||
               next == "bracket"
-
-            const last = symbol.name.length - 1
-
-            const array = symbol.name.split("").map((letter, letterIndex) =>
-              drawSymbol({
-                type: "fn",
-                letter,
-                spaceBefore: letterIndex == 0 && index() != 0,
-                spaceAfter:
-                  !nextConsumesSpace &&
-                  letterIndex == last &&
-                  index() != props.symbols.length - 1,
-              }),
             )
 
-            if (symbol.cursor != null) {
-              array.splice(symbol.cursor, 0, drawCursor())
-            }
+            return drawSymbol(
+              {
+                type: "fn",
+                name: symbol.name,
+                cursor: symbol.cursor,
+                spaceBefore,
+                spaceAfter,
+              },
+              replaceSelf,
+            )
 
-            return array
+            // const last = symbol.name.length - 1
+
+            // const array = symbol.name.split("").map((letter, letterIndex) =>
+            //   drawSymbol(
+            //     {
+            //       type: "fn",
+            //       letter,
+            //       spaceBefore: letterIndex == 0 && index() != 0,
+            //       spaceAfter:
+            //         !spaceAfter &&
+            //         letterIndex == last &&
+            //         index() != props.symbols.length - 1,
+            //     },
+            //     (symbols, data) => {
+            //       const letters = symbol.name
+            //         .split("")
+            //         .map<ContextualizedSymbol>((letter) => ({
+            //           type: "fn",
+            //           letter,
+            //           spaceBefore: false,
+            //           spaceAfter: false,
+            //         }))
+
+            //       letters.splice(letterIndex, 1, ...symbols)
+
+            //       props.replaceSelf(
+            //         spliceSymbols(props.symbols, index(), 1, letters),
+            //         data,
+            //       )
+            //     },
+            //   ),
+            // )
+
+            // if (symbol.cursor != null) {
+            //   array.splice(symbol.cursor, 0, drawCursor())
+            // }
+
+            // return array
           }
 
           case "sup":
@@ -170,31 +250,26 @@ export function SymbolList(props: {
 
             return drawSymbol(
               { ...symbol, spaceAfter: prev == "fn" },
-              setCursorAndSelf,
+              replaceSelf,
             )
           }
 
           case "op": {
-            if (symbol.op == "+" || symbol.op == "-") {
-              if (
-                index() == 0 ||
-                !isNumericSymbolOnRHS(
-                  props.symbols[index() - 1]!,
-                  props.symbols[index() - 2],
-                )
-              ) {
-                return drawSymbol(
-                  { type: "prefix", op: symbol.op },
-                  setCursorAndSelf,
-                )
-              }
-            }
+            const isPrefix =
+              ((symbol.op == "+" || symbol.op == "-") && index() == 0) ||
+              !isNumericSymbolOnRHS(
+                props.symbols[index() - 1]!,
+                props.symbols[index() - 2],
+              )
 
-            return drawSymbol(symbol, setCursorAndSelf)
+            return drawSymbol(
+              { type: "op", op: symbol.op, isPrefix },
+              replaceSelf,
+            )
           }
 
           default:
-            return drawSymbol(symbol, setCursorAndSelf)
+            return drawSymbol(symbol, replaceSelf)
         }
       }}
     </For>
@@ -203,7 +278,7 @@ export function SymbolList(props: {
 
 export function drawCursor() {
   return (
-    <span class="relative z-[1] -ml-px inline-block border-l border-l-current p-0">
+    <span class="pointer-events-none relative z-20 -ml-px inline-block border-l border-l-current p-0">
       ​
     </span>
   )
@@ -324,38 +399,75 @@ export function drawSymbol(
   replaceSelf: (symbols: ContextualizedSymbol[], data: ReplacementData) => void,
 ) {
   switch (symbol.type) {
-    case "digit":
+    case "number":
       return (
-        <span
-          class="font-mathnum"
-          classList={{ "pl-[.125em]": symbol.spaceBefore }}
-        >
-          {symbol.digit}
-        </span>
+        <>
+          <For each={[...symbol.value]}>
+            {(letter, index) => (
+              <>
+                <Show when={index() === symbol.cursor}>{drawCursor()}</Show>
+
+                <span
+                  classList={{
+                    "pl-[.125em]":
+                      !symbol.afterDecimal &&
+                      index() != 0 &&
+                      (symbol.value.length - index()) % 3 == 0,
+                  }}
+                  onClick={() =>
+                    replaceSelf([{ type: "sqrt", contents: [symbol] }], {
+                      removeCursor: false,
+                      removeSelection: false,
+                    })
+                  }
+                >
+                  {letter}
+                </span>
+              </>
+            )}
+          </For>
+
+          <Show when={symbol.cursor == symbol.value.length}>
+            {drawCursor()}
+          </Show>
+        </>
       )
     case ".":
-      return <span class="font-mathnum">.</span>
+      return <span>.</span>
     case ",":
-      return <span class="pr-[.2em] font-mathnum">,</span>
+      return <span class="pr-[.2em]">,</span>
     case "op":
-      return <span class="px-[.2em] font-mathnum">{symbol.op}</span>
-    case "prefix":
-      return <span class="font-mathnum">{symbol.op}</span>
+      return (
+        <span classList={{ "px-[.2em]": !symbol.isPrefix }}>{symbol.op}</span>
+      )
     case "var":
       return <span class="font-mathvar italic">{symbol.letter}</span>
     case "const":
       return <span class="font-mathvar">{symbol.name}</span>
     case "fn":
       return (
-        <span
-          class="font-mathvar"
-          classList={{
-            "pl-[.2em]": symbol.spaceBefore,
-            "pr-[.2em]": symbol.spaceAfter,
-          }}
-        >
-          {symbol.letter}
-        </span>
+        <>
+          <For each={[...symbol.name]}>
+            {(letter, index) => (
+              <>
+                <Show when={index() === symbol.cursor}>{drawCursor()}</Show>
+
+                <span
+                  class="font-mathvar"
+                  classList={{
+                    "pl-[.2em]": index() == 0 && symbol.spaceBefore,
+                    "pr-[.2em]":
+                      index() == symbol.name.length - 1 && symbol.spaceAfter,
+                  }}
+                >
+                  {letter}
+                </span>
+              </>
+            )}
+          </For>
+
+          <Show when={symbol.cursor == symbol.name.length}>{drawCursor()}</Show>
+        </>
       )
     case "cursor":
       return drawCursor()
@@ -388,7 +500,7 @@ export function drawSymbol(
     case "root":
       return (
         <span class="inline-block">
-          <span class="ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]">
+          <span class="relative z-[1] ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]">
             <SymbolList
               symbols={symbol.root}
               replaceSelf={(symbols, data) =>
@@ -726,7 +838,6 @@ export function ReadonlyField(props: { symbols: Symbol[] }) {
 export function Main() {
   const [symbols, setSymbols] = createSignal<Symbol[]>([
     { type: "var", letter: "x" },
-    { type: "cursor" },
     { type: "var", letter: "x" },
     { type: "sup", contents: [{ type: "number", value: "2" }] },
     { type: "var", letter: "x" },
@@ -849,7 +960,7 @@ export function Main() {
 
   return (
     <div class="m-auto flex w-full select-none flex-col gap-4 text-center">
-      <Field symbols={symbols} setSymbols={() => {}} />
+      <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
 }
