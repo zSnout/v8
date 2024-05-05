@@ -48,7 +48,6 @@ export type ContextualizedSymbol =
 
 export interface ReplacementData {
   removeCursor: boolean
-  removeSelection: boolean
 }
 
 /**
@@ -111,13 +110,71 @@ export function isNumericSymbolOnRHS(
   }
 }
 
+/** Splices symbols, then joins numbers and function names. */
 export function spliceSymbols(
   current: Symbol[],
   index: number,
   deleteCount: number,
-  inserted: ContextualizedSymbol[],
+  inserted: Symbol[],
 ): Symbol[] {
   return current.toSpliced(index, deleteCount, ...inserted)
+}
+
+export function prepareSymbol(symbol: Symbol, data: ReplacementData): Symbol {
+  if (data.removeCursor) {
+    switch (symbol.type) {
+      case "op":
+      case ".":
+      case ",":
+      case "var":
+      case "const":
+      case "cursor":
+        return symbol
+      case "number":
+      case "fn":
+        return { ...symbol, cursor: undefined }
+      case "sup":
+      case "sub":
+      case "sqrt":
+      case "bracket":
+        return {
+          ...symbol,
+          contents: prepareSymbolList(symbol.contents, data),
+        }
+      case "supsub":
+      case "int":
+      case "repeat":
+      case "frac":
+        return {
+          ...symbol,
+          sub: prepareSymbolList(symbol.sub, data),
+          sup: prepareSymbolList(symbol.sup, data),
+        }
+      case "root":
+        return {
+          ...symbol,
+          contents: prepareSymbolList(symbol.contents, data),
+          root: prepareSymbolList(symbol.root, data),
+        }
+      case "matrix":
+        return {
+          ...symbol,
+          data: symbol.data.map((row) =>
+            row.map((cell) => prepareSymbolList(cell, data)),
+          ),
+        }
+      case "cases":
+        return {
+          ...symbol,
+          cases: symbol.cases.map(({ value, when }) => ({
+            value: prepareSymbolList(value, data),
+            when: prepareSymbolList(when, data),
+          })),
+        }
+    }
+  } else {
+    return symbol
+  }
 }
 
 /** Removes cursors from a symbol list if the data says to. */
@@ -211,12 +268,17 @@ export function SymbolList(props: {
   return (
     <For each={props.symbols}>
       {(symbol, index) => {
-        function replaceSelf(
-          symbols: ContextualizedSymbol[],
-          data: ReplacementData,
-        ) {
+        function replaceSelf(symbols: Symbol[], data: ReplacementData) {
+          const i = index()
+
+          const [newSymbols, newIndex] = prepareSymbolListAndShiftIndex(
+            props.symbols,
+            data,
+            i,
+          )
+
           props.replaceSelf(
-            spliceSymbols(props.symbols, index(), 1, symbols),
+            spliceSymbols(newSymbols, newIndex, 1, symbols),
             data,
           )
         }
@@ -431,7 +493,7 @@ export function drawRightBracket(bracket: Bracket) {
 
 export function drawSymbol(
   symbol: ContextualizedSymbol,
-  replaceSelf: (symbols: ContextualizedSymbol[], data: ReplacementData) => void,
+  replaceSelf: (symbols: Symbol[], data: ReplacementData) => void,
 ) {
   switch (symbol.type) {
     case "number":
@@ -453,11 +515,12 @@ export function drawSymbol(
                     replaceSelf(
                       [
                         {
-                          ...symbol,
+                          type: "number",
+                          value: symbol.value,
                           cursor: cursorIndexShift(event) + index(),
                         },
                       ],
-                      { removeCursor: true, removeSelection: true },
+                      { removeCursor: true },
                     )
                   }}
                 >
@@ -530,8 +593,8 @@ export function drawSymbol(
           <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
             <SymbolList
               symbols={symbol.contents}
-              replaceSelf={(symbols, removeCursor) =>
-                replaceSelf([{ ...symbol, contents: symbols }], removeCursor)
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ type: "sqrt", contents: symbols }], data)
               }
             />
           </span>
@@ -544,7 +607,16 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.root}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, root: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "root",
+                      contents: prepareSymbolList(symbol.contents, data),
+                      root: symbols,
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -567,7 +639,16 @@ export function drawSymbol(
               <SymbolList
                 symbols={symbol.contents}
                 replaceSelf={(symbols, data) =>
-                  replaceSelf([{ ...symbol, contents: symbols }], data)
+                  replaceSelf(
+                    [
+                      {
+                        type: "root",
+                        contents: symbols,
+                        root: prepareSymbolList(symbol.root, data),
+                      },
+                    ],
+                    data,
+                  )
                 }
               />
             </span>
@@ -581,7 +662,16 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.sup}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, sup: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "frac",
+                      sup: symbols,
+                      sub: prepareSymbolList(symbol.sub, data),
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -589,7 +679,16 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.sub}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, sub: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "frac",
+                      sup: prepareSymbolList(symbol.sup, data),
+                      sub: symbols,
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -609,7 +708,16 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.contents}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, contents: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "bracket",
+                      bracket: symbol.bracket,
+                      contents: symbols,
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -630,7 +738,7 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.contents}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, contents: symbols }], data)
+                replaceSelf([{ type: "sup", contents: symbols }], data)
               }
             />
           </span>
@@ -646,7 +754,7 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.contents}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, contents: symbols }], data)
+                replaceSelf([{ type: "sub", contents: symbols }], data)
               }
             />
           </span>
@@ -664,7 +772,16 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.sup}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, sup: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "supsub",
+                      sup: symbols,
+                      sub: prepareSymbolList(symbol.sub, data),
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -673,7 +790,16 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.sub}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, sub: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "supsub",
+                      sub: symbols,
+                      sup: prepareSymbolList(symbol.sup, data),
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -688,7 +814,17 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.sup}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, sup: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "repeat",
+                      op: symbol.op,
+                      sup: symbols,
+                      sub: prepareSymbolList(symbol.sub, data),
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -699,7 +835,17 @@ export function drawSymbol(
             <SymbolList
               symbols={symbol.sub}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, sub: symbols }], data)
+                replaceSelf(
+                  [
+                    {
+                      type: "repeat",
+                      op: symbol.op,
+                      sup: prepareSymbolList(symbol.sup, data),
+                      sub: symbols,
+                    },
+                  ],
+                  data,
+                )
               }
             />
           </span>
@@ -718,7 +864,16 @@ export function drawSymbol(
                 <SymbolList
                   symbols={symbol.sup}
                   replaceSelf={(symbols, data) =>
-                    replaceSelf([{ ...symbol, sup: symbols }], data)
+                    replaceSelf(
+                      [
+                        {
+                          type: "int",
+                          sup: symbols,
+                          sub: prepareSymbolList(symbol.sub, data),
+                        },
+                      ],
+                      data,
+                    )
                   }
                 />
               </span>
@@ -728,7 +883,16 @@ export function drawSymbol(
               <SymbolList
                 symbols={symbol.sub}
                 replaceSelf={(symbols, data) =>
-                  replaceSelf([{ ...symbol, sub: symbols }], data)
+                  replaceSelf(
+                    [
+                      {
+                        type: "int",
+                        sub: symbols,
+                        sup: prepareSymbolList(symbol.sup, data),
+                      },
+                    ],
+                    data,
+                  )
                 }
               />
             </span>
@@ -999,7 +1163,7 @@ export function Main() {
   ])
 
   return (
-    <div class="m-auto flex select-none flex-col gap-4 bg-red-500 text-center">
+    <div class="m-auto flex select-none flex-col gap-4 text-center">
       <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
