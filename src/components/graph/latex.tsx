@@ -15,7 +15,7 @@ export type BaseSymbol =
   | { type: "cursor" }
   | { type: "sqrt"; contents: Symbol[] }
   | { type: "root"; root: Symbol[]; contents: Symbol[] }
-  | { type: "frac"; top: Symbol[]; bottom: Symbol[] }
+  | { type: "frac"; sup: Symbol[]; sub: Symbol[] }
   | { type: "bracket"; bracket: Bracket; contents: Symbol[] }
   | { type: "repeat"; op: "sum" | "prod"; sub: Symbol[]; sup: Symbol[] }
   | { type: "int"; sub: Symbol[]; sup: Symbol[] }
@@ -49,6 +49,25 @@ export type ContextualizedSymbol =
 export interface ReplacementData {
   removeCursor: boolean
   removeSelection: boolean
+}
+
+/**
+ * Gets the index the cursor should be at based on where an element was clicked
+ * on. Also stops event from executing default action and stops
+ * propogation immediately.
+ */
+function cursorIndexShift(event: {
+  currentTarget: { getBoundingClientRect(): { x: number; width: number } }
+  clientX: number
+  preventDefault: () => void
+  stopImmediatePropagation: () => void
+}) {
+  const { x, width } = event.currentTarget.getBoundingClientRect()
+
+  event.preventDefault()
+  event.stopImmediatePropagation()
+
+  return +(event.clientX - x > width / 2)
 }
 
 // @ts-expect-error this function should never be used
@@ -101,6 +120,90 @@ export function spliceSymbols(
   return current.toSpliced(index, deleteCount, ...inserted)
 }
 
+/** Removes cursors from a symbol list if the data says to. */
+export function prepareSymbolList(
+  symbols: Symbol[],
+  data: ReplacementData,
+): Symbol[] {
+  return prepareSymbolListAndShiftIndex(symbols, data, 0)[0]
+}
+
+/** Removes cursors from a symbol list and keeps track of an index. */
+export function prepareSymbolListAndShiftIndex(
+  symbols: Symbol[],
+  data: ReplacementData,
+  index: number,
+): [symbols: Symbol[], index: number] {
+  if (data.removeCursor) {
+    symbols = symbols
+      .filter((symbol, myIndex) => {
+        if (symbol.type == "cursor") {
+          if (index > myIndex) {
+            index--
+          }
+
+          return false
+        }
+
+        return true
+      })
+      .map<Symbol>((symbol) => {
+        switch (symbol.type) {
+          case "op":
+          case ".":
+          case ",":
+          case "var":
+          case "const":
+          case "cursor":
+            return symbol
+          case "number":
+          case "fn":
+            return { ...symbol, cursor: undefined }
+          case "sup":
+          case "sub":
+          case "sqrt":
+          case "bracket":
+            return {
+              ...symbol,
+              contents: prepareSymbolList(symbol.contents, data),
+            }
+          case "supsub":
+          case "int":
+          case "repeat":
+          case "frac":
+            return {
+              ...symbol,
+              sub: prepareSymbolList(symbol.sub, data),
+              sup: prepareSymbolList(symbol.sup, data),
+            }
+          case "root":
+            return {
+              ...symbol,
+              contents: prepareSymbolList(symbol.contents, data),
+              root: prepareSymbolList(symbol.root, data),
+            }
+          case "matrix":
+            return {
+              ...symbol,
+              data: symbol.data.map((row) =>
+                row.map((cell) => prepareSymbolList(cell, data)),
+              ),
+            }
+          case "cases":
+            return {
+              ...symbol,
+              cases: symbol.cases.map(({ value, when }) => ({
+                value: prepareSymbolList(value, data),
+                when: prepareSymbolList(when, data),
+              })),
+            }
+        }
+      })
+  }
+
+  return [symbols, index]
+}
+
 export function SymbolList(props: {
   symbols: Symbol[]
   replaceSelf: (symbols: Symbol[], data: ReplacementData) => void
@@ -134,12 +237,22 @@ export function SymbolList(props: {
           }
 
           case "fn": {
+            const prev =
+              props.symbols[index() - 1]?.type == "cursor"
+                ? props.symbols[index() - 2]?.type
+                : props.symbols[index() - 1]?.type
+
             const next =
               props.symbols[index() + 1]?.type == "cursor"
                 ? props.symbols[index() + 2]?.type
                 : props.symbols[index() + 1]?.type
 
-            const spaceBefore = index() != 0
+            const spaceBefore = !(
+              prev == null ||
+              prev == "int" ||
+              prev == "repeat" ||
+              prev == "op"
+            )
 
             const spaceAfter = !(
               next == null ||
@@ -336,12 +449,17 @@ export function drawSymbol(
                       index() != 0 &&
                       (symbol.value.length - index()) % 3 == 0,
                   }}
-                  onClick={() =>
-                    replaceSelf([{ type: "sqrt", contents: [symbol] }], {
-                      removeCursor: false,
-                      removeSelection: false,
-                    })
-                  }
+                  onClick={(event) => {
+                    replaceSelf(
+                      [
+                        {
+                          ...symbol,
+                          cursor: cursorIndexShift(event) + index(),
+                        },
+                      ],
+                      { removeCursor: true, removeSelection: true },
+                    )
+                  }}
                 >
                   {letter}
                 </span>
@@ -461,17 +579,17 @@ export function drawSymbol(
         <span class="inline-block px-[.2em] text-center align-[-.4em] text-[90%]">
           <span class="block py-[.1em]">
             <SymbolList
-              symbols={symbol.top}
+              symbols={symbol.sup}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, top: symbols }], data)
+                replaceSelf([{ ...symbol, sup: symbols }], data)
               }
             />
           </span>
           <span class="float-right block w-full border-t border-t-current p-[.1em]">
             <SymbolList
-              symbols={symbol.bottom}
+              symbols={symbol.sub}
               replaceSelf={(symbols, data) =>
-                replaceSelf([{ ...symbol, bottom: symbols }], data)
+                replaceSelf([{ ...symbol, sub: symbols }], data)
               }
             />
           </span>
@@ -794,8 +912,8 @@ export function Main() {
               contents: [
                 {
                   type: "frac",
-                  top: [{ type: "number", value: "33498423101" }],
-                  bottom: [{ type: "number", value: "4" }],
+                  sup: [{ type: "number", value: "33498423101" }],
+                  sub: [{ type: "number", value: "4" }],
                 },
               ],
             },
@@ -806,11 +924,11 @@ export function Main() {
     { type: "op", op: "+" },
     {
       type: "frac",
-      top: [
+      sup: [
         { type: "number", value: "2" },
         { type: "const", name: "π" },
       ],
-      bottom: [{ type: "number", value: "4" }],
+      sub: [{ type: "number", value: "4" }],
     },
     {
       type: "repeat",
@@ -881,7 +999,7 @@ export function Main() {
   ])
 
   return (
-    <div class="m-auto flex w-full select-none flex-col gap-4 text-center">
+    <div class="m-auto flex select-none flex-col gap-4 bg-red-500 text-center">
       <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
