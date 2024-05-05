@@ -21,6 +21,7 @@ export type BaseSymbol =
   | { type: "repeat"; op: "sum" | "prod"; sub: Symbol[]; sup: Symbol[] }
   | { type: "int"; sub: Symbol[]; sup: Symbol[] }
   | { type: "matrix"; data: Symbol[][][] } // such a silly type definition
+  | { type: "cases"; cases: PiecewiseSection[] }
 
 export type Symbol =
   | { type: "number"; value: string; cursor?: number }
@@ -28,7 +29,6 @@ export type Symbol =
   | { type: "sup"; contents: Symbol[] }
   | { type: "sub"; contents: Symbol[] }
   | { type: "supsub"; sup: Symbol[]; sub: Symbol[] }
-  | { type: "cases"; cases: PiecewiseSection[]; otherwise?: Symbol[] }
   | BaseSymbol
 
 export type ContextualizedSymbol =
@@ -38,8 +38,12 @@ export type ContextualizedSymbol =
   | { type: "sup"; contents: Symbol[]; spaceAfter: boolean }
   | { type: "sub"; contents: Symbol[]; spaceAfter: boolean }
   | { type: "supsub"; sup: Symbol[]; sub: Symbol[]; spaceAfter: boolean }
-  | { type: "cases"; cases: PiecewiseSection[] }
   | BaseSymbol
+
+export interface ReplacementData {
+  removeCursor: boolean
+  removeSelection: boolean
+}
 
 export function isNumericSymbolOnRHS(
   symbol: Symbol,
@@ -73,44 +77,52 @@ export function isNumericSymbolOnRHS(
   }
 }
 
+export function spliceSymbols(
+  current: Symbol[],
+  index: number,
+  deleteCount: number,
+  inserted: ContextualizedSymbol[],
+): Symbol[] {
+  return current
+}
+
 export function SymbolList(props: {
   symbols: Symbol[]
-  setSelf: (symbols: Symbol[]) => void
+  replaceSelf: (symbols: Symbol[], data: ReplacementData) => void
 }) {
   return (
     <For each={props.symbols}>
       {(symbol, index) => {
+        function setCursorAndSelf(
+          symbols: ContextualizedSymbol[],
+          data: ReplacementData,
+        ) {
+          props.replaceSelf(
+            spliceSymbols(props.symbols, index(), 1, symbols),
+            data,
+          )
+        }
+
         switch (symbol.type) {
           case "number": {
-            if (props.symbols[index() - 1]?.type == ".") {
-              const array = symbol.value
-                .split("")
-                .map((digit) =>
-                  drawSymbol({ type: "digit", digit, spaceBefore: false }),
-                )
+            const isAfterDecimal = props.symbols[index() - 1]?.type == "."
 
-              if (symbol.cursor != null) {
-                array.splice(symbol.cursor, 0, drawCursor())
-              }
+            const array = symbol.value.split("").map((digit, digitIndex) =>
+              drawSymbol({
+                type: "digit",
+                digit,
+                spaceBefore:
+                  !isAfterDecimal &&
+                  digitIndex > 0 &&
+                  (symbol.value.length - digitIndex) % 3 == 0,
+              }),
+            )
 
-              return array
-            } else {
-              const array = symbol.value.split("").map((digit, digitIndex) =>
-                drawSymbol({
-                  type: "digit",
-                  digit,
-                  spaceBefore:
-                    digitIndex > 0 &&
-                    (symbol.value.length - digitIndex) % 3 == 0,
-                }),
-              )
-
-              if (symbol.cursor != null) {
-                array.splice(symbol.cursor, 0, drawCursor())
-              }
-
-              return array
+            if (symbol.cursor != null) {
+              array.splice(symbol.cursor, 0, drawCursor())
             }
+
+            return array
           }
 
           case "fn": {
@@ -156,7 +168,10 @@ export function SymbolList(props: {
                 ? props.symbols[index() - 2]?.type
                 : props.symbols[index() - 1]?.type
 
-            return drawSymbol({ ...symbol, spaceAfter: prev == "fn" })
+            return drawSymbol(
+              { ...symbol, spaceAfter: prev == "fn" },
+              setCursorAndSelf,
+            )
           }
 
           case "op": {
@@ -168,29 +183,18 @@ export function SymbolList(props: {
                   props.symbols[index() - 2],
                 )
               ) {
-                return drawSymbol({ type: "prefix", op: symbol.op })
+                return drawSymbol(
+                  { type: "prefix", op: symbol.op },
+                  setCursorAndSelf,
+                )
               }
             }
 
-            return drawSymbol(symbol)
-          }
-
-          case "cases": {
-            if (symbol.otherwise) {
-              return drawSymbol({
-                type: "cases",
-                cases: symbol.cases.concat({
-                  value: symbol.otherwise,
-                  when: [{ type: "fn", name: "otherwise" }],
-                }),
-              })
-            }
-
-            return drawSymbol(symbol)
+            return drawSymbol(symbol, setCursorAndSelf)
           }
 
           default:
-            return drawSymbol(symbol)
+            return drawSymbol(symbol, setCursorAndSelf)
         }
       }}
     </For>
@@ -317,7 +321,7 @@ export function drawRightBracket(bracket: Bracket) {
 
 export function drawSymbol(
   symbol: ContextualizedSymbol,
-  setCursorAndSelf: (symbols: ContextualizedSymbol[]) => void,
+  replaceSelf: (symbols: ContextualizedSymbol[], data: ReplacementData) => void,
 ) {
   switch (symbol.type) {
     case "digit":
@@ -374,8 +378,8 @@ export function drawSymbol(
           <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
             <SymbolList
               symbols={symbol.contents}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              replaceSelf={(symbols, removeCursor) =>
+                replaceSelf([{ ...symbol, contents: symbols }], removeCursor)
               }
             />
           </span>
@@ -387,8 +391,8 @@ export function drawSymbol(
           <span class="ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]">
             <SymbolList
               symbols={symbol.root}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, root: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, root: symbols }], data)
               }
             />
           </span>
@@ -410,8 +414,8 @@ export function drawSymbol(
             <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
               <SymbolList
                 symbols={symbol.contents}
-                setSelf={(symbols) =>
-                  setCursorAndSelf([{ ...symbol, contents: symbols }])
+                replaceSelf={(symbols, data) =>
+                  replaceSelf([{ ...symbol, contents: symbols }], data)
                 }
               />
             </span>
@@ -424,16 +428,16 @@ export function drawSymbol(
           <span class="block py-[.1em]">
             <SymbolList
               symbols={symbol.top}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, top: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, top: symbols }], data)
               }
             />
           </span>
           <span class="float-right block w-full border-t border-t-current p-[.1em]">
             <SymbolList
               symbols={symbol.bottom}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, bottom: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, bottom: symbols }], data)
               }
             />
           </span>
@@ -452,8 +456,8 @@ export function drawSymbol(
           <span class={"my-[.1em] inline-block " + mx}>
             <SymbolList
               symbols={symbol.contents}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, contents: symbols }], data)
               }
             />
           </span>
@@ -473,8 +477,8 @@ export function drawSymbol(
           <span class="inline-block align-text-bottom">
             <SymbolList
               symbols={symbol.contents}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, contents: symbols }], data)
               }
             />
           </span>
@@ -489,8 +493,8 @@ export function drawSymbol(
           <span class="float-left block text-[80%]">
             <SymbolList
               symbols={symbol.contents}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, contents: symbols }], data)
               }
             />
           </span>
@@ -507,8 +511,8 @@ export function drawSymbol(
           <span class="block">
             <SymbolList
               symbols={symbol.sup}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, sup: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, sup: symbols }], data)
               }
             />
           </span>
@@ -516,8 +520,8 @@ export function drawSymbol(
           <span class="float-left block text-[80%]">
             <SymbolList
               symbols={symbol.sub}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, sub: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, sub: symbols }], data)
               }
             />
           </span>
@@ -531,8 +535,8 @@ export function drawSymbol(
           <span class="block text-[80%]">
             <SymbolList
               symbols={symbol.sup}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, sup: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, sup: symbols }], data)
               }
             />
           </span>
@@ -542,8 +546,8 @@ export function drawSymbol(
           <span class="float-right block w-full text-[80%]">
             <SymbolList
               symbols={symbol.sub}
-              setSelf={(symbols) =>
-                setCursorAndSelf([{ ...symbol, sub: symbols }])
+              replaceSelf={(symbols, data) =>
+                replaceSelf([{ ...symbol, sub: symbols }], data)
               }
             />
           </span>
@@ -561,8 +565,8 @@ export function drawSymbol(
               <span class="align-[1.3em]">
                 <SymbolList
                   symbols={symbol.sup}
-                  setSelf={(symbols) =>
-                    setCursorAndSelf([{ ...symbol, sup: symbols }])
+                  replaceSelf={(symbols, data) =>
+                    replaceSelf([{ ...symbol, sup: symbols }], data)
                   }
                 />
               </span>
@@ -571,8 +575,8 @@ export function drawSymbol(
             <span class="float-left ml-[-.35em] block text-[100%]">
               <SymbolList
                 symbols={symbol.sub}
-                setSelf={(symbols) =>
-                  setCursorAndSelf([{ ...symbol, sub: symbols }])
+                replaceSelf={(symbols, data) =>
+                  replaceSelf([{ ...symbol, sub: symbols }], data)
                 }
               />
             </span>
@@ -597,16 +601,19 @@ export function drawSymbol(
                   <span class="py-[.1em]">
                     <SymbolList
                       symbols={value}
-                      setSelf={(symbols) =>
-                        setCursorAndSelf([
-                          {
-                            ...symbol,
-                            cases: symbol.cases.with(index, {
-                              value: symbols,
-                              when,
-                            }),
-                          },
-                        ])
+                      replaceSelf={(symbols, data) =>
+                        replaceSelf(
+                          [
+                            {
+                              ...symbol,
+                              cases: symbol.cases.with(index, {
+                                value: symbols,
+                                when,
+                              }),
+                            },
+                          ],
+                          data,
+                        )
                       }
                     />
                   </span>
@@ -614,16 +621,19 @@ export function drawSymbol(
                   <span class="py-[.1em]">
                     <SymbolList
                       symbols={when}
-                      setSelf={(symbols) =>
-                        setCursorAndSelf([
-                          {
-                            ...symbol,
-                            cases: symbol.cases.with(index, {
-                              value,
-                              when: symbols,
-                            }),
-                          },
-                        ])
+                      replaceSelf={(symbols, data) =>
+                        replaceSelf(
+                          [
+                            {
+                              ...symbol,
+                              cases: symbol.cases.with(index, {
+                                value,
+                                when: symbols,
+                              }),
+                            },
+                          ],
+                          data,
+                        )
                       }
                     />
                   </span>
@@ -665,13 +675,16 @@ export function drawSymbol(
                   >
                     <SymbolList
                       symbols={cell}
-                      setSelf={(symbols) =>
-                        setCursorAndSelf([
-                          {
-                            ...symbol,
-                            data: symbol.data.with(i, row.with(j, symbols)),
-                          },
-                        ])
+                      replaceSelf={(symbols, data) =>
+                        replaceSelf(
+                          [
+                            {
+                              ...symbol,
+                              data: symbol.data.with(i, row.with(j, symbols)),
+                            },
+                          ],
+                          data,
+                        )
                       }
                     />
                   </span>
@@ -700,7 +713,7 @@ export function Field(props: {
     <div class="whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black [line-height:1]">
       <SymbolList
         symbols={props.symbols()}
-        setSelf={(symbols) => props.setSymbols(symbols)}
+        replaceSelf={(symbols) => props.setSymbols(symbols)}
       />
     </div>
   )
@@ -816,10 +829,13 @@ export function Main() {
             { type: "number", value: "40" },
           ],
         },
-      ],
-      otherwise: [
-        { type: "number", value: "45" },
-        { type: "sup", contents: [{ type: "number", value: "2" }] },
+        {
+          value: [
+            { type: "number", value: "45" },
+            { type: "sup", contents: [{ type: "number", value: "2" }] },
+          ],
+          when: [{ type: "fn", name: "otherwise" }],
+        },
       ],
     },
     {
