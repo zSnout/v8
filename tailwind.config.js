@@ -15,6 +15,8 @@ export default {
         serif:
           'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif, var(--font-sp)',
         mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace, var(--font-sp)',
+        mathnum: "Symbola, Times New Roman, serif, var(--font-sp)",
+        mathvar: "Times New Roman, Symbols, serif, var(--font-sp)",
       },
     },
   },
