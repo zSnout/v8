@@ -4,28 +4,64 @@ export type Bracket = "()" | "[]" | "{}" | "||"
 
 export type BaseSymbol =
   | { type: "." }
-  | { type: "op"; op: string }
   | { type: "," }
+  | { type: "op"; op: string }
   | { type: "var"; letter: string }
   | { type: "const"; name: string }
   | { type: "cursor" }
   | { type: "sqrt"; contents: Symbol[] }
   | { type: "root"; root: Symbol[]; contents: Symbol[] }
   | { type: "frac"; top: Symbol[]; bottom: Symbol[] }
-  | { type: "sup"; contents: Symbol[] }
-  | { type: "sub"; contents: Symbol[] }
-  | { type: "supsub"; sup: Symbol[]; sub: Symbol[] }
   | { type: "bracket"; bracket: Bracket; contents: Symbol[] }
+  | { type: "repeat"; op: "sum" | "prod"; sub: Symbol[]; sup: Symbol[] }
+  | { type: "int"; sub: Symbol[]; sup: Symbol[] }
 
 export type Symbol =
   | { type: "number"; value: string; cursor?: number }
   | { type: "fn"; name: string; cursor?: number }
+  | { type: "sup"; contents: Symbol[] }
+  | { type: "sub"; contents: Symbol[] }
+  | { type: "supsub"; sup: Symbol[]; sub: Symbol[] }
   | BaseSymbol
 
 export type ContextualizedSymbol =
   | { type: "digit"; digit: string; spaceBefore: boolean }
   | { type: "fn"; letter: string; spaceBefore: boolean; spaceAfter: boolean }
+  | { type: "prefix"; op: "+" | "-" }
+  | { type: "sup"; contents: Symbol[]; spaceAfter: boolean }
+  | { type: "sub"; contents: Symbol[]; spaceAfter: boolean }
+  | { type: "supsub"; sup: Symbol[]; sub: Symbol[]; spaceAfter: boolean }
   | BaseSymbol
+
+export function isNumericSymbolOnRHS(
+  symbol: Symbol,
+  prev: Symbol | undefined,
+): boolean {
+  switch (symbol.type) {
+    case "cursor":
+      return prev ? isNumericSymbolOnRHS(prev, undefined) : false
+
+    case "number":
+    case ".":
+    case "var":
+    case "const":
+    case "sqrt":
+    case "root":
+    case "frac":
+    case "sup":
+    case "sub":
+    case "supsub":
+    case "bracket":
+      return true
+
+    case ",":
+    case "fn":
+    case "op":
+    case "repeat":
+    case "int":
+      return false
+  }
+}
 
 export function drawSymbolArray(list: Symbol[]) {
   return list.flatMap((symbol, index) => {
@@ -62,6 +98,19 @@ export function drawSymbolArray(list: Symbol[]) {
       }
 
       case "fn": {
+        const next =
+          list[index + 1]?.type == "cursor"
+            ? list[index + 2]?.type
+            : list[index + 1]?.type
+
+        const nextConsumesSpace =
+          next == null ||
+          next == "sub" ||
+          next == "sup" ||
+          next == "supsub" ||
+          next == "," ||
+          next == "bracket"
+
         const last = symbol.name.length - 1
 
         const array = symbol.name.split("").map((letter, letterIndex) =>
@@ -69,7 +118,10 @@ export function drawSymbolArray(list: Symbol[]) {
             type: "fn",
             letter,
             spaceBefore: letterIndex == 0 && index != 0,
-            spaceAfter: letterIndex == last && index != list.length - 1,
+            spaceAfter:
+              !nextConsumesSpace &&
+              letterIndex == last &&
+              index != list.length - 1,
           }),
         )
 
@@ -78,6 +130,30 @@ export function drawSymbolArray(list: Symbol[]) {
         }
 
         return array
+      }
+
+      case "sup":
+      case "sub":
+      case "supsub": {
+        const prev =
+          list[index - 1]?.type == "cursor"
+            ? list[index - 2]?.type
+            : list[index - 1]?.type
+
+        return drawSymbol({ ...symbol, spaceAfter: prev == "fn" })
+      }
+
+      case "op": {
+        if (symbol.op == "+" || symbol.op == "-") {
+          if (
+            index == 0 ||
+            !isNumericSymbolOnRHS(list[index - 1]!, list[index - 2])
+          ) {
+            return drawSymbol({ type: "prefix", op: symbol.op })
+          }
+        }
+
+        return drawSymbol(symbol)
       }
 
       default:
@@ -217,6 +293,8 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
       return <span class="pr-[.2em] font-mathnum">,</span>
     case "op":
       return <span class="px-[.2em] font-mathnum">{symbol.op}</span>
+    case "prefix":
+      return <span class="font-mathnum">{symbol.op}</span>
     case "var":
       return <span class="font-mathvar italic">{symbol.letter}</span>
     case "const":
@@ -314,7 +392,10 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
     }
     case "sup":
       return (
-        <span class="mb-[-.2em] inline-block text-left align-[.5em] text-[90%]">
+        <span
+          class="mb-[-.2em] inline-block text-left align-[.5em] text-[90%]"
+          classList={{ "pr-[.2em]": symbol.spaceAfter }}
+        >
           <span class="inline-block align-text-bottom">
             {drawSymbolArray(symbol.contents)}
           </span>
@@ -322,7 +403,10 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
       )
     case "sub":
       return (
-        <span class="mb-[-.2em] inline-block text-left align-[-.5em] text-[90%]">
+        <span
+          class="mb-[-.2em] inline-block text-left align-[-.5em] text-[90%]"
+          classList={{ "pr-[.2em]": symbol.spaceAfter }}
+        >
           <span class="float-left block text-[80%]">
             {drawSymbolArray(symbol.contents)}
           </span>
@@ -332,7 +416,10 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
       )
     case "supsub":
       return (
-        <span class="mb-[-.2em] inline-block text-left align-[-.5em] text-[90%]">
+        <span
+          class="mb-[-.2em] inline-block text-left align-[-.5em] text-[90%]"
+          classList={{ "pr-[.2em]": symbol.spaceAfter }}
+        >
           <span class="block">{drawSymbolArray(symbol.sup)}</span>
 
           <span class="float-left block text-[80%]">
@@ -340,6 +427,38 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           </span>
 
           <span class="inline-block w-0">​&#8203;</span>
+        </span>
+      )
+    case "repeat":
+      return (
+        <span class="inline-block p-[.2em] text-center align-[-.2em]">
+          <span class="block text-[80%]">{drawSymbolArray(symbol.sup)}</span>
+          <span class="block text-[200%]">
+            {symbol.op == "sum" ? "∑" : "∏"}
+          </span>
+          <span class="float-right block w-full text-[80%]">
+            {drawSymbolArray(symbol.sub)}
+          </span>
+        </span>
+      )
+    case "int":
+      return (
+        <span class="inline-block">
+          <span class="inline-block scale-x-[70%] align-[-.16em] text-[200%]">
+            ∫
+          </span>
+
+          <span class="mb-[-.2em] inline-block pr-[.2em] text-left align-[-1.1em] text-[80%]">
+            <span class="block">
+              <span class="align-[1.3em]">{drawSymbolArray(symbol.sup)}</span>
+            </span>
+
+            <span class="float-left ml-[-.35em] block text-[100%]">
+              {drawSymbolArray(symbol.sub)}
+            </span>
+
+            <span class="inline-block w-0">​</span>
+          </span>
         </span>
       )
   }
@@ -353,7 +472,7 @@ export function Field(props: {
   setSymbols: (symbols: Symbol[]) => void
 }) {
   return (
-    <div class="font-mathnum text-[1.265em] font-normal not-italic text-black [line-height:1]">
+    <div class="whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black [line-height:1]">
       {drawSymbolArray(props.symbols())}
     </div>
   )
@@ -377,13 +496,10 @@ export function Main() {
           {
             type: "supsub",
             sup: [
+              { type: "op", op: "-" },
               { type: "number", value: "2" },
-              // { type: "sup", contents: [{ type: "number", value: "4" }] },
             ],
-            sub: [
-              { type: "number", value: "1" },
-              // { type: "sub", contents: [{ type: "number", value: "4" }] },
-            ],
+            sub: [{ type: "number", value: "1" }],
           },
           {
             type: "root",
@@ -403,6 +519,33 @@ export function Main() {
             type: "frac",
             top: [{ type: "number", value: "2" }],
             bottom: [{ type: "number", value: "4" }],
+          },
+          {
+            type: "repeat",
+            op: "sum",
+            sub: [
+              { type: "var", letter: "n" },
+              { type: "op", op: "=" },
+              { type: "number", value: "1" },
+            ],
+            sup: [{ type: "number", value: "4" }],
+          },
+          {
+            type: "int",
+            sub: [{ type: "number", value: "1" }],
+            sup: [{ type: "number", value: "4" }],
+          },
+          {
+            type: "fn",
+            name: "log",
+          },
+          {
+            type: "sub",
+            contents: [{ type: "number", value: "2" }],
+          },
+          {
+            type: "number",
+            value: "3",
           },
         ]}
       />
@@ -424,7 +567,13 @@ export function Main() {
               {
                 type: "bracket",
                 bracket: "()",
-                contents: [{ type: "number", value: "623" }],
+                contents: [
+                  {
+                    type: "frac",
+                    top: [{ type: "number", value: "3" }],
+                    bottom: [{ type: "number", value: "4" }],
+                  },
+                ],
               },
             ],
           },
