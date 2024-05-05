@@ -1,6 +1,8 @@
 import { For, createSignal } from "solid-js"
 import "./latex.postcss"
 
+// if you see empty <span>s, they probably have the `​` character. don't delete
+
 export type Bracket = "()" | "[]" | "{}" | "||"
 
 export type PiecewiseSection = { value: Symbol[]; when: Symbol[] }
@@ -71,13 +73,16 @@ export function isNumericSymbolOnRHS(
   }
 }
 
-export function SymbolArray(props: { list: Symbol[] }) {
+export function SymbolList(props: {
+  symbols: Symbol[]
+  setSelf: (symbols: Symbol[]) => void
+}) {
   return (
-    <For each={props.list}>
+    <For each={props.symbols}>
       {(symbol, index) => {
         switch (symbol.type) {
           case "number": {
-            if (props.list[index() - 1]?.type == ".") {
+            if (props.symbols[index() - 1]?.type == ".") {
               const array = symbol.value
                 .split("")
                 .map((digit) =>
@@ -110,9 +115,9 @@ export function SymbolArray(props: { list: Symbol[] }) {
 
           case "fn": {
             const next =
-              props.list[index() + 1]?.type == "cursor"
-                ? props.list[index() + 2]?.type
-                : props.list[index() + 1]?.type
+              props.symbols[index() + 1]?.type == "cursor"
+                ? props.symbols[index() + 2]?.type
+                : props.symbols[index() + 1]?.type
 
             const nextConsumesSpace =
               next == null ||
@@ -132,7 +137,7 @@ export function SymbolArray(props: { list: Symbol[] }) {
                 spaceAfter:
                   !nextConsumesSpace &&
                   letterIndex == last &&
-                  index() != props.list.length - 1,
+                  index() != props.symbols.length - 1,
               }),
             )
 
@@ -147,9 +152,9 @@ export function SymbolArray(props: { list: Symbol[] }) {
           case "sub":
           case "supsub": {
             const prev =
-              props.list[index() - 1]?.type == "cursor"
-                ? props.list[index() - 2]?.type
-                : props.list[index() - 1]?.type
+              props.symbols[index() - 1]?.type == "cursor"
+                ? props.symbols[index() - 2]?.type
+                : props.symbols[index() - 1]?.type
 
             return drawSymbol({ ...symbol, spaceAfter: prev == "fn" })
           }
@@ -159,8 +164,8 @@ export function SymbolArray(props: { list: Symbol[] }) {
               if (
                 index() == 0 ||
                 !isNumericSymbolOnRHS(
-                  props.list[index() - 1]!,
-                  props.list[index() - 2],
+                  props.symbols[index() - 1]!,
+                  props.symbols[index() - 2],
                 )
               ) {
                 return drawSymbol({ type: "prefix", op: symbol.op })
@@ -193,7 +198,11 @@ export function SymbolArray(props: { list: Symbol[] }) {
 }
 
 export function drawCursor() {
-  return <span class="">&nbsp;</span>
+  return (
+    <span class="relative z-[1] -ml-px inline-block border-l border-l-current p-0">
+      ​
+    </span>
+  )
 }
 
 export function getBracketSize(bracket: Bracket) {
@@ -306,7 +315,10 @@ export function drawRightBracket(bracket: Bracket) {
   }
 }
 
-export function drawSymbol(symbol: ContextualizedSymbol) {
+export function drawSymbol(
+  symbol: ContextualizedSymbol,
+  setCursorAndSelf: (symbols: ContextualizedSymbol[]) => void,
+) {
   switch (symbol.type) {
     case "digit":
       return (
@@ -360,7 +372,12 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           </span>
 
           <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
-            <SymbolArray list={symbol.contents} />
+            <SymbolList
+              symbols={symbol.contents}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              }
+            />
           </span>
         </span>
       )
@@ -368,7 +385,12 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
       return (
         <span class="inline-block">
           <span class="ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]">
-            <SymbolArray list={symbol.root} />
+            <SymbolList
+              symbols={symbol.root}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, root: symbols }])
+              }
+            />
           </span>
 
           <span class="relative inline-block">
@@ -386,7 +408,12 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
             </span>
 
             <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
-              <SymbolArray list={symbol.contents} />
+              <SymbolList
+                symbols={symbol.contents}
+                setSelf={(symbols) =>
+                  setCursorAndSelf([{ ...symbol, contents: symbols }])
+                }
+              />
             </span>
           </span>
         </span>
@@ -395,10 +422,20 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
       return (
         <span class="inline-block px-[.2em] text-center align-[-.4em] text-[90%]">
           <span class="block py-[.1em]">
-            <SymbolArray list={symbol.top} />
+            <SymbolList
+              symbols={symbol.top}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, top: symbols }])
+              }
+            />
           </span>
           <span class="float-right block w-full border-t border-t-current p-[.1em]">
-            <SymbolArray list={symbol.bottom} />
+            <SymbolList
+              symbols={symbol.bottom}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, bottom: symbols }])
+              }
+            />
           </span>
           <span class="inline-block w-0">​</span>
         </span>
@@ -413,7 +450,12 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           </span>
 
           <span class={"my-[.1em] inline-block " + mx}>
-            <SymbolArray list={symbol.contents} />
+            <SymbolList
+              symbols={symbol.contents}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              }
+            />
           </span>
 
           <span class={"absolute bottom-[2px] right-0 top-0 " + w}>
@@ -429,7 +471,12 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           classList={{ "pr-[.2em]": symbol.spaceAfter }}
         >
           <span class="inline-block align-text-bottom">
-            <SymbolArray list={symbol.contents} />
+            <SymbolList
+              symbols={symbol.contents}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              }
+            />
           </span>
         </span>
       )
@@ -440,10 +487,15 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           classList={{ "pr-[.2em]": symbol.spaceAfter }}
         >
           <span class="float-left block text-[80%]">
-            <SymbolArray list={symbol.contents} />
+            <SymbolList
+              symbols={symbol.contents}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, contents: symbols }])
+              }
+            />
           </span>
 
-          <span class="inline-block w-0">&#8203;</span>
+          <span class="inline-block w-0">​</span>
         </span>
       )
     case "supsub":
@@ -453,27 +505,47 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           classList={{ "pr-[.2em]": symbol.spaceAfter }}
         >
           <span class="block">
-            <SymbolArray list={symbol.sup} />
+            <SymbolList
+              symbols={symbol.sup}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, sup: symbols }])
+              }
+            />
           </span>
 
           <span class="float-left block text-[80%]">
-            <SymbolArray list={symbol.sub} />
+            <SymbolList
+              symbols={symbol.sub}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, sub: symbols }])
+              }
+            />
           </span>
 
-          <span class="inline-block w-0">​&#8203;</span>
+          <span class="inline-block w-0">​​</span>
         </span>
       )
     case "repeat":
       return (
         <span class="inline-block p-[.2em] text-center align-[-.2em]">
           <span class="block text-[80%]">
-            <SymbolArray list={symbol.sup} />
+            <SymbolList
+              symbols={symbol.sup}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, sup: symbols }])
+              }
+            />
           </span>
           <span class="block text-[200%]">
             {symbol.op == "sum" ? "∑" : "∏"}
           </span>
           <span class="float-right block w-full text-[80%]">
-            <SymbolArray list={symbol.sub} />
+            <SymbolList
+              symbols={symbol.sub}
+              setSelf={(symbols) =>
+                setCursorAndSelf([{ ...symbol, sub: symbols }])
+              }
+            />
           </span>
         </span>
       )
@@ -487,12 +559,22 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           <span class="mb-[-.2em] inline-block pr-[.2em] text-left align-[-1.1em] text-[80%]">
             <span class="block">
               <span class="align-[1.3em]">
-                <SymbolArray list={symbol.sup} />
+                <SymbolList
+                  symbols={symbol.sup}
+                  setSelf={(symbols) =>
+                    setCursorAndSelf([{ ...symbol, sup: symbols }])
+                  }
+                />
               </span>
             </span>
 
             <span class="float-left ml-[-.35em] block text-[100%]">
-              <SymbolArray list={symbol.sub} />
+              <SymbolList
+                symbols={symbol.sub}
+                setSelf={(symbols) =>
+                  setCursorAndSelf([{ ...symbol, sub: symbols }])
+                }
+              />
             </span>
 
             <span class="inline-block w-0">​</span>
@@ -510,14 +592,43 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
 
           <span class={"my-[.1em] inline-block " + mx}>
             <div class="inline-grid grid-cols-[auto,auto] gap-x-[1em] align-middle">
-              {symbol.cases.flatMap(({ value, when }) => [
-                <span class="py-[.1em]">
-                  <SymbolArray list={value} />
-                </span>,
-                <span class="py-[.1em]">
-                  <SymbolArray list={when} />
-                </span>,
-              ])}
+              {symbol.cases.flatMap(({ value, when }, index) => (
+                <>
+                  <span class="py-[.1em]">
+                    <SymbolList
+                      symbols={value}
+                      setSelf={(symbols) =>
+                        setCursorAndSelf([
+                          {
+                            ...symbol,
+                            cases: symbol.cases.with(index, {
+                              value: symbols,
+                              when,
+                            }),
+                          },
+                        ])
+                      }
+                    />
+                  </span>
+
+                  <span class="py-[.1em]">
+                    <SymbolList
+                      symbols={when}
+                      setSelf={(symbols) =>
+                        setCursorAndSelf([
+                          {
+                            ...symbol,
+                            cases: symbol.cases.with(index, {
+                              value,
+                              when: symbols,
+                            }),
+                          },
+                        ])
+                      }
+                    />
+                  </span>
+                </>
+              ))}
             </div>
           </span>
 
@@ -552,7 +663,17 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
                     class="py-[.1em]"
                     style={{ "grid-area": `${i} ${j} ${i + 1} ${j + 1}` }}
                   >
-                    <SymbolArray list={cell} />
+                    <SymbolList
+                      symbols={cell}
+                      setSelf={(symbols) =>
+                        setCursorAndSelf([
+                          {
+                            ...symbol,
+                            data: symbol.data.with(i, row.with(j, symbols)),
+                          },
+                        ])
+                      }
+                    />
                   </span>
                 )),
               )}
@@ -577,8 +698,10 @@ export function Field(props: {
 }) {
   return (
     <div class="whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black [line-height:1]">
-      {/* <SymbolArray list={props.symbols()}/> */}
-      <SymbolArray list={props.symbols()} />
+      <SymbolList
+        symbols={props.symbols()}
+        setSelf={(symbols) => props.setSymbols(symbols)}
+      />
     </div>
   )
 }
@@ -590,6 +713,7 @@ export function ReadonlyField(props: { symbols: Symbol[] }) {
 export function Main() {
   const [symbols, setSymbols] = createSignal<Symbol[]>([
     { type: "var", letter: "x" },
+    { type: "cursor" },
     { type: "var", letter: "x" },
     { type: "sup", contents: [{ type: "number", value: "2" }] },
     { type: "var", letter: "x" },
@@ -708,18 +832,8 @@ export function Main() {
   ])
 
   return (
-    <div
-      class="m-auto flex w-full select-none flex-col gap-4 text-center"
-      onClick={(event) => {
-        event.preventDefault()
-        setSymbols((symbols) => {
-          const item = symbols[Math.floor(symbols.length * Math.random())]!
-          const index = Math.floor((symbols.length + 1) * Math.random())
-          return symbols.toSpliced(index, 0, item)
-        })
-      }}
-    >
-      <ReadonlyField symbols={symbols()} />
+    <div class="m-auto flex w-full select-none flex-col gap-4 text-center">
+      <Field symbols={symbols} setSymbols={() => {}} />
     </div>
   )
 }
