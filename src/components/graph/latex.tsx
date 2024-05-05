@@ -133,45 +133,6 @@ export function SymbolList(props: {
             )
           }
 
-          // case "number": {
-          //   const isAfterDecimal = props.symbols[index() - 1]?.type == "."
-
-          //   const array = symbol.value.split("").map((digit, digitIndex) =>
-          //     drawSymbol(
-          //       {
-          //         type: "digit",
-          //         digit,
-          //         spaceBefore:
-          //           !isAfterDecimal &&
-          //           digitIndex > 0 &&
-          //           (symbol.value.length - digitIndex) % 3 == 0,
-          //       },
-          //       (symbols, data) => {
-          //         const digits = symbol.value
-          //           .split("")
-          //           .map<ContextualizedSymbol>((digit) => ({
-          //             type: "digit",
-          //             digit,
-          //             spaceBefore: false,
-          //           }))
-
-          //         digits.splice(digitIndex, 1, ...symbols)
-
-          //         props.replaceSelf(
-          //           spliceSymbols(props.symbols, index(), 1, digits),
-          //           data,
-          //         )
-          //       },
-          //     ),
-          //   )
-
-          //   if (symbol.cursor != null) {
-          //     array.splice(symbol.cursor, 0, drawCursor())
-          //   }
-
-          //   return array
-          // }
-
           case "fn": {
             const next =
               props.symbols[index() + 1]?.type == "cursor"
@@ -199,45 +160,6 @@ export function SymbolList(props: {
               },
               replaceSelf,
             )
-
-            // const last = symbol.name.length - 1
-
-            // const array = symbol.name.split("").map((letter, letterIndex) =>
-            //   drawSymbol(
-            //     {
-            //       type: "fn",
-            //       letter,
-            //       spaceBefore: letterIndex == 0 && index() != 0,
-            //       spaceAfter:
-            //         !spaceAfter &&
-            //         letterIndex == last &&
-            //         index() != props.symbols.length - 1,
-            //     },
-            //     (symbols, data) => {
-            //       const letters = symbol.name
-            //         .split("")
-            //         .map<ContextualizedSymbol>((letter) => ({
-            //           type: "fn",
-            //           letter,
-            //           spaceBefore: false,
-            //           spaceAfter: false,
-            //         }))
-
-            //       letters.splice(letterIndex, 1, ...symbols)
-
-            //       props.replaceSelf(
-            //         spliceSymbols(props.symbols, index(), 1, letters),
-            //         data,
-            //       )
-            //     },
-            //   ),
-            // )
-
-            // if (symbol.cursor != null) {
-            //   array.splice(symbol.cursor, 0, drawCursor())
-            // }
-
-            // return array
           }
 
           case "sup":
