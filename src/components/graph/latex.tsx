@@ -1,6 +1,9 @@
+import { For, createSignal } from "solid-js"
 import "./latex.postcss"
 
 export type Bracket = "()" | "[]" | "{}" | "||"
+
+export type PiecewiseSection = { value: Symbol[]; when: Symbol[] }
 
 export type BaseSymbol =
   | { type: "." }
@@ -15,6 +18,7 @@ export type BaseSymbol =
   | { type: "bracket"; bracket: Bracket; contents: Symbol[] }
   | { type: "repeat"; op: "sum" | "prod"; sub: Symbol[]; sup: Symbol[] }
   | { type: "int"; sub: Symbol[]; sup: Symbol[] }
+  | { type: "matrix"; data: Symbol[][][] } // such a silly type definition
 
 export type Symbol =
   | { type: "number"; value: string; cursor?: number }
@@ -22,6 +26,7 @@ export type Symbol =
   | { type: "sup"; contents: Symbol[] }
   | { type: "sub"; contents: Symbol[] }
   | { type: "supsub"; sup: Symbol[]; sub: Symbol[] }
+  | { type: "cases"; cases: PiecewiseSection[]; otherwise?: Symbol[] }
   | BaseSymbol
 
 export type ContextualizedSymbol =
@@ -31,6 +36,7 @@ export type ContextualizedSymbol =
   | { type: "sup"; contents: Symbol[]; spaceAfter: boolean }
   | { type: "sub"; contents: Symbol[]; spaceAfter: boolean }
   | { type: "supsub"; sup: Symbol[]; sub: Symbol[]; spaceAfter: boolean }
+  | { type: "cases"; cases: PiecewiseSection[] }
   | BaseSymbol
 
 export function isNumericSymbolOnRHS(
@@ -52,6 +58,8 @@ export function isNumericSymbolOnRHS(
     case "sub":
     case "supsub":
     case "bracket":
+    case "cases":
+    case "matrix":
       return true
 
     case ",":
@@ -63,103 +71,125 @@ export function isNumericSymbolOnRHS(
   }
 }
 
-export function drawSymbolArray(list: Symbol[]) {
-  return list.flatMap((symbol, index) => {
-    switch (symbol.type) {
-      case "number": {
-        if (list[index - 1]?.type == ".") {
-          const array = symbol.value
-            .split("")
-            .map((digit) =>
-              drawSymbol({ type: "digit", digit, spaceBefore: false }),
+export function SymbolArray(props: { list: Symbol[] }) {
+  return (
+    <For each={props.list}>
+      {(symbol, index) => {
+        switch (symbol.type) {
+          case "number": {
+            if (props.list[index() - 1]?.type == ".") {
+              const array = symbol.value
+                .split("")
+                .map((digit) =>
+                  drawSymbol({ type: "digit", digit, spaceBefore: false }),
+                )
+
+              if (symbol.cursor != null) {
+                array.splice(symbol.cursor, 0, drawCursor())
+              }
+
+              return array
+            } else {
+              const array = symbol.value.split("").map((digit, digitIndex) =>
+                drawSymbol({
+                  type: "digit",
+                  digit,
+                  spaceBefore:
+                    digitIndex > 0 &&
+                    (symbol.value.length - digitIndex) % 3 == 0,
+                }),
+              )
+
+              if (symbol.cursor != null) {
+                array.splice(symbol.cursor, 0, drawCursor())
+              }
+
+              return array
+            }
+          }
+
+          case "fn": {
+            const next =
+              props.list[index() + 1]?.type == "cursor"
+                ? props.list[index() + 2]?.type
+                : props.list[index() + 1]?.type
+
+            const nextConsumesSpace =
+              next == null ||
+              next == "sub" ||
+              next == "sup" ||
+              next == "supsub" ||
+              next == "," ||
+              next == "bracket"
+
+            const last = symbol.name.length - 1
+
+            const array = symbol.name.split("").map((letter, letterIndex) =>
+              drawSymbol({
+                type: "fn",
+                letter,
+                spaceBefore: letterIndex == 0 && index() != 0,
+                spaceAfter:
+                  !nextConsumesSpace &&
+                  letterIndex == last &&
+                  index() != props.list.length - 1,
+              }),
             )
 
-          if (symbol.cursor != null) {
-            array.splice(symbol.cursor, 0, drawCursor())
+            if (symbol.cursor != null) {
+              array.splice(symbol.cursor, 0, drawCursor())
+            }
+
+            return array
           }
 
-          return array
-        } else {
-          const array = symbol.value.split("").map((digit, digitIndex) =>
-            drawSymbol({
-              type: "digit",
-              digit,
-              spaceBefore:
-                digitIndex > 0 && (symbol.value.length - digitIndex) % 3 == 0,
-            }),
-          )
+          case "sup":
+          case "sub":
+          case "supsub": {
+            const prev =
+              props.list[index() - 1]?.type == "cursor"
+                ? props.list[index() - 2]?.type
+                : props.list[index() - 1]?.type
 
-          if (symbol.cursor != null) {
-            array.splice(symbol.cursor, 0, drawCursor())
+            return drawSymbol({ ...symbol, spaceAfter: prev == "fn" })
           }
 
-          return array
-        }
-      }
+          case "op": {
+            if (symbol.op == "+" || symbol.op == "-") {
+              if (
+                index() == 0 ||
+                !isNumericSymbolOnRHS(
+                  props.list[index() - 1]!,
+                  props.list[index() - 2],
+                )
+              ) {
+                return drawSymbol({ type: "prefix", op: symbol.op })
+              }
+            }
 
-      case "fn": {
-        const next =
-          list[index + 1]?.type == "cursor"
-            ? list[index + 2]?.type
-            : list[index + 1]?.type
-
-        const nextConsumesSpace =
-          next == null ||
-          next == "sub" ||
-          next == "sup" ||
-          next == "supsub" ||
-          next == "," ||
-          next == "bracket"
-
-        const last = symbol.name.length - 1
-
-        const array = symbol.name.split("").map((letter, letterIndex) =>
-          drawSymbol({
-            type: "fn",
-            letter,
-            spaceBefore: letterIndex == 0 && index != 0,
-            spaceAfter:
-              !nextConsumesSpace &&
-              letterIndex == last &&
-              index != list.length - 1,
-          }),
-        )
-
-        if (symbol.cursor != null) {
-          array.splice(symbol.cursor, 0, drawCursor())
-        }
-
-        return array
-      }
-
-      case "sup":
-      case "sub":
-      case "supsub": {
-        const prev =
-          list[index - 1]?.type == "cursor"
-            ? list[index - 2]?.type
-            : list[index - 1]?.type
-
-        return drawSymbol({ ...symbol, spaceAfter: prev == "fn" })
-      }
-
-      case "op": {
-        if (symbol.op == "+" || symbol.op == "-") {
-          if (
-            index == 0 ||
-            !isNumericSymbolOnRHS(list[index - 1]!, list[index - 2])
-          ) {
-            return drawSymbol({ type: "prefix", op: symbol.op })
+            return drawSymbol(symbol)
           }
+
+          case "cases": {
+            if (symbol.otherwise) {
+              return drawSymbol({
+                type: "cases",
+                cases: symbol.cases.concat({
+                  value: symbol.otherwise,
+                  when: [{ type: "fn", name: "otherwise" }],
+                }),
+              })
+            }
+
+            return drawSymbol(symbol)
+          }
+
+          default:
+            return drawSymbol(symbol)
         }
-
-        return drawSymbol(symbol)
-      }
-
-      default:
-        return drawSymbol(symbol)
-    }
-  })
+      }}
+    </For>
+  )
 }
 
 export function drawCursor() {
@@ -330,7 +360,7 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           </span>
 
           <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
-            {drawSymbolArray(symbol.contents)}
+            <SymbolArray list={symbol.contents} />
           </span>
         </span>
       )
@@ -338,7 +368,7 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
       return (
         <span class="inline-block">
           <span class="ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]">
-            {drawSymbolArray(symbol.root)}
+            <SymbolArray list={symbol.root} />
           </span>
 
           <span class="relative inline-block">
@@ -356,7 +386,7 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
             </span>
 
             <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
-              {drawSymbolArray(symbol.contents)}
+              <SymbolArray list={symbol.contents} />
             </span>
           </span>
         </span>
@@ -364,9 +394,11 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
     case "frac":
       return (
         <span class="inline-block px-[.2em] text-center align-[-.4em] text-[90%]">
-          <span class="block py-[.1em]">{drawSymbolArray(symbol.top)}</span>
+          <span class="block py-[.1em]">
+            <SymbolArray list={symbol.top} />
+          </span>
           <span class="float-right block w-full border-t border-t-current p-[.1em]">
-            {drawSymbolArray(symbol.bottom)}
+            <SymbolArray list={symbol.bottom} />
           </span>
           <span class="inline-block w-0">​</span>
         </span>
@@ -381,7 +413,7 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           </span>
 
           <span class={"my-[.1em] inline-block " + mx}>
-            {drawSymbolArray(symbol.contents)}
+            <SymbolArray list={symbol.contents} />
           </span>
 
           <span class={"absolute bottom-[2px] right-0 top-0 " + w}>
@@ -397,7 +429,7 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           classList={{ "pr-[.2em]": symbol.spaceAfter }}
         >
           <span class="inline-block align-text-bottom">
-            {drawSymbolArray(symbol.contents)}
+            <SymbolArray list={symbol.contents} />
           </span>
         </span>
       )
@@ -408,7 +440,7 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           classList={{ "pr-[.2em]": symbol.spaceAfter }}
         >
           <span class="float-left block text-[80%]">
-            {drawSymbolArray(symbol.contents)}
+            <SymbolArray list={symbol.contents} />
           </span>
 
           <span class="inline-block w-0">&#8203;</span>
@@ -420,10 +452,12 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
           class="mb-[-.2em] inline-block text-left align-[-.5em] text-[90%]"
           classList={{ "pr-[.2em]": symbol.spaceAfter }}
         >
-          <span class="block">{drawSymbolArray(symbol.sup)}</span>
+          <span class="block">
+            <SymbolArray list={symbol.sup} />
+          </span>
 
           <span class="float-left block text-[80%]">
-            {drawSymbolArray(symbol.sub)}
+            <SymbolArray list={symbol.sub} />
           </span>
 
           <span class="inline-block w-0">​&#8203;</span>
@@ -432,12 +466,14 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
     case "repeat":
       return (
         <span class="inline-block p-[.2em] text-center align-[-.2em]">
-          <span class="block text-[80%]">{drawSymbolArray(symbol.sup)}</span>
+          <span class="block text-[80%]">
+            <SymbolArray list={symbol.sup} />
+          </span>
           <span class="block text-[200%]">
             {symbol.op == "sum" ? "∑" : "∏"}
           </span>
           <span class="float-right block w-full text-[80%]">
-            {drawSymbolArray(symbol.sub)}
+            <SymbolArray list={symbol.sub} />
           </span>
         </span>
       )
@@ -450,17 +486,85 @@ export function drawSymbol(symbol: ContextualizedSymbol) {
 
           <span class="mb-[-.2em] inline-block pr-[.2em] text-left align-[-1.1em] text-[80%]">
             <span class="block">
-              <span class="align-[1.3em]">{drawSymbolArray(symbol.sup)}</span>
+              <span class="align-[1.3em]">
+                <SymbolArray list={symbol.sup} />
+              </span>
             </span>
 
             <span class="float-left ml-[-.35em] block text-[100%]">
-              {drawSymbolArray(symbol.sub)}
+              <SymbolArray list={symbol.sub} />
             </span>
 
             <span class="inline-block w-0">​</span>
           </span>
         </span>
       )
+    case "cases": {
+      const { w, mx } = getBracketSize("{}")
+
+      return (
+        <span class="relative inline-block text-left">
+          <span class={"absolute bottom-[2px] left-0 top-0 " + w}>
+            {drawLeftBracket("{}")}
+          </span>
+
+          <span class={"my-[.1em] inline-block " + mx}>
+            <div class="inline-grid grid-cols-[auto,auto] gap-x-[1em] align-middle">
+              {symbol.cases.flatMap(({ value, when }) => [
+                <span class="py-[.1em]">
+                  <SymbolArray list={value} />
+                </span>,
+                <span class="py-[.1em]">
+                  <SymbolArray list={when} />
+                </span>,
+              ])}
+            </div>
+          </span>
+
+          <span class={"absolute bottom-[2px] right-0 top-0 " + w}>
+            {drawRightBracket("{}")}
+          </span>
+        </span>
+      )
+    }
+    case "matrix": {
+      const { w, mx } = getBracketSize("[]")
+
+      return (
+        <span class="relative inline-block text-center">
+          <span class={"absolute bottom-[2px] left-0 top-0 " + w}>
+            {drawLeftBracket("[]")}
+          </span>
+
+          <span class={"my-[.1em] inline-block " + mx}>
+            <div
+              class="inline-grid gap-x-[.5em] align-middle"
+              style={{
+                "grid-template-columns": `repeat(${symbol.data.reduce(
+                  (a, b) => Math.max(a, b.length),
+                  1,
+                )},auto)`,
+              }}
+            >
+              {symbol.data.flatMap((row, i) =>
+                row.map((cell, j) => (
+                  <span
+                    class="py-[.1em]"
+                    style={{ "grid-area": `${i} ${j} ${i + 1} ${j + 1}` }}
+                  >
+                    <SymbolArray list={cell} />
+                  </span>
+                )),
+              )}
+            </div>
+          </span>
+
+          <span class={"absolute bottom-[2px] right-0 top-0 " + w}>
+            {drawRightBracket("[]")}
+          </span>
+        </span>
+      )
+    }
   }
 
   // @ts-expect-error this should never be reached
@@ -473,7 +577,8 @@ export function Field(props: {
 }) {
   return (
     <div class="whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black [line-height:1]">
-      {drawSymbolArray(props.symbols())}
+      {/* <SymbolArray list={props.symbols()}/> */}
+      <SymbolArray list={props.symbols()} />
     </div>
   )
 }
@@ -483,117 +588,138 @@ export function ReadonlyField(props: { symbols: Symbol[] }) {
 }
 
 export function Main() {
-  return (
-    <div class="flex flex-col gap-4">
-      <ReadonlyField
-        symbols={[
-          { type: "var", letter: "x" },
-          { type: "var", letter: "x" },
-          { type: "sup", contents: [{ type: "number", value: "2" }] },
-          { type: "var", letter: "x" },
-          { type: "sub", contents: [{ type: "number", value: "1" }] },
-          { type: "var", letter: "x" },
-          {
-            type: "supsub",
-            sup: [
-              { type: "op", op: "-" },
-              { type: "number", value: "2" },
-            ],
-            sub: [{ type: "number", value: "1" }],
-          },
-          {
-            type: "root",
-            root: [
-              { type: "number", value: "2" },
-              { type: "op", op: "+" },
-              { type: "number", value: "3" },
-            ],
-            contents: [
-              { type: "number", value: "4" },
-              { type: "op", op: "-" },
-              { type: "number", value: "5" },
-            ],
-          },
-          { type: "op", op: "+" },
-          {
-            type: "frac",
-            top: [{ type: "number", value: "2" }],
-            bottom: [{ type: "number", value: "4" }],
-          },
-          {
-            type: "repeat",
-            op: "sum",
-            sub: [
-              { type: "var", letter: "n" },
-              { type: "op", op: "=" },
-              { type: "number", value: "1" },
-            ],
-            sup: [{ type: "number", value: "4" }],
-          },
-          {
-            type: "int",
-            sub: [{ type: "number", value: "1" }],
-            sup: [{ type: "number", value: "4" }],
-          },
-          {
-            type: "fn",
-            name: "log",
-          },
-          {
-            type: "sub",
-            contents: [{ type: "number", value: "2" }],
-          },
-          {
-            type: "number",
-            value: "3",
-          },
-        ]}
-      />
+  const [symbols, setSymbols] = createSignal<Symbol[]>([
+    { type: "var", letter: "x" },
+    { type: "var", letter: "x" },
+    { type: "sup", contents: [{ type: "number", value: "2" }] },
+    { type: "var", letter: "x" },
+    { type: "sub", contents: [{ type: "number", value: "1" }] },
+    { type: "var", letter: "x" },
+    {
+      type: "supsub",
+      sup: [
+        { type: "op", op: "-" },
+        { type: "number", value: "2" },
+      ],
+      sub: [{ type: "number", value: "1" }],
+    },
+    {
+      type: "root",
+      root: [
+        { type: "number", value: "2" },
+        { type: "op", op: "+" },
+        { type: "number", value: "3" },
+      ],
+      contents: [
+        { type: "number", value: "4" },
+        { type: "op", op: "-" },
+        { type: "number", value: "5" },
+        {
+          type: "sqrt",
+          contents: [
+            { type: "number", value: "623" },
+            {
+              type: "bracket",
+              bracket: "()",
+              contents: [
+                {
+                  type: "frac",
+                  top: [{ type: "number", value: "33498423101" }],
+                  bottom: [{ type: "number", value: "4" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    { type: "op", op: "+" },
+    {
+      type: "frac",
+      top: [
+        { type: "number", value: "2" },
+        { type: "const", name: "π" },
+      ],
+      bottom: [{ type: "number", value: "4" }],
+    },
+    {
+      type: "repeat",
+      op: "sum",
+      sub: [
+        { type: "var", letter: "n" },
+        { type: "op", op: "=" },
+        { type: "number", value: "1" },
+      ],
+      sup: [{ type: "number", value: "4" }],
+    },
+    {
+      type: "int",
+      sub: [{ type: "number", value: "1" }],
+      sup: [{ type: "number", value: "4" }],
+    },
+    {
+      type: "fn",
+      name: "log",
+    },
+    {
+      type: "sub",
+      contents: [{ type: "number", value: "2" }],
+    },
+    {
+      type: "number",
+      value: "3",
+    },
+    {
+      type: "cases",
+      cases: [
+        {
+          value: [
+            { type: "number", value: "3" },
+            { type: "op", op: "+" },
+            { type: "number", value: "3" },
+          ],
+          when: [
+            { type: "var", letter: "x" },
+            { type: "op", op: "<" },
+            { type: "number", value: "4" },
+          ],
+        },
+        {
+          value: [{ type: "number", value: "8" }],
+          when: [
+            { type: "var", letter: "x" },
+            { type: "op", op: "<" },
+            { type: "number", value: "40" },
+          ],
+        },
+      ],
+      otherwise: [
+        { type: "number", value: "45" },
+        { type: "sup", contents: [{ type: "number", value: "2" }] },
+      ],
+    },
+    {
+      type: "matrix",
+      data: [
+        [[{ type: "number", value: "1984" }], [{ type: "number", value: "2" }]],
+        [[{ type: "number", value: "3" }], [{ type: "number", value: "4" }]],
+      ],
+    },
+  ])
 
-      <ReadonlyField
-        symbols={[
-          { type: "number", value: "40" },
-          { type: "," },
-          { type: "number", value: "623" },
-          { type: "." },
-          { type: "const", name: "x" },
-          { type: "var", letter: "e" },
-          { type: "const", name: "π" },
-          { type: "fn", name: "sin" },
-          {
-            type: "sqrt",
-            contents: [
-              { type: "number", value: "623" },
-              {
-                type: "bracket",
-                bracket: "()",
-                contents: [
-                  {
-                    type: "frac",
-                    top: [{ type: "number", value: "3" }],
-                    bottom: [{ type: "number", value: "4" }],
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            type: "bracket",
-            bracket: "[]",
-            contents: [{ type: "number", value: "623" }],
-          },
-          {
-            type: "bracket",
-            bracket: "{}",
-            contents: [{ type: "number", value: "623" }],
-          },
-          {
-            type: "bracket",
-            bracket: "||",
-            contents: [{ type: "number", value: "623" }],
-          },
-        ]}
-      />
+  return (
+    <div
+      class="m-auto flex w-full select-none flex-col gap-4 text-center"
+      onClick={(event) => {
+        event.preventDefault()
+        setSymbols((symbols) => {
+          const item = symbols[Math.floor(symbols.length * Math.random())]!
+          const index = Math.floor((symbols.length + 1) * Math.random())
+          return symbols.toSpliced(index, 0, item)
+        })
+      }}
+    >
+      <ReadonlyField symbols={symbols()} />
     </div>
   )
 }
