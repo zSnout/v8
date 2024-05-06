@@ -1076,8 +1076,17 @@ export function drawSymbol(
             />
           </span>
 
-          <span class="block text-[200%]">
+          <span class="relative block text-[200%]">
             {symbol.op == "sum" ? "∑" : "∏"}
+            <span
+              class="absolute bottom-0 left-0 top-0 inline-block w-full origin-left scale-y-50"
+              data-latex="shape"
+              onLatexTargetFind={(event) => {
+                const symbols = [prepareSymbol(symbol, { removeCursor: true })]
+                symbols.splice(event.detail.offset, 0, { type: "cursor" })
+                replaceSelf(symbols, { removeCursor: true })
+              }}
+            />
           </span>
 
           <span class="float-right block w-full text-[80%]" data-latex="group">
@@ -1102,9 +1111,22 @@ export function drawSymbol(
       )
     case "int":
       return (
-        <span class="inline-block">
-          <span class="inline-block scale-x-[70%] align-[-.16em] text-[200%]">
+        <span class="relative inline-block">
+          <span class="relative inline-block scale-x-[70%] align-[-.16em] text-[200%]">
             ∫
+            <span
+              class="absolute bottom-0 left-0 top-0 inline-block w-full origin-left scale-x-50"
+              data-latex="shape"
+              onLatexTargetFind={() => {
+                replaceSelf(
+                  [
+                    { type: "cursor" },
+                    prepareSymbol(symbol, { removeCursor: true }),
+                  ],
+                  { removeCursor: true },
+                )
+              }}
+            />
           </span>
 
           <span class="mb-[-.2em] inline-block pb-[.2em] pr-[.2em] text-left align-[-1.1em] text-[80%]">
@@ -1161,6 +1183,22 @@ export function drawSymbol(
           <span class={"absolute bottom-[2px] left-0 top-0 " + w}>
             {drawLeftBracket("{}")}
           </span>
+
+          <span
+            class={
+              "absolute bottom-[2px] left-0 top-0 origin-left scale-x-50 " + w
+            }
+            data-latex="shape"
+            onLatexTargetFind={() => {
+              replaceSelf(
+                [
+                  { type: "cursor" },
+                  prepareSymbol(symbol, { removeCursor: true }),
+                ],
+                { removeCursor: true },
+              )
+            }}
+          />
 
           <span class={"my-[.1em] inline-block " + mx}>
             <div class="inline-grid grid-cols-[auto,auto] gap-x-[1em] align-middle">
@@ -1232,6 +1270,22 @@ export function drawSymbol(
             </div>
           </span>
 
+          <span
+            class={
+              "absolute bottom-[2px] right-0 top-0 origin-right scale-x-50 " + w
+            }
+            data-latex="shape"
+            onLatexTargetFind={() => {
+              replaceSelf(
+                [
+                  prepareSymbol(symbol, { removeCursor: true }),
+                  { type: "cursor" },
+                ],
+                { removeCursor: true },
+              )
+            }}
+          />
+
           <span class={"absolute bottom-[2px] right-0 top-0 " + w}>
             {drawRightBracket("{}")}
           </span>
@@ -1246,6 +1300,22 @@ export function drawSymbol(
           <span class={"absolute bottom-[2px] left-0 top-0 " + w}>
             {drawLeftBracket("[]")}
           </span>
+
+          <span
+            class={
+              "absolute bottom-[2px] left-0 top-0 origin-left scale-x-50 " + w
+            }
+            data-latex="shape"
+            onLatexTargetFind={() => {
+              replaceSelf(
+                [
+                  { type: "cursor" },
+                  prepareSymbol(symbol, { removeCursor: true }),
+                ],
+                { removeCursor: true },
+              )
+            }}
+          />
 
           <span class={"my-[.1em] inline-block " + mx}>
             <div
@@ -1291,6 +1361,22 @@ export function drawSymbol(
               )}
             </div>
           </span>
+
+          <span
+            class={
+              "absolute bottom-[2px] right-0 top-0 origin-right scale-x-50 " + w
+            }
+            data-latex="shape"
+            onLatexTargetFind={() => {
+              replaceSelf(
+                [
+                  prepareSymbol(symbol, { removeCursor: true }),
+                  { type: "cursor" },
+                ],
+                { removeCursor: true },
+              )
+            }}
+          />
 
           <span class={"absolute bottom-[2px] right-0 top-0 " + w}>
             {drawRightBracket("[]")}
