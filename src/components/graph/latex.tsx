@@ -1390,7 +1390,7 @@ export function Field(props: {
 }) {
   return (
     <div
-      class="cursor-text select-none whitespace-nowrap bg-yellow-100 font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text [&_[data-latex=group]]:bg-red-500/50 [&_[data-latex=leaf]]:bg-blue-500/50 [&_[data-latex=shape]]:bg-blue-500/50"
+      class="cursor-text select-none whitespace-nowrap bg-yellow-100 font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text [&_[data-latex=group]]:bg-red-500/50 [&_[data-latex=leaf]]:bg-blue-500/50 [&_[data-latex=shape]]:bg-green-500/50"
       onPointerDown={(event) => {
         const target = findTarget(
           event.clientX,
