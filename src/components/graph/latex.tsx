@@ -66,7 +66,7 @@ function cursorIndexShift(event: {
   event.preventDefault()
   event.stopImmediatePropagation()
 
-  return +(event.clientX - x > width / 2)
+  return +(event.clientX - x > width / 2) as 0 | 1
 }
 
 // @ts-expect-error this function should never be used
@@ -78,13 +78,33 @@ function assertAllContextualVariantsAreSubtypesOfNormal(
   return contextual
 }
 
+/**
+ * Checks if a symbol is numeric on its right hand side.
+ * Used to see if the + and - symbols should be operators or prefixes.
+ */
 export function isNumericSymbolOnRHS(
-  symbol: Symbol,
+  symbol: Symbol | undefined,
   prev: Symbol | undefined,
-): boolean {
-  switch (symbol.type) {
-    case "cursor":
-      return prev ? isNumericSymbolOnRHS(prev, undefined) : false
+  prev2: Symbol | undefined,
+) {
+  if (prev2?.type == "cursor") {
+    prev2 = undefined
+  }
+
+  if (prev?.type == "cursor") {
+    prev = prev2
+    prev2 = undefined
+  }
+
+  if (symbol?.type == "cursor") {
+    symbol = prev
+    prev = prev2
+    prev2 = undefined
+  }
+
+  switch (symbol?.type) {
+    case undefined:
+      return false
 
     case "number":
     case ".":
@@ -93,13 +113,15 @@ export function isNumericSymbolOnRHS(
     case "sqrt":
     case "root":
     case "frac":
-    case "sup":
-    case "sub":
-    case "supsub":
     case "bracket":
     case "cases":
     case "matrix":
       return true
+
+    case "sup":
+    case "sub":
+    case "supsub":
+      return prev?.type != "fn"
 
     case ",":
     case "fn":
@@ -261,6 +283,11 @@ export function prepareSymbolListAndShiftIndex(
   return [symbols, index]
 }
 
+/**
+ * Renders an array of symbols with contextual alternates.
+ * For example, `3--2` is rendered more like `3 - -2`.
+ * Subscripts and superscripts are also spaced properly after operators.
+ */
 export function SymbolList(props: {
   symbols: Symbol[]
   replaceSelf: (symbols: Symbol[], data: ReplacementData) => void
@@ -357,6 +384,7 @@ export function SymbolList(props: {
               !isNumericSymbolOnRHS(
                 props.symbols[index() - 1]!,
                 props.symbols[index() - 2],
+                props.symbols[index() - 3],
               )
 
             return drawSymbol(
@@ -511,7 +539,8 @@ export function drawSymbol(
                       index() != 0 &&
                       (symbol.value.length - index()) % 3 == 0,
                   }}
-                  onClick={(event) => {
+                  data-latex-clickable
+                  onPointerDown={(event) => {
                     replaceSelf(
                       [
                         {
@@ -536,17 +565,75 @@ export function drawSymbol(
         </>
       )
     case ".":
-      return <span>.</span>
+      return (
+        <span
+          data-latex-clickable
+          onPointerDown={(event) => {
+            const array: Symbol[] = [symbol]
+            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            replaceSelf(array, { removeCursor: true })
+          }}
+        >
+          .
+        </span>
+      )
     case ",":
-      return <span class="pr-[.2em]">,</span>
+      return (
+        <span
+          data-latex-clickable
+          class="pr-[.2em]"
+          onPointerDown={(event) => {
+            const array: Symbol[] = [symbol]
+            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            replaceSelf(array, { removeCursor: true })
+          }}
+        >
+          ,
+        </span>
+      )
     case "op":
       return (
-        <span classList={{ "px-[.2em]": !symbol.isPrefix }}>{symbol.op}</span>
+        <span
+          data-latex-clickable
+          class="inline-block"
+          classList={{ "px-[.2em]": !symbol.isPrefix }}
+          onPointerDown={(event) => {
+            const array: Symbol[] = [symbol]
+            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            replaceSelf(array, { removeCursor: true })
+          }}
+        >
+          {symbol.op}
+        </span>
       )
     case "var":
-      return <span class="font-mathvar italic">{symbol.letter}</span>
+      return (
+        <span
+          data-latex-clickable
+          class="font-mathvar italic"
+          onPointerDown={(event) => {
+            const array: Symbol[] = [symbol]
+            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            replaceSelf(array, { removeCursor: true })
+          }}
+        >
+          {symbol.letter}
+        </span>
+      )
     case "const":
-      return <span class="font-mathvar">{symbol.name}</span>
+      return (
+        <span
+          data-latex-clickable
+          class="font-mathvar"
+          onPointerDown={(event) => {
+            const array: Symbol[] = [symbol]
+            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            replaceSelf(array, { removeCursor: true })
+          }}
+        >
+          {symbol.name}
+        </span>
+      )
     case "fn":
       return (
         <>
@@ -556,11 +643,24 @@ export function drawSymbol(
                 <Show when={index() === symbol.cursor}>{drawCursor()}</Show>
 
                 <span
+                  data-latex-clickable
                   class="font-mathvar"
                   classList={{
                     "pl-[.2em]": index() == 0 && symbol.spaceBefore,
                     "pr-[.2em]":
                       index() == symbol.name.length - 1 && symbol.spaceAfter,
+                  }}
+                  onPointerDown={(event) => {
+                    replaceSelf(
+                      [
+                        {
+                          type: "fn",
+                          name: symbol.name,
+                          cursor: cursorIndexShift(event) + index(),
+                        },
+                      ],
+                      { removeCursor: true },
+                    )
                   }}
                 >
                   {letter}
@@ -577,7 +677,36 @@ export function drawSymbol(
     case "sqrt":
       return (
         <span class="relative inline-block">
-          <span class="absolute bottom-[.15em] top-px inline-block w-[.95em]">
+          <span
+            class="absolute bottom-[.15em] top-px inline-block w-[.95em]"
+            data-latex-clickable
+            onPointerDown={(event) => {
+              if (cursorIndexShift(event)) {
+                replaceSelf(
+                  [
+                    {
+                      type: "sqrt",
+                      contents: [
+                        { type: "cursor" },
+                        ...prepareSymbolList(symbol.contents, {
+                          removeCursor: true,
+                        }),
+                      ],
+                    },
+                  ],
+                  { removeCursor: true },
+                )
+              } else {
+                replaceSelf(
+                  [
+                    { type: "cursor" },
+                    prepareSymbol(symbol, { removeCursor: true }),
+                  ],
+                  { removeCursor: true },
+                )
+              }
+            }}
+          >
             <svg
               preserveAspectRatio="none"
               viewBox="0 0 32 54"
@@ -590,7 +719,21 @@ export function drawSymbol(
             </svg>
           </span>
 
-          <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
+          <span
+            class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px"
+            data-latex-clickable
+            onPointerDown={(event) => {
+              const contents = prepareSymbolList(symbol.contents, {
+                removeCursor: true,
+              })
+
+              contents.splice(cursorIndexShift(event) * contents.length, 0, {
+                type: "cursor",
+              })
+
+              replaceSelf([{ type: "sqrt", contents }], { removeCursor: true })
+            }}
+          >
             <SymbolList
               symbols={symbol.contents}
               replaceSelf={(symbols, data) =>
@@ -603,7 +746,29 @@ export function drawSymbol(
     case "root":
       return (
         <span class="inline-block">
-          <span class="relative z-[1] ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]">
+          <span
+            class="relative z-[1] ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]"
+            data-latex-clickable
+            onClick={(event) => {
+              const data: ReplacementData = { removeCursor: true }
+              const root = prepareSymbolList(symbol.root, data)
+
+              root.splice(cursorIndexShift(event) * root.length, 0, {
+                type: "cursor",
+              })
+
+              replaceSelf(
+                [
+                  {
+                    type: "root",
+                    contents: prepareSymbolList(symbol.contents, data),
+                    root,
+                  },
+                ],
+                data,
+              )
+            }}
+          >
             <SymbolList
               symbols={symbol.root}
               replaceSelf={(symbols, data) =>
@@ -622,7 +787,49 @@ export function drawSymbol(
           </span>
 
           <span class="relative inline-block">
-            <span class="absolute bottom-[.15em] top-px inline-block w-[.95em]">
+            <span
+              class="absolute bottom-[.15em] top-px inline-block w-[.95em]"
+              data-latex-clickable
+              onPointerDown={(event) => {
+                if (cursorIndexShift(event)) {
+                  replaceSelf(
+                    [
+                      {
+                        type: "root",
+                        contents: [
+                          { type: "cursor" },
+                          ...prepareSymbolList(symbol.contents, {
+                            removeCursor: true,
+                          }),
+                        ],
+                        root: prepareSymbolList(symbol.root, {
+                          removeCursor: true,
+                        }),
+                      },
+                    ],
+                    { removeCursor: true },
+                  )
+                } else {
+                  replaceSelf(
+                    [
+                      {
+                        type: "root",
+                        contents: prepareSymbolList(symbol.contents, {
+                          removeCursor: true,
+                        }),
+                        root: [
+                          ...prepareSymbolList(symbol.root, {
+                            removeCursor: true,
+                          }),
+                          { type: "cursor" },
+                        ],
+                      },
+                    ],
+                    { removeCursor: true },
+                  )
+                }
+              }}
+            >
               <svg
                 preserveAspectRatio="none"
                 viewBox="0 0 32 54"
@@ -635,7 +842,29 @@ export function drawSymbol(
               </svg>
             </span>
 
-            <span class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px">
+            <span
+              class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px"
+              data-latex-clickable
+              onClick={(event) => {
+                const data: ReplacementData = { removeCursor: true }
+                const contents = prepareSymbolList(symbol.contents, data)
+
+                contents.splice(cursorIndexShift(event) * contents.length, 0, {
+                  type: "cursor",
+                })
+
+                replaceSelf(
+                  [
+                    {
+                      type: "root",
+                      contents,
+                      root: prepareSymbolList(symbol.root, data),
+                    },
+                  ],
+                  data,
+                )
+              }}
+            >
               <SymbolList
                 symbols={symbol.contents}
                 replaceSelf={(symbols, data) =>
@@ -1056,7 +1285,7 @@ export function Field(props: {
   setSymbols: (symbols: Symbol[]) => void
 }) {
   return (
-    <div class="whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black [line-height:1]">
+    <div class="whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_[data-latex-clickable]]:bg-blue-500/50">
       <SymbolList
         symbols={props.symbols()}
         replaceSelf={(symbols) => props.setSymbols(symbols)}
@@ -1100,13 +1329,18 @@ export function Main() {
           type: "sqrt",
           contents: [
             { type: "number", value: "623" },
+            { type: "op", op: "+" },
             {
               type: "bracket",
               bracket: "()",
               contents: [
                 {
                   type: "frac",
-                  sup: [{ type: "number", value: "33498423101" }],
+                  sup: [
+                    { type: "number", value: "33498" },
+                    { type: "." },
+                    { type: "number", value: "423101" },
+                  ],
                   sub: [{ type: "number", value: "4" }],
                 },
               ],
@@ -1179,21 +1413,44 @@ export function Main() {
             { type: "number", value: "45" },
             { type: "sup", contents: [{ type: "number", value: "2" }] },
           ],
-          when: [{ type: "fn", name: "otherwise" }],
+          when: [{ type: "fn", name: "else" }],
         },
       ],
     },
     {
       type: "matrix",
       data: [
-        [[{ type: "number", value: "1984" }], [{ type: "number", value: "2" }]],
-        [[{ type: "number", value: "3" }], [{ type: "number", value: "4" }]],
+        [
+          [
+            { type: "fn", name: "log" },
+            { type: "op", op: "-" },
+            { type: "number", value: "2" },
+          ],
+          [
+            { type: "fn", name: "log" },
+            { type: "sub", contents: [{ type: "number", value: "10" }] },
+            { type: "op", op: "-" },
+            { type: "number", value: "2" },
+          ],
+        ],
+        [
+          [
+            { type: "number", value: "3" },
+            { type: "op", op: "-" },
+            { type: "number", value: "2" },
+          ],
+          [
+            { type: "number", value: "4" },
+            { type: "op", op: "-" },
+            { type: "number", value: "2" },
+          ],
+        ],
       ],
     },
   ])
 
   return (
-    <div class="m-auto flex select-none flex-col gap-4 text-center">
+    <div class="m-auto text-center">
       <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
