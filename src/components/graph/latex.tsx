@@ -3,6 +3,123 @@ import "./latex.postcss"
 
 // if you see empty <span>s, they probably have the `​` character. don't delete
 
+const FUNCTION_NAMES = Object.freeze(
+  [
+    "log",
+    "ln",
+    "exp",
+
+    "if",
+    "then",
+    "else",
+    "and",
+    "or",
+    "not",
+    "xor",
+    "xnor",
+    "nor",
+    "nand",
+
+    "sinh",
+    "cosh",
+    "tanh",
+    "csch",
+    "coth",
+    "sech",
+
+    "asinh",
+    "acosh",
+    "atanh",
+    "acsch",
+    "acoth",
+    "asech",
+
+    "arcsinh",
+    "arccosh",
+    "arctanh",
+    "arccsch",
+    "arccoth",
+    "arcsech",
+
+    "sin",
+    "cos",
+    "tan",
+    "csc",
+    "cot",
+    "sec",
+
+    "asin",
+    "acos",
+    "atan",
+    "acsc",
+    "acot",
+    "asec",
+
+    "arcsin",
+    "arccos",
+    "arctan",
+    "arccsc",
+    "arccot",
+    "arcsec",
+
+    "mean",
+    "median",
+    "min",
+    "max",
+    "quartile",
+    "quantile",
+    "stdev",
+    "stdevp",
+    "var",
+    "mad",
+    "cov",
+    "covp",
+    "corr",
+    "spearman",
+    "stats",
+    "count",
+    "total",
+
+    "join",
+    "sort",
+    "unique",
+    "shuffle",
+    "for",
+    "with",
+
+    "histogram",
+    "dotplot",
+    "boxplot",
+    "normaldist",
+    "tdist",
+    "poissondist",
+    "binomialdist",
+    "uniformdist",
+    "pdf",
+    "cdf",
+    "inversecdf",
+    "random",
+    "ttest",
+    "tscore",
+    "ittest",
+    "polygon",
+    "distance",
+    "midpoint",
+    "rgb",
+    "hsv",
+    "tone",
+    "lcm",
+    "gcd",
+    "mod",
+    "ceil",
+    "floor",
+    "round",
+    "sign",
+    "nPr",
+    "nCr",
+  ].sort((a, b) => b.length - a.length),
+)
+
 export type Bracket = "()" | "[]" | "{}" | "||"
 
 export type PiecewiseSection = { value: Symbol[]; when: Symbol[] }
@@ -14,14 +131,14 @@ export type BaseSymbol =
   | { type: "const"; name: string }
   | { type: "cursor" }
   | { type: "sqrt"; contents: Symbol[] }
+  | { type: "ans"; contents: Symbol[] }
   | { type: "root"; root: Symbol[]; contents: Symbol[] }
-  | { type: "frac"; sup: Symbol[]; sub: Symbol[] }
   | { type: "bracket"; bracket: Bracket; contents: Symbol[] }
+  | { type: "frac"; sup: Symbol[]; sub: Symbol[] }
   | { type: "repeat"; op: "sum" | "prod"; sub: Symbol[]; sup: Symbol[] }
   | { type: "int"; sub: Symbol[]; sup: Symbol[] }
   | { type: "matrix"; data: Symbol[][][] } // such a silly type definition
   | { type: "cases"; cases: PiecewiseSection[] }
-  | { type: "ans"; contents: Symbol[] }
 
 export type Symbol =
   | { type: "number"; value: string; cursor?: number }
@@ -115,14 +232,107 @@ export function isNumericSymbolOnRHS(
   }
 }
 
-/** Splices symbols, then joins numbers and function names. */
-export function spliceSymbols(
+/** Splices symbols, then joins numbers and function names in place. */
+export function spliceSymbolsInPlace(
   current: Symbol[],
   index: number,
   deleteCount: number,
   inserted: Symbol[],
+) {
+  current.splice(index, deleteCount, ...inserted)
+
+  let start = index
+  let end = index + inserted.length - deleteCount
+
+  while (
+    current[start - 1]?.type == "cursor" ||
+    current[start - 1]?.type == "fn" ||
+    current[start - 1]?.type == "var" ||
+    current[start - 1]?.type == "number"
+  ) {
+    start--
+  }
+
+  while (
+    current[end]?.type == "cursor" ||
+    current[end]?.type == "fn" ||
+    current[end]?.type == "var" ||
+    current[end]?.type == "number"
+  ) {
+    end++
+  }
+
+  for (let index = start; index < end; index++) {
+    // merge numbers next to each other
+    if (index < end - 2) {
+      const self = current[index]!
+      const next = current[index + 1]!
+      const next2 = current[index + 2]!
+
+      if (self.type == "number" && next.type == "number") {
+        current.splice(index, 2, {
+          type: "number",
+          value: self.value + next.value,
+          cursor:
+            self.cursor != null
+              ? self.cursor
+              : next.cursor != null
+              ? next.cursor + self.value.length
+              : undefined,
+        })
+        end -= 1
+        continue
+      }
+
+      if (
+        self.type == "number" &&
+        next.type == "cursor" &&
+        next2.type == "number"
+      ) {
+        current.splice(index, 3, {
+          type: "number",
+          value: self.value + next2.value,
+          cursor: self.value.length,
+        })
+        end -= 2
+        continue
+      }
+    }
+
+    // replace fn with var[]
+    const self = current[index]
+    if (self?.type == "fn") {
+      const vars = Array.from(self.name).map<Symbol>((letter) => ({
+        type: "var",
+        letter,
+      }))
+      if (self.cursor != null) {
+        vars.splice(self.cursor, 0, { type: "cursor" })
+      }
+      current.splice(index, 1, ...vars)
+      end += vars.length - 1
+    }
+  }
+
+  for (const word of FUNCTION_NAMES) {
+    for (let index = start; index < end - word.length; index++) {
+      console.log(word, index, current[index])
+    }
+  }
+
+  console.log({ start, end })
+}
+
+/** Splices symbols, then joins numbers and function names. */
+export function spliceSymbols(
+  current: readonly Symbol[],
+  index: number,
+  deleteCount: number,
+  inserted: Symbol[],
 ): Symbol[] {
-  return current.toSpliced(index, deleteCount, ...inserted)
+  const next = current.slice()
+  spliceSymbolsInPlace(next, index, deleteCount, inserted)
+  return next
 }
 
 export function prepareSymbol(symbol: Symbol, data: ReplacementData): Symbol {
@@ -1436,14 +1646,263 @@ export function findTarget(
 
 export type LatexTargetFindEvent = CustomEvent<{ offset: 0 | 1 }>
 
+export function symbolsHaveCursor(symbols: Symbol[]) {
+  return symbols.some((a) => symbolHasCursor(a))
+}
+
+export function symbolHasCursor(symbol: Symbol): boolean {
+  switch (symbol.type) {
+    case "cursor":
+      return true
+    case "number":
+      return symbol.cursor != null
+    case "fn":
+      return symbol.cursor != null
+    case "op":
+    case ".":
+    case ",":
+    case "var":
+    case "const":
+      return false
+    case "sup":
+    case "sub":
+    case "sqrt":
+    case "bracket":
+    case "ans":
+      return symbolsHaveCursor(symbol.contents)
+    case "root":
+      return (
+        symbolsHaveCursor(symbol.root) || symbolsHaveCursor(symbol.contents)
+      )
+    case "frac":
+    case "supsub":
+    case "repeat":
+    case "int":
+      return symbolsHaveCursor(symbol.sub) || symbolsHaveCursor(symbol.sup)
+    case "matrix":
+      return symbol.data.some((a) => a.some((a) => symbolsHaveCursor(a)))
+    case "cases":
+      return symbol.cases.some(
+        ({ value, when }) =>
+          symbolsHaveCursor(value) || symbolsHaveCursor(when),
+      )
+  }
+}
+
+export class SymbolListWithCursor {
+  constructor(readonly list: Symbol[], readonly cursorIndex: number) {}
+
+  /**
+   * Mutates the original list.
+   * This is useful for doing deep copies.
+   * And violates using immutable data in other instances.
+   * Users of this method should deep clone the root before using this.
+   */
+  insertLeft(symbols: Symbol[]) {
+    const cursor = this.list[this.cursorIndex]
+
+    switch (cursor?.type) {
+      case "cursor": {
+        spliceSymbolsInPlace(this.list, this.cursorIndex, 0, symbols)
+        return
+      }
+
+      case "number": {
+        if (cursor.cursor == null) {
+          throw new Error("Invalid cursor position.")
+        }
+
+        if (cursor.cursor == 0) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 0, symbols)
+          return
+        }
+
+        if (cursor.cursor == cursor.value.length) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+            {
+              type: "number",
+              value: cursor.value,
+            },
+            ...symbols,
+            { type: "cursor" },
+          ])
+          return
+        }
+
+        spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+          {
+            type: "number",
+            value: cursor.value.slice(0, cursor.cursor),
+          },
+          ...symbols,
+          {
+            type: "number",
+            cursor: 0,
+            value: cursor.value.slice(cursor.cursor),
+          },
+        ])
+        return
+      }
+
+      case "fn": {
+        if (cursor.cursor == null) {
+          throw new Error("Invalid cursor position.")
+        }
+
+        if (cursor.cursor == 0) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 0, symbols)
+          return
+        }
+
+        if (cursor.cursor == cursor.name.length) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+            {
+              type: "fn",
+              name: cursor.name,
+            },
+            ...symbols,
+            { type: "cursor" },
+          ])
+          return
+        }
+
+        spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+          {
+            type: "fn",
+            name: cursor.name.slice(0, cursor.cursor),
+          },
+          ...symbols,
+          {
+            type: "fn",
+            cursor: 0,
+            name: cursor.name.slice(cursor.cursor),
+          },
+        ])
+        return
+      }
+    }
+
+    throw new Error("Invalid cursor position.")
+  }
+}
+
+export function findCursor(
+  symbols: Symbol[],
+): SymbolListWithCursor | undefined {
+  for (let index = 0; index < symbols.length; index++) {
+    const symbol = symbols[index]!
+
+    switch (symbol.type) {
+      case "number":
+      case "fn":
+        if (symbol.cursor == null) {
+          break
+        } else {
+          return new SymbolListWithCursor(symbols, index)
+        }
+
+      case "cursor":
+        return new SymbolListWithCursor(symbols, index)
+
+      case "op":
+      case ".":
+      case ",":
+      case "var":
+      case "const":
+        break
+
+      case "sup":
+      case "sub":
+      case "sqrt":
+      case "ans":
+      case "bracket": {
+        const contents = findCursor(symbol.contents)
+        if (contents) {
+          return contents
+        }
+
+        break
+      }
+
+      case "supsub":
+      case "frac":
+      case "repeat":
+      case "int": {
+        const sup = findCursor(symbol.sup)
+        if (sup) {
+          return sup
+        }
+
+        const sub = findCursor(symbol.sub)
+        if (sub) {
+          return sub
+        }
+
+        break
+      }
+
+      case "root": {
+        const root = findCursor(symbol.root)
+        if (root) {
+          return root
+        }
+
+        const contents = findCursor(symbol.contents)
+        if (contents) {
+          return contents
+        }
+
+        break
+      }
+
+      case "matrix": {
+        for (const row of symbol.data) {
+          for (const cell of row) {
+            const data = findCursor(cell)
+            if (data) {
+              return data
+            }
+          }
+        }
+
+        break
+      }
+
+      case "cases": {
+        for (const { value, when } of symbol.cases) {
+          const v = findCursor(value)
+          if (v) {
+            return v
+          }
+
+          const w = findCursor(when)
+          if (w) {
+            return w
+          }
+        }
+
+        break
+      }
+
+      default:
+        throw new Error("this should never be reached")
+    }
+  }
+
+  return
+}
+
 export function Field(props: {
   symbols: () => Symbol[]
   setSymbols: (symbols: Symbol[]) => void
   debug?: boolean
 }) {
+  let fieldEl: HTMLDivElement | undefined
+
   return (
     <div
-      class="cursor-text select-none whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text"
+      class="cursor-text select-none whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] focus:outline-none dark:text-white [&_*]:cursor-text"
+      tabIndex={0}
       classList={{
         "[&_[data-latex=leaf]]:bg-blue-500/50": props.debug,
         "[&_[data-latex=shape]]:bg-green-500/50": props.debug,
@@ -1468,10 +1927,44 @@ export function Field(props: {
           )
         }
       }}
+      ref={(el) => (fieldEl = el)}
+      onFocus={() => {
+        props.setSymbols([
+          { type: "cursor" },
+          ...prepareSymbolList(props.symbols(), { removeCursor: true }),
+        ])
+      }}
+      onBlur={() => {
+        props.setSymbols(
+          prepareSymbolList(props.symbols(), { removeCursor: true }),
+        )
+      }}
+      onKeyDown={(event) => {
+        if (event.ctrlKey || event.metaKey) {
+          return
+        }
+
+        event.preventDefault()
+
+        const nextSymbols = structuredClone(props.symbols())
+        const cursor = findCursor(nextSymbols)
+        if (cursor) {
+          cursor.insertLeft([{ type: "var", letter: "e" }])
+          props.setSymbols(nextSymbols)
+        }
+      }}
     >
       <SymbolList
         symbols={props.symbols()}
-        replaceSelf={(symbols) => props.setSymbols(symbols)}
+        replaceSelf={(symbols) => {
+          props.setSymbols(symbols)
+
+          if (symbolsHaveCursor(symbols)) {
+            fieldEl?.focus()
+          } else {
+            fieldEl?.blur()
+          }
+        }}
       />
     </div>
   )
@@ -1711,7 +2204,7 @@ export function Main() {
 
   return (
     <div class="m-auto pr-6 text-center">
-      <Field symbols={symbols} setSymbols={setSymbols} debug />
+      <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
 }
