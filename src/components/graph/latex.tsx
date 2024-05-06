@@ -185,7 +185,7 @@ export type BaseSymbol =
 
 export type Symbol =
   | { type: "number"; value: string; cursor?: number }
-  | { type: "fn"; name: string; cursor?: number }
+  | { type: "fn"; value: string; cursor?: number }
   | { type: "sup"; contents: Symbol[] }
   | { type: "sub"; contents: Symbol[] }
   | { type: "supsub"; sup: Symbol[]; sub: Symbol[] }
@@ -196,7 +196,7 @@ export type ContextualizedSymbol =
   | { type: "number"; value: string; afterDecimal: boolean; cursor?: number }
   | {
       type: "fn"
-      name: string
+      value: string
       cursor?: number
       spaceBefore: boolean
       spaceAfter: boolean
@@ -345,7 +345,7 @@ export function spliceSymbolsInPlace(
     // replace fn with var[]
     const self = current[index]
     if (self?.type == "fn") {
-      const vars = Array.from(self.name).map<Symbol>((letter) => ({
+      const vars = Array.from(self.value).map<Symbol>((letter) => ({
         type: "var",
         letter,
       }))
@@ -393,7 +393,7 @@ export function spliceSymbolsInPlace(
           ? [
               {
                 type: "fn",
-                name: word,
+                value: word,
                 cursor: cursorIndex == null ? undefined : cursorIndex - index,
               },
             ]
@@ -585,7 +585,7 @@ export function SymbolList(props: {
             return drawSymbol(
               {
                 type: "fn",
-                name: symbol.name,
+                value: symbol.value,
                 cursor: symbol.cursor,
                 spaceBefore,
                 spaceAfter,
@@ -867,7 +867,7 @@ export function drawSymbol(
     case "fn":
       return (
         <>
-          <For each={[...symbol.name]}>
+          <For each={[...symbol.value]}>
             {(letter, index) => (
               <>
                 <Show when={index() === symbol.cursor}>{drawCursor()}</Show>
@@ -878,14 +878,14 @@ export function drawSymbol(
                   classList={{
                     "pl-[.2em]": index() == 0 && symbol.spaceBefore,
                     "pr-[.2em]":
-                      index() == symbol.name.length - 1 && symbol.spaceAfter,
+                      index() == symbol.value.length - 1 && symbol.spaceAfter,
                   }}
                   onLatexTargetFind={(event) => {
                     replaceSelf(
                       [
                         {
                           type: "fn",
-                          name: symbol.name,
+                          value: symbol.value,
                           cursor: event.detail.offset + index(),
                         },
                       ],
@@ -899,7 +899,9 @@ export function drawSymbol(
             )}
           </For>
 
-          <Show when={symbol.cursor == symbol.name.length}>{drawCursor()}</Show>
+          <Show when={symbol.cursor == symbol.value.length}>
+            {drawCursor()}
+          </Show>
         </>
       )
     case "cursor":
@@ -1617,7 +1619,7 @@ export function drawSymbol(
     case "ans":
       return (
         <span
-          class="relative mb-[2px] mr-px inline-block min-w-[1.6304347826em] overflow-ellipsis rounded-[4px] border-2 border-blue-500 bg-blue-500/10 px-[.4em] py-[.2em] text-center align-middle text-blue-500 after:absolute after:bottom-[-.5em] after:left-[50%] after:ml-[-.95em] after:h-[1em] after:w-[1.9em] after:overflow-hidden after:rounded-[3px] after:border after:border-blue-500 after:bg-z-body after:p-0 after:text-center after:text-[60%] after:text-blue-500 after:content-['ans'] after:[line-height:.9em]"
+          class="relative mb-[2px] mr-px inline-block min-w-[1.6304347826em] overflow-ellipsis rounded-[4px] border-2 border-blue-500 bg-blue-500/10 px-[.4em] py-[.2em] text-center align-middle text-blue-500 after:absolute after:bottom-[-.5em] after:left-[50%] after:h-[1em] after:w-[1.9em] after:-translate-x-1/2 after:overflow-hidden after:rounded-[3px] after:border after:border-blue-500 after:bg-z-body after:p-0 after:text-center after:text-[60%] after:text-blue-500 after:transition after:content-['ans'] after:[line-height:.9em]"
           data-latex-ignore
           data-latex="leaf"
           onLatexTargetFind={(event) => {
@@ -1776,15 +1778,17 @@ export function symbolHasCursor(symbol: Symbol): boolean {
   }
 }
 
+/** Abstracts cursor operations because they're complicated. */
 export class SymbolListWithCursor {
-  constructor(readonly list: Symbol[], readonly cursorIndex: number) {}
+  constructor(
+    readonly root: Symbol[],
+    readonly list: Symbol[],
+    readonly cursorIndex: number,
+    readonly parentList: Symbol[] | undefined,
+    readonly parentSymbolIndex: number | undefined,
+    readonly parentSymbolDataLocation: string | string[] | undefined,
+  ) {}
 
-  /**
-   * Mutates the original list.
-   * This is useful for doing deep copies.
-   * And violates using immutable data in other instances.
-   * Users of this method should deep clone the root before using this.
-   */
   insertLeft(symbols: Symbol[]) {
     const cursor = this.list[this.cursorIndex]
 
@@ -1841,11 +1845,11 @@ export class SymbolListWithCursor {
           return
         }
 
-        if (cursor.cursor == cursor.name.length) {
+        if (cursor.cursor == cursor.value.length) {
           spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
             {
               type: "fn",
-              name: cursor.name,
+              value: cursor.value,
             },
             ...symbols,
             { type: "cursor" },
@@ -1856,13 +1860,13 @@ export class SymbolListWithCursor {
         spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
           {
             type: "fn",
-            name: cursor.name.slice(0, cursor.cursor),
+            value: cursor.value.slice(0, cursor.cursor),
           },
           ...symbols,
           {
             type: "fn",
             cursor: 0,
-            name: cursor.name.slice(cursor.cursor),
+            value: cursor.value.slice(cursor.cursor),
           },
         ])
         return
@@ -1871,10 +1875,98 @@ export class SymbolListWithCursor {
 
     throw new Error("Invalid cursor position.")
   }
+
+  /** Deletes the list the cursor is in. */
+  deleteListLeft() {
+    console.log("deleting left")
+    // TODO: this should do something
+  }
+
+  /** Deletes a character to the left. */
+  deleteLeft() {
+    const cursor = this.list[this.cursorIndex]
+
+    switch (cursor?.type) {
+      case "cursor": {
+        break
+      }
+
+      case "number":
+      case "fn": {
+        if (cursor.cursor == null) {
+          throw new Error("Invalid cursor position.")
+        }
+
+        if (cursor.cursor == 0) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+            { type: "cursor" },
+            { type: cursor.type, value: cursor.value },
+          ])
+          break
+        }
+
+        const nextValue =
+          cursor.value.slice(0, cursor.cursor - 1) +
+          cursor.value.slice(cursor.cursor)
+
+        if (nextValue) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+            {
+              type: cursor.type,
+              value: nextValue,
+              cursor: cursor.cursor - 1,
+            },
+          ])
+        } else {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+            {
+              type: "cursor",
+            },
+          ])
+        }
+
+        return
+      }
+
+      default:
+        throw new Error("Invalid cursor position.")
+    }
+
+    if (this.cursorIndex == 0) {
+      this.deleteListLeft()
+      return
+    }
+
+    const prev = this.list[this.cursorIndex - 1]!
+
+    switch (prev.type) {
+      case "number":
+      case "fn":
+        if (prev.value.length <= 1) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 1, [])
+          return
+        } else {
+          spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 1, [
+            {
+              type: prev.type,
+              value: prev.value.slice(0, -1),
+            },
+          ])
+          return
+        }
+
+      default:
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 1, [])
+    }
+  }
 }
 
 export function findCursor(
   symbols: Symbol[],
+  parent?: Symbol[],
+  parentSymbolIndex?: number,
+  parentSymbolKey?: string | string[],
+  root = symbols,
 ): SymbolListWithCursor | undefined {
   for (let index = 0; index < symbols.length; index++) {
     const symbol = symbols[index]!
@@ -1885,11 +1977,25 @@ export function findCursor(
         if (symbol.cursor == null) {
           break
         } else {
-          return new SymbolListWithCursor(symbols, index)
+          return new SymbolListWithCursor(
+            root,
+            symbols,
+            index,
+            parent,
+            parentSymbolIndex,
+            parentSymbolKey,
+          )
         }
 
       case "cursor":
-        return new SymbolListWithCursor(symbols, index)
+        return new SymbolListWithCursor(
+          root,
+          symbols,
+          index,
+          parent,
+          parentSymbolIndex,
+          parentSymbolKey,
+        )
 
       case "op":
       case ".":
@@ -1903,7 +2009,13 @@ export function findCursor(
       case "sqrt":
       case "ans":
       case "bracket": {
-        const contents = findCursor(symbol.contents)
+        const contents = findCursor(
+          symbol.contents,
+          symbols,
+          index,
+          "contents",
+          root,
+        )
         if (contents) {
           return contents
         }
@@ -1915,12 +2027,12 @@ export function findCursor(
       case "frac":
       case "repeat":
       case "int": {
-        const sup = findCursor(symbol.sup)
+        const sup = findCursor(symbol.sup, symbols, index, "sup", root)
         if (sup) {
           return sup
         }
 
-        const sub = findCursor(symbol.sub)
+        const sub = findCursor(symbol.sub, symbols, index, "sub", root)
         if (sub) {
           return sub
         }
@@ -1929,12 +2041,18 @@ export function findCursor(
       }
 
       case "root": {
-        const root = findCursor(symbol.root)
-        if (root) {
-          return root
+        const r = findCursor(symbol.root, symbols, index, "root", root)
+        if (r) {
+          return r
         }
 
-        const contents = findCursor(symbol.contents)
+        const contents = findCursor(
+          symbol.contents,
+          symbols,
+          index,
+          "contents",
+          root,
+        )
         if (contents) {
           return contents
         }
@@ -1943,9 +2061,17 @@ export function findCursor(
       }
 
       case "matrix": {
-        for (const row of symbol.data) {
-          for (const cell of row) {
-            const data = findCursor(cell)
+        for (let rowIndex = 0; rowIndex < symbol.data.length; rowIndex++) {
+          const row = symbol.data[rowIndex]!
+          for (let cellIndex = 0; cellIndex < row.length; cellIndex++) {
+            const cell = row[cellIndex]!
+            const data = findCursor(
+              cell,
+              symbols,
+              index,
+              ["data", "" + rowIndex, "" + cellIndex],
+              root,
+            )
             if (data) {
               return data
             }
@@ -1956,13 +2082,27 @@ export function findCursor(
       }
 
       case "cases": {
-        for (const { value, when } of symbol.cases) {
-          const v = findCursor(value)
+        for (let caseIndex = 0; caseIndex < symbol.cases.length; caseIndex++) {
+          const { value, when } = symbol.cases[caseIndex]!
+
+          const v = findCursor(
+            value,
+            symbols,
+            index,
+            ["cases", "" + caseIndex],
+            root,
+          )
           if (v) {
             return v
           }
 
-          const w = findCursor(when)
+          const w = findCursor(
+            when,
+            symbols,
+            index,
+            ["cases", "" + caseIndex],
+            root,
+          )
           if (w) {
             return w
           }
@@ -2016,10 +2156,12 @@ export function Field(props: {
       }}
       ref={(el) => (fieldEl = el)}
       onFocus={() => {
-        props.setSymbols([
-          { type: "cursor" },
-          ...prepareSymbolList(props.symbols(), { removeCursor: true }),
-        ])
+        if (!findCursor(props.symbols())) {
+          props.setSymbols([
+            { type: "cursor" },
+            ...prepareSymbolList(props.symbols(), { removeCursor: true }),
+          ])
+        }
       }}
       onBlur={() => {
         props.setSymbols(
@@ -2035,8 +2177,18 @@ export function Field(props: {
 
         const nextSymbols = structuredClone(props.symbols())
         const cursor = findCursor(nextSymbols)
+
         if (cursor) {
-          cursor.insertLeft([{ type: "var", letter: event.key }])
+          if (event.key == "Backspace") {
+            cursor.deleteLeft()
+          } else {
+            if ("0123456789".includes(event.key)) {
+              cursor.insertLeft([{ type: "number", value: event.key[0]! }])
+            } else {
+              cursor.insertLeft([{ type: "var", letter: event.key[0]! }])
+            }
+          }
+
           props.setSymbols(nextSymbols)
         }
       }}
@@ -2201,7 +2353,7 @@ export function Main() {
         },
         {
           type: "fn",
-          name: "log",
+          value: "log",
         },
         {
           type: "sub",
@@ -2215,7 +2367,7 @@ export function Main() {
     },
     {
       type: "fn",
-      name: "log",
+      value: "log",
     },
     {
       type: "sub",
@@ -2253,7 +2405,7 @@ export function Main() {
             { type: "number", value: "45" },
             { type: "sup", contents: [{ type: "number", value: "2" }] },
           ],
-          when: [{ type: "fn", name: "else" }],
+          when: [{ type: "fn", value: "else" }],
         },
       ],
     },
@@ -2262,12 +2414,12 @@ export function Main() {
       data: [
         [
           [
-            { type: "fn", name: "log" },
+            { type: "fn", value: "log" },
             { type: "op", op: "-" },
             { type: "number", value: "2" },
           ],
           [
-            { type: "fn", name: "log" },
+            { type: "fn", value: "log" },
             { type: "sub", contents: [{ type: "number", value: "10" }] },
             { type: "op", op: "-" },
             { type: "number", value: "2" },
