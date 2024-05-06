@@ -1654,7 +1654,7 @@ export function Main() {
   ])
 
   return (
-    <div class="m-auto text-center">
+    <div class="m-auto pr-6 text-center">
       <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
