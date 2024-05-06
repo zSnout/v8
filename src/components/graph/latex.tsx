@@ -3,121 +3,164 @@ import "./latex.postcss"
 
 // if you see empty <span>s, they probably have the `​` character. don't delete
 
-const FUNCTION_NAMES = Object.freeze(
+const FUNCTION_NAMES = [
+  "log",
+  "ln",
+  "exp",
+
+  "if",
+  "then",
+  "else",
+  "and",
+  "or",
+  "not",
+  "xor",
+  "xnor",
+  "nor",
+  "nand",
+
+  "sinh",
+  "cosh",
+  "tanh",
+  "csch",
+  "coth",
+  "sech",
+
+  "asinh",
+  "acosh",
+  "atanh",
+  "acsch",
+  "acoth",
+  "asech",
+
+  "arcsinh",
+  "arccosh",
+  "arctanh",
+  "arccsch",
+  "arccoth",
+  "arcsech",
+
+  "sin",
+  "cos",
+  "tan",
+  "csc",
+  "cot",
+  "sec",
+
+  "asin",
+  "acos",
+  "atan",
+  "acsc",
+  "acot",
+  "asec",
+
+  "arcsin",
+  "arccos",
+  "arctan",
+  "arccsc",
+  "arccot",
+  "arcsec",
+
+  "mean",
+  "median",
+  "min",
+  "max",
+  "quartile",
+  "quantile",
+  "stdev",
+  "stdevp",
+  "var",
+  "mad",
+  "cov",
+  "covp",
+  "corr",
+  "spearman",
+  "stats",
+  "count",
+  "total",
+
+  "join",
+  "sort",
+  "unique",
+  "shuffle",
+  "for",
+  "with",
+
+  "histogram",
+  "dotplot",
+  "boxplot",
+  "normaldist",
+  "tdist",
+  "poissondist",
+  "binomialdist",
+  "uniformdist",
+  "pdf",
+  "cdf",
+  "inversecdf",
+  "random",
+  "ttest",
+  "tscore",
+  "ittest",
+  "polygon",
+  "distance",
+  "midpoint",
+  "rgb",
+  "hsv",
+  "tone",
+  "lcm",
+  "gcd",
+  "mod",
+  "ceil",
+  "floor",
+  "round",
+  "sign",
+  "nPr",
+  "nCr",
+].sort((a, b) => b.length - a.length)
+
+const OTHERS: [string, Symbol][] = [
   [
-    "log",
-    "ln",
-    "exp",
+    "sum",
+    {
+      type: "repeat",
+      op: "sum",
+      sub: [
+        { type: "var", letter: "n" },
+        { type: "op", op: "=" },
+      ],
+      sup: [],
+    },
+  ],
+  [
+    "prod",
+    {
+      type: "repeat",
+      op: "prod",
+      sub: [
+        { type: "var", letter: "n" },
+        { type: "op", op: "=" },
+      ],
+      sup: [],
+    },
+  ],
+  [
+    "int",
+    {
+      type: "int",
+      sub: [],
+      sup: [],
+    },
+  ],
+  ["sqrt", { type: "sqrt", contents: [] }],
+  ["nthroot", { type: "root", root: [], contents: [] }],
+  ["root", { type: "root", root: [], contents: [] }],
+  ["pi", { type: "const", name: "π" }],
+]
 
-    "if",
-    "then",
-    "else",
-    "and",
-    "or",
-    "not",
-    "xor",
-    "xnor",
-    "nor",
-    "nand",
-
-    "sinh",
-    "cosh",
-    "tanh",
-    "csch",
-    "coth",
-    "sech",
-
-    "asinh",
-    "acosh",
-    "atanh",
-    "acsch",
-    "acoth",
-    "asech",
-
-    "arcsinh",
-    "arccosh",
-    "arctanh",
-    "arccsch",
-    "arccoth",
-    "arcsech",
-
-    "sin",
-    "cos",
-    "tan",
-    "csc",
-    "cot",
-    "sec",
-
-    "asin",
-    "acos",
-    "atan",
-    "acsc",
-    "acot",
-    "asec",
-
-    "arcsin",
-    "arccos",
-    "arctan",
-    "arccsc",
-    "arccot",
-    "arcsec",
-
-    "mean",
-    "median",
-    "min",
-    "max",
-    "quartile",
-    "quantile",
-    "stdev",
-    "stdevp",
-    "var",
-    "mad",
-    "cov",
-    "covp",
-    "corr",
-    "spearman",
-    "stats",
-    "count",
-    "total",
-
-    "join",
-    "sort",
-    "unique",
-    "shuffle",
-    "for",
-    "with",
-
-    "histogram",
-    "dotplot",
-    "boxplot",
-    "normaldist",
-    "tdist",
-    "poissondist",
-    "binomialdist",
-    "uniformdist",
-    "pdf",
-    "cdf",
-    "inversecdf",
-    "random",
-    "ttest",
-    "tscore",
-    "ittest",
-    "polygon",
-    "distance",
-    "midpoint",
-    "rgb",
-    "hsv",
-    "tone",
-    "lcm",
-    "gcd",
-    "mod",
-    "ceil",
-    "floor",
-    "round",
-    "sign",
-    "nPr",
-    "nCr",
-  ].sort((a, b) => b.length - a.length),
+const ALL = [...FUNCTION_NAMES, ...OTHERS].sort(
+  (a, b) =>
+    (typeof b == "string" ? b.length : b[0].length) -
+    (typeof a == "string" ? a.length : a[0].length),
 )
 
 export type Bracket = "()" | "[]" | "{}" | "||"
@@ -314,13 +357,57 @@ export function spliceSymbolsInPlace(
     }
   }
 
-  for (const word of FUNCTION_NAMES) {
-    for (let index = start; index < end - word.length; index++) {
-      console.log(word, index, current[index])
+  for (const all of ALL) {
+    const word = typeof all == "string" ? all : all[0]
+
+    position: for (let index = start; index < end - word.length + 1; index++) {
+      let cursorIndex: number | undefined
+      let subindex: number
+
+      for (subindex = index; subindex < index + word.length + 1; subindex++) {
+        const letterIndex =
+          cursorIndex == null ? subindex - index : subindex - index - 1
+
+        const self = current[subindex]
+
+        if (self?.type == "cursor") {
+          cursorIndex = subindex
+          continue
+        } else if (self?.type != "var") {
+          continue position
+        } else if (letterIndex >= word.length) {
+          break
+        } else if (self.letter == word[letterIndex]) {
+          if (letterIndex == word.length - 1) {
+            break
+          } else {
+            continue
+          }
+        } else {
+          continue position
+        }
+      }
+
+      const symbol: Symbol[] =
+        typeof all == "string"
+          ? [
+              {
+                type: "fn",
+                name: word,
+                cursor: cursorIndex == null ? undefined : cursorIndex - index,
+              },
+            ]
+          : cursorIndex == index
+          ? [{ type: "cursor" }, structuredClone(all[1])]
+          : cursorIndex != null
+          ? [structuredClone(all[1]), { type: "cursor" }]
+          : [structuredClone(all[1])]
+
+      const deleted = subindex - index + (cursorIndex == subindex ? 0 : 1)
+      current.splice(index, deleted, ...symbol)
+      end += symbol.length - deleted
     }
   }
-
-  console.log({ start, end })
 }
 
 /** Splices symbols, then joins numbers and function names. */
@@ -1949,7 +2036,7 @@ export function Field(props: {
         const nextSymbols = structuredClone(props.symbols())
         const cursor = findCursor(nextSymbols)
         if (cursor) {
-          cursor.insertLeft([{ type: "var", letter: "e" }])
+          cursor.insertLeft([{ type: "var", letter: event.key }])
           props.setSymbols(nextSymbols)
         }
       }}
