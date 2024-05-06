@@ -1876,10 +1876,117 @@ export class SymbolListWithCursor {
     throw new Error("Invalid cursor position.")
   }
 
-  /** Deletes the list the cursor is in. */
-  deleteListLeft() {
-    console.log("deleting left")
-    // TODO: this should do something
+  /** Deletes the symbol the cursor is in. */
+  deleteParentSymbol() {
+    if (!this.parentList || this.parentSymbolIndex == null) {
+      return
+    }
+
+    const symbol = this.parentList[this.parentSymbolIndex]
+
+    if (!symbol) {
+      throw new Error("Invalid parent list.")
+    }
+
+    switch (symbol.type) {
+      case "number":
+      case "fn":
+      case "op":
+      case ".":
+      case ",":
+      case "var":
+      case "const":
+      case "cursor":
+        throw new Error("Invalid parent symbol " + symbol.type + ".")
+
+      case "ans":
+        spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+          { type: "cursor" },
+        ])
+        return
+
+      case "sup":
+      case "sub":
+      case "sqrt":
+      case "bracket":
+        spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+          { type: "cursor" },
+          ...symbol.contents,
+        ])
+        return
+
+      case "supsub":
+        switch (this.parentSymbolDataLocation) {
+          case "sup":
+            spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+              { type: "sub", contents: symbol.sub },
+              { type: "cursor" },
+              ...symbol.sup,
+            ])
+            return
+
+          case "sub":
+            spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+              { type: "cursor" },
+              ...symbol.sub,
+              { type: "sup", contents: symbol.sup },
+            ])
+            return
+
+          default:
+            throw new Error("Invalid 'supsub' data location.")
+        }
+
+      case "root":
+        switch (this.parentSymbolDataLocation) {
+          case "root":
+            spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+              { type: "cursor" },
+              ...symbol.root,
+              ...symbol.contents,
+            ])
+            return
+
+          case "contents":
+            spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+              ...symbol.root,
+              { type: "cursor" },
+              ...symbol.contents,
+            ])
+            return
+
+          default:
+            throw new Error("Invalid 'root' data location.")
+        }
+
+      case "frac":
+      case "repeat":
+      case "int":
+        switch (this.parentSymbolDataLocation) {
+          case "sub":
+            spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+              { type: "cursor" },
+              ...symbol.sub,
+              ...symbol.sup,
+            ])
+            return
+
+          case "sup":
+            spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+              ...symbol.sub,
+              { type: "cursor" },
+              ...symbol.sup,
+            ])
+            return
+
+          default:
+            throw new Error(`Invalid '${symbol.type}' data location.`)
+        }
+
+      case "matrix":
+      case "cases":
+      // TODO:
+    }
   }
 
   /** Deletes a character to the left. */
@@ -1933,7 +2040,7 @@ export class SymbolListWithCursor {
     }
 
     if (this.cursorIndex == 0) {
-      this.deleteListLeft()
+      this.deleteParentSymbol()
       return
     }
 
