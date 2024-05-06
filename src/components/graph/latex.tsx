@@ -540,13 +540,13 @@ export function drawSymbol(
                       (symbol.value.length - index()) % 3 == 0,
                   }}
                   data-latex="leaf"
-                  onPointerDown={(event) => {
+                  onLatexTargetFind={(event) => {
                     replaceSelf(
                       [
                         {
                           type: "number",
                           value: symbol.value,
-                          cursor: cursorIndexShift(event) + index(),
+                          cursor: event.detail.offset + index(),
                         },
                       ],
                       { removeCursor: true },
@@ -568,9 +568,9 @@ export function drawSymbol(
       return (
         <span
           data-latex="leaf"
-          onPointerDown={(event) => {
+          onLatexTargetFind={(event) => {
             const array: Symbol[] = [symbol]
-            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            array.splice(event.detail.offset, 0, { type: "cursor" })
             replaceSelf(array, { removeCursor: true })
           }}
         >
@@ -582,9 +582,9 @@ export function drawSymbol(
         <span
           data-latex="leaf"
           class="pr-[.2em]"
-          onPointerDown={(event) => {
+          onLatexTargetFind={(event) => {
             const array: Symbol[] = [symbol]
-            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            array.splice(event.detail.offset, 0, { type: "cursor" })
             replaceSelf(array, { removeCursor: true })
           }}
         >
@@ -597,9 +597,9 @@ export function drawSymbol(
           data-latex="leaf"
           class="inline-block"
           classList={{ "px-[.2em]": !symbol.isPrefix }}
-          onPointerDown={(event) => {
+          onLatexTargetFind={(event) => {
             const array: Symbol[] = [symbol]
-            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            array.splice(event.detail.offset, 0, { type: "cursor" })
             replaceSelf(array, { removeCursor: true })
           }}
         >
@@ -611,9 +611,9 @@ export function drawSymbol(
         <span
           data-latex="leaf"
           class="font-mathvar italic"
-          onPointerDown={(event) => {
+          onLatexTargetFind={(event) => {
             const array: Symbol[] = [symbol]
-            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            array.splice(event.detail.offset, 0, { type: "cursor" })
             replaceSelf(array, { removeCursor: true })
           }}
         >
@@ -625,9 +625,9 @@ export function drawSymbol(
         <span
           data-latex="leaf"
           class="font-mathvar"
-          onPointerDown={(event) => {
+          onLatexTargetFind={(event) => {
             const array: Symbol[] = [symbol]
-            array.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            array.splice(event.detail.offset, 0, { type: "cursor" })
             replaceSelf(array, { removeCursor: true })
           }}
         >
@@ -650,13 +650,13 @@ export function drawSymbol(
                     "pr-[.2em]":
                       index() == symbol.name.length - 1 && symbol.spaceAfter,
                   }}
-                  onPointerDown={(event) => {
+                  onLatexTargetFind={(event) => {
                     replaceSelf(
                       [
                         {
                           type: "fn",
                           name: symbol.name,
-                          cursor: cursorIndexShift(event) + index(),
+                          cursor: event.detail.offset + index(),
                         },
                       ],
                       { removeCursor: true },
@@ -680,8 +680,8 @@ export function drawSymbol(
           <span
             class="absolute bottom-[.15em] top-px inline-block w-[.95em]"
             data-latex="shape"
-            onPointerDown={(event) => {
-              if (cursorIndexShift(event)) {
+            onLatexTargetFind={(event) => {
+              if (event.detail.offset) {
                 replaceSelf(
                   [
                     {
@@ -722,17 +722,6 @@ export function drawSymbol(
           <span
             class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px"
             data-latex="group"
-            onPointerDown={(event) => {
-              const contents = prepareSymbolList(symbol.contents, {
-                removeCursor: true,
-              })
-
-              contents.splice(cursorIndexShift(event) * contents.length, 0, {
-                type: "cursor",
-              })
-
-              replaceSelf([{ type: "sqrt", contents }], { removeCursor: true })
-            }}
           >
             <SymbolList
               symbols={symbol.contents}
@@ -749,25 +738,6 @@ export function drawSymbol(
           <span
             class="relative z-[1] ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]"
             data-latex="group"
-            onClick={(event) => {
-              const data: ReplacementData = { removeCursor: true }
-              const root = prepareSymbolList(symbol.root, data)
-
-              root.splice(cursorIndexShift(event) * root.length, 0, {
-                type: "cursor",
-              })
-
-              replaceSelf(
-                [
-                  {
-                    type: "root",
-                    contents: prepareSymbolList(symbol.contents, data),
-                    root,
-                  },
-                ],
-                data,
-              )
-            }}
           >
             <SymbolList
               symbols={symbol.root}
@@ -790,8 +760,8 @@ export function drawSymbol(
             <span
               class="absolute bottom-[.15em] top-px inline-block w-[.95em]"
               data-latex="shape"
-              onPointerDown={(event) => {
-                if (cursorIndexShift(event)) {
+              onLatexTargetFind={(event) => {
+                if (event.detail.offset) {
                   replaceSelf(
                     [
                       {
@@ -845,25 +815,6 @@ export function drawSymbol(
             <span
               class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px"
               data-latex="group"
-              onClick={(event) => {
-                const data: ReplacementData = { removeCursor: true }
-                const contents = prepareSymbolList(symbol.contents, data)
-
-                contents.splice(cursorIndexShift(event) * contents.length, 0, {
-                  type: "cursor",
-                })
-
-                replaceSelf(
-                  [
-                    {
-                      type: "root",
-                      contents,
-                      root: prepareSymbolList(symbol.root, data),
-                    },
-                  ],
-                  data,
-                )
-              }}
             >
               <SymbolList
                 symbols={symbol.contents}
@@ -889,34 +840,8 @@ export function drawSymbol(
         <span
           class="inline-block px-[.2em] text-center align-[-.4em] text-[90%]"
           data-latex="group"
-          onPointerDown={(event) => {
-            const self = [prepareSymbol(symbol, { removeCursor: true })]
-            self.splice(cursorIndexShift(event), 0, { type: "cursor" })
-            replaceSelf(self, { removeCursor: true })
-          }}
         >
-          <span
-            class="block py-[.1em]"
-            data-latex="group"
-            onPointerDown={(event) => {
-              const sup = prepareSymbolList(symbol.sup, { removeCursor: true })
-
-              sup.splice(cursorIndexShift(event) * sup.length, 0, {
-                type: "cursor",
-              })
-
-              replaceSelf(
-                [
-                  {
-                    type: "frac",
-                    sup,
-                    sub: prepareSymbolList(symbol.sub, { removeCursor: true }),
-                  },
-                ],
-                { removeCursor: true },
-              )
-            }}
-          >
+          <span class="block py-[.1em]" data-latex="group">
             <SymbolList
               symbols={symbol.sup}
               replaceSelf={(symbols, data) =>
@@ -937,24 +862,6 @@ export function drawSymbol(
           <span
             class="float-right block w-full border-t border-t-current p-[.1em]"
             data-latex="group"
-            onPointerDown={(event) => {
-              const sub = prepareSymbolList(symbol.sub, { removeCursor: true })
-
-              sub.splice(cursorIndexShift(event) * sub.length, 0, {
-                type: "cursor",
-              })
-
-              replaceSelf(
-                [
-                  {
-                    type: "frac",
-                    sub,
-                    sup: prepareSymbolList(symbol.sup, { removeCursor: true }),
-                  },
-                ],
-                { removeCursor: true },
-              )
-            }}
           >
             <SymbolList
               symbols={symbol.sub}
@@ -983,8 +890,8 @@ export function drawSymbol(
           <span
             class={"absolute bottom-[2px] left-0 top-0 " + w}
             data-latex="shape"
-            onPointerDown={(event) => {
-              if (cursorIndexShift(event)) {
+            onLatexTargetFind={(event) => {
+              if (event.detail.offset) {
                 replaceSelf(
                   [
                     {
@@ -1035,8 +942,8 @@ export function drawSymbol(
           <span
             class={"absolute bottom-[2px] right-0 top-0 " + w}
             data-latex="shape"
-            onPointerDown={(event) => {
-              if (cursorIndexShift(event)) {
+            onLatexTargetFind={(event) => {
+              if (event.detail.offset) {
                 replaceSelf(
                   [
                     prepareSymbol(symbol, { removeCursor: true }),
@@ -1475,30 +1382,31 @@ export function findTarget(
   return closest
 }
 
+export type LatexTargetFindEvent = CustomEvent<{ offset: 0 | 1 }>
+
 export function Field(props: {
   symbols: () => Symbol[]
   setSymbols: (symbols: Symbol[]) => void
 }) {
-  let last: Element | undefined
-
   return (
     <div
-      class="cursor-text select-none whitespace-nowrap bg-yellow-100 font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text [&_[data-latex=group]]:bg-red-500/50 [&_[data-latex=leaf]]:bg-blue-500/50 [&_[data-latex=shape]]:bg-green-500/50"
-      onMouseMove={(event) => {
-        if (last) {
-          last.classList.remove("outline")
-          last.classList.remove("outline-purple-500")
-        }
-
-        last = findTarget(
+      class="cursor-text select-none whitespace-nowrap bg-yellow-100 font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text [&_[data-latex=group]]:bg-red-500/50 [&_[data-latex=leaf]]:bg-blue-500/50 [&_[data-latex=shape]]:bg-blue-500/50"
+      onPointerDown={(event) => {
+        const target = findTarget(
           event.clientX,
           event.clientY,
           event.currentTarget,
         )?.node
 
-        if (last) {
-          last.classList.add("outline")
-          last.classList.add("outline-purple-500")
+        if (target) {
+          event.preventDefault()
+
+          const { x, width } = target.getBoundingClientRect()
+          const offset = +(event.clientX - x > width / 2) as 0 | 1
+
+          target.dispatchEvent(
+            new CustomEvent("latextargetfind", { detail: { offset } }),
+          )
         }
       }}
     >
@@ -1679,6 +1587,14 @@ declare module "solid-js" {
         | "leaf" // used on numbers, symbol, etc.
         | "shape" // used on radical signs and brackets
         | "group" // used on empty spaces which contains other symbols
+    }
+
+    interface CustomEventHandlersCamelCase<T> {
+      onLatexTargetFind?: EventHandlerUnion<T, LatexTargetFindEvent>
+    }
+
+    interface CustomEventHandlersLowerCase<T> {
+      onlatextargetfind?: EventHandlerUnion<T, LatexTargetFindEvent>
     }
   }
 }
