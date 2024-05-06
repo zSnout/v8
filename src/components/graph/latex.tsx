@@ -539,7 +539,7 @@ export function drawSymbol(
                       index() != 0 &&
                       (symbol.value.length - index()) % 3 == 0,
                   }}
-                  data-latex-clickable
+                  data-latex="leaf"
                   onPointerDown={(event) => {
                     replaceSelf(
                       [
@@ -567,7 +567,7 @@ export function drawSymbol(
     case ".":
       return (
         <span
-          data-latex-clickable
+          data-latex="leaf"
           onPointerDown={(event) => {
             const array: Symbol[] = [symbol]
             array.splice(cursorIndexShift(event), 0, { type: "cursor" })
@@ -580,7 +580,7 @@ export function drawSymbol(
     case ",":
       return (
         <span
-          data-latex-clickable
+          data-latex="leaf"
           class="pr-[.2em]"
           onPointerDown={(event) => {
             const array: Symbol[] = [symbol]
@@ -594,7 +594,7 @@ export function drawSymbol(
     case "op":
       return (
         <span
-          data-latex-clickable
+          data-latex="leaf"
           class="inline-block"
           classList={{ "px-[.2em]": !symbol.isPrefix }}
           onPointerDown={(event) => {
@@ -609,7 +609,7 @@ export function drawSymbol(
     case "var":
       return (
         <span
-          data-latex-clickable
+          data-latex="leaf"
           class="font-mathvar italic"
           onPointerDown={(event) => {
             const array: Symbol[] = [symbol]
@@ -623,7 +623,7 @@ export function drawSymbol(
     case "const":
       return (
         <span
-          data-latex-clickable
+          data-latex="leaf"
           class="font-mathvar"
           onPointerDown={(event) => {
             const array: Symbol[] = [symbol]
@@ -643,7 +643,7 @@ export function drawSymbol(
                 <Show when={index() === symbol.cursor}>{drawCursor()}</Show>
 
                 <span
-                  data-latex-clickable
+                  data-latex="leaf"
                   class="font-mathvar"
                   classList={{
                     "pl-[.2em]": index() == 0 && symbol.spaceBefore,
@@ -679,7 +679,7 @@ export function drawSymbol(
         <span class="relative inline-block">
           <span
             class="absolute bottom-[.15em] top-px inline-block w-[.95em]"
-            data-latex-clickable
+            data-latex="shape"
             onPointerDown={(event) => {
               if (cursorIndexShift(event)) {
                 replaceSelf(
@@ -721,7 +721,7 @@ export function drawSymbol(
 
           <span
             class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px"
-            data-latex-clickable
+            data-latex="group"
             onPointerDown={(event) => {
               const contents = prepareSymbolList(symbol.contents, {
                 removeCursor: true,
@@ -748,7 +748,7 @@ export function drawSymbol(
         <span class="inline-block">
           <span
             class="relative z-[1] ml-[.2em] mr-[-.6em] min-w-[.5em] align-[.8em] text-[80%]"
-            data-latex-clickable
+            data-latex="group"
             onClick={(event) => {
               const data: ReplacementData = { removeCursor: true }
               const root = prepareSymbolList(symbol.root, data)
@@ -789,7 +789,7 @@ export function drawSymbol(
           <span class="relative inline-block">
             <span
               class="absolute bottom-[.15em] top-px inline-block w-[.95em]"
-              data-latex-clickable
+              data-latex="shape"
               onPointerDown={(event) => {
                 if (cursorIndexShift(event)) {
                   replaceSelf(
@@ -844,7 +844,7 @@ export function drawSymbol(
 
             <span
               class="ml-[.9em] mr-[.1em] mt-px inline-block h-max border-t border-t-current pl-[.15em] pr-[.2em] pt-px"
-              data-latex-clickable
+              data-latex="group"
               onClick={(event) => {
                 const data: ReplacementData = { removeCursor: true }
                 const contents = prepareSymbolList(symbol.contents, data)
@@ -886,8 +886,37 @@ export function drawSymbol(
       )
     case "frac":
       return (
-        <span class="inline-block px-[.2em] text-center align-[-.4em] text-[90%]">
-          <span class="block py-[.1em]">
+        <span
+          class="inline-block px-[.2em] text-center align-[-.4em] text-[90%]"
+          data-latex="group"
+          onPointerDown={(event) => {
+            const self = [prepareSymbol(symbol, { removeCursor: true })]
+            self.splice(cursorIndexShift(event), 0, { type: "cursor" })
+            replaceSelf(self, { removeCursor: true })
+          }}
+        >
+          <span
+            class="block py-[.1em]"
+            data-latex="group"
+            onPointerDown={(event) => {
+              const sup = prepareSymbolList(symbol.sup, { removeCursor: true })
+
+              sup.splice(cursorIndexShift(event) * sup.length, 0, {
+                type: "cursor",
+              })
+
+              replaceSelf(
+                [
+                  {
+                    type: "frac",
+                    sup,
+                    sub: prepareSymbolList(symbol.sub, { removeCursor: true }),
+                  },
+                ],
+                { removeCursor: true },
+              )
+            }}
+          >
             <SymbolList
               symbols={symbol.sup}
               replaceSelf={(symbols, data) =>
@@ -904,7 +933,29 @@ export function drawSymbol(
               }
             />
           </span>
-          <span class="float-right block w-full border-t border-t-current p-[.1em]">
+
+          <span
+            class="float-right block w-full border-t border-t-current p-[.1em]"
+            data-latex="group"
+            onPointerDown={(event) => {
+              const sub = prepareSymbolList(symbol.sub, { removeCursor: true })
+
+              sub.splice(cursorIndexShift(event) * sub.length, 0, {
+                type: "cursor",
+              })
+
+              replaceSelf(
+                [
+                  {
+                    type: "frac",
+                    sub,
+                    sup: prepareSymbolList(symbol.sup, { removeCursor: true }),
+                  },
+                ],
+                { removeCursor: true },
+              )
+            }}
+          >
             <SymbolList
               symbols={symbol.sub}
               replaceSelf={(symbols, data) =>
@@ -929,7 +980,37 @@ export function drawSymbol(
 
       return (
         <span class="relative inline-block">
-          <span class={"absolute bottom-[2px] left-0 top-0 " + w}>
+          <span
+            class={"absolute bottom-[2px] left-0 top-0 " + w}
+            data-latex="shape"
+            onPointerDown={(event) => {
+              if (cursorIndexShift(event)) {
+                replaceSelf(
+                  [
+                    {
+                      type: "bracket",
+                      bracket: symbol.bracket,
+                      contents: [
+                        { type: "cursor" },
+                        ...prepareSymbolList(symbol.contents, {
+                          removeCursor: true,
+                        }),
+                      ],
+                    },
+                  ],
+                  { removeCursor: true },
+                )
+              } else {
+                replaceSelf(
+                  [
+                    { type: "cursor" },
+                    prepareSymbol(symbol, { removeCursor: true }),
+                  ],
+                  { removeCursor: true },
+                )
+              }
+            }}
+          >
             {drawLeftBracket(symbol.bracket)}
           </span>
 
@@ -951,7 +1032,37 @@ export function drawSymbol(
             />
           </span>
 
-          <span class={"absolute bottom-[2px] right-0 top-0 " + w}>
+          <span
+            class={"absolute bottom-[2px] right-0 top-0 " + w}
+            data-latex="shape"
+            onPointerDown={(event) => {
+              if (cursorIndexShift(event)) {
+                replaceSelf(
+                  [
+                    prepareSymbol(symbol, { removeCursor: true }),
+                    { type: "cursor" },
+                  ],
+                  { removeCursor: true },
+                )
+              } else {
+                replaceSelf(
+                  [
+                    {
+                      type: "bracket",
+                      bracket: symbol.bracket,
+                      contents: [
+                        ...prepareSymbolList(symbol.contents, {
+                          removeCursor: true,
+                        }),
+                        { type: "cursor" },
+                      ],
+                    },
+                  ],
+                  { removeCursor: true },
+                )
+              }
+            }}
+          >
             {drawRightBracket(symbol.bracket)}
           </span>
         </span>
@@ -1057,9 +1168,11 @@ export function drawSymbol(
               }
             />
           </span>
+
           <span class="block text-[200%]">
             {symbol.op == "sum" ? "∑" : "∏"}
           </span>
+
           <span class="float-right block w-full text-[80%]">
             <SymbolList
               symbols={symbol.sub}
@@ -1280,12 +1393,115 @@ export function drawSymbol(
   throw new Error("this should never be reached")
 }
 
+export interface TargetInfo {
+  node: Element
+  x: number
+  y: number
+  type: "leaf" | "shape" | "group" | undefined
+  score: 0 | 1 | 2 | 3
+}
+
+export function getTargetInfo(
+  clientX: number,
+  clientY: number,
+  node: Element,
+): TargetInfo {
+  const type = node.getAttribute("data-latex")
+
+  const score =
+    type == "leaf" ? 0 : type == "shape" ? 1 : type == "group" ? 2 : 3
+
+  const box = node.getBoundingClientRect()
+
+  const xmin = box.x
+  const xmax = box.x + box.width
+  const ymin = box.y
+  const ymax = box.y + box.height
+
+  return {
+    node,
+    x: clientX < xmin ? xmin - clientX : clientX > xmax ? clientX - xmax : 0,
+    y: clientY < ymin ? ymin - clientY : clientY > ymax ? clientY - ymax : 0,
+    type: (["leaf", "shape", "group", ,] as const)[score],
+    score: score,
+  }
+}
+
+export function findTarget(
+  clientX: number,
+  clientY: number,
+  within: Element,
+): TargetInfo | undefined {
+  const targets = Array.from(within.querySelectorAll("[data-latex]"))
+    .map((target) => getTargetInfo(clientX, clientY, target))
+    .sort((a, b) => a.score - b.score)
+
+  if (!targets.length) {
+    if (within.hasAttribute("data-latex")) {
+      return getTargetInfo(clientX, clientY, within)
+    } else {
+      return
+    }
+  }
+
+  const matchingX = targets.filter((target) => target.x == 0)
+
+  if (matchingX.length) {
+    const node = matchingX.reduce((a, b) => (a.y < b.y ? a : b))!
+
+    if (node.type == "group") {
+      return findTarget(clientX, clientY, node.node)
+    } else {
+      return node
+    }
+  }
+
+  const matchingY = targets.filter((target) => target.y == 0)
+
+  if (matchingY.length) {
+    const node = matchingY.reduce((a, b) => (a.x < b.x ? a : b))!
+
+    if (node.type == "group") {
+      return findTarget(clientX, clientY, node.node)
+    } else {
+      return node
+    }
+  }
+
+  const closest = targets.reduce((a, b) =>
+    Math.hypot(a.x, a.y) < Math.hypot(b.x, b.y) ? a : b,
+  )!
+
+  return closest
+}
+
 export function Field(props: {
   symbols: () => Symbol[]
   setSymbols: (symbols: Symbol[]) => void
 }) {
+  let last: Element | undefined
+
   return (
-    <div class="whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_[data-latex-clickable]]:bg-blue-500/50">
+    <div
+      class="cursor-text select-none whitespace-nowrap bg-yellow-100 font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text [&_[data-latex=group]]:bg-red-500/50 [&_[data-latex=leaf]]:bg-blue-500/50 [&_[data-latex=shape]]:bg-green-500/50"
+      onMouseMove={(event) => {
+        if (last) {
+          last.classList.remove("outline")
+          last.classList.remove("outline-purple-500")
+        }
+
+        last = findTarget(
+          event.clientX,
+          event.clientY,
+          event.currentTarget,
+        )?.node
+
+        if (last) {
+          last.classList.add("outline")
+          last.classList.add("outline-purple-500")
+        }
+      }}
+    >
       <SymbolList
         symbols={props.symbols()}
         replaceSelf={(symbols) => props.setSymbols(symbols)}
@@ -1454,4 +1670,15 @@ export function Main() {
       <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
+}
+
+declare module "solid-js" {
+  namespace JSX {
+    interface DOMAttributes<T> {
+      "data-latex"?:
+        | "leaf" // used on numbers, symbol, etc.
+        | "shape" // used on radical signs and brackets
+        | "group" // used on empty spaces which contains other symbols
+    }
+  }
 }
