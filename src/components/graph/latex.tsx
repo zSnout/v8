@@ -21,6 +21,7 @@ export type BaseSymbol =
   | { type: "int"; sub: Symbol[]; sup: Symbol[] }
   | { type: "matrix"; data: Symbol[][][] } // such a silly type definition
   | { type: "cases"; cases: PiecewiseSection[] }
+  | { type: "ans"; contents: Symbol[] }
 
 export type Symbol =
   | { type: "number"; value: string; cursor?: number }
@@ -48,25 +49,6 @@ export type ContextualizedSymbol =
 
 export interface ReplacementData {
   removeCursor: boolean
-}
-
-/**
- * Gets the index the cursor should be at based on where an element was clicked
- * on. Also stops event from executing default action and stops
- * propogation immediately.
- */
-function cursorIndexShift(event: {
-  currentTarget: { getBoundingClientRect(): { x: number; width: number } }
-  clientX: number
-  preventDefault: () => void
-  stopImmediatePropagation: () => void
-}) {
-  const { x, width } = event.currentTarget.getBoundingClientRect()
-
-  event.preventDefault()
-  event.stopImmediatePropagation()
-
-  return +(event.clientX - x > width / 2) as 0 | 1
 }
 
 // @ts-expect-error this function should never be used
@@ -116,6 +98,7 @@ export function isNumericSymbolOnRHS(
     case "bracket":
     case "cases":
     case "matrix":
+    case "ans":
       return true
 
     case "sup":
@@ -159,6 +142,7 @@ export function prepareSymbol(symbol: Symbol, data: ReplacementData): Symbol {
       case "sub":
       case "sqrt":
       case "bracket":
+      case "ans":
         return {
           ...symbol,
           contents: prepareSymbolList(symbol.contents, data),
@@ -226,58 +210,7 @@ export function prepareSymbolListAndShiftIndex(
 
         return true
       })
-      .map<Symbol>((symbol) => {
-        switch (symbol.type) {
-          case "op":
-          case ".":
-          case ",":
-          case "var":
-          case "const":
-          case "cursor":
-            return symbol
-          case "number":
-          case "fn":
-            return { ...symbol, cursor: undefined }
-          case "sup":
-          case "sub":
-          case "sqrt":
-          case "bracket":
-            return {
-              ...symbol,
-              contents: prepareSymbolList(symbol.contents, data),
-            }
-          case "supsub":
-          case "int":
-          case "repeat":
-          case "frac":
-            return {
-              ...symbol,
-              sub: prepareSymbolList(symbol.sub, data),
-              sup: prepareSymbolList(symbol.sup, data),
-            }
-          case "root":
-            return {
-              ...symbol,
-              contents: prepareSymbolList(symbol.contents, data),
-              root: prepareSymbolList(symbol.root, data),
-            }
-          case "matrix":
-            return {
-              ...symbol,
-              data: symbol.data.map((row) =>
-                row.map((cell) => prepareSymbolList(cell, data)),
-              ),
-            }
-          case "cases":
-            return {
-              ...symbol,
-              cases: symbol.cases.map(({ value, when }) => ({
-                value: prepareSymbolList(value, data),
-                when: prepareSymbolList(when, data),
-              })),
-            }
-        }
-      })
+      .map((symbol) => prepareSymbol(symbol, data))
   }
 
   return [symbols, index]
@@ -1384,6 +1317,33 @@ export function drawSymbol(
         </span>
       )
     }
+    case "ans":
+      return (
+        <span
+          class="relative mb-[2px] mr-px inline-block min-w-[1.6304347826em] overflow-ellipsis rounded-[4px] border-2 border-blue-500 bg-blue-500/10 px-[.4em] py-[.2em] text-center align-middle text-blue-500 after:absolute after:bottom-[-.5em] after:left-[50%] after:ml-[-.95em] after:h-[1em] after:w-[1.9em] after:overflow-hidden after:rounded-[3px] after:border after:border-blue-500 after:bg-z-body after:p-0 after:text-center after:text-[60%] after:text-blue-500 after:content-['ans'] after:[line-height:.9em]"
+          data-latex-ignore
+          data-latex="leaf"
+          onLatexTargetFind={(event) => {
+            const symbols: Symbol[] = [
+              {
+                type: "ans",
+                contents: prepareSymbolList(symbol.contents, {
+                  removeCursor: true,
+                }),
+              },
+            ]
+            symbols.splice(event.detail.offset, 0, { type: "cursor" })
+            replaceSelf(symbols, { removeCursor: true })
+          }}
+        >
+          <SymbolList
+            symbols={symbol.contents}
+            replaceSelf={(symbols, data) =>
+              replaceSelf([{ type: "ans", contents: symbols }], data)
+            }
+          />
+        </span>
+      )
   }
 
   // @ts-expect-error this should never be reached
@@ -1429,7 +1389,9 @@ export function findTarget(
   clientY: number,
   within: Element,
 ): TargetInfo | undefined {
-  const targets = Array.from(within.querySelectorAll("[data-latex]"))
+  const targets = Array.from(
+    within.querySelectorAll("[data-latex]:not([data-latex-ignore] *)"),
+  )
     .map((target) => getTargetInfo(clientX, clientY, target))
     .sort((a, b) => a.score - b.score)
 
@@ -1477,10 +1439,17 @@ export type LatexTargetFindEvent = CustomEvent<{ offset: 0 | 1 }>
 export function Field(props: {
   symbols: () => Symbol[]
   setSymbols: (symbols: Symbol[]) => void
+  debug?: boolean
 }) {
   return (
     <div
-      class="cursor-text select-none whitespace-nowrap bg-yellow-100 font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text [&_[data-latex=group]]:bg-red-500/50 [&_[data-latex=leaf]]:bg-blue-500/50 [&_[data-latex=shape]]:bg-green-500/50"
+      class="cursor-text select-none whitespace-nowrap font-mathnum text-[1.265em] font-normal not-italic text-black transition [line-height:1] dark:text-white [&_*]:cursor-text"
+      classList={{
+        "[&_[data-latex=leaf]]:bg-blue-500/50": props.debug,
+        "[&_[data-latex=shape]]:bg-green-500/50": props.debug,
+        "[&_[data-latex=group]]:bg-red-500/50": props.debug,
+        "bg-yellow-100": props.debug,
+      }}
       onPointerDown={(event) => {
         const target = findTarget(
           event.clientX,
@@ -1550,6 +1519,7 @@ export function Main() {
           type: "sqrt",
           contents: [
             { type: "number", value: "623" },
+            { type: "ans", contents: [{ type: "number", value: "5" }] },
             { type: "op", op: "+" },
             {
               type: "bracket",
@@ -1741,7 +1711,7 @@ export function Main() {
 
   return (
     <div class="m-auto pr-6 text-center">
-      <Field symbols={symbols} setSymbols={setSymbols} />
+      <Field symbols={symbols} setSymbols={setSymbols} debug />
     </div>
   )
 }
@@ -1753,6 +1723,8 @@ declare module "solid-js" {
         | "leaf" // used on numbers, symbol, etc.
         | "shape" // used on radical signs and brackets
         | "group" // used on empty spaces which contains other symbols
+
+      "data-latex-ignore"?: boolean // makes children not be considered targets
     }
 
     interface CustomEventHandlersCamelCase<T> {
