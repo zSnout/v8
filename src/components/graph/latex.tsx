@@ -1057,7 +1057,7 @@ export function drawSymbol(
     case "repeat":
       return (
         <span class="inline-block p-[.2em] text-center align-[-.2em]">
-          <span class="block text-[80%]">
+          <span class="block text-[80%]" data-latex="group">
             <SymbolList
               symbols={symbol.sup}
               replaceSelf={(symbols, data) =>
@@ -1080,7 +1080,7 @@ export function drawSymbol(
             {symbol.op == "sum" ? "∑" : "∏"}
           </span>
 
-          <span class="float-right block w-full text-[80%]">
+          <span class="float-right block w-full text-[80%]" data-latex="group">
             <SymbolList
               symbols={symbol.sub}
               replaceSelf={(symbols, data) =>
@@ -1107,8 +1107,8 @@ export function drawSymbol(
             ∫
           </span>
 
-          <span class="mb-[-.2em] inline-block pr-[.2em] text-left align-[-1.1em] text-[80%]">
-            <span class="block">
+          <span class="mb-[-.2em] inline-block pb-[.2em] pr-[.2em] text-left align-[-1.1em] text-[80%]">
+            <span class="block" data-latex="group">
               <span class="align-[1.3em]">
                 <SymbolList
                   symbols={symbol.sup}
@@ -1128,7 +1128,10 @@ export function drawSymbol(
               </span>
             </span>
 
-            <span class="float-left ml-[-.35em] block text-[100%]">
+            <span
+              class="float-left ml-[-.35em] block text-[100%]"
+              data-latex="group"
+            >
               <SymbolList
                 symbols={symbol.sub}
                 replaceSelf={(symbols, data) =>
@@ -1163,7 +1166,7 @@ export function drawSymbol(
             <div class="inline-grid grid-cols-[auto,auto] gap-x-[1em] align-middle">
               {symbol.cases.flatMap(({ value, when }, index) => (
                 <>
-                  <span class="py-[.1em]">
+                  <span class="py-[.1em]" data-latex="group">
                     <SymbolList
                       symbols={value}
                       replaceSelf={(symbols, data) =>
@@ -1194,7 +1197,7 @@ export function drawSymbol(
                     />
                   </span>
 
-                  <span class="py-[.1em]">
+                  <span class="py-[.1em]" data-latex="group">
                     <SymbolList
                       symbols={when}
                       replaceSelf={(symbols, data) =>
@@ -1258,6 +1261,7 @@ export function drawSymbol(
                 row.map((cell, j) => (
                   <span
                     class="py-[.1em]"
+                    data-latex="group"
                     style={{ "grid-area": `${i} ${j} ${i + 1} ${j + 1}` }}
                   >
                     <SymbolList
@@ -1426,7 +1430,14 @@ export function Main() {
   const [symbols, setSymbols] = createSignal<Symbol[]>([
     { type: "var", letter: "x" },
     { type: "var", letter: "x" },
-    { type: "sup", contents: [{ type: "number", value: "2" }] },
+    {
+      type: "sup",
+      contents: [
+        { type: "number", value: "2" },
+        { type: "var", letter: "x" },
+        { type: "sup", contents: [{ type: "number", value: "2" }] },
+      ],
+    },
     { type: "var", letter: "x" },
     { type: "sub", contents: [{ type: "number", value: "1" }] },
     { type: "var", letter: "x" },
@@ -1489,13 +1500,82 @@ export function Main() {
         { type: "var", letter: "n" },
         { type: "op", op: "=" },
         { type: "number", value: "1" },
+        { type: "var", letter: "x" },
+        { type: "var", letter: "x" },
+        { type: "sup", contents: [{ type: "number", value: "2" }] },
+        { type: "var", letter: "x" },
+        { type: "sub", contents: [{ type: "number", value: "1" }] },
       ],
-      sup: [{ type: "number", value: "4" }],
+      sup: [
+        { type: "number", value: "4" },
+        { type: "var", letter: "x" },
+        { type: "var", letter: "x" },
+        { type: "sup", contents: [{ type: "number", value: "2" }] },
+        { type: "var", letter: "x" },
+        { type: "sub", contents: [{ type: "number", value: "1" }] },
+      ],
     },
     {
       type: "int",
-      sub: [{ type: "number", value: "1" }],
-      sup: [{ type: "number", value: "4" }],
+      sub: [
+        { type: "number", value: "1" },
+        {
+          type: "int",
+          sub: [
+            { type: "number", value: "1" },
+            {
+              type: "int",
+              sub: [{ type: "number", value: "1" }],
+              sup: [{ type: "number", value: "4" }],
+            },
+          ],
+          sup: [{ type: "number", value: "4" }],
+        },
+      ],
+      sup: [
+        { type: "number", value: "4" },
+        {
+          type: "repeat",
+          op: "sum",
+          sub: [
+            { type: "var", letter: "n" },
+            { type: "op", op: "=" },
+            { type: "number", value: "1" },
+          ],
+          sup: [{ type: "number", value: "4" }],
+        },
+        {
+          type: "int",
+          sub: [
+            { type: "number", value: "1" },
+            {
+              type: "int",
+              sub: [
+                { type: "number", value: "1" },
+                {
+                  type: "int",
+                  sub: [{ type: "number", value: "1" }],
+                  sup: [{ type: "number", value: "4" }],
+                },
+              ],
+              sup: [{ type: "number", value: "4" }],
+            },
+          ],
+          sup: [{ type: "number", value: "4" }],
+        },
+        {
+          type: "fn",
+          name: "log",
+        },
+        {
+          type: "sub",
+          contents: [{ type: "number", value: "2" }],
+        },
+        {
+          type: "number",
+          value: "3",
+        },
+      ],
     },
     {
       type: "fn",
