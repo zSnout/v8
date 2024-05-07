@@ -2066,6 +2066,230 @@ export class SymbolListWithCursor {
         spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 1, [])
     }
   }
+
+  /** Moves the cursor left in its parent list. */
+  moveLeftInParent() {
+    if (!this.parentList || this.parentSymbolIndex == null) {
+      return
+    }
+
+    spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+      { type: "cursor" },
+      prepareSymbol(this.parentList[this.parentSymbolIndex]!, {
+        removeCursor: true,
+      }),
+    ])
+  }
+
+  /** Moves the cursor to the left. */
+  moveLeft() {
+    const cursor = this.list[this.cursorIndex]
+
+    switch (cursor?.type) {
+      case "cursor":
+        break
+
+      case "number":
+      case "fn":
+        if (cursor.cursor == null) {
+          throw new Error("Invalid cursor position.")
+        }
+
+        if (cursor.cursor == 0) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+            { type: "cursor" },
+            { type: cursor.type, value: cursor.value },
+          ])
+          break
+        }
+
+        spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+          {
+            type: cursor.type,
+            value: cursor.value,
+            cursor: cursor.cursor - 1,
+          },
+        ])
+        return
+
+      default:
+        throw new Error("Invalid cursor position.")
+    }
+
+    if (this.cursorIndex == 0) {
+      this.moveLeftInParent()
+      return
+    }
+
+    const prev = this.list[this.cursorIndex - 1]!
+
+    switch (prev.type) {
+      case "cursor":
+        throw new Error("Invalid cursor location.")
+
+      case "number":
+      case "fn":
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          {
+            type: prev.type,
+            value: prev.value,
+            cursor: prev.value.length - 1,
+          },
+        ])
+        return
+
+      case "op":
+      case ".":
+      case ",":
+      case "ans":
+      case "var":
+      case "const":
+      case "matrix": // TODO: improve matrix
+      case "cases": // TODO: improve cases
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          { type: "cursor" },
+          prev,
+        ])
+        return
+
+      case "sup":
+      case "sub":
+      case "sqrt":
+      case "root":
+      case "bracket":
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          {
+            ...prev,
+            contents: [...prev.contents, { type: "cursor" }],
+          },
+        ])
+        return
+
+      case "supsub":
+      case "frac":
+      case "int":
+      case "repeat":
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          {
+            ...prev,
+            sup: [...prev.sup, { type: "cursor" }],
+          },
+        ])
+        return
+    }
+  }
+
+  /** Moves the cursor right in its parent list. */
+  moveRightInParent() {
+    if (!this.parentList || this.parentSymbolIndex == null) {
+      return
+    }
+
+    spliceSymbolsInPlace(this.parentList, this.parentSymbolIndex, 1, [
+      prepareSymbol(this.parentList[this.parentSymbolIndex]!, {
+        removeCursor: true,
+      }),
+      { type: "cursor" },
+    ])
+  }
+
+  /** Moves the cursor to the right. */
+  moveRight() {
+    const cursor = this.list[this.cursorIndex]
+
+    switch (cursor?.type) {
+      case "cursor":
+        break
+
+      case "number":
+      case "fn":
+        if (cursor.cursor == null) {
+          throw new Error("Invalid cursor position.")
+        }
+
+        if (cursor.cursor == cursor.value.length) {
+          spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+            { type: cursor.type, value: cursor.value },
+            { type: "cursor" },
+          ])
+          break
+        }
+
+        spliceSymbolsInPlace(this.list, this.cursorIndex, 1, [
+          {
+            type: cursor.type,
+            value: cursor.value,
+            cursor: cursor.cursor + 1,
+          },
+        ])
+        return
+
+      default:
+        throw new Error("Invalid cursor position.")
+    }
+
+    if (this.cursorIndex == this.list.length - 1) {
+      this.moveRightInParent()
+      return
+    }
+
+    const next = this.list[this.cursorIndex + 1]!
+
+    switch (next.type) {
+      case "cursor":
+        throw new Error("Invalid cursor location.")
+
+      case "number":
+      case "fn":
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          {
+            type: next.type,
+            value: next.value,
+            cursor: 1,
+          },
+        ])
+        return
+
+      case "op":
+      case ".":
+      case ",":
+      case "ans":
+      case "var":
+      case "const":
+      case "matrix": // TODO: improve matrix
+      case "cases": // TODO: improve cases
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          next,
+          { type: "cursor" },
+        ])
+        return
+
+      case "sup":
+      case "sub":
+      case "sqrt":
+      case "root":
+      case "bracket":
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          {
+            ...next,
+            contents: [{ type: "cursor" }, ...next.contents],
+          },
+        ])
+        return
+
+      case "supsub":
+      case "frac":
+      case "int":
+      case "repeat":
+        spliceSymbolsInPlace(this.list, this.cursorIndex - 1, 2, [
+          {
+            ...next,
+            sup: [{ type: "cursor" }, ...next.sup],
+          },
+        ])
+        return
+    }
+  }
 }
 
 export function findCursor(
@@ -2288,6 +2512,10 @@ export function Field(props: {
         if (cursor) {
           if (event.key == "Backspace") {
             cursor.deleteLeft()
+          } else if (event.key == "ArrowLeft") {
+            cursor.moveLeft()
+          } else if (event.key == "ArrowRight") {
+            cursor.moveRight()
           } else {
             if ("0123456789".includes(event.key)) {
               cursor.insertLeft([{ type: "number", value: event.key[0]! }])
