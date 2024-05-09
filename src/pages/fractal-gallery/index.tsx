@@ -195,7 +195,7 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%2Bz%2Bc&theme=gradient&detail=100&limit=2&colorOffset=106.807634730539&grayscale=0&repetition=1&noise=0&separation=0&overcolor=0&minIter=0&top=-0.3236023916381393&right=-1.1000885603523771&bottom=-0.27943492320910235&left=-1.1442560287813464",
   "https://v8.zsnout.com/fractal-explorer?equation=(z-($(-0.30867666568396235%2B-0.06060215212264164i)))%5E2%20%2B%20c-($(-0.30867666568396235%2B-0.06060215212264164i))&theme=gradient&top=-0.7699441130504783&right=-0.8768257407827537&bottom=-0.8143723831826022&left=-0.9212540109148785",
   "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%20%2B%20c/z&theme=gradient&top=0.2843393872612489&right=-0.019615425965304342&bottom=0.1421571308069384&left=-0.16179768241961748",
-  "https://v8.zsnout.com/fractal-explorer?top=1.2383386412246367&right=1.038049690639237&bottom=-0.8472779022088027&left=-1.0475668527942008&equation=sinz/c&theme=simple&size=4.148867313915856",
+  "https://v8.zsnout.com/fractal-explorer?top=1&right=1&bottom=-1&left=-1&equation=sinz%2Fc&theme=simple&size=4.148867313915856",
   "https://v8.zsnout.com/fractal-explorer?equation=(z%5E3%2B1)/(cz%5E2%2B1)&theme=gradient&top=7.792474057796062&right=2.3399178077568275&bottom=4.5915624523383745&left=-0.8609937976993065&size=3.2208083832335355&detail=1000&colorOffset=155.580089820359&spectrum=25.3134356287425&smoothness=66.6986339820359",
   "https://v8.zsnout.com/fractal-explorer?top=0.1049269514436077&right=-0.7465816870469891&bottom=0.10449756009721944&left=-0.7470110783933633&theme=simple&equation=z%5E2%20%2B%20c&detail=1000",
   "https://v8.zsnout.com/fractal-explorer?top=0.06767421603310363&right=1.086954203292915&bottom=-0.001463895888047755&left=1.017816091374455&theme=simple&equation=(z%5E-c)/c&detail=1000&size=2.7185628742515036&smoothness=60.018244760479&colorOffset=195.729790419162&split=",
@@ -236,7 +236,7 @@ export function Main() {
       <div class="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-1">
         <For each={FRACTALS}>
           {(url) => (
-            <a href={url}>
+            <a class="hover:opacity-70" href={url}>
               <Fractal
                 class="aspect-square w-full touch-none rounded bg-white"
                 url={url}
