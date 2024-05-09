@@ -108,12 +108,13 @@ function Slider(props: {
   )
 }
 
-type Theme = "simple" | "gradient" | "plot"
+export type Theme = "simple" | "gradient" | "plot" | "trig"
 
-const themeMap: Record<Theme, number> = {
+export const themeMap: Record<Theme, number> = {
   simple: 1,
   gradient: 2,
   plot: 3,
+  trig: 4,
 }
 
 function Equation(props: {
@@ -185,6 +186,8 @@ export function Main() {
   const [theme, setTheme] = createSearchParam<Theme>("theme", "simple")
 
   const [effectSplit, setEffectSplit] = createBooleanSearchParam("split")
+  const [effectAltColors, setEffectAltColors] =
+    createBooleanSearchParam("alt_colors")
 
   const [detail, setDetail] = createNumericalSearchParam("detail", 100)
   const [minDetail, setMinDetail] = createNumericalSearchParam("min_detail", 0)
@@ -304,6 +307,7 @@ export function Main() {
 
               gl.setReactiveUniform("u_theme", () => themeMap[theme()])
               gl.setReactiveUniform("u_effect_split", effectSplit)
+              gl.setReactiveUniform("u_effect_alt_colors", effectAltColors)
               gl.setReactiveUniform("u_detail", detail)
               gl.setReactiveUniform("u_detail_min", minDetail)
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
@@ -391,7 +395,7 @@ export function Main() {
         <Radio<Theme>
           get={theme}
           label="Theme"
-          options={["simple", "gradient", "plot"]}
+          options={["simple", "gradient", "plot", "trig"]}
           set={setTheme}
         />
 
@@ -399,12 +403,25 @@ export function Main() {
           class="mt-2"
           options={[
             [
-              theme() == "plot" ? "ignore size?" : "split?",
+              theme() == "trig"
+                ? "alt colors?"
+                : theme() == "plot"
+                ? "ignore size?"
+                : "split?",
               effectSplit,
               setEffectSplit,
             ],
           ]}
         />
+
+        <Show when={theme() == "trig"}>
+          <CheckboxGroup
+            class="mt-2"
+            options={[
+              ["more alt colors?", effectAltColors, setEffectAltColors],
+            ]}
+          />
+        </Show>
 
         <Show when={view() == "equations"}>
           <Equation
@@ -545,6 +562,19 @@ export function Main() {
                 ).concat([
                   p`The hue of the point is then given by ${"z"}'s direction from the origin, and the darkness is given by how close ${"z"} is to the origin. How much space is covered by darkness is adjustable using the ${"plot size"} setting.`,
                 ]),
+
+                trig: [
+                  p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
+
+                  p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
+
+                  effectSplit()
+                    ? p`${"split?"} is enabled, so points that escape and
+                      end up below the ${"y = 0"} line will be colored
+                      according to the opposite direction of usual (e.g. towards
+                      oranges and yellows instead of purples and blues).`
+                    : undefined,
+                ],
               }[theme()]
             }
           </div>

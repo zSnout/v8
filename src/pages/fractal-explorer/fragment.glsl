@@ -12,6 +12,7 @@ uniform vec2 u_mouse;
 uniform vec2 u_time;
 
 uniform bool u_effect_split;
+uniform bool u_effect_alt_colors;
 
 in vec4 coords;
 out vec4 color;
@@ -19,6 +20,43 @@ out vec4 color;
 #include "../../shaders/rgb-to-hsv.glsl"
 #include "../../shaders/color-modifier.glsl"
 #include "../../shaders/complex.glsl"
+
+vec3 trig_palette(float i) {
+  float t = i * -0.1 * u_color_repetition;
+
+  float n1, n2;
+  if (u_effect_split) {
+    n1 = 1.0 / sin(t) * 0.5 + 0.5;
+    n2 = 1.0 / tan(t) * 0.5 + 0.5;
+  } else {
+    n1 = sin(t) * 0.5 + 0.5;
+    n2 = cos(t) * 0.5 + 0.5;
+  }
+
+  vec3 rgb;
+  if (u_effect_alt_colors) {
+    rgb = vec3(n2, n2, n1);
+  } else {
+    rgb = vec3(n1, u_effect_split ? 0.5 : 1.0, n2);
+  }
+
+  rgb = modify_rgb(rgb);
+  // if (darkness) rgb *= mod(i * 0.02, 1.0);
+
+  return rgb;
+}
+
+vec3 simple_palette(vec2 z, float i) {
+  vec3 original = vec3(
+    u_effect_split && z.y < 0.0
+      ? -i / 50.0
+      : i / 50.0,
+    1.0,
+    1.0
+  );
+
+  return hsv2rgb(modify_hsv(original));
+}
 
 void run_simple() {
   vec2 p = coords.xy;
@@ -34,15 +72,11 @@ void run_simple() {
         return;
       }
 
-      vec3 original = vec3(
-        u_effect_split && z.y < 0.0
-          ? -i / 50.0
-          : i / 50.0,
-        1.0,
-        1.0
-      );
-
-      color = vec4(hsv2rgb(modify_hsv(original)), 1);
+      if (u_theme == 4.0) {
+        color = vec4(trig_palette(i), 1.0);
+      } else {
+        color = vec4(simple_palette(z, i), 1.0);
+      }
 
       return;
     }
