@@ -4,13 +4,14 @@ import fakeGradientOpenGraph from "../art/fake-gradient/open-graph.png"
 import debugMathToGLSLOpenGraph from "../debug/math-to-glsl/open-graph.png"
 import deduplicateTextOpenGraph from "../deduplicate-text/open-graph.jpg"
 import fractalExplorerOpenGraph from "../fractal-explorer/open-graph.png"
+import fractalGalleryOpenGraph from "../fractal-gallery/open-graph.png"
 import ithkuilFontGeneratorOpenGraph from "../ithkuil/font/open-graph.png"
 import ithkuilFormativeGeneratorOpenGraph from "../ithkuil/generate/formative/open-graph.png"
 import ithkuilScriptCheatSheetOpenGraph from "../ithkuil/script/cheat-sheet/open-graph.jpg"
 import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
 import sitelenPonaTypistOpenGraph from "../toki-pona/typist/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
-// import vjosaliOpenGraph from "../vjosali/open-graph.png"
+import vjosaliOpenGraph from "../vjosali/open-graph.png"
 
 export type Tag =
   | "art"
@@ -157,18 +158,30 @@ const nonBlogPages: readonly Page[] = [
     imageSrc: tropeHighlighterOpenGraph,
   },
 
-  // {
-  //   title: "Vjosali",
-  //   href: "/vjosali",
-  //   subtitle:
-  //     "Libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. Jam riso klarmange au siruting mange. Da lera os leragen kotoba f'viossa mit librafto, vjosali!",
+  {
+    title: "Fractal Explorer",
+    href: "/fractal-explorer",
+    subtitle:
+      "Explore beautiful mathematical fractals by using custom equations, zooming deeply into nested structures, and adjusting many settings to vary the color scheme.",
 
-  //   tags: ["language", "tool"],
+    tags: ["art", "math"],
 
-  //   imageAlt:
-  //     "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
-  //   imageSrc: vjosaliOpenGraph,
-  // },
+    imageAlt: "A multicolored zoom of the Mandelbrot Set.",
+    imageSrc: fractalExplorerOpenGraph,
+  },
+
+  {
+    title: "Vjosali",
+    href: "/vjosali",
+    subtitle:
+      "Libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. Jam riso klarmange au siruting mange. Da lera os leragen kotoba f'viossa mit librafto, vjosali!",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
+    imageSrc: vjosaliOpenGraph,
+  },
 
   {
     title: "Ithkuil Script Generator",
@@ -184,15 +197,15 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
-    title: "Fractal Explorer",
-    href: "/fractal-explorer",
+    title: "Fractal Gallery",
+    href: "/fractal-gallery",
     subtitle:
-      "Explore beautiful mathematical fractals by using custom equations, zooming deeply into nested structures, and adjusting many settings to vary the color scheme.",
+      "Explore a gallery of fractal designs created by others, and click any fractal's image to open it in fullscreen, so you can better explore it on your own device.",
 
     tags: ["art", "math"],
 
-    imageAlt: "A multicolored zoom of the Mandelbrot Set.",
-    imageSrc: fractalExplorerOpenGraph,
+    imageAlt: "Eighteen fractals in a six by three grid.",
+    imageSrc: fractalGalleryOpenGraph,
   },
 ]
 

@@ -209,21 +209,40 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?top=0.21212009464707934&right=2.26763443497962&bottom=-0.227424129916064&left=1.8280902104087948&equation=abs(z/c)/sin(z%5Ec)&theme=simple&size=4.148867313915856&spectrum=51.1765531437126&colorOffset=225.993637724551",
   "https://v8.zsnout.com/fractal-explorer?top=0.05949388349968565&right=0.5021770969113357&bottom=-0.5940501493611277&left=-0.15136693596091572&equation=c%5Ez-abs(z-c%5E2)&theme=simple&size=4.148867313915856&smoothness=75.0292383982036&spectrum=50.1567178143713&colorOffset=231.281811377245&min_detail=26",
   "https://v8.zsnout.com/fractal-explorer?equation=z%5E4%2Bc",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E2+%2B+c%23fx&theme=trig&top=0.08292770814632935&right=-1.7123146416175952&bottom=-0.007896417661361257&left=-1.8031387674252874&detail=50",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E3%2F%28z%23z%2B1%29%2Bc%23fx&theme=trig&top=2.1639143538876233&right=2.102318142319261&bottom=-2.1611863918746206&left=-2.222782606201538&alt_colors=&size=10&c=p&z=0",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%2Bz%2Bc&theme=gradient&top=0.8645449474590621&right=-0.631922068535263&bottom=0.8241830016660656&left=-0.6722840143282595",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%2B1%2Fc&theme=simple&top=2.6335142291434637&right=3.905972104838716&bottom=-2.762483770998577&left=-1.4900258953033023&z=0",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%2Bz%2B1%2Fc&theme=gradient&top=5.308551631439171&right=9.006237015050875&bottom=-6.335256136237424&left=-2.6375707526256664&z=0&split=",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E2-z%2B1%2Fc&theme=gradient&top=3.259707855090571&right=3.5584339842351547&bottom=-4.408069634483651&left=-4.10934350533903&z=0&split=",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E3-z%5E2-z-c&theme=gradient&top=1.3423144520190586&right=0.7223451120418782&bottom=-1.2665684852994903&left=-1.8865378252766565&z=0&split=",
+  "https://v8.zsnout.com/fractal-explorer?equation=%28z%5E3%2B1%29%2F%28cz%5E2%2B1%29&theme=gradient&top=9.36787760049994&right=8.975527957172643&bottom=-9.833892572203903&left=-10.226242215531114&z=0",
+  "https://v8.zsnout.com/fractal-explorer?equation=z-%28zzz%2Bz*%28c-1%29-c%29%2F%283zz%2Bc-1%29&theme=simple&top=1.7723690031050279&right=0.4069383173804213&bottom=1.5363057365164592&left=0.17087505079185286&z=0",
+  "https://v8.zsnout.com/fractal-explorer?equation=1%2F%28z%5E4%2Bc%2B1%29&theme=simple&top=1.0607944307486892&right=0.2624392147134408&bottom=-0.19828594489425327&left=-0.9966411609295017&z=p",
 ]
 
 export function Main() {
   return (
-    <div class="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-1">
-      <For each={FRACTALS}>
-        {(url) => (
-          <a href={url}>
-            <Fractal
-              class="aspect-square w-full touch-none rounded bg-white"
-              url={url}
-            />
-          </a>
-        )}
-      </For>
-    </div>
+    <>
+      <h1 class="text-center text-xl font-semibold text-z-heading transition">
+        Fractal Gallery
+      </h1>
+      <p class="mb-6 text-center text-z transition">
+        Click any fractal to open it in fullscreen.
+      </p>
+
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-1">
+        <For each={FRACTALS}>
+          {(url) => (
+            <a href={url}>
+              <Fractal
+                class="aspect-square w-full touch-none rounded bg-white"
+                url={url}
+              />
+            </a>
+          )}
+        </For>
+      </div>
+    </>
   )
 }
