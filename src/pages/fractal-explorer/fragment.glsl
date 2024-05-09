@@ -13,8 +13,11 @@ uniform vec2 u_time;
 
 uniform bool u_effect_split;
 uniform bool u_effect_alt_colors;
+uniform bool u_dual_enabled;
 
+in vec4 position;
 in vec4 coords;
+in vec4 coords_for_dual;
 out vec4 color;
 
 #include "../../shaders/rgb-to-hsv.glsl"
@@ -58,11 +61,7 @@ vec3 simple_palette(vec2 z, float i) {
   return hsv2rgb(modify_hsv(original));
 }
 
-void run_simple() {
-  vec2 p = coords.xy;
-  vec2 c = EQ_C;
-  vec2 z = EQ_Z;
-
+void run_simple(vec2 p, vec2 c, vec2 z, bool dual) {
   float i = 0.0;
   for (; i < u_detail; i++) {
     z = EQ;
@@ -94,10 +93,7 @@ vec3 gradient_palette(vec3 sz, float i) {
   return modify_rgb(rgb);
 }
 
-void run_gradient() {
-  vec2 p = coords.xy;
-  vec2 c = EQ_C;
-  vec2 z = EQ_Z;
+void run_gradient(vec2 p, vec2 c, vec2 z, bool dual) {
   vec2 pz, ppz;
   vec3 sz;
 
@@ -143,11 +139,7 @@ vec3 plot_palette(vec2 z) {
   return hsv2rgb(modify_hsv(vec3(hue, 1.0, r)));
 }
 
-void run_plot() {
-  vec2 p = coords.xy;
-  vec2 c = EQ_C;
-  vec2 z = EQ_Z;
-
+void run_plot(vec2 p, vec2 c, vec2 z, bool dual) {
   float i = 0.0;
   for (; i < u_detail; i++) {
     z = EQ;
@@ -170,11 +162,22 @@ void run_plot() {
 }
 
 void main() {
+  vec2 p = coords.xy;
+  bool dual = false;
+
+  if (u_dual_enabled && position.x > 0.5 && position.y < 0.5) {
+    dual = true;
+    p = coords_for_dual.xy;
+  }
+
+  vec2 c = EQ_C;
+  vec2 z = EQ_Z;
+
   if (u_theme == 2.0) {
-    run_gradient();
+    run_gradient(p, c, z, dual);
   } else if (u_theme == 3.0) {
-    run_plot();
+    run_plot(p, c, z, dual);
   } else {
-    run_simple();
+    run_simple(p, c, z, dual);
   }
 }

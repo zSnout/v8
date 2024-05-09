@@ -236,6 +236,13 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=%28%287z%2B2%29-cos%28z*pi%29%285z%2B2%29%29%2F4&theme=trig&top=0.06329035871122704&right=-1.956834733148491&bottom=0.02926000167505563&left=-1.9908650901846623&size=10&colorOffset=51.686002994012",
   "https://v8.zsnout.com/fractal-explorer?equation=(z-m)%5E2%2Bc%2Bm",
   "https://v8.zsnout.com/fractal-explorer?equation=%28%287z%2B2%29-cos%28z%2Bi%2Bpi%29%285z%2B2%29%29%2F4&theme=trig&top=0.48916276942690706&right=-1.0892247394074448&bottom=-2.2444296606597947&left=-3.8228171694941304&size=10&colorOffset=51.686002994012",
+  "https://v8.zsnout.com/fractal-explorer?theme=simple&top=0.8039897159537612&right=0.22871050379228042&bottom=0.7931233357655454&left=0.2178441236002001&equation=z%5E2%2Bz%2B1%2Fz%2B1%2Fzz%2Bc&size=10",
+  "https://v8.zsnout.com/fractal-explorer?theme=simple&top=0.22830851630590288&right=-1.1830040586957755&bottom=0.20786229763451175&left=-1.2034502773744384&equation=z%5E2%2Bz%2B1%2Fz%2B1%2Fzz%2Bz%5E-19%2Bc&size=10",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E2+%2B+z%5Ec&theme=trig&top=2.056110204414094&right=2.96797405902789&bottom=1.9974273005302376&left=2.9092911551455547&detail=50",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E2+%2B+zc&theme=trig&top=-0.03176609961933671&right=-0.9674560360182941&bottom=-0.031862356953567525&left=-0.967552293352525&detail=50",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E2+%2B+zc%5E2&theme=trig&top=1.235113758268757&right=-0.27615931577638503&bottom=1.0874713012565238&left=-0.4238017727889359&detail=50",
+  "http://localhost:3000/fractal-explorer?top=1&bottom=-1&left=-1&right=1&equation=z%5E2+%2B+%24%28-0.7548332464245562+-0.05134377873212426i%29&detail=1000&z=p&c=p&theme=simple&repetitionSign=1&colorOffset=227.349363772455",
+  "https://v8.zsnout.com/fractal-explorer?theme=trig&top=0.6192549969395025&right=-0.697512930493437&bottom=-0.5009534485676008&left=-1.8177213763989384&equation=z%5E2%2Bz%2B1%2Fz%2B1%2Fzz%2Bz%5E-19%2Bc&size=7.233158682634736&alt_colors=&colorOffset=293.308383233533&spectrum=6.39502245508982&smoothness=70.0435067365269&repetition=10",
 ]
 
 export function Main() {

@@ -36,9 +36,7 @@ export function treeToGLSL(tree: Tree): string {
       case "^":
         return `cx_pow(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
       case "|":
-        return `(u_dual ? ${treeToGLSL(tree.right)} : ${treeToGLSL(
-          tree.right,
-        )})`
+        return `(dual ? ${treeToGLSL(tree.right)} : ${treeToGLSL(tree.left)})`
     }
 
     // @ts-expect-error nothing should reach here

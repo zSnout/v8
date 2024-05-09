@@ -12,9 +12,11 @@ export interface WebGLCoordinateCoordinateCanvasOptions
 
 export class WebGLCoordinateCanvas extends WebGLCanvas {
   static override vertMods =
-    super.vertMods + "in vec4 i_coords;out vec4 coords;"
+    super.vertMods +
+    "in vec4 i_coords;out vec4 coords;in vec4 i_coords_for_dual;out vec4 coords_for_dual;"
 
-  static override vertMainMods = super.vertMainMods + "coords=i_coords;"
+  static override vertMainMods =
+    super.vertMainMods + "coords=i_coords;coords_for_dual=i_coords_for_dual;"
 
   static override of(
     canvas: HTMLCanvasElement,
@@ -59,6 +61,13 @@ export class WebGLCoordinateCanvas extends WebGLCanvas {
       lt: [left, top],
       rt: [right, top],
       lb: [left, bottom],
+      rb: [right, bottom],
+    })
+
+    this.setAttribute("i_coords_for_dual", {
+      lt: [2 * (left - right) + right, 2 * (top - bottom) + bottom],
+      rt: [right, 2 * (top - bottom) + bottom],
+      lb: [2 * (left - right) + right, bottom],
       rb: [right, bottom],
     })
 

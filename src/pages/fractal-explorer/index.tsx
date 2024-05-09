@@ -319,6 +319,13 @@ export function Main() {
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
               gl.setReactiveUniform("u_plot_size", plotSize)
               gl.setReactiveUniformArray("u_slider", () => [slider() / 100, 0])
+              gl.setReactiveUniform(
+                "u_dual_enabled",
+                () =>
+                  equation().includes("|") ||
+                  z().includes("|") ||
+                  c().includes("|"),
+              )
 
               mouse = trackMouse(gl)
               ;[time, speed, setSpeed] = trackTime(gl)
@@ -651,6 +658,10 @@ export function Main() {
           </h3>
 
           {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"real"}, ${"imag"}, and ${"length"} work as expected. ${"exp"} and ${"log"} use base ${"e"}. ${"abs"} calculates the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-pi"} and ${"pi"}. All functions work on complex numbers.`}
+
+          <h3 class="mb-2 mt-4 text-center font-semibold">Dual graphing</h3>
+
+          {p`Dual graphing is helpful for exploring Julia sets. Replace any expression with ${"x|y"} to enter dual mode. The value ${"x"} will be used in the main window, and ${"y"} in a smaller subwindow. Try changing all instances of ${"c"} to ${"c|m"}!`}
         </Show>
       </DynamicOptions>
     </>
