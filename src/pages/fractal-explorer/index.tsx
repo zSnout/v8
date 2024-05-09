@@ -221,25 +221,31 @@ export function Main() {
         !event.metaKey &&
         (event.key == "f" || event.key == "F")
       ) {
-        const eq = untrack(equation)
+        function run(get: () => string, set: (x: string) => void) {
+          const eq = untrack(get)
 
-        const eqWithoutConstants = eq
-          .replace(/\$\([^)]*\)/g, "(m)")
-          .replace(/@\([^)]*\)/g, `(t)`)
+          const eqWithoutConstants = eq
+            .replace(/\$\([^)]*\)/g, "(m)")
+            .replace(/@\([^)]*\)/g, "(t)")
 
-        if (eq == eqWithoutConstants) {
-          const [x, y] = untrack(mouse)
+          if (eq == eqWithoutConstants) {
+            const [x, y] = untrack(mouse)
 
-          setEquation(
-            eq
-              .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
-              .replace(/t(?!an|er|h)/g, `@(${untrack(time)})`),
-          )
+            setEquation(
+              eq
+                .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
+                .replace(/t(?!an|er|h)/g, `@(${untrack(time)})`),
+            )
 
-          return
-        } else {
-          setEquation(eqWithoutConstants)
+            return
+          } else {
+            set(eqWithoutConstants)
+          }
         }
+
+        run(equation, setEquation)
+        run(z, setZ)
+        run(c, setC)
       }
     })
   }
