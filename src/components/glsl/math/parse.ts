@@ -2,7 +2,7 @@ import { error, ok, Result } from "../../result"
 import type { Complex } from "./complex"
 import { createTokenizer } from "./tokenize"
 
-export type Operator = "+" | "-" | "*" | "#" | "/" | "^" | "**"
+export type Operator = "+" | "-" | "*" | "#" | "/" | "^" | "**" | "|"
 
 export type UnaryFunction =
   | "sin"
@@ -66,7 +66,7 @@ const tokenize = createTokenizer<Token>(
       )[match as "c" | "m" | "p" | "s" | "t" | "z"],
     }),
   ],
-  [/^[-+*#/^]/, ([match]) => ({ type: "operator", name: match as Operator })],
+  [/^[-+*#/^|]/, ([match]) => ({ type: "operator", name: match as Operator })],
   [
     /^\d+(?:\.\d+)?(?:e[+-]?\d+)?/,
     ([match]) => ({ type: "number", value: [+match, 0] }),
@@ -89,6 +89,7 @@ const precedenceMap: Record<Operator, number> = {
   "/": 2,
   "**": 3,
   "^": 4,
+  "|": 5,
 }
 
 function toReversePolish(

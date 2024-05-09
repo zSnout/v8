@@ -21,7 +21,7 @@ function exp([a, b]: Complex): Complex {
 }
 
 export const binary: Record<
-  Operator,
+  Exclude<Operator, "|">,
   (left: Complex, right: Complex) => Complex
 > = {
   "+"(a, b) {

@@ -2,11 +2,7 @@ import { binary } from "./complex"
 import type { Tree } from "./parse"
 
 export function optimize(tree: Tree): Tree {
-  if (tree.type == "number") {
-    return tree
-  }
-
-  if (tree.type == "constant") {
+  if (tree.type == "number" || tree.type == "constant") {
     return tree
   }
 
@@ -22,6 +18,15 @@ export function optimize(tree: Tree): Tree {
 
   const left = optimize(tree.left)
   const right = optimize(tree.right)
+
+  if (tree.name == "|") {
+    return {
+      type: "binary-fn",
+      name: "|",
+      left,
+      right,
+    }
+  }
 
   if (left.type == "number" && right.type == "number") {
     return {

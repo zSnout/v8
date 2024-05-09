@@ -20,28 +20,28 @@ export function treeToGLSL(tree: Tree): string {
   }
 
   if (tree.type == "binary-fn") {
-    if (tree.name == "+" || tree.name == "-") {
-      return `(${treeToGLSL(tree.left)}) ${tree.name} (${treeToGLSL(
-        tree.right,
-      )})`
+    switch (tree.name) {
+      case "+":
+      case "-":
+        return `(${treeToGLSL(tree.left)}) ${tree.name} (${treeToGLSL(
+          tree.right,
+        )})`
+      case "*":
+      case "**":
+        return `cx_mult(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
+      case "#":
+        return `(${treeToGLSL(tree.left)}) * (${treeToGLSL(tree.right)})`
+      case "/":
+        return `cx_div(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
+      case "^":
+        return `cx_pow(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
+      case "|":
+        return `(u_dual ? ${treeToGLSL(tree.right)} : ${treeToGLSL(
+          tree.right,
+        )})`
     }
 
-    if (tree.name == "#") {
-      return `(${treeToGLSL(tree.left)}) * (${treeToGLSL(tree.right)})`
-    }
-
-    if (tree.name == "*" || tree.name == "**") {
-      return `cx_mult(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
-    }
-
-    if (tree.name == "/") {
-      return `cx_div(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
-    }
-
-    if (tree.name == "^") {
-      return `cx_pow(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
-    }
-
+    // @ts-expect-error nothing should reach here
     throw new Error("Unknown operator: '" + tree.name + "'.")
   }
 

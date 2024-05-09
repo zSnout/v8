@@ -231,7 +231,7 @@ export function Main() {
           if (eq == eqWithoutConstants) {
             const [x, y] = untrack(mouse)
 
-            setEquation(
+            set(
               eq
                 .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
                 .replace(/t(?!an|er|h)/g, `@(${untrack(time)})`),
