@@ -229,6 +229,8 @@ export function Main() {
       </h1>
       <p class="mb-6 text-center text-z transition">
         Click any fractal to open it in fullscreen.
+        <br />
+        Clicking also lets you interact with a fractal.
       </p>
 
       <div class="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-1">
