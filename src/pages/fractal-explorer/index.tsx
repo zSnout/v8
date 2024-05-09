@@ -323,7 +323,13 @@ export function Main() {
         )}
       </ErrorBoundary>
 
-      <Show when={equation().match(/(?<!ab|co)s(?!in)/)}>
+      <Show
+        when={
+          equation().match(/(?<!ab|co)s(?!in)/) ||
+          z().match(/(?<!ab|co)s(?!in)/) ||
+          c().match(/(?<!ab|co)s(?!in)/)
+        }
+      >
         <div class="fixed bottom-6 left-6 right-6 flex touch-none justify-center">
           <div class="flex w-full max-w-xs flex-1">
             <Range
