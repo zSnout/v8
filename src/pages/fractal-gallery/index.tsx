@@ -219,6 +219,23 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=%28z%5E3%2B1%29%2F%28cz%5E2%2B1%29&theme=gradient&top=9.36787760049994&right=8.975527957172643&bottom=-9.833892572203903&left=-10.226242215531114&z=0",
   "https://v8.zsnout.com/fractal-explorer?equation=z-%28zzz%2Bz*%28c-1%29-c%29%2F%283zz%2Bc-1%29&theme=simple&top=1.7723690031050279&right=0.4069383173804213&bottom=1.5363057365164592&left=0.17087505079185286&z=0",
   "https://v8.zsnout.com/fractal-explorer?equation=1%2F%28z%5E4%2Bc%2B1%29&theme=simple&top=1.0607944307486892&right=0.2624392147134408&bottom=-0.19828594489425327&left=-0.9966411609295017&z=p",
+
+  "https://v8.zsnout.com/fractal-explorer?smoothness=50&theme=gradient&colorOffset=23.3841691616766&top=-0.4467133777204973&right=-0.6660147105978401&bottom=-0.47512649950362623&left=-0.6944278323809693",
+  "https://v8.zsnout.com/fractal-explorer?equation=1/z%2B1/z%5E2%2B1/z%5E3%2B1/z%5E4%2Bc&z=p&top=1.4324178461698895&right=0.172850781011355&bottom=1.386301959058436&left=0.1267348938999014&theme=simple&size=3.9958832335329273&spectrum=35.1258420658683&colorOffset=241.361339820359&smoothness=66.6120883233533",
+  "https://v8.zsnout.com/fractal-explorer?equation=1/z%2B1/z%5E2%2B1/z%5E3%2B1/z%5E4%2Bc&z=p&top=1.4082920354309258&right=0.15800887282231935&bottom=1.3886149922086692&left=0.13833182960006296&theme=gradient&size=3.9958832335329273&spectrum=35.1258420658683&colorOffset=86.3875374251497&smoothness=66.6120883233533",
+  "https://v8.zsnout.com/fractal-explorer?top=0.6485207629676748&right=-0.38872729227271224&bottom=0.6445793822985508&left=-0.3926686729418361&detail=275",
+  "https://v8.zsnout.com/fractal-explorer?equation=(z%5E3%2B1)/(izc%5E2%2B1)&top=1345.2735397710915&right=1242.8311426337686&bottom=-1256.5935426394678&left=-1359.035939776802",
+  "https://v8.zsnout.com/fractal-explorer?equation=(z%5E3%2B1)/(-zc%5E2%2B1)&top=4.69136004956921&right=4.480313188482539&bottom=-3.872655305683909&left=-4.083702166770603",
+  "https://v8.zsnout.com/fractal-explorer?equation=(z%5E3%2B1)/(izc%5E2%2B1)&top=10.221025983422937&right=8.929199130357018&bottom=-7.7443330906073236&left=-9.036159943673269",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E10%2B$(0.40068683656884396%2B0.7539857173315323i)&detail=318&top=0.9489899550602218&right=0.580746212360992&bottom=0.5853111875677176&left=0.21706744486847662",
+  "https://v8.zsnout.com/fractal-explorer?equation=z-(z%5E3-1)/(3z%5E2)%2B$(-0.31968031968031996%2B-0.21378621378621387i)&top=1.8837607385784403&right=2.9933332186510206&bottom=-0.7046453646185724&left=0.4049271154540033",
+  "https://v8.zsnout.com/fractal-explorer?top=0.43627619616614416&right=-0.33613931509690526&bottom=0.07338596800924185&left=-0.6990295432537584&equation=z%5E2%2B$(-0.6954222210000253%2B0.3693522198835498i)&theme=simple&size=1.093001497005988&detail=1000",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%2B$(0.30773913586413526%2B-0.02282092907092892i)&theme=trig&top=1.5&bottom=-1.5&left=-1.5&right=1.5",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%2B1/c%2Bc%2Bcc%2Bc%5E3&z=0&top=1.25&right=0.5&bottom=-1.25&left=-2",
+  "https://v8.zsnout.com/fractal-explorer?equation=((7z%2B2)-exp(z*pi*i)(5z%2B2))/4&z=p&theme=trig&top=0.9028411281196939&right=0.8804338762162516&bottom=-0.9428792485004184&left=-0.9652865004038604&size=1000&plot_size=0.851796407185628&detail=100&repetition=3.04819399350649&repetitionSign=1&alt_colors=&colorOffset=172.84244011976",
+  "https://v8.zsnout.com/fractal-explorer?equation=(z-($(-0.30867666568396235%2B-0.06060215212264164i)))%5E2%2Bc-($(-0.30867666568396235%2B-0.06060215212264164i))&theme=gradient&top=0.23715455204308833&right=-0.21182544998644628&bottom=0.22303726815524977&left=-0.22594273387428546&colorOffset=202.112649700599&spectrum=25.032747005988&repetition=5.60044642857143&smoothness=88.9642589820359",
+  "https://v8.zsnout.com/fractal-explorer?equation=%28%287z%2B2%29-cos%28z*pi%29%285z%2B2%29%29%2F4&theme=trig&top=0.06329035871122704&right=-1.956834733148491&bottom=0.02926000167505563&left=-1.9908650901846623&size=10&colorOffset=51.686002994012",
+  "https://v8.zsnout.com/fractal-explorer?equation=(z-m)%5E2%2Bc%2Bm",
 ]
 
 export function Main() {
