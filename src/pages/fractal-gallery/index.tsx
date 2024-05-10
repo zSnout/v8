@@ -107,7 +107,7 @@ export function Canvas(props: {
           gl.setUniform("u_detail_min", props.minDetail)
           gl.setUniform("u_fractal_size", props.fractalSize ** 2)
           gl.setUniform("u_plot_size", props.plotSize)
-          gl.setUniform("u_slider", props.slider)
+          gl.setUniform("u_slider", props.slider / 100, 0)
 
           gl.setUniform("u_color_offset", props.colorOffset / 360)
           gl.setUniform("u_color_spectrum", props.spectrum / 100)
@@ -117,17 +117,17 @@ export function Canvas(props: {
             props.repetition * props.repetitionSign,
           )
 
-          if (zEq.value.includes("u_mouse")) {
-            trackMouse(gl)
-          }
+          // if (zEq.value.includes("u_mouse")) {
+          //   trackMouse(gl)
+          // }
 
-          if (
-            zEq.value.includes("u_time") ||
-            cEq.value.includes("u_time") ||
-            eq.value.includes("u_time")
-          ) {
-            trackTime(gl)
-          }
+          // if (
+          //   zEq.value.includes("u_time") ||
+          //   cEq.value.includes("u_time") ||
+          //   eq.value.includes("u_time")
+          // ) {
+          //   trackTime(gl)
+          // }
 
           gl.draw()
 
@@ -263,6 +263,10 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?top=22.413885501261827&right=26.858785023387497&bottom=-24.26027517056021&left=-19.81537563765906&equation=z%5E9999999t%2Bc&theme=simple&z=p&c=p",
   "https://v8.zsnout.com/fractal-explorer?equation=cos%28z%2Fc%29i&theme=simple&top=1.1756311813023537&bottom=-1.1032355772269704&left=-1.254544329482924&right=1.024322429046247&z=p&c=p&colorOffset=184.319797904192&spectrum=30.3517964071856&slider=100",
   "https://v8.zsnout.com/fractal-explorer?equation=i+%2B+z%5E%282sin%28t%2F4%29%2B3%29+-+c%5E13&theme=trig&top=1.1469299661584154&bottom=-1.1538337380185502&left=-1.1939561702946584&right=1.1068075338823076&z=p&c=p",
+  "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.5358480342831237&bottom=0.5293356466677533&left=0.8848479864370451&right=0.891360374052411&z=p&c=p&slider=100&detail=1000&repetition=1.61386465097403&colorOffset=82.9182260479042",
+  "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.5333434114838705&bottom=0.5321997524422072&left=0.8874952969643867&right=0.88863895600605&z=p&c=p&slider=100&detail=1000&repetition=1.33991984577922&colorOffset=167.756362275449&repetitionSign=1&spectrum=21.6364146706587",
+  "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.5322052219742478&bottom=0.5320418993293822&left=0.8861669895650042&right=0.8863303122098698&z=p&c=p&slider=100&detail=1000&repetition=1.33991984577922&colorOffset=349.600486526946&repetitionSign=1&spectrum=21.6364146706587",
+  "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.7629199794519161&bottom=0.7346429175275626&left=-0.11282539695767044&right=-0.08454833503331682&z=p&c=p&slider=29.5634501689189&detail=1000&repetition=1.33991984577922&colorOffset=349.600486526946&repetitionSign=1&spectrum=21.6364146706587",
 ]
 
 export function Main() {
