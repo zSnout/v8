@@ -1,7 +1,5 @@
 import { WebGLCoordinateCanvas } from "@/components/glsl/canvas/coordinate"
 import { textToGLSL } from "@/components/glsl/math/output"
-import { trackMouse } from "@/components/glsl/mixins/track-mouse"
-import { trackTime } from "@/components/glsl/mixins/track-time"
 import { unwrap } from "@/components/result"
 import { For } from "solid-js"
 import { Theme, themeMap } from "../fractal-explorer"
@@ -267,6 +265,9 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.5333434114838705&bottom=0.5321997524422072&left=0.8874952969643867&right=0.88863895600605&z=p&c=p&slider=100&detail=1000&repetition=1.33991984577922&colorOffset=167.756362275449&repetitionSign=1&spectrum=21.6364146706587",
   "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.5322052219742478&bottom=0.5320418993293822&left=0.8861669895650042&right=0.8863303122098698&z=p&c=p&slider=100&detail=1000&repetition=1.33991984577922&colorOffset=349.600486526946&repetitionSign=1&spectrum=21.6364146706587",
   "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.7629199794519161&bottom=0.7346429175275626&left=-0.11282539695767044&right=-0.08454833503331682&z=p&c=p&slider=29.5634501689189&detail=1000&repetition=1.33991984577922&colorOffset=349.600486526946&repetitionSign=1&spectrum=21.6364146706587",
+  "https://v8.zsnout.com/fractal-explorer?top=-0.08834138672896158&bottom=-0.24039033866367243&left=0.20376283589860458&right=0.355811787833314&equation=z%5E2+%2B+%24%28-0.7548332464245562+-0.05134377873212426i%29&z=p&c=p&theme=simple&repetitionSign=1&colorOffset=227.349363772455&repetition=0.1&detail=100000",
+  "https://v8.zsnout.com/fractal-explorer?top=0.6955242733455318&right=-0.3195432237372543&bottom=0.6954737409879272&left=-0.3195937560948614&equation=z%5E%282%5E%2810s%29%29%2Bc&theme=gradient&z=p&c=p&slider=8.59902871621622&size=10&repetitionSign=1&colorOffset=301.291167664671&repetition=0.1",
+  "https://v8.zsnout.com/fractal-explorer?top=0.23020221917126346&right=-0.06787791059214697&bottom=0.22986106466993741&left=-0.06821906509347302&theme=plot&z=p*pi&c=p3&size=1.2211826347305401&detail=542&colorOffset=71.2471931137725&smoothness=75.0011695359281",
 ]
 
 export function Main() {
