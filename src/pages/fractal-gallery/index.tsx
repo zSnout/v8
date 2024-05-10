@@ -143,26 +143,26 @@ export function Canvas(props: {
 export function Fractal(props: { class: string; url: string }) {
   const url = new URL(props.url)
 
-  const equation = (url.searchParams.get("equation") || "z^2+c")!
-  const z = (url.searchParams.get("z") || "p")!
-  const c = (url.searchParams.get("c") || "p")!
-  const effectSplit = (url.searchParams.get("split") || null) != null
-  const effectAltColors = (url.searchParams.get("alt_colors") || null) != null
-  const detail = +(url.searchParams.get("detail") || 100)!
-  const fractalSize = +(url.searchParams.get("size") || 2)!
-  const minDetail = +(url.searchParams.get("min_detail") || 0)!
-  const plotSize = +(url.searchParams.get("plot_size") || 1)!
-  const theme = (url.searchParams.get("theme") || "simple")! as Theme
-  const slider = +(url.searchParams.get("slider") || 0)!
-  const top = +(url.searchParams.get("top") || 1.25)!
-  const left = +(url.searchParams.get("left") || -2)!
-  const bottom = +(url.searchParams.get("bottom") || -1.25)!
-  const right = +(url.searchParams.get("right") || 0.5)!
-  const colorOffset = +(url.searchParams.get("colorOffset") || 0)!
-  const spectrum = +(url.searchParams.get("spectrum") || 100)!
-  const smoothness = +(url.searchParams.get("smoothness") || 100)!
-  const repetition = +(url.searchParams.get("repetition") || 1)!
-  const repetitionSign = +(url.searchParams.get("repetitionSign") || -1)!
+  const equation = (url.searchParams.get("equation") ?? "z^2+c")!
+  const z = (url.searchParams.get("z") ?? "p")!
+  const c = (url.searchParams.get("c") ?? "p")!
+  const effectSplit = (url.searchParams.get("split") ?? null) != null
+  const effectAltColors = (url.searchParams.get("alt_colors") ?? null) != null
+  const detail = +(url.searchParams.get("detail") ?? 100)!
+  const fractalSize = +(url.searchParams.get("size") ?? 2)!
+  const minDetail = +(url.searchParams.get("min_detail") ?? 0)!
+  const plotSize = +(url.searchParams.get("plot_size") ?? 1)!
+  const theme = (url.searchParams.get("theme") ?? "simple")! as Theme
+  const slider = +(url.searchParams.get("slider") ?? 0)!
+  const top = +(url.searchParams.get("top") ?? 1.25)!
+  const left = +(url.searchParams.get("left") ?? -2)!
+  const bottom = +(url.searchParams.get("bottom") ?? -1.25)!
+  const right = +(url.searchParams.get("right") ?? 0.5)!
+  const colorOffset = +(url.searchParams.get("colorOffset") ?? 0)!
+  const spectrum = +(url.searchParams.get("spectrum") ?? 100)!
+  const smoothness = +(url.searchParams.get("smoothness") ?? 100)!
+  const repetition = +(url.searchParams.get("repetition") ?? 1)!
+  const repetitionSign = +(url.searchParams.get("repetitionSign") ?? -1)!
 
   return (
     <Canvas
