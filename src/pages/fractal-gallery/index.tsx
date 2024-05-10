@@ -243,6 +243,7 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E2+%2B+zc%5E2&theme=trig&top=1.235113758268757&right=-0.27615931577638503&bottom=1.0874713012565238&left=-0.4238017727889359&detail=50",
   "http://localhost:3000/fractal-explorer?top=1&bottom=-1&left=-1&right=1&equation=z%5E2+%2B+%24%28-0.7548332464245562+-0.05134377873212426i%29&detail=1000&z=p&c=p&theme=simple&repetitionSign=1&colorOffset=227.349363772455",
   "https://v8.zsnout.com/fractal-explorer?theme=trig&top=0.6192549969395025&right=-0.697512930493437&bottom=-0.5009534485676008&left=-1.8177213763989384&equation=z%5E2%2Bz%2B1%2Fz%2B1%2Fzz%2Bz%5E-19%2Bc&size=7.233158682634736&alt_colors=&colorOffset=293.308383233533&spectrum=6.39502245508982&smoothness=70.0435067365269&repetition=10",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E%281%2Fc%29%2Bc&theme=simple&top=0.2625242798667542&right=0.07059226094994346&bottom=0.26008657876675123&left=0.06815455984975598&detail=50&slider=75.2718538851351&z=p&c=p&size=10000000000000000000",
 ]
 
 export function Main() {
