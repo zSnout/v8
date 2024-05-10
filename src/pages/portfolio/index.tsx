@@ -1,8 +1,14 @@
 import { Fa } from "@/components/Fa"
-import { faClockFour } from "@fortawesome/free-regular-svg-icons"
-import TEST from "./TEST.png"
+import {
+  IconDefinition,
+  faCalendarCheck,
+  faClockFour,
+} from "@fortawesome/free-regular-svg-icons"
 
-type Icon =
+import fractalExplorer from "@/assets/portfolio/fractal-explorer.png"
+import { faBookJournalWhills, faCheck } from "@fortawesome/free-solid-svg-icons"
+
+export type Icon =
   | "ts"
   | "js"
   | "solid"
@@ -11,6 +17,8 @@ type Icon =
   | "py"
   | "tailwind"
   | "glsl"
+
+export type Status = "draft" | "in progress" | "complete" | "constant revision"
 
 export function createIcon(icon: Icon) {
   switch (icon) {
@@ -453,47 +461,99 @@ export function createIcon(icon: Icon) {
   }
 }
 
-export function Main() {
+const icons: Record<Status, IconDefinition> = {
+  draft: faBookJournalWhills,
+  "in progress": faClockFour,
+  complete: faCheck,
+  "constant revision": faCalendarCheck,
+}
+
+export interface PortfolioEntry {
+  readonly title: string
+  readonly date: string
+  readonly status: Status
+  readonly image: string
+  readonly icons: readonly [Icon, ...Icon[]]
+}
+
+const entries: readonly PortfolioEntry[] = [
+  {
+    title: "Fractal Explorer",
+    date: "March 2023",
+    status: "constant revision",
+    image: fractalExplorer,
+    icons: ["astro", "glsl", "solid", "tailwind"],
+  },
+
+  {
+    title: "zSnout 8",
+    date: "January 2023",
+    status: "constant revision",
+    image: "",
+    icons: ["astro", "glsl", "solid", "tailwind"],
+  },
+
+  {
+    title: "zSnout 7",
+    date: "March 2022",
+    status: "constant revision",
+    image: "",
+    icons: ["astro", "glsl", "solid", "tailwind"],
+  },
+
+  {
+    title: "Fractal Explorer",
+    date: "March 2022",
+    status: "constant revision",
+    image: fractalExplorer,
+    icons: ["astro", "glsl", "solid", "tailwind"],
+  },
+
+  {
+    title: "zSnout 6",
+    date: "March 2022",
+    status: "constant revision",
+    image: "",
+    icons: ["vite", "vue", "ts"],
+  },
+]
+
+export function Entry(props: { entry: PortfolioEntry }) {
   return (
     <div class="relative h-72 w-full select-none rounded-xl">
       <img
         class="absolute left-0 top-0 h-full w-full rounded-xl object-cover"
-        src={TEST}
+        src={props.entry.image}
       />
 
       <div class="absolute left-0 top-0 h-full w-full">
-        {/* <div class="absolute bottom-0 left-0 h-32 w-full rounded-b-xl bg-z-bg-body-partial backdrop-blur-3xl [mask-image:linear-gradient(transparent,#000f)]" /> */}
-
         <div class="absolute bottom-0 left-0 flex items-end">
           <div class="select-text rounded-bl-xl rounded-tr-xl border-r border-t border-z-bg-body bg-z-bg-body-partial px-3 py-2 text-2xl font-extralight text-z-heading backdrop-blur-lg transition">
-            Fractal Explorer
+            {props.entry.title}
           </div>
 
           <div class="ml-4 rounded-t border-x border-t border-z-bg-body bg-z-bg-body-partial px-2 text-sm font-extralight text-z-heading backdrop-blur-lg transition">
-            2024
+            {props.entry.date}
           </div>
 
           <div class="ml-4 flex items-center rounded-t border-x border-t border-z-bg-body bg-z-bg-body-partial px-2 text-sm font-extralight text-z-heading backdrop-blur-lg transition">
             <Fa
               class="mr-1.5 h-5 w-4 transition icon-z-text-heading"
-              icon={faClockFour}
+              icon={icons[props.entry.status]}
               title="check"
             />
-            in progress
+            {props.entry.status}
           </div>
         </div>
 
         <div class="absolute right-0 top-0 grid h-full grid-flow-col-dense grid-rows-[3rem,3rem,3rem,3rem] gap-3 rounded-r-xl border-l border-l-z-bg-body bg-z-bg-body-partial p-3 backdrop-blur-lg transition">
-          {createIcon("ts")}
-          {createIcon("js")}
-          {createIcon("glsl")}
-          {createIcon("solid")}
-          {createIcon("vite")}
-          {createIcon("py")}
-          {createIcon("tailwind")}
-          {createIcon("astro")}
+          {props.entry.icons.map(createIcon)}
         </div>
       </div>
     </div>
   )
+}
+
+export function Main() {
+  return entries.map((entry) => <Entry entry={entry} />)
 }
