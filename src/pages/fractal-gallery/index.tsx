@@ -272,6 +272,8 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=-sin%28c%2Fz%29%2Bc%2Bs&theme=gradient&top=0.10157257883243714&right=0.9359748859741761&bottom=0.062173227824393995&left=0.8965755349656634&detail=121&colorOffset=94.3282185628743&z=p&c=p&slider=47.6694467905405&smoothness=50&size=2.0059880239520957&spectrum=62.7853667664671",
   "https://v8.zsnout.com/fractal-explorer?equation=-sin%28c%2Fz%29%2Bc%2Bs&theme=gradient&top=0.22178850608214257&right=0.615155570172504&bottom=0.18837210610066207&left=0.5817391701906254&detail=121&colorOffset=94.3282185628743&z=p&c=p&slider=47.6694467905405&smoothness=50&size=2.0059880239520957&spectrum=62.7853667664671",
   "https://v8.zsnout.com/fractal-explorer?equation=-sin%28c%2Fz%29%2Bc%2Bs&theme=gradient&top=0.21657578826644164&right=0.6142934664189279&bottom=0.2147035035462515&left=0.6124211816987184&detail=1000&colorOffset=225.12630988024&z=p&c=p&slider=47.6694467905405&smoothness=50&size=2.0059880239520957&spectrum=15.6647642215569",
+  "https://v8.zsnout.com/fractal-explorer?equation=-sin%28c%2Fz%29%2Bc%2Bs&theme=gradient&top=0.017655350949741914&right=0.44775867482027715&bottom=-0.017240714848940613&left=0.41286260902139443&detail=1000&colorOffset=49.8671407185629&z=p&c=p&slider=47.6694467905405&smoothness=73.9251964820359&size=2.0059880239520957",
+  "https://v8.zsnout.com/fractal-explorer?equation=-sin%28c%2Fz%29%2Bc%2Bs&theme=trig&top=0.08742468968569446&right=-0.318660493535491&bottom=0.015538927124259194&left=-0.39054625609733806&detail=215&colorOffset=49.8671407185629&z=p&c=p&slider=100&smoothness=73.9251964820359&size=2.0059880239520957",
 ]
 
 export function Main() {
