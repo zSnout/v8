@@ -248,6 +248,19 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?top=1&bottom=-1&left=-1&right=1&equation=z%5E2+%2B+%24%28-0.7548332464245562+-0.05134377873212426i%29&detail=1000&z=p&c=p&theme=simple&repetitionSign=1&colorOffset=227.349363772455",
   "https://v8.zsnout.com/fractal-explorer?theme=trig&top=0.6192549969395025&right=-0.697512930493437&bottom=-0.5009534485676008&left=-1.8177213763989384&equation=z%5E2%2Bz%2B1%2Fz%2B1%2Fzz%2Bz%5E-19%2Bc&size=7.233158682634736&alt_colors=&colorOffset=293.308383233533&spectrum=6.39502245508982&smoothness=70.0435067365269&repetition=10",
   "https://v8.zsnout.com/fractal-explorer?equation=z%5E%281%2Fc%29%2Bc&theme=simple&top=0.2625242798667542&right=0.07059226094994346&bottom=0.26008657876675123&left=0.06815455984975598&detail=50&slider=75.2718538851351&z=p&c=p&size=10000000000000000000",
+  "https://v8.zsnout.com/fractal-explorer?equation=sin(c/2z)%2Bc%2Bz%5E(10s)&theme=trig&top=-0.06210936446551568&right=-2.5367476087587577&bottom=-0.06285902225071029&left=-2.5374972665439564&detail=50",
+  "https://v8.zsnout.com/fractal-explorer?equation=-sin(c/z)%2Bc%2Bs&theme=trig&top=0.7157181989875658&right=0.8345650806091818&bottom=-0.7651901277071591&left=-0.6463432461032743&detail=60&spectrum=33.3083832335329&colorOffset=160.110404191617&z=p&c=p&slider=100&top=1&bottom=-1&left=-1&right=1",
+  "https://v8.zsnout.com/fractal-explorer?top=1.289089698342261&right=1.223826858898204&bottom=-1.2402356495646085&left=-1.3054984890086656&theme=simple&equation=z%5E2%2B$(0.33642683941372065%2B-0.38902029303725516i)&z=p&c=p",
+  "https://v8.zsnout.com/fractal-explorer?top=-0.3574505452126474&right=0.19007272446711118&bottom=-0.5908818943531389&left=-0.043358624673372786&theme=simple&equation=z%5E2%2B$(0.33642683941372065%2B-0.38902029303725516i)&z=p&c=p&detail=1000&spectrum=16.4670658682635&colorOffset=298.562874251497",
+  "https://v8.zsnout.com/fractal-explorer?top=-0.3616842948005324&right=0.14761699189853802&bottom=-0.3618403453618643&left=0.14746094133720447&theme=trig&equation=z%5E2%2B$(0.33642683941372065%2B-0.38902029303725516i)&z=p&c=p&detail=1000&smoothness=50&colorOffset=310.419161676647&spectrum=79.3413173652695&repetition=10&split=",
+  "https://v8.zsnout.com/fractal-explorer?top=-0.36174680092732175&right=0.1475654626848076&bottom=-0.3618082316166081&left=0.14750403199552067&theme=gradient&equation=z%5E2%2B$(0.33642683941372065%2B-0.38902029303725516i)&z=p&c=p&detail=1000&repetition=10&colorOffset=250.059880239521&alt_colors=&smoothness=50&spectrum=28.1437125748503&size=1.5089820359281438&split=",
+  "https://v8.zsnout.com/fractal-explorer?equation=z%5E2%2Bciter&top=0.20073111328399143&right=0.15245832228095077&bottom=-0.18912677407674686&left=-0.23739956507978804&theme=gradient&split=",
+  "https://v8.zsnout.com/fractal-explorer?top=0.011758642349522994&right=-1.7583249884126786&bottom=-0.011370112115659955&left=-1.7814537428777422&theme=plot&z=p%2Bpi&size=9.681137724550895&split=",
+  "https://v8.zsnout.com/fractal-explorer?top=0.3665934312399958&right=0.2814944640025434&bottom=-0.44477309204020826&left=-0.5298720592776343&theme=plot&z=p*pi&c=p3&size=1.2211826347305401",
+  "https://v8.zsnout.com/fractal-explorer?top=0.0037421570541271982&right=0.0948856121708615&bottom=0.0035431161899835005&left=0.09468657130671781&theme=plot&z=p*pi&c=p3&size=2.2440119760479043&colorOffset=282.445733532934&smoothness=66.6120883233533&spectrum=52.4279565868264",
+  "https://v8.zsnout.com/fractal-explorer?top=0.2077559320058&right=-0.17617072744929424&bottom=0.2072463402261016&left=-0.17668031922899174&theme=plot&z=p*pi&c=p3&split=",
+  "https://v8.zsnout.com/fractal-explorer?top=1.25&right=0.5&bottom=-1.25&left=-2&equation=z%5E(2%5E(5s))%2Bc&theme=simple&z=p&c=p&slider=18.2062922297297&size=10&colorOffset=204.150449101796&repetitionSign=1",
+  "https://v8.zsnout.com/fractal-explorer?top=22.413885501261827&right=26.858785023387497&bottom=-24.26027517056021&left=-19.81537563765906&equation=z%5E9999999t%2Bc&theme=simple&z=p&c=p",
 ]
 
 export function Main() {
@@ -256,7 +269,10 @@ export function Main() {
       <h1 class="text-center text-xl font-semibold text-z-heading transition">
         Fractal Gallery
       </h1>
+
       <p class="mb-6 text-center text-z transition">
+        There are currently {FRACTALS.length} fractals listed.
+        <br />
         Click any fractal to open it in fullscreen.
         <br />
         Clicking also lets you interact with a fractal.
