@@ -261,6 +261,8 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?top=0.2077559320058&right=-0.17617072744929424&bottom=0.2072463402261016&left=-0.17668031922899174&theme=plot&z=p*pi&c=p3&split=",
   "https://v8.zsnout.com/fractal-explorer?top=1.25&right=0.5&bottom=-1.25&left=-2&equation=z%5E(2%5E(5s))%2Bc&theme=simple&z=p&c=p&slider=18.2062922297297&size=10&colorOffset=204.150449101796&repetitionSign=1",
   "https://v8.zsnout.com/fractal-explorer?top=22.413885501261827&right=26.858785023387497&bottom=-24.26027517056021&left=-19.81537563765906&equation=z%5E9999999t%2Bc&theme=simple&z=p&c=p",
+  "https://v8.zsnout.com/fractal-explorer?equation=cos%28z%2Fc%29i&theme=simple&top=1.1756311813023537&bottom=-1.1032355772269704&left=-1.254544329482924&right=1.024322429046247&z=p&c=p&colorOffset=184.319797904192&spectrum=30.3517964071856&slider=100",
+  "https://v8.zsnout.com/fractal-explorer?equation=i+%2B+z%5E%282sin%28t%2F4%29%2B3%29+-+c%5E13&theme=trig&top=1.1469299661584154&bottom=-1.1538337380185502&left=-1.1939561702946584&right=1.1068075338823076&z=p&c=p",
 ]
 
 export function Main() {
