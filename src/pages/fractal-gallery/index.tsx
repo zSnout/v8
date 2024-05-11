@@ -308,6 +308,8 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%5E-2%29%2B%28%28%28%28%28%28%28%28%24%280.161583318242009+-1.312786560232837i%29%29%29%29%29%29%29%29%29&theme=trig&top=1386.6513611095565&right=1291.170356792124&bottom=-1408.363204540302&left=-1503.8442088572165&detail=50&z=p&c=p&slider=100&colorOffset=239.946669161677&repetition=7.01103388798701&smoothness=66.6226141467066&spectrum=15.7840568862275",
   "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E-2%2Bc&theme=gradient&top=1.8763306868071106&right=1.5665817704967244&bottom=-1.5319863948651884&left=-1.8417353105880294&detail=50&spectrum=32.7236152694611&z=p&c=p&slider=100&colorOffset=294.360965568862&split=",
   "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E-2%2Bc&theme=gradient&top=-0.7784782142624549&right=0.27724153087657827&bottom=-0.841144542186764&left=0.21457520296305216&detail=50&spectrum=32.7236152694611&z=p&c=p&slider=100&colorOffset=223.416916167665",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs(z%2Fs)%5E-2%2B(c%23(2%2Bi))s&theme=gradient&top=1.4974537915042647&right=0.6196529102015945&bottom=1.3954590250083043&left=0.5176581437231984&detail=50&z=p&c=p&slider=10.4993665540541&split=&repetition=10&repetitionSign=1&colorOffset=195.696107784431&smoothness=58.9258982035928",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs(z%2Fs)%5E-2%2Bcs&theme=gradient&top=-0.7631311460747561&right=0.2764448249077027&bottom=-0.7969487970063558&left=0.24262717398192235&detail=50&spectrum=0&z=p&c=p&slider=100&colorOffset=220.351796407186&split=",
 ]
 
 export function Main() {
