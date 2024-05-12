@@ -326,6 +326,7 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E-1.04+%2B+%24%280.1s-0.9043467599729693+%2B+0.08625649698903404i%29&theme=trig&top=1.4216484502259792&right=0.7192704287947722&bottom=-1.446767735624903&left=-2.14914575705611&spectrum=32.7236152694611&z=p&c=p&detail=60&colorOffset=312.238023952096",
   "https://v8.zsnout.com/fractal-explorer?equation=%28abs%28z%2Fs%29%5E-1.04+%2B+%24%28-0.9043467599729693+%2B+0.08625649698903404i%29%29s&theme=trig&top=1.4216484502259792&right=0.7192704287947722&bottom=-1.446767735624903&left=-2.14914575705611&spectrum=32.7236152694611&z=ps&c=p&detail=60&colorOffset=312.238023952096&slider=49.070945945946",
   "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.8664223957348419&bottom=0.8504242100734175&left=0.18368583591623333&right=0.19968402157765774&z=p&c=p&slider=71.3048986486487&detail=1000&repetition=1.33991984577922&colorOffset=360&repetitionSign=1&spectrum=21.6364146706587&alt_colors=",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E-%282%2Bs%29+%2B+%24%280.02992872046249362+-0.7137669870740824i%29&theme=trig&top=7.129662090243389&right=5.987524941178652&bottom=-2.9800847040673&left=-4.122221853132038&spectrum=32.7236152694611&z=p&c=p&detail=60&colorOffset=312.238023952096&slider=91.039379222973&size=10",
 ]
 
 export function Main() {
