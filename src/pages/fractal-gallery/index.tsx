@@ -54,16 +54,8 @@ export function Canvas(props: {
   const [equationText, zText, cText] = [props.equation, props.z, props.c]
 
   const eq = textToGLSL(equationText)
-  if (!eq.ok) {
-  }
-
   const zEq = textToGLSL(zText)
-  if (!zEq.ok) {
-  }
-
   const cEq = textToGLSL(cText)
-  if (!cEq.ok) {
-  }
 
   if (!(eq.ok && zEq.ok && cEq.ok)) {
     return
@@ -73,7 +65,7 @@ export function Canvas(props: {
     <canvas
       class={props.class}
       ref={(canvas) => {
-        setTimeout(() => {
+        const render = () => {
           const ctx = canvas.getContext("2d")!
 
           if (!ctx) {
@@ -132,7 +124,16 @@ export function Canvas(props: {
           canvas.width = canvas.clientWidth * devicePixelRatio
           canvas.height = canvas.clientHeight * devicePixelRatio
           ctx.drawImage(glCanvas, 0, 0, canvas.width, canvas.height)
+        }
+
+        const observer = new IntersectionObserver(([entry]) => {
+          if (entry!.isIntersecting) {
+            render()
+            observer.unobserve(canvas)
+          }
         })
+
+        observer.observe(canvas)
       }}
     />
   )
