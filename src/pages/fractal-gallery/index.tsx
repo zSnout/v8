@@ -323,6 +323,9 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=%28zi+%2B+c%5E-2i%29%2F%28z%5E2i+%2B+ci%29&theme=trig&top=1.9935753074710243&right=1.7497493271071982&bottom=-2.0548462116566695&left=-2.2986721808269572&z=p&c=p&detail=60&slider=100&colorOffset=92.997754491018&spectrum=71.8118450598802",
   "https://v8.zsnout.com/fractal-explorer?equation=2%5E(z%5Eci)&theme=trig&top=11.14700757471605&right=1.7778785098315009&bottom=-3.2757430236326597&left=-12.64487204863989&z=p&c=p&detail=60&slider=100&colorOffset=92.997754491018&spectrum=71.8118450598802",
   "https://v8.zsnout.com/fractal-explorer?equation=%28c%5E-2%29%2F%28z%5E2%2Bc%29&top=0.49517754039454864&right=0.9885129807417504&bottom=0.4943067531612384&left=0.9876421935084402&theme=gradient",
+  "https://v8.zsnout.com/fractal-explorer?equation=abs%28z%29%5E-1.04+%2B+%24%280.1s-0.9043467599729693+%2B+0.08625649698903404i%29&theme=trig&top=1.4216484502259792&right=0.7192704287947722&bottom=-1.446767735624903&left=-2.14914575705611&spectrum=32.7236152694611&z=p&c=p&detail=60&colorOffset=312.238023952096",
+  "https://v8.zsnout.com/fractal-explorer?equation=%28abs%28z%2Fs%29%5E-1.04+%2B+%24%28-0.9043467599729693+%2B+0.08625649698903404i%29%29s&theme=trig&top=1.4216484502259792&right=0.7192704287947722&bottom=-1.446767735624903&left=-2.14914575705611&spectrum=32.7236152694611&z=ps&c=p&detail=60&colorOffset=312.238023952096&slider=49.070945945946",
+  "https://v8.zsnout.com/fractal-explorer?equation=i%2Bz%5E3-c%5E%2814s%2B1%29&theme=trig&top=0.8664223957348419&bottom=0.8504242100734175&left=0.18368583591623333&right=0.19968402157765774&z=p&c=p&slider=71.3048986486487&detail=1000&repetition=1.33991984577922&colorOffset=360&repetitionSign=1&spectrum=21.6364146706587&alt_colors=",
 ]
 
 export function Main() {
