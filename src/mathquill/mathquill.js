@@ -1,4 +1,5 @@
 // @ts-nocheck
+
 /**
  * MathQuill v0.10.1, by Han, Jeanine, and Mary
  * http://mathquill.com | maintainers@mathquill.com
@@ -7451,7 +7452,7 @@ baseOptionProcessors.autoOperatorNames = function (cmds) {
   var maxLength = 0
   for (var i = 0; i < list.length; i += 1) {
     var cmd = list[i]
-    if (cmd.length < 2) {
+    if (cmd.length < 1) {
       throw '"' + cmd + '" not minimum length of 2'
     }
     if (cmd.indexOf("|") < 0) {
@@ -10233,20 +10234,5 @@ CharCmds["\\"] = /** @class */ (function (_super) {
   return LatexCommandInput
 })(MathCommand)
 
-// For backwards compatibility, set up the global MathQuill object as an instance of API interface v1
-if (globalThis.jQuery) {
-  MQ1 = getInterface(1)
-  for (var key in MQ1)
-    (function (key, val) {
-      if (typeof val === "function") {
-        MathQuill[key] = function () {
-          insistOnInterVer()
-          return val.apply(this, arguments)
-        }
-        MathQuill[key].prototype = val.prototype
-      } else MathQuill[key] = val
-    })(key, MQ1[key])
-}
-// })()
 export { LatexCmds, MQSymbol }
 export const mq = getInterface(3)

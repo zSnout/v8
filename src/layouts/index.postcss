@@ -147,4 +147,23 @@ html.no-transition * {
   .mq-f {
     @apply mr-0 pr-[0.1em];
   }
+
+  .mq-icon {
+    @apply relative top-[0.0625em] -mt-[0.0625em] ml-[0.1em] mr-[0.1em] inline-flex h-[1.25em] w-[1.25em] items-center justify-center rounded border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 [.mq-selection_&]:bg-blue-500;
+  }
+
+  :where(.mq-icon:not(.mq-selection > *)):first-child,
+  :where(.mq-selection:first-child > .mq-icon):first-child,
+  :where(.mq-cursor:first-child) + .mq-icon,
+  :where(.mq-operator-name + .mq-icon:not(.mq-selection > *)),
+  :where(.mq-operator-name + .mq-selection > .mq-icon):first-child,
+  :where(.mq-operator-name + .mq-cursor) + .mq-icon,
+  :where(.mq-operator-name) + .mq-icon,
+  :where(.mq-selection:has(> .mq-operator-name:last-child)) + .mq-icon {
+    @apply ml-0;
+  }
+
+  :where(.mq-icon) svg {
+    @apply relative h-[0.75em] w-[0.75em] fill-blue-500 [.mq-selection_&]:fill-blue-50;
+  }
 }
