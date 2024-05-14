@@ -103,9 +103,12 @@ html.no-transition * {
 }
 
 @layer base {
-  .mq-editable-field,
-  :where(.mq-math-mode) .mq-editable-field {
-    @apply border-0 text-black dark:text-white;
+  .mq-editable-field {
+    @apply border-0 text-black transition dark:text-white;
+  }
+
+  .mq-editable-field * {
+    @apply text-inherit;
   }
 
   :where(.mq-editable-field).mq-focused,
@@ -117,18 +120,31 @@ html.no-transition * {
   }
 
   .mq-selection,
-  .mq-selection *,
   :where(.mq-math-mode) .mq-selection,
   :where(.mq-editable-field) .mq-selection,
   :where(.mq-math-mode .mq-selection) .mq-non-leaf,
-  :where(.mq-editable-field .mq-selection) .mq-non-leaf,
-  :where(.mq-math-mode .mq-selection) .mq-scaled,
-  :where(.mq-editable-field .mq-selection) .mq-scaled {
-    @apply border-none text-inherit ![background:#b4d5fe] dark:![background:#375578];
+  :where(.mq-editable-field .mq-selection) .mq-non-leaf {
+    @apply text-inherit ![background:#b4d5fe] dark:![background:#375578];
   }
 
   :where(.mq-operator-name) + .mq-binary-operator,
   :where(.mq-operator-name + .mq-selection > .mq-binary-operator):first-child {
     @apply pr-0;
+  }
+
+  :where(.mq-operator-name.mq-last + .mq-operator-name).mq-first,
+  :where(
+      .mq-operator-name.mq-last + .mq-selection > .mq-operator-name.mq-first
+    ):first-child {
+    @apply pl-0;
+  }
+
+  :where(.mq-mouse),
+  :where(.mq-time) {
+    font-family: "Times New Roman", Symbols, serif;
+  }
+
+  .mq-f {
+    @apply mr-0 pr-[0.1em];
   }
 }

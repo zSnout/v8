@@ -68,6 +68,7 @@ export namespace V3 {
     setAriaPostLabel: (str: string, timeout?: number) => EditableMathQuill
     ignoreNextMousedown: (func: () => boolean) => EditableMathQuill
     clickAt: (x: number, y: number, el: HTMLElement) => EditableMathQuill
+    dropEmbedded: (x: number, y: number, data: EmbedOptions) => void
   }
 
   interface API {
@@ -233,3 +234,16 @@ interface DefaultJquery {
   length: number
   [index: number]: HTMLElement | undefined
 }
+
+export var LatexCmds: Record<string, () => MQSymbol>
+
+export class MQSymbol {
+  constructor(
+    latex: string,
+    html: HTMLElement,
+    text: string,
+    mathspeak?: string,
+  )
+}
+
+export var mq: V3.API
