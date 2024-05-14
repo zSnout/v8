@@ -16,10 +16,11 @@ export function EditableMathQuill(
           autoOperatorNames:
             "sin sinh asin arcsin cos cosh acos arccos tan tanh atan arctan csc csch acsc arccsc sec sech asec arcsec cot coth acot arccot distance for and or not mod screen pixel iter",
           autoCommands:
-            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int real imag time mouse",
+            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int real imag time mouse cross",
           infixOperatorNames: "mod",
           autoSubscriptNumerals: true,
           disableAutoSubstitutionInSubscripts: true,
+          tripleDotsAreEllipsis: true,
           enableDigitGrouping: true,
           spaceBehavesLikeTab: true,
           statelessClipboard: true,
@@ -44,11 +45,16 @@ export function Main() {
     <>
       <div class="contents text-xl">
         <EditableMathQuill
-          class="rounded-lg border border-z px-3 py-2"
+          class="rounded-lg border border-z [&_.mq-root-block]:px-3 [&_.mq-root-block]:py-2"
           initialLatex={latex()}
           edit={(mq) => {
             setLatex(mq.latex())
             setMathspeak(mq.mathspeak())
+          }}
+          ref={(mq) => {
+            setTimeout(() => {
+              mq.latex("2+\\mouse+4")
+            })
           }}
         />
       </div>

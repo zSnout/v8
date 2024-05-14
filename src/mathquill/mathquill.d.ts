@@ -1,13 +1,15 @@
+import type { JSX } from "solid-js"
+
 /** The global MathQuill object */
-export interface MathQuill {
+export declare interface MathQuill {
   getInterface(version: 1): V1.API
   getInterface(version: 2): V1.API
   getInterface(version: 3): V3.API
 }
 
-type Direction = -1 | 1
+export declare type Direction = -1 | 1
 
-export namespace V3 {
+export declare namespace V3 {
   type HandlersWithDirection = V1.HandlersWithDirection
   type HandlersWithoutDirection = V1.HandlersWithoutDirection
   type HandlerOptions = V1.HandlerOptions<BaseMathQuill>
@@ -98,7 +100,7 @@ export namespace V3 {
   }
 }
 
-export namespace V1 {
+export declare namespace V1 {
   interface Config<$ = DefaultJquery> {
     ignoreNextMousedown?: (_el: MouseEvent) => boolean
     substituteTextarea?: () => HTMLElement
@@ -229,21 +231,28 @@ export namespace V1 {
   }
 }
 
-interface DefaultJquery {
+export declare interface DefaultJquery {
   (el: HTMLElement): DefaultJquery
   length: number
   [index: number]: HTMLElement | undefined
 }
 
-export var LatexCmds: Record<string, () => MQSymbol>
+export declare var LatexCmds: Record<string, () => MQSymbol>
 
-export class MQSymbol {
+export declare class MQSymbol {
   constructor(
     latex: string,
-    html: HTMLElement,
+    html: JSX.Element,
     text: string,
     mathspeak?: string,
   )
+
+  setCtrlSeqHtmlTextAndMathspeak(
+    latex: string,
+    html: JSX.Element,
+    text: string,
+    mathspeak?: string,
+  ): void
 }
 
-export var mq: V3.API
+export declare var mq: V3.API
