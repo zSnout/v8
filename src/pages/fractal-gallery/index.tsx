@@ -339,6 +339,7 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?equation=zabs%28z%29%5E2+%2B+c&top=-0.038282094719489485&right=-0.4705710130499391&bottom=-0.03899215161041304&left=-0.47128106994083985&theme=gradient&split=&colorOffset=268.383233532934&spectrum=47.9041916167665",
   "https://v8.zsnout.com/fractal-explorer?equation=zabs%28z%29%5E2+%2B+c&top=1.1059865724132558&right=0.3862092476166263&bottom=1.103351641434137&left=0.3835743166375796&theme=gradient&split=&colorOffset=268.383233532934&spectrum=47.9041916167665",
   "https://v8.zsnout.com/fractal-explorer?equation=zabs%28z%29%5E2+%2B+c&top=0.04666262093428321&right=0.48193066861506034&bottom=0.03905829353818566&left=0.4743263412198233&theme=gradient&split=&colorOffset=268.383233532934&spectrum=47.9041916167665",
+  "https://v8.zsnout.com/fractal-explorer?top=0.17795141966766442&right=1.4699154369709697&bottom=0.17143662447178193&left=1.463400641775144&theme=gradient&equation=abs%28z%29%5E2+-+c&spectrum=62.5748502994012&colorOffset=54.9700598802395&smoothness=69.7604790419162&plot_size=10&detail=26&split=",
 ]
 
 export function Main() {

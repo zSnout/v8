@@ -44,10 +44,12 @@
 html,
 .light {
   @apply z-light-slate z-light-focus-blue;
+  color-scheme: light;
 }
 
 .dark {
   @apply z-dark-slate z-dark-focus-blue;
+  color-scheme: dark;
 }
 
 .arc {
@@ -97,5 +99,36 @@ html.no-transition * {
 
   to {
     @apply opacity-100;
+  }
+}
+
+@layer base {
+  .mq-editable-field,
+  :where(.mq-math-mode) .mq-editable-field {
+    @apply border-0 text-black dark:text-white;
+  }
+
+  :where(.mq-editable-field).mq-focused,
+  :where(.mq-math-mode .mq-editable-field).mq-focused {
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    border-color: none;
+  }
+
+  .mq-selection,
+  .mq-selection *,
+  :where(.mq-math-mode) .mq-selection,
+  :where(.mq-editable-field) .mq-selection,
+  :where(.mq-math-mode .mq-selection) .mq-non-leaf,
+  :where(.mq-editable-field .mq-selection) .mq-non-leaf,
+  :where(.mq-math-mode .mq-selection) .mq-scaled,
+  :where(.mq-editable-field .mq-selection) .mq-scaled {
+    @apply border-none text-inherit ![background:#b4d5fe] dark:![background:#375578];
+  }
+
+  :where(.mq-operator-name) + .mq-binary-operator,
+  :where(.mq-operator-name + .mq-selection > .mq-binary-operator):first-child {
+    @apply pr-0;
   }
 }
