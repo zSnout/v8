@@ -352,6 +352,22 @@ export type TreeB =
   | { type: "sum" | "prod" | "int"; from: TreeB[]; to: TreeB[] }
   | { type: "logb"; base: TreeB[] }
   | { type: "frac" | "binom" | "dual"; a: TreeB[]; b: TreeB[] }
+  | { type: "implicit_mult"; a: TreeB; b: TreeB }
+
+const TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY = Object.freeze<
+  (TreeB["type"] | undefined)[]
+>([
+  "n",
+  "v",
+  "vsub",
+  "mb",
+  "sqrt",
+  "nthroot",
+  "frac",
+  "binom",
+  "dual",
+  "implicit_mult",
+])
 
 export function treeAToB(tree: TreeA[]): TreeB[] {
   const output: TreeB[] = []
@@ -536,18 +552,63 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
         }
         break
 
-      case "n":
-      case "v":
-        output.push(self)
-        break
+      case "n": {
+        const last = output[output.length - 1]
 
-      case "mb":
+        if (TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY.includes(last?.type)) {
+          output[output.length - 1] = {
+            type: "implicit_mult",
+            a: last!,
+            b: self,
+          }
+        } else {
+          output.push(self)
+        }
+
+        break
+      }
+
+      case "v": {
+        let me: TreeB
+        const next = tree[index + 1]
+        const next2 = tree[index + 2]
+
+        if (next?.type == "op" && next.name == "_" && next2?.type == "lb") {
+          me = {
+            type: "vsub",
+            name: self.name,
+            sub: treeAToB(next2.tokens),
+          }
+          index += 2
+        } else {
+          me = self
+        }
+
+        const last = output[output.length - 1]
+
+        if (TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY.includes(last?.type)) {
+          output[output.length - 1] = {
+            type: "implicit_mult",
+            a: last!,
+            b: me,
+          }
+        } else {
+          output.push(me)
+        }
+
+        break
+      }
+
+      case "mb": {
+        // TODO: IMPLICIT MULTIPLICATION
+
         output.push({
           type: "mb",
           bracket: self.bracket,
           contents: treeAToB(self.tokens),
         })
         break
+      }
 
       case "lb":
     }
@@ -602,8 +663,10 @@ export type BinaryOperator =
   | "-"
   | "·"
   | "⨯"
+  | "implicitmult"
   | "frac"
   | "÷"
+  | "/"
   | "%"
   | "#"
   | "mod"
