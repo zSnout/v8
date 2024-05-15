@@ -593,7 +593,7 @@
 }
 :where(.mq-math-mode .mq-dual-container) {
   display: inline-grid;
-  margin: 0 0.2em;
+  margin: 0 0.1em;
   position: relative;
   z-index: 1;
 }
@@ -601,14 +601,14 @@
   display: inline-block;
   padding: 0.1em 0.2em;
   border-color: currentColor;
-  border-width: 0 1px 1px 0;
+  border-width: 0 1px 1px 1px;
   grid-area: 1 / 1 / 2 / 2;
 }
 :where(.mq-math-mode .mq-dual-denominator) {
   display: inline-block;
   padding: 0.1em 0.2em;
   border-color: currentColor;
-  border-width: 1px 0 0 1px;
+  border-width: 1px 1px 0 1px;
   margin: -0.4em 0 0 -0.4em;
   background-color: var(--z-bg-body);
   font-size: 72%;
