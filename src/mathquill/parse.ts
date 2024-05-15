@@ -69,7 +69,7 @@ export type Token =
   | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
-  | { type: "mb"; bracket: MathBracket }
+  | { type: "bracket"; bracket: MathBracket }
   | { type: "lb"; bracket: LatexBracket }
 
 export type BuildableToken =
@@ -84,13 +84,13 @@ export function tokenize(text: string): Token[] {
   function pushCurrent() {
     if (current) {
       if (current.type == "op" && current.name == "langle") {
-        tokens.push({ type: "mb", bracket: "<" })
+        tokens.push({ type: "bracket", bracket: "<" })
       } else if (current.type == "op" && current.name == "rangle") {
-        tokens.push({ type: "mb", bracket: ">" })
+        tokens.push({ type: "bracket", bracket: ">" })
       } else if (current.type == "op" && current.name == "lVert") {
-        tokens.push({ type: "mb", bracket: "||L" })
+        tokens.push({ type: "bracket", bracket: "||L" })
       } else if (current.type == "op" && current.name == "rVert") {
-        tokens.push({ type: "mb", bracket: "||R" })
+        tokens.push({ type: "bracket", bracket: "||R" })
       } else if (current.type != "/") {
         tokens.push(current)
       }
@@ -120,7 +120,7 @@ export function tokenize(text: string): Token[] {
       case "{":
       case "}":
         if (current?.type == "/") {
-          tokens.push({ type: "mb", bracket: char })
+          tokens.push({ type: "bracket", bracket: char })
           current = undefined
         } else {
           if (char == "}" && current?.type == "op" && current.opname) {
@@ -137,7 +137,7 @@ export function tokenize(text: string): Token[] {
       case "(":
       case ")":
         pushCurrent()
-        tokens.push({ type: "mb", bracket: char })
+        tokens.push({ type: "bracket", bracket: char })
         break
 
       case "|":
@@ -147,7 +147,10 @@ export function tokenize(text: string): Token[] {
         ) {
           const name = current.name
           pushCurrent()
-          tokens.push({ type: "mb", bracket: name == "left" ? "|L" : "|R" })
+          tokens.push({
+            type: "bracket",
+            bracket: name == "left" ? "|L" : "|R",
+          })
         }
         break
 
@@ -223,7 +226,7 @@ export type TreeA =
   | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
-  | { type: "mb"; bracket: DoubleBracket; tokens: TreeA[] }
+  | { type: "bracket"; bracket: DoubleBracket; tokens: TreeA[] }
   | { type: "lb"; tokens: TreeA[] }
 
 export type TreeAResult =
@@ -281,7 +284,7 @@ export function tokensToTree(tokens: Token[]): TreeAResult {
           }
         }
       }
-    } else if (token.type == "mb") {
+    } else if (token.type == "bracket") {
       if (
         token.bracket == "(" ||
         token.bracket == "[" ||
@@ -292,7 +295,7 @@ export function tokensToTree(tokens: Token[]): TreeAResult {
       ) {
         const group: TreeA[] = []
         current.push({
-          type: "mb",
+          type: "bracket",
           bracket: LEFT_TO_DOUBLE[token.bracket],
           tokens: group,
         })
@@ -311,7 +314,7 @@ export function tokensToTree(tokens: Token[]): TreeAResult {
 
         const last = current[current.length - 1]
         if (
-          last?.type != "mb" ||
+          last?.type != "bracket" ||
           last.bracket != RIGHT_TO_DOUBLE[token.bracket]
         ) {
           return {
@@ -338,24 +341,20 @@ export function tokensToTree(tokens: Token[]): TreeAResult {
   }
 }
 
-export type BracketOrImplicit = "()" | "[]" | "{}" | "||" | "<>" | "||||" | ""
-
 export type TreeB =
   | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
   | { type: "vsub"; name: string; sub: TreeB[] }
-  | { type: "sub"; sub: TreeB[] }
-  | { type: "sup"; sup: TreeB[] }
-  | { type: "mb"; bracket: BracketOrImplicit; contents: TreeB[] }
-  | { type: "sqrt"; contents: TreeB[] }
+  | { type: "sub" | "sup" | "sqrt" | "logb"; contents: TreeB[] }
+  | { type: "bracket"; bracket: DoubleBracket; contents: TreeB[] }
   | { type: "nthroot"; root: TreeB[]; contents: TreeB[] }
   | { type: "sum" | "prod" | "int"; from: TreeB[]; to: TreeB[] }
-  | { type: "logb"; base: TreeB[] }
   | { type: "frac" | "binom" | "dual"; a: TreeB[]; b: TreeB[] }
   | { type: "implicit_mult"; a: TreeB; b: TreeB }
   | { type: "call"; fn: TreeB; param: TreeB[] }
   | { type: "^"; base: TreeB; sup: TreeB[] }
+  | { type: "!"; contents: TreeB }
 
 const TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY = Object.freeze<
   (TreeB["type"] | undefined)[]
@@ -363,13 +362,15 @@ const TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY = Object.freeze<
   "n",
   "v",
   "vsub",
-  "mb",
+  "bracket",
   "sqrt",
   "nthroot",
   "frac",
   "binom",
   "dual",
   "implicit_mult",
+  "^",
+  "!",
 ])
 
 const FN_RENAME_MAP: Record<string, string> = Object.freeze({
@@ -473,7 +474,7 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
             const next2 = tree[index + 2]
 
             if (
-              next?.type == "mb" &&
+              next?.type == "bracket" &&
               next.bracket == "[]" &&
               next2?.type == "lb"
             ) {
@@ -573,7 +574,7 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
             if (next?.type == "op" && next.name == "_" && next2?.type == "lb") {
               output.push({
                 type: "logb",
-                base: treeAToB(next2.tokens),
+                contents: treeAToB(next2.tokens),
               })
               index += 2
             } else {
@@ -591,7 +592,7 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
             if (next?.type == "lb") {
               output.push({
                 type: "sub",
-                sub: treeAToB(next.tokens),
+                contents: treeAToB(next.tokens),
               })
               index += 1
             }
@@ -613,11 +614,24 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
               } else {
                 output.push({
                   type: "sup",
-                  sup: treeAToB(next.tokens),
+                  contents: treeAToB(next.tokens),
                 })
               }
 
               index += 1
+            }
+
+            break
+          }
+
+          case "!": {
+            const prev = output[output.length - 1]
+
+            if (prev) {
+              output[output.length - 1] = {
+                type: "!",
+                contents: prev,
+              }
             }
 
             break
@@ -734,9 +748,9 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
         break
       }
 
-      case "mb": {
+      case "bracket": {
         const me: TreeB = {
-          type: "mb",
+          type: "bracket",
           bracket: self.bracket,
           contents: treeAToB(self.tokens),
         }
@@ -827,7 +841,7 @@ const UNARY_TRIG_OPERATORS = Object.freeze([
 
 export type UnaryTrigOperator = (typeof UNARY_TRIG_OPERATORS)[number]
 
-const UNARY_PREFIX_OPERATORS = Object.freeze([
+const UNARY_OPERATOR = Object.freeze([
   ...UNARY_TRIG_OPERATORS,
   "+",
   "-",
@@ -841,30 +855,185 @@ const UNARY_PREFIX_OPERATORS = Object.freeze([
   "imag",
 ] as const)
 
-export type UnaryPrefixOperator = (typeof UNARY_PREFIX_OPERATORS)[number]
+export type UnaryOperator = (typeof UNARY_OPERATOR)[number]
 
-const UNARY_SUFFIX_OPERATORS = Object.freeze(["!"] as const)
+export type TreeC =
+  | { type: "op"; name: string }
+  | { type: "n"; value: string }
+  | { type: "v"; name: string }
+  | { type: "vsub"; name: string; sub: TreeC[] }
+  | { type: "sub" | "sup" | "sqrt" | "logb"; contents: TreeC[] }
+  | { type: "bracket"; bracket: DoubleBracket; contents: TreeC[] }
+  | { type: "nthroot"; root: TreeC[]; contents: TreeC[] }
+  | { type: "sum" | "prod" | "int"; from: TreeC[]; to: TreeC[] }
+  | { type: "frac" | "binom" | "dual"; a: TreeC[]; b: TreeC[] }
+  | { type: "implicit_mult"; a: TreeC; b: TreeC }
+  | { type: "call"; fn: TreeC; param: TreeC[] }
+  | { type: "^"; base: TreeC; sup: TreeC[] }
+  | { type: "!"; contents: TreeC }
+  | { type: "unary"; name: UnaryOperator; contents: TreeC[] }
 
-export type UnarySuffixOperator = (typeof UNARY_SUFFIX_OPERATORS)[number]
+export function treeBToC(tokens: TreeB[]): TreeC[] {
+  const tree: TreeC[] = []
 
-const BINARY_OPERATORS = Object.freeze([
-  "+",
-  "-",
-  "cdot",
-  "times",
-  "div",
-  "/",
-  "%",
-  "#",
-  "$",
-  "@",
-  "&",
-  "mod",
-  "and",
-  "or",
-  "xor",
-  "for",
-  "with",
-] as const)
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index]!
 
-export type BinaryOperator = (typeof BINARY_OPERATORS)[number]
+    switch (token.type) {
+      case "op":
+        if (UNARY_OPERATOR.includes(token.name as any)) {
+          const next = tokens[index + 1]
+
+          if (TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY.includes(next?.type)) {
+            tree.push({
+              type: "unary",
+              name: token.name as UnaryOperator,
+              contents: treeBToC([next!]),
+            })
+            index += 1
+          } else {
+            tree.push({
+              type: "unary",
+              name: token.name as UnaryOperator,
+              contents: [],
+            })
+          }
+        } else {
+          tree.push(token)
+        }
+        break
+      case "n":
+      case "v":
+        tree.push(token)
+        break
+      case "vsub":
+        tree.push({ type: "vsub", name: token.name, sub: treeBToC(token.sub) })
+        break
+      case "sub":
+      case "sup":
+      case "sqrt":
+      case "logb":
+      case "bracket":
+        tree.push({
+          ...token,
+          contents: treeBToC(token.contents),
+        })
+        break
+      case "nthroot":
+        tree.push({
+          type: "nthroot",
+          root: treeBToC(token.root),
+          contents: treeBToC(token.contents),
+        })
+        break
+      case "sum":
+      case "prod":
+      case "int":
+        tree.push({
+          type: token.type,
+          from: treeBToC(token.from),
+          to: treeBToC(token.to),
+        })
+        break
+      case "frac":
+      case "binom":
+      case "dual":
+        tree.push({
+          type: token.type,
+          a: treeBToC(token.a),
+          b: treeBToC(token.b),
+        })
+        break
+      case "implicit_mult": {
+        const a = treeBToC([token.a])[0]
+        if (!a) {
+          throw new Error("treeBToC must keep at least one token")
+        }
+        const b = treeBToC([token.b])[0]
+        if (!b) {
+          throw new Error("treeBToC must keep at least one token")
+        }
+        tree.push({
+          type: token.type,
+          a,
+          b,
+        })
+        break
+      }
+      case "call":
+        tree.push({
+          type: "call",
+          fn: token.fn,
+          param: treeBToC(token.param),
+        })
+        break
+      case "^": {
+        const base = treeBToC([token.base])[0]
+        if (!base) {
+          throw new Error("treeBToC must keep at least one token")
+        }
+        tree.push({
+          type: "^",
+          base,
+          sup: treeBToC(token.sup),
+        })
+        break
+      }
+      case "!": {
+        const contents = treeBToC([token.contents])[0]
+        if (!contents) {
+          throw new Error("treeBToC must keep at least one token")
+        }
+        tree.push({
+          type: "!",
+          contents,
+        })
+        break
+      }
+    }
+  }
+
+  return tree
+}
+
+const enum Precedence {
+  Comma,
+  Binding,
+  BooleanOp,
+  Comparison,
+  Equality,
+  Addition,
+  Multiplication,
+}
+
+const BINARY_OPERATORS = Object.freeze({
+  ",": Precedence.Comma,
+
+  for: Precedence.Binding,
+  with: Precedence.Binding,
+
+  and: Precedence.BooleanOp,
+  or: Precedence.BooleanOp,
+  xor: Precedence.BooleanOp,
+
+  "<": Precedence.Comparison,
+  ">": Precedence.Comparison,
+  le: Precedence.Comparison,
+  ge: Precedence.Comparison,
+
+  "=": Precedence.Equality,
+  ne: Precedence.Equality,
+
+  "+": Precedence.Addition,
+  "-": Precedence.Addition,
+
+  cdot: Precedence.Multiplication,
+  times: Precedence.Multiplication,
+  div: Precedence.Multiplication,
+  "/": Precedence.Multiplication,
+  "%": Precedence.Multiplication,
+  "#": Precedence.Multiplication,
+  mod: Precedence.Multiplication,
+} as const)
+
+export type BinaryOperator = keyof typeof BINARY_OPERATORS
