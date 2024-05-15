@@ -379,48 +379,78 @@ const FN_RENAME_MAP: Record<string, string> = Object.freeze({
   acsc: "arccsc",
   asec: "arcsec",
   acot: "arccot",
+  asinh: "arcsin",
+  acosh: "arccos",
+  atanh: "arctan",
+  acsch: "arccsc",
+  asech: "arcsec",
+  acoth: "arccot",
 })
 
 const FN_INVERSE_MAP: Record<string, string> = Object.freeze({
   sin: "arcsin",
-  asin: "sin",
+  sinh: "arcsinh",
   arcsin: "sin",
+  arcsinh: "sinh",
   cos: "arccos",
-  acos: "cos",
+  cosh: "arccosh",
   arccos: "cos",
+  arccosh: "cosh",
   tan: "arctan",
-  atan: "tan",
+  tanh: "arctanh",
   arctan: "tan",
+  arctanh: "tanh",
   csc: "arccsc",
-  acsc: "csc",
+  csch: "arccsch",
   arccsc: "csc",
+  arccsch: "csch",
   sec: "arcsec",
-  asec: "sec",
+  sech: "arcsech",
   arcsec: "sec",
+  arcsech: "sech",
   cot: "arccot",
-  acot: "cot",
+  coth: "arccoth",
   arccot: "cot",
+  arccoth: "coth",
 })
 
 const FN_SQUARED_MAP: Record<string, string> = Object.freeze({
   sin: "sin^2",
+  sinh: "sinh^2",
   asin: "arcsin^2",
+  asinh: "arcsinh^2",
   arcsin: "arcsin^2",
+  arcsinh: "arcsinh^2",
   cos: "cos^2",
+  cosh: "cosh^2",
   acos: "arccos^2",
+  acosh: "arccosh^2",
   arccos: "arccos^2",
+  arccosh: "arccosh^2",
   tan: "tan^2",
+  tanh: "tanh^2",
   atan: "arctan^2",
+  atanh: "arctanh^2",
   arctan: "arctan^2",
+  arctanh: "arctanh^2",
   csc: "csc^2",
+  csch: "csch^2",
   acsc: "arccsc^2",
+  acsch: "arccsch^2",
   arccsc: "arccsc^2",
+  arccsch: "arccsch^2",
   sec: "sec^2",
+  sech: "sech^2",
   asec: "arcsec^2",
+  asech: "arcsech^2",
   arcsec: "arcsec^2",
+  arcsech: "arcsech^2",
   cot: "cot^2",
+  coth: "coth^2",
   acot: "arccot^2",
+  acoth: "arccoth^2",
   arccot: "arccot^2",
+  arccoth: "arccoth^2",
   log: "log^2",
   ln: "ln^2",
 })
@@ -617,6 +647,9 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
           }
 
           default: {
+            const name =
+              self.name in FN_RENAME_MAP ? FN_RENAME_MAP[self.name]! : self.name
+
             const next = tree[index + 1]
             const next2 = tree[index + 2]
 
@@ -625,10 +658,10 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
                 next2.tokens.length == 1 &&
                 next2.tokens[0]?.type == "n" &&
                 next2.tokens[0].value == "2" &&
-                self.name in FN_SQUARED_MAP
+                name in FN_SQUARED_MAP
               ) {
                 index += 2
-                output.push({ type: "op", name: FN_SQUARED_MAP[self.name]! })
+                output.push({ type: "op", name: FN_SQUARED_MAP[name]! })
                 break
               }
 
@@ -638,20 +671,17 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
                 next2.tokens[0].name == "-" &&
                 next2.tokens[1]?.type == "n" &&
                 next2.tokens[1].value == "1" &&
-                self.name in FN_INVERSE_MAP
+                name in FN_INVERSE_MAP
               ) {
                 index += 2
-                output.push({ type: "op", name: FN_INVERSE_MAP[self.name]! })
+                output.push({ type: "op", name: FN_INVERSE_MAP[name]! })
                 break
               }
             }
 
             output.push({
               type: "op",
-              name:
-                self.name in FN_RENAME_MAP
-                  ? FN_RENAME_MAP[self.name]!
-                  : self.name,
+              name,
             })
           }
         }
@@ -744,60 +774,97 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
   return output
 }
 
-export type TrigOperator =
-  | "sin"
-  | "asin"
-  | "sinh"
-  | "asinh"
-  | "cos"
-  | "acos"
-  | "cosh"
-  | "acosh"
-  | "tan"
-  | "atan"
-  | "tanh"
-  | "atanh"
-  | "csc"
-  | "acsc"
-  | "csch"
-  | "acsch"
-  | "sec"
-  | "asec"
-  | "sech"
-  | "asech"
-  | "cot"
-  | "acot"
-  | "coth"
-  | "acoth"
+const UNARY_TRIG_OPERATORS = Object.freeze([
+  "sin",
+  "sin^2",
+  "sinh",
+  "sinh^2",
+  "arcsin",
+  "arcsin^2",
+  "arcsinh",
+  "arcsinh^2",
+  "cos",
+  "cos^2",
+  "cosh",
+  "cosh^2",
+  "arccos",
+  "arccos^2",
+  "arccosh",
+  "arccosh^2",
+  "tan",
+  "tan^2",
+  "tanh",
+  "tanh^2",
+  "arctan",
+  "arctan^2",
+  "arctanh",
+  "arctanh^2",
+  "csc",
+  "csc^2",
+  "csch",
+  "csch^2",
+  "arccsc",
+  "arccsc^2",
+  "arccsch",
+  "arccsch^2",
+  "sec",
+  "sec^2",
+  "sech",
+  "sech^2",
+  "arcsec",
+  "arcsec^2",
+  "arcsech",
+  "arcsech^2",
+  "cot",
+  "cot^2",
+  "coth",
+  "coth^2",
+  "arccot",
+  "arccot^2",
+  "arccoth",
+  "arccoth^2",
+] as const)
 
-export type UnaryOperator =
-  | TrigOperator
-  | "!"
-  | "+"
-  | "-"
-  | "sqrt"
-  | "log"
-  | "ln"
-  | "exp"
-  | "floor"
-  | "ceil"
-  | "not"
-  | "real"
-  | "imag"
+export type UnaryTrigOperator = (typeof UNARY_TRIG_OPERATORS)[number]
 
-export type BinaryOperator =
-  | "+"
-  | "-"
-  | "·"
-  | "⨯"
-  | "implicitmult"
-  | "frac"
-  | "÷"
-  | "/"
-  | "%"
-  | "#"
-  | "mod"
-  | "and"
-  | "or"
-  | "xor"
-  | "for"
+const UNARY_PREFIX_OPERATORS = Object.freeze([
+  ...UNARY_TRIG_OPERATORS,
+  "+",
+  "-",
+  "log",
+  "ln",
+  "exp",
+  "floor",
+  "ceil",
+  "not",
+  "real",
+  "imag",
+] as const)
+
+export type UnaryPrefixOperator = (typeof UNARY_PREFIX_OPERATORS)[number]
+
+const UNARY_SUFFIX_OPERATORS = Object.freeze(["!"] as const)
+
+export type UnarySuffixOperator = (typeof UNARY_SUFFIX_OPERATORS)[number]
+
+const BINARY_OPERATORS = Object.freeze([
+  "+",
+  "-",
+  "cdot",
+  "times",
+  "div",
+  "/",
+  "%",
+  "#",
+  "$",
+  "@",
+  "&",
+  "mod",
+  "and",
+  "or",
+  "xor",
+  "for",
+  "with",
+] as const)
+
+export type BinaryOperator = (typeof BINARY_OPERATORS)[number]
