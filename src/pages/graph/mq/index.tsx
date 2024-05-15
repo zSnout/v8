@@ -1,6 +1,6 @@
 import { mq, type V3 } from "@/mathquill"
-import { tokenize, tokensToTree } from "@/mathquill/parse"
-import { createSignal, untrack } from "solid-js"
+import { tokenize, tokensToTree, treeAToB } from "@/mathquill/parse"
+import { createMemo, createSignal, untrack } from "solid-js"
 
 export function EditableMathQuill(
   props: {
@@ -43,6 +43,17 @@ export function Main() {
   const [latex, setLatex] = createSignal("y=ax^2+bx+c")
   const [mathspeak, setMathspeak] = createSignal("y")
 
+  const output = createMemo(() => {
+    const tex = latex()
+    const tokens = tokenize(tex)
+    const treeA = tokensToTree(tokens)
+    if (!treeA.ok) {
+      return treeA
+    }
+    const treeB = treeAToB(treeA.tokens)
+    return treeB
+  })
+
   return (
     <>
       <div class="contents text-xl">
@@ -55,7 +66,7 @@ export function Main() {
           }}
           ref={(mq) => {
             setTimeout(() => {
-              mq.latex("2+\\mouse+4")
+              mq.latex("2+\\mouse^{76}+4")
             })
           }}
         />
@@ -63,8 +74,7 @@ export function Main() {
 
       <div>{latex()}</div>
       <div>{mathspeak()}</div>
-
-      <pre>{JSON.stringify(tokensToTree(tokenize(latex())), undefined, 2)}</pre>
+      <pre>{JSON.stringify(output(), undefined, 2)}</pre>
     </>
   )
 }

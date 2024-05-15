@@ -351,7 +351,7 @@ export type TreeB =
   | { type: "nthroot"; root: TreeB[]; contents: TreeB[] }
   | { type: "sum" | "prod" | "int"; from: TreeB[]; to: TreeB[] }
   | { type: "logb"; base: TreeB[] }
-  | { type: "frac" | "binom"; a: TreeB[]; b: TreeB[] }
+  | { type: "frac" | "binom" | "dual"; a: TreeB[]; b: TreeB[] }
 
 export function treeAToB(tree: TreeA[]): TreeB[] {
   const output: TreeB[] = []
@@ -506,7 +506,8 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
           }
 
           case "frac":
-          case "binom": {
+          case "binom":
+          case "dual": {
             const next = tree[index + 1]
             const next2 = tree[index + 2]
 

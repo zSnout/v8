@@ -614,8 +614,8 @@
   grid-area: 2 / 2 / 3 / 3;
 }
 :where(.mq-selection .mq-dual-denominator) {
-  background: var(--z-bg-selection);
+  background: var(--z-mq-selection);
 }
 :where(.mq-math-mode .mq-dual-denominator.mq-empty) {
-  background: var(--z-bg-empty);
+  background: var(--z-mq-empty);
 }
