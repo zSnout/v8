@@ -148,6 +148,16 @@ html.no-transition * {
 
   .mq-icon {
     @apply relative top-[0.0625em] -mt-[0.0625em] ml-[0.1em] mr-[0.1em] inline-flex h-[1.25em] w-[1.25em] items-center justify-center rounded border-2 border-blue-500 bg-blue-50 dark:bg-blue-950 [.mq-selection_&]:bg-blue-500;
+
+    /* @apply relative top-[0.09375em] -mt-[0.09375em] ml-[0.1em] mr-[0.1em] inline-flex h-[1em] w-[1em] items-center justify-center rounded border-blue-500 bg-blue-100 dark:bg-blue-950 [.mq-selection_&]:bg-blue-500; */
+  }
+
+  .mq-icon-letter svg {
+    @apply hidden;
+  }
+
+  .mq-icon span {
+    @apply hidden;
   }
 
   :where(.mq-icon:not(.mq-selection > *)):first-child,
@@ -159,6 +169,12 @@ html.no-transition * {
   :where(.mq-operator-name) + .mq-icon,
   :where(.mq-selection:has(> .mq-operator-name:last-child)) + .mq-icon {
     @apply ml-0;
+  }
+
+  :where(.mq-icon:not(.mq-selection > *)):last-child,
+  :where(.mq-selection:last-child > .mq-icon):last-child,
+  .mq-icon:where(:has(+ .mq-cursor:last-child)) {
+    @apply mr-0;
   }
 
   :where(.mq-icon) svg {

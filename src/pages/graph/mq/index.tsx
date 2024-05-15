@@ -17,7 +17,7 @@ export function EditableMathQuill(
           autoOperatorNames:
             "sin sinh asin arcsin cos cosh acos arccos tan tanh atan arctan csc csch acsc arccsc sec sech asec arcsec cot coth acot arccot distance for and or not mod iter real imag log ln exp",
           autoCommands:
-            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans mouse time dual",
+            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans dual",
           infixOperatorNames: "mod",
           autoSubscriptNumerals: true,
           disableAutoSubstitutionInSubscripts: true,
@@ -29,6 +29,7 @@ export function EditableMathQuill(
           handlers: props,
           supSubsRequireOperand: true,
           restrictMismatchedBrackets: true,
+          specializedLetters: "mts",
         })
 
         props.ref?.(field)
@@ -66,7 +67,7 @@ export function Main() {
           }}
           ref={(mq) => {
             setTimeout(() => {
-              mq.latex("2+\\mouse^{76}+4")
+              mq.latex("\\left(z-m\\right)^2+c-m")
             })
           }}
         />

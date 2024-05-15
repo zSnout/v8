@@ -105,6 +105,7 @@ export function tokenize(text: string): Token[] {
       case "\n":
       case "\t":
       case "\r":
+        pushCurrent()
         break
 
       case "\\":
@@ -354,6 +355,7 @@ export type TreeB =
   | { type: "frac" | "binom" | "dual"; a: TreeB[]; b: TreeB[] }
   | { type: "implicit_mult"; a: TreeB; b: TreeB }
   | { type: "call"; fn: TreeB; param: TreeB[] }
+  | { type: "^"; base: TreeB; sup: TreeB[] }
 
 const TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY = Object.freeze<
   (TreeB["type"] | undefined)[]
@@ -570,12 +572,24 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
             const next = tree[index + 1]
 
             if (next?.type == "lb") {
-              output.push({
-                type: "sup",
-                sup: treeAToB(next.tokens),
-              })
+              const prev = output[output.length - 1]
+
+              if (prev) {
+                output[output.length - 1] = {
+                  type: "^",
+                  base: prev,
+                  sup: treeAToB(next.tokens),
+                }
+              } else {
+                output.push({
+                  type: "sup",
+                  sup: treeAToB(next.tokens),
+                })
+              }
+
               index += 1
             }
+
             break
           }
 

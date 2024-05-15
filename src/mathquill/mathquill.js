@@ -1,5 +1,8 @@
 // @ts-nocheck
 
+// regions:
+// CUSTOM LETTERS
+
 /**
  * MathQuill v0.10.1, by Han, Jeanine, and Mary
  * http://mathquill.com | maintainers@mathquill.com
@@ -5302,9 +5305,14 @@ var MathBlock = /** @class */ (function (_super) {
   }
   MathBlock.prototype.chToCmd = function (ch, options) {
     var cons
-    // exclude f because it gets a dedicated command with more spacing
-    if (ch.match(/^[a-eg-zA-Z]$/)) return new Letter(ch)
-    else if (/^\d$/.test(ch)) return new Digit(ch)
+    // #region CUSTOM LETTERS
+    if (
+      // exclude f because it gets a dedicated command with more spacing
+      ch.match(/^[a-eg-zA-Z]$/) &&
+      !options.specializedLetters?.includes(ch)
+    ) {
+      return new Letter(ch)
+    } else if (/^\d$/.test(ch)) return new Digit(ch)
     else if (options && options.typingSlashWritesDivisionSymbol && ch === "/")
       return LatexCmds["\u00f7"](ch)
     else if (options && options.typingAsteriskWritesTimesSymbol && ch === "*")
@@ -10297,5 +10305,4 @@ var Dual = (LatexCmds.dual = /** @class */ (function (_super) {
   }
   return DualNode
 })(MathCommand))
-export { LatexCmds, MQSymbol }
-export const mq = getInterface(3)
+export { LatexCmds, MQSymbol, getInterface, Letter, DOMView, DOMFragment }

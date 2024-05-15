@@ -16,8 +16,11 @@ export declare namespace V3 {
   type EmbedOptions = V1.EmbedOptions
   type EmbedOptionsData = V1.EmbedOptionsData
 
+  type SpecializableLetter = "m" | "t"
+
   type Config = Omit<V1.Config, "substituteKeyboardEvents" | "handlers"> & {
     handlers?: HandlerOptions
+    specializedLetters?: SpecializedLetters
   }
 
   interface BaseMathQuill {
@@ -237,7 +240,11 @@ export declare interface DefaultJquery {
   [index: number]: HTMLElement | undefined
 }
 
-export declare var LatexCmds: Record<string, () => MQSymbol>
+export declare var LatexCmds: Record<
+  string,
+  | (new (...args: any[]) => { domView: DOMView })
+  | ((...args: any[]) => { domView: DOMView })
+>
 
 export declare class MQSymbol {
   constructor(
@@ -253,6 +260,24 @@ export declare class MQSymbol {
     text: string,
     mathspeak?: string,
   ): void
+
+  domView: DOMView
 }
 
-export declare var mq: V3.API
+export declare var getInterface: MathQuill["getInterface"]
+
+export declare class DOMView {
+  constructor(children: number, contents: () => JSX.Element)
+}
+
+export declare class Letter {
+  constructor(letter: string)
+
+  domView: DOMView
+  domFrag(): DOMFragment
+  italicize(isItalic: boolean): void
+}
+
+export declare class DOMFragment {
+  toggleClass(name: string, active: boolean): void
+}
