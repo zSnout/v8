@@ -353,6 +353,7 @@ export type TreeB =
   | { type: "logb"; base: TreeB[] }
   | { type: "frac" | "binom" | "dual"; a: TreeB[]; b: TreeB[] }
   | { type: "implicit_mult"; a: TreeB; b: TreeB }
+  | { type: "call"; fn: TreeB; param: TreeB[] }
 
 const TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY = Object.freeze<
   (TreeB["type"] | undefined)[]
@@ -369,6 +370,59 @@ const TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY = Object.freeze<
   "implicit_mult",
 ])
 
+const FN_RENAME_MAP: Record<string, string> = Object.freeze({
+  asin: "arcsin",
+  acos: "arccos",
+  atan: "arctan",
+  acsc: "arccsc",
+  asec: "arcsec",
+  acot: "arccot",
+})
+
+const FN_INVERSE_MAP: Record<string, string> = Object.freeze({
+  sin: "arcsin",
+  asin: "sin",
+  arcsin: "sin",
+  cos: "arccos",
+  acos: "cos",
+  arccos: "cos",
+  tan: "arctan",
+  atan: "tan",
+  arctan: "tan",
+  csc: "arccsc",
+  acsc: "csc",
+  arccsc: "csc",
+  sec: "arcsec",
+  asec: "sec",
+  arcsec: "sec",
+  cot: "arccot",
+  acot: "cot",
+  arccot: "cot",
+})
+
+const FN_SQUARED_MAP: Record<string, string> = Object.freeze({
+  sin: "sin^2",
+  asin: "arcsin^2",
+  arcsin: "arcsin^2",
+  cos: "cos^2",
+  acos: "arccos^2",
+  arccos: "arccos^2",
+  tan: "tan^2",
+  atan: "arctan^2",
+  arctan: "arctan^2",
+  csc: "csc^2",
+  acsc: "arccsc^2",
+  arccsc: "arccsc^2",
+  sec: "sec^2",
+  asec: "arcsec^2",
+  arcsec: "arcsec^2",
+  cot: "cot^2",
+  acot: "arccot^2",
+  arccot: "arccot^2",
+  log: "log^2",
+  ln: "ln^2",
+})
+
 export function treeAToB(tree: TreeA[]): TreeB[] {
   const output: TreeB[] = []
 
@@ -378,6 +432,10 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
     switch (self.type) {
       case "op":
         switch (self.name) {
+          case "left":
+          case "right":
+            break
+
           case "sqrt": {
             const next = tree[index + 1]
             const next2 = tree[index + 2]
@@ -544,11 +602,44 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
             break
           }
 
-          default:
+          default: {
+            const next = tree[index + 1]
+            const next2 = tree[index + 2]
+
+            if (next?.type == "op" && next.name == "^" && next2?.type == "lb") {
+              if (
+                next2.tokens.length == 1 &&
+                next2.tokens[0]?.type == "n" &&
+                next2.tokens[0].value == "2" &&
+                self.name in FN_SQUARED_MAP
+              ) {
+                index += 2
+                output.push({ type: "op", name: FN_SQUARED_MAP[self.name]! })
+                break
+              }
+
+              if (
+                next2.tokens.length == 2 &&
+                next2.tokens[0]?.type == "op" &&
+                next2.tokens[0].name == "-" &&
+                next2.tokens[1]?.type == "n" &&
+                next2.tokens[1].value == "1" &&
+                self.name in FN_INVERSE_MAP
+              ) {
+                index += 2
+                output.push({ type: "op", name: FN_INVERSE_MAP[self.name]! })
+                break
+              }
+            }
+
             output.push({
               type: "op",
-              name: self.name,
+              name:
+                self.name in FN_RENAME_MAP
+                  ? FN_RENAME_MAP[self.name]!
+                  : self.name,
             })
+          }
         }
         break
 
@@ -600,13 +691,35 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
       }
 
       case "mb": {
-        // TODO: IMPLICIT MULTIPLICATION
-
-        output.push({
+        const me: TreeB = {
           type: "mb",
           bracket: self.bracket,
           contents: treeAToB(self.tokens),
-        })
+        }
+
+        const last = output[output.length - 1]
+
+        if (
+          self.bracket == "()" &&
+          (last?.type == "v" || last?.type == "vsub")
+        ) {
+          output[output.length - 1] = {
+            type: "call",
+            fn: last,
+            param: me.contents,
+          }
+        } else if (
+          TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY.includes(last?.type)
+        ) {
+          output[output.length - 1] = {
+            type: "implicit_mult",
+            a: last!,
+            b: me,
+          }
+        } else {
+          output.push(me)
+        }
+
         break
       }
 
