@@ -29,7 +29,6 @@ export function EditableMathQuill(
           handlers: props,
           supSubsRequireOperand: true,
           restrictMismatchedBrackets: true,
-          specializedLetters: "mts",
         })
 
         props.ref?.(field)
