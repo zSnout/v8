@@ -10233,6 +10233,187 @@ CharCmds["\\"] = /** @class */ (function (_super) {
   }
   return LatexCommandInput
 })(MathCommand)
-
+const DUAL_LEFT = SVG_SYMBOLS["{"]
+const DUAL_RIGHT = SVG_SYMBOLS["}"]
+var Dual = (LatexCmds.dual = /** @class */ (function (_super) {
+  __extends(DualNode, _super)
+  function DualNode() {
+    var _this_1 = (_super !== null && _super.apply(this, arguments)) || this
+    _this_1.ctrlSeq = "\\dual"
+    _this_1.domView = new DOMView(2, function (blocks) {
+      return h("span", { class: "mq-non-leaf mq-dual-container" }, [
+        h.block("span", { class: "mq-dual-numerator" }, blocks[0]),
+        h.block("span", { class: "mq-dual-denominator" }, blocks[1]),
+        h("span", { style: "display:inline-block;width:0" }, [
+          h.text(U_ZERO_WIDTH_SPACE),
+        ]),
+      ])
+    })
+    _this_1.textTemplate = ["(", ")dual(", ")"]
+    return _this_1
+  }
+  DualNode.prototype.finalizeTree = function () {
+    var endsL = this.getEnd(L)
+    var endsR = this.getEnd(R)
+    this.upInto = endsR.upOutOf = endsL
+    this.downInto = endsL.downOutOf = endsR
+    endsL.ariaLabel = "numerator"
+    endsR.ariaLabel = "denominator"
+    // if (this.getFracDepth() > 1) {
+    //   this.mathspeakTemplate = [
+    //     "StartNestedFraction,",
+    //     "NestedOver",
+    //     ", EndNestedFraction",
+    //   ]
+    // } else {
+    this.mathspeakTemplate = [
+      "StartDualMode LargeValue,",
+      "SmallValue",
+      ", EndDualMode",
+    ]
+    // }
+  }
+  DualNode.prototype.mathspeak = () => "dualnode"
+  // DualNode.prototype.mathspeak = function (opts) {
+  //   if (opts && opts.createdLeftOf) {
+  //     var cursor = opts.createdLeftOf
+  //     return cursor.parent.mathspeak()
+  //   }
+  //   var numText = getCtrlSeqsFromBlock(this.getEnd(L))
+  //   var denText = getCtrlSeqsFromBlock(this.getEnd(R))
+  //   // Shorten mathspeak value for whole number fractions whose denominator is less than 10.
+  //   if (
+  //     (!opts || !opts.ignoreShorthand) &&
+  //     intRgx.test(numText) &&
+  //     intRgx.test(denText)
+  //   ) {
+  //     var isSingular = numText === "1" || numText === "-1"
+  //     var newDenSpeech = ""
+  //     if (denText === "2") {
+  //       newDenSpeech = isSingular ? "half" : "halves"
+  //     } else if (denText === "3") {
+  //       newDenSpeech = isSingular ? "third" : "thirds"
+  //     } else if (denText === "4") {
+  //       newDenSpeech = isSingular ? "quarter" : "quarters"
+  //     } else if (denText === "5") {
+  //       newDenSpeech = isSingular ? "fifth" : "fifths"
+  //     } else if (denText === "6") {
+  //       newDenSpeech = isSingular ? "sixth" : "sixths"
+  //     } else if (denText === "7") {
+  //       newDenSpeech = isSingular ? "seventh" : "sevenths"
+  //     } else if (denText === "8") {
+  //       newDenSpeech = isSingular ? "eighth" : "eighths"
+  //     } else if (denText === "9") {
+  //       newDenSpeech = isSingular ? "ninth" : "ninths"
+  //     }
+  //     if (newDenSpeech !== "") {
+  //       var output = ""
+  //       // Handle the case of an integer followed by a simplified fraction such as 1\frac{1}{2}.
+  //       // Such combinations should be spoken aloud as "1 and 1 half."
+  //       // Start at the left sibling of the fraction and continue leftward until something other than a digit or whitespace is found.
+  //       var precededByInteger = false
+  //       for (
+  //         var sibling = this[L];
+  //         sibling && sibling[L] !== undefined;
+  //         sibling = sibling[L]
+  //       ) {
+  //         // Ignore whitespace
+  //         if (sibling.ctrlSeq === "\\ ") {
+  //           continue
+  //         } else if (intRgx.test(sibling.ctrlSeq || "")) {
+  //           precededByInteger = true
+  //         } else {
+  //           precededByInteger = false
+  //           break
+  //         }
+  //       }
+  //       if (precededByInteger) {
+  //         output += "and "
+  //       }
+  //       output += this.getEnd(L).mathspeak() + " " + newDenSpeech
+  //       return output
+  //     }
+  //   }
+  //   return _super.prototype.mathspeak.call(this)
+  // }
+  // DualNode.prototype.getFracDepth = function () {
+  //   var level = 0
+  //   var walkUp = function (item, level) {
+  //     if (
+  //       item instanceof MQNode &&
+  //       item.ctrlSeq &&
+  //       item.ctrlSeq.toLowerCase().search("frac") >= 0
+  //     )
+  //       level += 1
+  //     if (item && item.parent) return walkUp(item.parent, level)
+  //     else return level
+  //   }
+  //   return walkUp(this, level)
+  // }
+  return DualNode
+})(MathCommand))
+// var LiveFraction =
+//   (LatexCmds.over =
+//   CharCmds["$"] =
+//     /** @class */ (function (_super) {
+//       __extends(class_12, _super)
+//       function class_12() {
+//         return (_super !== null && _super.apply(this, arguments)) || this
+//       }
+//       class_12.prototype.createLeftOf = function (cursor) {
+//         if (!this.replacedFragment) {
+//           var leftward = cursor[L]
+//           var dontScan =
+//             cursor.options.typingSlashCreatesNewFraction &&
+//             this instanceof Fraction
+//           if (!dontScan) {
+//             // The user is typing "/" or "over" or "choose". Scan left to get content inside it.
+//             while (
+//               leftward &&
+//               !(
+//                 leftward instanceof BinaryOperator ||
+//                 (leftward instanceof Letter &&
+//                   leftward.endsWord &&
+//                   cursor.options.infixOperatorNames[leftward.endsWord]) ||
+//                 (leftward instanceof DigitGroupingChar &&
+//                   leftward._groupingClass === "mq-ellipsis-end") ||
+//                 leftward instanceof (LatexCmds.text || noop) ||
+//                 leftward instanceof SummationNotation ||
+//                 leftward.ctrlSeq === "\\ " ||
+//                 /^[,;:]$/.test(leftward.ctrlSeq)
+//               ) //lookbehind for operator
+//             )
+//               leftward = leftward[L]
+//           }
+//           if (
+//             leftward instanceof SummationNotation &&
+//             leftward[R] instanceof SupSub
+//           ) {
+//             // The previous step scanned too far. `\sum_1^5` looks like [SummationNotation,SupSub],
+//             // so scan back right
+//             leftward = leftward[R]
+//             var leftwardR = leftward[R]
+//             if (
+//               leftwardR instanceof SupSub &&
+//               leftwardR.ctrlSeq != leftward.ctrlSeq
+//             )
+//               leftward = leftward[R]
+//           }
+//           // `leftward` is the first node (from-right-to-left) that is broken on, so
+//           // `leftwardR` is the last node (from right-to-left) that should be included in the
+//           // top of the Fraction or Binomial.
+//           if (leftward !== cursor[L] && !cursor.isTooDeep(1)) {
+//             var leftwardR = leftward[R]
+//             var cursorL = cursor[L]
+//             this.replaces(
+//               new Fragment(leftwardR || cursor.parent.getEnd(L), cursorL),
+//             )
+//             cursor[L] = leftward
+//           }
+//         }
+//         _super.prototype.createLeftOf.call(this, cursor)
+//       }
+//       return class_12
+//     })(Fraction))
 export { LatexCmds, MQSymbol }
 export const mq = getInterface(3)

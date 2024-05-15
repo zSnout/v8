@@ -591,3 +591,33 @@
 :where(.mq-math-mode .mq-int > .mq-supsub > .mq-sub) {
   margin-left: -0.35em;
 }
+:where(.mq-math-mode .mq-dual-container) {
+  display: inline-grid;
+  margin: 0 0.2em;
+  position: relative;
+  z-index: 1;
+}
+:where(.mq-math-mode .mq-dual-numerator) {
+  display: inline-block;
+  padding: 0.1em 0.2em;
+  border-color: currentColor;
+  border-width: 0 1px 1px 0;
+  grid-area: 1 / 1 / 2 / 2;
+}
+:where(.mq-math-mode .mq-dual-denominator) {
+  display: inline-block;
+  padding: 0.1em 0.2em;
+  border-color: currentColor;
+  border-width: 1px 0 0 1px;
+  margin: -0.4em 0 0 -0.4em;
+  background-color: var(--z-bg-body);
+  font-size: 72%;
+  bottom: 0;
+  grid-area: 2 / 2 / 3 / 3;
+}
+:where(.mq-selection .mq-dual-denominator) {
+  background-color: #b4d5fe;
+}
+:where(.dark .mq-selection .mq-dual-denominator) {
+  background: #375578;
+}

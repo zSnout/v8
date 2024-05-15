@@ -1,4 +1,5 @@
 import { mq, type V3 } from "@/mathquill"
+import { tokenize } from "@/mathquill/parse"
 import { createSignal, untrack } from "solid-js"
 
 export function EditableMathQuill(
@@ -14,9 +15,9 @@ export function EditableMathQuill(
       ref={(el) => {
         const field = mq.MathField(el, {
           autoOperatorNames:
-            "sin sinh asin arcsin cos cosh acos arccos tan tanh atan arctan csc csch acsc arccsc sec sech asec arcsec cot coth acot arccot distance for and or not mod screen pixel iter real imag",
+            "sin sinh asin arcsin cos cosh acos arccos tan tanh atan arctan csc csch acsc arccsc sec sech asec arcsec cot coth acot arccot distance for and or not mod iter real imag log ln exp",
           autoCommands:
-            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans mouse time",
+            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans mouse time dual",
           infixOperatorNames: "mod",
           autoSubscriptNumerals: true,
           disableAutoSubstitutionInSubscripts: true,
@@ -61,6 +62,8 @@ export function Main() {
 
       <div>{latex()}</div>
       <div>{mathspeak()}</div>
+
+      <pre>{JSON.stringify(tokenize(latex()), undefined, 2)}</pre>
     </>
   )
 }
