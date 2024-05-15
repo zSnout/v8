@@ -224,7 +224,7 @@
   height: 100%;
 }
 :where(.mq-math-mode .mq-empty) {
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--z-mq-empty);
 }
 :where(.mq-math-mode .mq-empty.mq-root-block) {
   background: transparent;
@@ -529,7 +529,7 @@
     .mq-math-mode .mq-selection .mq-scaled,
     .mq-editable-field .mq-selection .mq-scaled
   ) {
-  background: #b4d5fe !important;
+  background: var(--z-mq-selection) !important;
 }
 :where(
     .mq-math-mode .mq-selection.mq-blur,
@@ -539,9 +539,7 @@
     .mq-math-mode .mq-selection.mq-blur .mq-scaled,
     .mq-editable-field .mq-selection.mq-blur .mq-scaled
   ) {
-  background: #d4d4d4 !important;
-  color: black;
-  border-color: black;
+  background: var(--z-mq-selection-blur) !important;
 }
 :where(
     html body .mq-math-mode .mq-selection .mq-nthroot-container *,
@@ -610,14 +608,14 @@
   border-color: currentColor;
   border-width: 1px 1px 0 1px;
   margin: -0.4em 0 0 -0.4em;
-  background-color: var(--z-bg-body);
+  background: var(--z-bg-body);
   font-size: 72%;
   bottom: 0;
   grid-area: 2 / 2 / 3 / 3;
 }
 :where(.mq-selection .mq-dual-denominator) {
-  background-color: #b4d5fe;
+  background: var(--z-bg-selection);
 }
-:where(.dark .mq-selection .mq-dual-denominator) {
-  background: #375578;
+:where(.mq-math-mode .mq-dual-denominator.mq-empty) {
+  background: var(--z-bg-empty);
 }

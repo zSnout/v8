@@ -45,11 +45,17 @@ html,
 .light {
   @apply z-light-slate z-light-focus-blue;
   color-scheme: light;
+  --z-mq-selection: #b4d5fe;
+  --z-mq-selection-blur: #d4d4d4;
+  --z-mq-empty: #d2d2d2;
 }
 
 .dark {
   @apply z-dark-slate z-dark-focus-blue;
   color-scheme: dark;
+  --z-mq-selection: #375578;
+  --z-mq-selection-blur: #475569;
+  --z-mq-empty: #494f5c;
 }
 
 .arc {
@@ -117,14 +123,6 @@ html.no-transition * {
     -moz-box-shadow: none;
     box-shadow: none;
     border-color: none;
-  }
-
-  .mq-selection,
-  :where(.mq-math-mode) .mq-selection,
-  :where(.mq-editable-field) .mq-selection,
-  :where(.mq-math-mode .mq-selection) .mq-non-leaf,
-  :where(.mq-editable-field .mq-selection) .mq-non-leaf {
-    @apply text-inherit ![background:#b4d5fe] dark:![background:#375578];
   }
 
   :where(.mq-operator-name) + .mq-binary-operator,

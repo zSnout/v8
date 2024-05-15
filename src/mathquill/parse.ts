@@ -49,12 +49,24 @@ const substitutions: Record<string, string> = Object.freeze({
   forall: "∀",
 })
 
-export type MathBracket = "(" | ")" | "[" | "]" | "{" | "}" | "|L" | "|R"
+export type MathBracket =
+  | "("
+  | ")"
+  | "["
+  | "]"
+  | "{"
+  | "}"
+  | "|L"
+  | "|R"
+  | "||L"
+  | "||R"
+  | "<"
+  | ">"
 
 export type LatexBracket = "{" | "}"
 
 export type Token =
-  | { type: "op"; name: string } // name is letters or symbols
+  | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
   | { type: "mb"; bracket: MathBracket }
@@ -71,7 +83,15 @@ export function tokenize(text: string): Token[] {
 
   function pushCurrent() {
     if (current) {
-      if (current.type != "/") {
+      if (current.type == "op" && current.name == "langle") {
+        tokens.push({ type: "mb", bracket: "<" })
+      } else if (current.type == "op" && current.name == "rangle") {
+        tokens.push({ type: "mb", bracket: ">" })
+      } else if (current.type == "op" && current.name == "lVert") {
+        tokens.push({ type: "mb", bracket: "||L" })
+      } else if (current.type == "op" && current.name == "rVert") {
+        tokens.push({ type: "mb", bracket: "||R" })
+      } else if (current.type != "/") {
         tokens.push(current)
       }
 
@@ -196,6 +216,345 @@ export function tokenize(text: string): Token[] {
   return tokens
 }
 
+export type DoubleBracket = "()" | "[]" | "{}" | "||" | "<>" | "||||"
+
+export type TreeA =
+  | { type: "op"; name: string }
+  | { type: "n"; value: string }
+  | { type: "v"; name: string }
+  | { type: "mb"; bracket: DoubleBracket; tokens: TreeA[] }
+  | { type: "lb"; tokens: TreeA[] }
+
+export type TreeAResult =
+  | { ok: true; tokens: TreeA[] }
+  | { ok: false; reason: "unmatched latex '}'" }
+  | { ok: false; reason: `unmatched math '${MathBracket}'` }
+  | { ok: false; reason: "unmatched opening bracket" }
+  | { ok: false; reason: "unmatched bracket pair" }
+
+const LEFT_TO_DOUBLE = Object.freeze({
+  "(": "()",
+  "[": "[]",
+  "{": "{}",
+  "|L": "||",
+  "<": "<>",
+  "||L": "||||",
+} as const)
+
+const RIGHT_TO_DOUBLE = Object.freeze({
+  ")": "()",
+  "]": "[]",
+  "}": "{}",
+  "|R": "||",
+  ">": "<>",
+  "||R": "||||",
+} as const)
+
+export function tokensToTree(tokens: Token[]): TreeAResult {
+  let current: TreeA[] = []
+  const all: TreeA[][] = [current]
+
+  for (const token of tokens) {
+    if (token.type == "lb") {
+      if (token.bracket == "{") {
+        const group: TreeA[] = []
+        current.push({ type: "lb", tokens: group })
+        current = group
+        all.push(current)
+      } else {
+        all.pop()
+
+        current = all[all.length - 1]!
+        if (!current) {
+          return {
+            ok: false,
+            reason: "unmatched latex '}'",
+          }
+        }
+
+        const last = current[current.length - 1]
+        if (last?.type != "lb") {
+          return {
+            ok: false,
+            reason: "unmatched bracket pair",
+          }
+        }
+      }
+    } else if (token.type == "mb") {
+      if (
+        token.bracket == "(" ||
+        token.bracket == "[" ||
+        token.bracket == "{" ||
+        token.bracket == "|L" ||
+        token.bracket == "<" ||
+        token.bracket == "||L"
+      ) {
+        const group: TreeA[] = []
+        current.push({
+          type: "mb",
+          bracket: LEFT_TO_DOUBLE[token.bracket],
+          tokens: group,
+        })
+        current = group
+        all.push(current)
+      } else {
+        all.pop()
+
+        current = all[all.length - 1]!
+        if (!current) {
+          return {
+            ok: false,
+            reason: `unmatched math '${token.bracket}'`,
+          }
+        }
+
+        const last = current[current.length - 1]
+        if (
+          last?.type != "mb" ||
+          last.bracket != RIGHT_TO_DOUBLE[token.bracket]
+        ) {
+          return {
+            ok: false,
+            reason: "unmatched bracket pair",
+          }
+        }
+      }
+    } else {
+      current.push(token)
+    }
+  }
+
+  if (all.length != 1) {
+    return {
+      ok: false,
+      reason: "unmatched opening bracket",
+    }
+  }
+
+  return {
+    ok: true,
+    tokens: current,
+  }
+}
+
+export type BracketOrImplicit = "()" | "[]" | "{}" | "||" | "<>" | "||||" | ""
+
+export type TreeB =
+  | { type: "op"; name: string }
+  | { type: "n"; value: string }
+  | { type: "v"; name: string }
+  | { type: "vsub"; name: string; sub: TreeB[] }
+  | { type: "sub"; sub: TreeB[] }
+  | { type: "sup"; sup: TreeB[] }
+  | { type: "mb"; bracket: BracketOrImplicit; contents: TreeB[] }
+  | { type: "sqrt"; contents: TreeB[] }
+  | { type: "nthroot"; root: TreeB[]; contents: TreeB[] }
+  | { type: "sum" | "prod" | "int"; from: TreeB[]; to: TreeB[] }
+  | { type: "logb"; base: TreeB[] }
+  | { type: "frac" | "binom"; a: TreeB[]; b: TreeB[] }
+
+export function treeAToB(tree: TreeA[]): TreeB[] {
+  const output: TreeB[] = []
+
+  for (let index = 0; index < tree.length; index++) {
+    const self = tree[index]!
+
+    switch (self.type) {
+      case "op":
+        switch (self.name) {
+          case "sqrt": {
+            const next = tree[index + 1]
+            const next2 = tree[index + 2]
+
+            if (
+              next?.type == "mb" &&
+              next.bracket == "[]" &&
+              next2?.type == "lb"
+            ) {
+              output.push({
+                type: "nthroot",
+                root: treeAToB(next.tokens),
+                contents: treeAToB(next2.tokens),
+              })
+              index += 2
+            } else if (next?.type == "lb") {
+              output.push({
+                type: "sqrt",
+                contents: treeAToB(next.tokens),
+              })
+              index += 1
+            } else {
+              output.push({
+                type: "sqrt",
+                contents: [],
+              })
+            }
+            break
+          }
+
+          case "sum":
+          case "prod":
+          case "int": {
+            const next1 = tree[index + 1]
+            const next2 = tree[index + 2]
+            const next3 = tree[index + 3]
+            const next4 = tree[index + 4]
+
+            if (
+              next1?.type == "op" &&
+              next1.name == "_" &&
+              next2?.type == "lb" &&
+              next3?.type == "op" &&
+              next3.name == "^" &&
+              next4?.type == "lb"
+            ) {
+              output.push({
+                type: self.name,
+                from: treeAToB(next2.tokens),
+                to: treeAToB(next4.tokens),
+              })
+              index += 4
+            } else if (
+              next1?.type == "op" &&
+              next1.name == "^" &&
+              next2?.type == "lb" &&
+              next3?.type == "op" &&
+              next3.name == "_" &&
+              next4?.type == "lb"
+            ) {
+              output.push({
+                type: self.name,
+                from: treeAToB(next4.tokens),
+                to: treeAToB(next2.tokens),
+              })
+              index += 4
+            } else if (
+              next1?.type == "op" &&
+              next1.name == "_" &&
+              next2?.type == "lb"
+            ) {
+              output.push({
+                type: self.name,
+                from: treeAToB(next2.tokens),
+                to: [],
+              })
+              index += 2
+            } else if (
+              next1?.type == "op" &&
+              next1.name == "^" &&
+              next2?.type == "lb"
+            ) {
+              output.push({
+                type: self.name,
+                from: [],
+                to: treeAToB(next2.tokens),
+              })
+              index += 2
+            } else {
+              output.push({
+                type: self.name,
+                from: [],
+                to: [],
+              })
+            }
+            break
+          }
+
+          case "log": {
+            const next = tree[index + 1]
+            const next2 = tree[index + 2]
+
+            if (next?.type == "op" && next.name == "_" && next2?.type == "lb") {
+              output.push({
+                type: "logb",
+                base: treeAToB(next2.tokens),
+              })
+              index += 2
+            } else {
+              output.push({
+                type: "op",
+                name: "log",
+              })
+            }
+            break
+          }
+
+          case "_": {
+            const next = tree[index + 1]
+
+            if (next?.type == "lb") {
+              output.push({
+                type: "sub",
+                sub: treeAToB(next.tokens),
+              })
+              index += 1
+            }
+            break
+          }
+
+          case "^": {
+            const next = tree[index + 1]
+
+            if (next?.type == "lb") {
+              output.push({
+                type: "sup",
+                sup: treeAToB(next.tokens),
+              })
+              index += 1
+            }
+            break
+          }
+
+          case "frac":
+          case "binom": {
+            const next = tree[index + 1]
+            const next2 = tree[index + 2]
+
+            if (next?.type == "lb" && next2?.type == "lb") {
+              output.push({
+                type: self.name,
+                a: treeAToB(next.tokens),
+                b: treeAToB(next2.tokens),
+              })
+              index += 2
+            } else {
+              output.push({
+                type: self.name,
+                a: [],
+                b: [],
+              })
+            }
+            break
+          }
+
+          default:
+            output.push({
+              type: "op",
+              name: self.name,
+            })
+        }
+        break
+
+      case "n":
+      case "v":
+        output.push(self)
+        break
+
+      case "mb":
+        output.push({
+          type: "mb",
+          bracket: self.bracket,
+          contents: treeAToB(self.tokens),
+        })
+        break
+
+      case "lb":
+    }
+  }
+
+  return output
+}
+
 export type TrigOperator =
   | "sin"
   | "asin"
@@ -251,8 +610,3 @@ export type BinaryOperator =
   | "or"
   | "xor"
   | "for"
-
-export type Node =
-  | { type: "number"; value: string }
-  | { type: "variable"; name: string }
-  | { type: "op" }

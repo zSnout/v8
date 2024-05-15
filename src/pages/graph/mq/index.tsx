@@ -1,5 +1,5 @@
 import { mq, type V3 } from "@/mathquill"
-import { tokenize } from "@/mathquill/parse"
+import { tokenize, tokensToTree } from "@/mathquill/parse"
 import { createSignal, untrack } from "solid-js"
 
 export function EditableMathQuill(
@@ -28,6 +28,7 @@ export function EditableMathQuill(
           sumStartsWithNEquals: true,
           handlers: props,
           supSubsRequireOperand: true,
+          restrictMismatchedBrackets: true,
         })
 
         props.ref?.(field)
@@ -63,7 +64,7 @@ export function Main() {
       <div>{latex()}</div>
       <div>{mathspeak()}</div>
 
-      <pre>{JSON.stringify(tokenize(latex()), undefined, 2)}</pre>
+      <pre>{JSON.stringify(tokensToTree(tokenize(latex())), undefined, 2)}</pre>
     </>
   )
 }
