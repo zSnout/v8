@@ -1,5 +1,12 @@
 import { mq, type V3 } from "@/mathquill"
-import { tokenize, tokensToTree, treeAToB } from "@/mathquill/parse"
+import {
+  tokenize,
+  tokensToTree,
+  toReversePolish,
+  treeAToB,
+  treeBToC,
+  treeCToD,
+} from "@/mathquill/parse"
 import { createMemo, createSignal, untrack } from "solid-js"
 
 export function EditableMathQuill(
@@ -15,9 +22,9 @@ export function EditableMathQuill(
       ref={(el) => {
         const field = mq.MathField(el, {
           autoOperatorNames:
-            "sin sinh asin arcsin cos cosh acos arccos tan tanh atan arctan csc csch acsc arccsc sec sech asec arcsec cot coth acot arccot distance for and or not mod iter real imag log ln exp",
+            "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for and or not mod iter real imag log ln exp",
           autoCommands:
-            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans dual",
+            "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans dual abs",
           infixOperatorNames: "mod",
           autoSubscriptNumerals: true,
           disableAutoSubstitutionInSubscripts: true,
@@ -51,7 +58,9 @@ export function Main() {
       return treeA
     }
     const treeB = treeAToB(treeA.tokens)
-    return treeB
+    const treeC = treeBToC(treeB)
+    const rpn = treeCToD(treeC)
+    return rpn
   })
 
   return (
