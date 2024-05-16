@@ -346,7 +346,8 @@ export type TreeB =
   | { type: "n"; value: string }
   | { type: "v"; name: string }
   | { type: "vsub"; name: string; sub: TreeB[] }
-  | { type: "sub" | "sup" | "sqrt" | "logb"; contents: TreeB[] }
+  | { type: "sub" | "sup" | "sqrt"; contents: TreeB[] }
+  | { type: "logb"; base: TreeB[] }
   | { type: "bracket"; bracket: DoubleBracket; contents: TreeB[] }
   | { type: "nthroot"; root: TreeB[]; contents: TreeB[] }
   | { type: "sum" | "prod" | "int"; from: TreeB[]; to: TreeB[] }
@@ -577,7 +578,7 @@ export function treeAToB(tree: TreeA[]): TreeB[] {
             if (next?.type == "op" && next.name == "_" && next2?.type == "lb") {
               output.push({
                 type: "logb",
-                contents: treeAToB(next2.tokens),
+                base: treeAToB(next2.tokens),
               })
               index += 2
             } else {
@@ -869,10 +870,16 @@ export type TreeC<U extends string> =
   | { type: "n"; value: string }
   | { type: "v"; name: string }
   | { type: "vsub"; name: string; sub: TreeC<U>[] }
-  | { type: "sub" | "sup" | "sqrt" | "logb"; contents: TreeC<U>[] }
+  | { type: "sub" | "sup" | "sqrt"; contents: TreeC<U>[] }
+  | { type: "logb"; base: TreeC<U>[]; contents: TreeC<U> | undefined }
   | { type: "bracket"; bracket: DoubleBracket; contents: TreeC<U>[] }
   | { type: "nthroot"; root: TreeC<U>[]; contents: TreeC<U>[] }
-  | { type: "sum" | "prod" | "int"; from: TreeC<U>[]; to: TreeC<U>[] }
+  | {
+      type: "sum" | "prod" | "int"
+      from: TreeC<U>[]
+      to: TreeC<U>[]
+      contents: TreeC<U> | undefined
+    }
   | { type: "frac" | "binom" | "dual"; a: TreeC<U>[]; b: TreeC<U>[] }
   | { type: "implicit_mult"; a: TreeC<U>; b: TreeC<U> }
   | { type: "call"; fn: TreeC<U>; param: TreeC<U>[] }
@@ -969,7 +976,6 @@ export function treeBToC<U extends string = UnaryOperator>(
       case "sub":
       case "sup":
       case "sqrt":
-      case "logb":
       case "bracket":
         tree.push({
           ...token,
@@ -983,15 +989,47 @@ export function treeBToC<U extends string = UnaryOperator>(
           contents: treeBToC(token.contents, ug, up),
         })
         break
+      case "logb":
       case "sum":
       case "prod":
-      case "int":
+      case "int": {
+        const base =
+          token.type == "logb"
+            ? {
+                type: "logb" as const,
+                base: treeBToC(token.base, ug, up),
+              }
+            : {
+                type: token.type as "sum" | "prod" | "int",
+                from: treeBToC(token.from, ug, up),
+                to: treeBToC(token.to, ug, up),
+              }
+
+        let contents: TreeC<U> | undefined
+        while (true) {
+          const next = tokens[index + 1]
+          if (TREE_B_TYPES_WHICH_IMPLICITLY_MULTIPLY.includes(next?.type)) {
+            const b = treeBToC([next!], ug, up)[0]
+            if (!b) {
+              throw new Error("treeBToC must keep at least one token")
+            }
+            if (contents) {
+              contents = { type: "implicit_mult", a: contents, b }
+            } else {
+              contents = b
+            }
+            index += 1
+          } else {
+            break
+          }
+        }
+
         tree.push({
-          type: token.type,
-          from: treeBToC(token.from, ug, up),
-          to: treeBToC(token.to, ug, up),
+          ...base,
+          contents,
         })
         break
+      }
       case "frac":
       case "binom":
       case "dual":
@@ -1017,13 +1055,18 @@ export function treeBToC<U extends string = UnaryOperator>(
         })
         break
       }
-      case "call":
+      case "call": {
+        const fn = treeBToC([token.fn], ug, up)[0]
+        if (!fn) {
+          throw new Error("treeBToC must keep at least one token")
+        }
         tree.push({
           type: "call",
-          fn: token.fn,
+          fn,
           param: treeBToC(token.param, ug, up),
         })
         break
+      }
       case "^": {
         const base = treeBToC([token.base], ug, up)[0]
         if (!base) {
@@ -1095,191 +1138,205 @@ const BINARY_OPERATORS = Object.freeze({
 
 export type BinaryOperator = keyof typeof BINARY_OPERATORS
 
-export type TreeD<U extends string, B extends string> =
-  | { type: "n"; value: string }
-  | { type: "v"; name: string }
-  | { type: "vsub"; name: string; sub: TreeD<U, B> }
-  | { type: "sub" | "sup" | "sqrt" | "logb"; contents: TreeD<U, B> }
-  | { type: "bracket"; bracket: DoubleBracket; contents: TreeD<U, B> }
-  | { type: "nthroot"; root: TreeD<U, B>; contents: TreeD<U, B> }
-  | { type: "sum" | "prod" | "int"; from: TreeD<U, B>; to: TreeD<U, B> }
-  | { type: "frac" | "binom" | "dual"; a: TreeD<U, B>; b: TreeD<U, B> }
-  | { type: "implicit_mult"; a: TreeD<U, B>; b: TreeD<U, B> }
-  | { type: "call"; fn: TreeD<U, B>; param: TreeD<U, B> }
-  | { type: "^"; base: TreeD<U, B>; sup: TreeD<U, B> }
-  | { type: "!"; contents: TreeD<U, B> }
-  | { type: "unary"; name: U; contents: TreeD<U, B> }
-  | { type: "binary"; name: B; a: TreeD<U, B>; b: TreeD<U, B> }
-  | { type: "unknown"; value?: TreeD<U, B> | undefined; error: TreeC<U> }
+// export type TreeD<U extends string, B extends string> =
+//   | { type: "n"; value: string }
+//   | { type: "v"; name: string }
+//   | { type: "vsub"; name: string; sub: TreeD<U, B> }
+//   | { type: "sub" | "sup" | "sqrt"; contents: TreeD<U, B> }
+//   | { type: "logb"; base: TreeD<U, B>; contents: TreeD<U, B> }
+//   | { type: "bracket"; bracket: DoubleBracket; contents: TreeD<U, B> }
+//   | { type: "nthroot"; root: TreeD<U, B>; contents: TreeD<U, B> }
+//   | { type: "sum" | "prod" | "int"; from: TreeD<U, B>; to: TreeD<U, B> }
+//   | { type: "frac" | "binom" | "dual"; a: TreeD<U, B>; b: TreeD<U, B> }
+//   | { type: "implicit_mult"; a: TreeD<U, B>; b: TreeD<U, B> }
+//   | { type: "call"; fn: TreeD<U, B>; param: TreeD<U, B> }
+//   | { type: "^"; base: TreeD<U, B>; sup: TreeD<U, B> }
+//   | { type: "!"; contents: TreeD<U, B> }
+//   | { type: "unary"; name: U; contents: TreeD<U, B> }
+//   | { type: "binary"; name: B; a: TreeD<U, B>; b: TreeD<U, B> }
+//   | { type: "unknown"; value?: TreeD<U, B> | undefined; error: TreeC<U> }
 
-export function treeCToD<U extends string>(
-  tokens: TreeC<U>[],
-  binary?: undefined,
-): TreeD<U, BinaryOperator>
+// export function treeCToD<U extends string>(
+//   tokens: TreeC<U>[],
+//   binary?: undefined,
+// ): TreeD<U, BinaryOperator>
 
-export function treeCToD<U extends string, B extends string>(
-  tokens: TreeC<U>[],
-  binary: { readonly [k in B]: number },
-): TreeD<U, B>
+// export function treeCToD<U extends string, B extends string>(
+//   tokens: TreeC<U>[],
+//   binary: { readonly [k in B]: number },
+// ): TreeD<U, B>
 
-export function treeCToD<U extends string, B extends string>(
-  tokens: TreeC<U>[],
-  binary: { readonly [k in B]: number } = BINARY_OPERATORS as any,
-): TreeD<U, B> {
-  throw new Error("unimplemented")
-}
-
-export function tokenCToD<U extends string, B extends string>(
-  token: TreeC<U>,
-  binary: { readonly [k in B]: number } = BINARY_OPERATORS as any,
-): TreeD<U, B> {
-  switch (token.type) {
-    case "op":
-      return {
-        type: "unknown",
-        error: token,
-      }
-    case "n":
-    case "v":
-      return token
-    case "vsub":
-      return {
-        type: "vsub",
-        name: token.name,
-        sub: treeCToD(token.sub, binary),
-      }
-    case "sub":
-    case "sup":
-    case "sqrt":
-    case "logb":
-    case "bracket":
-    case "unary":
-      return {
-        ...token,
-        contents: treeCToD(token.contents, binary),
-      }
-    case "nthroot":
-      return {
-        ...token,
-        root: treeCToD(token.root, binary),
-        contents: treeCToD(token.contents, binary),
-      }
-    case "sum":
-    case "prod":
-    case "int":
-      return {
-        ...token,
-        from: treeCToD(token.from, binary),
-        to: treeCToD(token.to, binary),
-      }
-    case "frac":
-    case "binom":
-    case "dual":
-      return {
-        ...token,
-        a: treeCToD(token.a, binary),
-        b: treeCToD(token.b, binary),
-      }
-    case "implicit_mult":
-      return {
-        type: "implicit_mult",
-        a: tokenCToD(token.a, binary),
-        b: tokenCToD(token.b, binary),
-      }
-    case "call":
-      return {
-        type: "call",
-        fn: tokenCToD(token.fn, binary),
-        param: treeCToD(token.param, binary),
-      }
-    case "^":
-      return {
-        type: "^",
-        base: tokenCToD(token.base, binary),
-        sup: treeCToD(token.sup, binary),
-      }
-    case "!":
-      return {
-        ...token,
-        contents: tokenCToD(token.contents, binary),
-      }
-  }
-}
-
-// export function toReversePolish<U extends string, B extends string>(
-//   tokens: readonly TreeC<U>[],
-//   binary: { readonly [k in B]: number } = BINARY_OPERATORS as any,
-// ): readonly TreeC<U>[] {
-//   const output: TreeC<U>[] = []
-
-//   const operatorStack: Extract<TreeC<U>, { type: "op" }>[] = []
-
-//   let token
-
-//   for (const token of tokens) {
-//     if (token.type != "op" || !(token.name in binary)) {
-//       output.push(token)
-//       continue
-//     }
-
-//     let o2
-
-//     while ((o2 = operatorStack[operatorStack.length - 1])) {
-//       const level1 = binary[token.name as B]
-//       const level2 = binary[o2.name as B]
-
-//       if (level1 > level2) {
-//         break
-//       }
-
-//       operatorStack.pop()
-//       output.push(o2)
-//     }
-
-//     operatorStack.push(token)
-//   }
-
-//   while ((token = operatorStack.pop())) {
-//     output.push(token)
-//   }
-
-//   return output
-// }
-
-// export function rpnToTree<U extends string, B extends string>(
-//   tokens: readonly TreeC<U>[],
+// export function treeCToD<U extends string, B extends string>(
+//   tokens: TreeC<U>[],
 //   binary: { readonly [k in B]: number } = BINARY_OPERATORS as any,
 // ): TreeD<U, B> {
-//   const stack: TreeD<U, B>[] = []
+//   type State =
+//     | { type: "none" }
+//     | { type: "value"; value: TreeD<U, B>; precedence: number }
+//     | { type: "hanging_op"; op: B; precedence: number }
 
-//   for (const token of tokens) {
-//     if (token.type != "op") {
-//       stack.push(token)
-//       continue
-//     }
+//   let state: State = { type: "none" }
 
-//     const right = stack.pop()
-//     const left = stack.pop()
-
-//     if (!right || !left) {
-//       throw new Error("Invalid placement of operator '" + token.name + "'.")
-//     }
-
-//     stack.push({
-//       type: "binary-fn",
-//       name: token.name,
-//       left,
-//       right,
-//     })
-//   }
-
-//   if (stack.length == 0) {
-//     throw new Error("Unexpected end of input.")
-//   }
-
-//   if (stack.length != 1) {
-//     throw new Error("Unexpected value.")
-//   }
-
-//   return stack[0]!
+//   // TODO: implement
+//   throw new Error("unimplemented")
 // }
+
+// export function tokenCToD<U extends string, B extends string>(
+//   token: TreeC<U>,
+//   binary: { readonly [k in B]: number } = BINARY_OPERATORS as any,
+// ): TreeD<U, B> {
+//   switch (token.type) {
+//     case "op":
+//       return {
+//         type: "unknown",
+//         error: token,
+//       }
+//     case "n":
+//     case "v":
+//       return token
+//     case "vsub":
+//       return {
+//         type: "vsub",
+//         name: token.name,
+//         sub: treeCToD(token.sub, binary),
+//       }
+//     case "sub":
+//     case "sup":
+//     case "sqrt":
+//     case "bracket":
+//     case "unary":
+//       return {
+//         ...token,
+//         contents: treeCToD(token.contents, binary),
+//       }
+//     case "logb":
+//       return {
+//         ...token,
+//         base: treeCToD(token.base, binary),
+//         contents: treeCToD(token.contents, binary),
+//       }
+//     case "nthroot":
+//       return {
+//         ...token,
+//         root: treeCToD(token.root, binary),
+//         contents: treeCToD(token.contents, binary),
+//       }
+//     case "sum":
+//     case "prod":
+//     case "int":
+//       return {
+//         ...token,
+//         from: treeCToD(token.from, binary),
+//         to: treeCToD(token.to, binary),
+//       }
+//     case "frac":
+//     case "binom":
+//     case "dual":
+//       return {
+//         ...token,
+//         a: treeCToD(token.a, binary),
+//         b: treeCToD(token.b, binary),
+//       }
+//     case "implicit_mult":
+//       return {
+//         type: "implicit_mult",
+//         a: tokenCToD(token.a, binary),
+//         b: tokenCToD(token.b, binary),
+//       }
+//     case "call":
+//       return {
+//         type: "call",
+//         fn: tokenCToD(token.fn, binary),
+//         param: treeCToD(token.param, binary),
+//       }
+//     case "^":
+//       return {
+//         type: "^",
+//         base: tokenCToD(token.base, binary),
+//         sup: treeCToD(token.sup, binary),
+//       }
+//     case "!":
+//       return {
+//         ...token,
+//         contents: tokenCToD(token.contents, binary),
+//       }
+//   }
+// }
+
+// // export function toReversePolish<U extends string, B extends string>(
+// //   tokens: readonly TreeC<U>[],
+// //   binary: { readonly [k in B]: number } = BINARY_OPERATORS as any,
+// // ): readonly TreeC<U>[] {
+// //   const output: TreeC<U>[] = []
+
+// //   const operatorStack: Extract<TreeC<U>, { type: "op" }>[] = []
+
+// //   let token
+
+// //   for (const token of tokens) {
+// //     if (token.type != "op" || !(token.name in binary)) {
+// //       output.push(token)
+// //       continue
+// //     }
+
+// //     let o2
+
+// //     while ((o2 = operatorStack[operatorStack.length - 1])) {
+// //       const level1 = binary[token.name as B]
+// //       const level2 = binary[o2.name as B]
+
+// //       if (level1 > level2) {
+// //         break
+// //       }
+
+// //       operatorStack.pop()
+// //       output.push(o2)
+// //     }
+
+// //     operatorStack.push(token)
+// //   }
+
+// //   while ((token = operatorStack.pop())) {
+// //     output.push(token)
+// //   }
+
+// //   return output
+// // }
+
+// // export function rpnToTree<U extends string, B extends string>(
+// //   tokens: readonly TreeC<U>[],
+// //   binary: { readonly [k in B]: number } = BINARY_OPERATORS as any,
+// // ): TreeD<U, B> {
+// //   const stack: TreeD<U, B>[] = []
+
+// //   for (const token of tokens) {
+// //     if (token.type != "op") {
+// //       stack.push(token)
+// //       continue
+// //     }
+
+// //     const right = stack.pop()
+// //     const left = stack.pop()
+
+// //     if (!right || !left) {
+// //       throw new Error("Invalid placement of operator '" + token.name + "'.")
+// //     }
+
+// //     stack.push({
+// //       type: "binary-fn",
+// //       name: token.name,
+// //       left,
+// //       right,
+// //     })
+// //   }
+
+// //   if (stack.length == 0) {
+// //     throw new Error("Unexpected end of input.")
+// //   }
+
+// //   if (stack.length != 1) {
+// //     throw new Error("Unexpected value.")
+// //   }
+
+// //   return stack[0]!
+// // }
