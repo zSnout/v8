@@ -1,5 +1,10 @@
 import { mq, type V3 } from "@/mathquill"
-import { tokenize, tokensToTree, treeAToB, treeBToC } from "@/mathquill/parse"
+import {
+  tokenize,
+  tokensToTree,
+  treeAToB,
+  replaceUnaries,
+} from "@/mathquill/parse"
 import { createMemo, createSignal, untrack } from "solid-js"
 
 export function EditableMathQuill(
@@ -51,7 +56,7 @@ export function Main() {
       return treeA
     }
     const treeB = treeAToB(treeA.tokens)
-    const treeC = treeBToC(treeB)
+    const treeC = replaceUnaries(treeB)
     // const rpn = treeCToD(treeC)
     return treeC
   })
