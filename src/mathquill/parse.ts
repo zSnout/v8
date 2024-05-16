@@ -1,3 +1,68 @@
+/** Latex Parsing Steps
+ *
+ * 1. parse tokens
+ * 2. parse brackets and latex groups
+ * 3. parse latex commands like \sqrt, \frac, and \sum
+ * 4. parse ^, _, !, and logb
+ * 4.5. parse tight implicit multiplication (a b)
+ * 5. parse unary prefix operators and logb
+ * 5.5. parse loose implicit multiplication (sin a cos b)
+ * 6. parse multiplicative level operators
+ * 7. parse contents of BIG operators
+ * 8. parse all other binary operators
+ */
+
+// STEP 1: PARSE TOKENS
+export type Step1 =
+  | { type: "op"; name: string }
+  | { type: "n"; value: string }
+  | { type: "v"; name: string }
+  | { type: "bracket"; bracket: MathBracket }
+  | { type: "group"; bracket: LatexBracket }
+
+// STEP 2: PARSE BRACKETS
+export type Step2 = WellBehavedTree<never, never, never>
+
+// STEP 3: PARSE CORE LATEX COMMANDS
+export type Step3 = Tree<
+  "sqrt",
+  "sum" | "prod" | "int",
+  "frac" | "binom" | "dual" | "nthroot",
+  StepFinal[]
+>
+
+// STEP 4: PARSE SUPERSCRIPT, SUBSCRIPT, FACTORIAL, LOGB
+export type Step4 = Tree<
+  "sqrt" | "!" | "logb" | "logb^2",
+  "sum" | "prod" | "int",
+  "frac" | "binom" | "dual" | "nthroot" | "^" | "_",
+  StepFinal[]
+>
+
+// STEP 4.5: PARSE TIGHT IMPLICIT MULTIPLICATION
+
+// STEP 5: PARSE UNARY PREFIX OPERATORS AND LOGB
+export type Step5 = Tree<
+  "sqrt" | "!" | "logb" | "logb^2" | UnaryOperator | "+" | "-" | "pm" | "mp",
+  "sum" | "prod" | "int",
+  | "frac"
+  | "binom"
+  | "dual"
+  | "nthroot"
+  | "^"
+  | "_"
+  | "implicit_mult"
+  | "logb"
+  | "logb^2",
+  StepFinal[]
+>
+
+// STEP 5.5: PARSE LOOSE IMPLICIT MULTIPLICATION
+
+// STEP 6: PARSE MULTIPLICATIVE LEVEL OPERATORS
+// STEP 7: PARSE CONTENTS OF BIG OPERATORS
+// STEP 8: PARSE ALL OTHER BINARY OPERATORS
+
 const substitutions: Record<string, string> = Object.freeze({
   square: "□",
   mid: "∣",
@@ -65,20 +130,13 @@ export type MathBracket =
 
 export type LatexBracket = "{" | "}"
 
-export type Token =
-  | { type: "op"; name: string }
-  | { type: "n"; value: string }
-  | { type: "v"; name: string }
-  | { type: "bracket"; bracket: MathBracket }
-  | { type: "group"; bracket: LatexBracket }
-
 export type BuildableToken =
   | { type: "op"; name: string; opname: boolean }
   | { type: "n"; value: string }
   | { type: "/" }
 
-export function tokenize(text: string): Token[] {
-  const tokens: Token[] = []
+export function s1_tokenize(text: string): Step1[] {
+  const tokens: Step1[] = []
   let current: BuildableToken | undefined
 
   function pushCurrent() {
@@ -241,10 +299,8 @@ export type WellBehavedTree<Unary, Big, Binary> = Tree<
   WellBehavedTree<Unary, Big, Binary>[]
 >
 
-export type Step0 = WellBehavedTree<never, never, never>
-
 export type GroupTokensResult =
-  | { ok: true; tokens: Step0[] }
+  | { ok: true; tokens: Step2[] }
   | { ok: false; reason: "unmatched latex '}'" }
   | { ok: false; reason: `unmatched math '${MathBracket}'` }
   | { ok: false; reason: "unmatched opening bracket" }
@@ -268,14 +324,14 @@ const RIGHT_TO_DOUBLE = Object.freeze({
   "||R": "||||",
 } as const)
 
-export function groupTokens(tokens: Token[]): GroupTokensResult {
-  let current: Step0[] = []
-  const all: Step0[][] = [current]
+export function s2_groupTokens(tokens: Step1[]): GroupTokensResult {
+  let current: Step2[] = []
+  const all: Step2[][] = [current]
 
   for (const token of tokens) {
     if (token.type == "group") {
       if (token.bracket == "{") {
-        const group: Step0[] = []
+        const group: Step2[] = []
         current.push({ type: "group", contents: group })
         current = group
         all.push(current)
@@ -307,7 +363,7 @@ export function groupTokens(tokens: Token[]): GroupTokensResult {
         token.bracket == "<" ||
         token.bracket == "||L"
       ) {
-        const group: Step0[] = []
+        const group: Step2[] = []
         current.push({
           type: "bracket",
           bracket: LEFT_TO_DOUBLE[token.bracket],
@@ -357,60 +413,64 @@ export function groupTokens(tokens: Token[]): GroupTokensResult {
 
 export class LatexParsingError extends Error {}
 
-export type Step1 = Tree<
-  "sqrt",
-  "sum" | "prod" | "int",
-  "frac" | "binom" | "dual" | "nthroot",
-  StepFinal[]
->
+export const TRIG_OPERATORS = Object.freeze(
+  (
+    [
+      "sin",
+      "arcsin",
+      "sinh",
+      "arcsinh",
+      "cos",
+      "arccos",
+      "cosh",
+      "arccosh",
+      "tan",
+      "arctan",
+      "tanh",
+      "arctanh",
+      "csc",
+      "arccsc",
+      "csch",
+      "arccsch",
+      "sec",
+      "arcsec",
+      "sech",
+      "arcsech",
+      "cot",
+      "arccot",
+      "coth",
+      "arccoth",
+    ] as const
+  ).flatMap((x) => [x, `${x}^2`] as const),
+)
+
+export type TrigOperator = (typeof TRIG_OPERATORS)[number]
 
 export const UNARY_OPERATORS = Object.freeze([
-  ,
-  "sin",
-  "arcsin",
-  "sinh",
-  "arcsinh",
-  "cos",
-  "arccos",
-  "cosh",
-  "arccosh",
-  "tan",
-  "arctan",
-  "tanh",
-  "arctanh",
-  "csc",
-  "arccsc",
-  "csch",
-  "arccsch",
-  "sec",
-  "arcsec",
-  "sech",
-  "arcsech",
-  "cot",
-  "arccot",
-  "coth",
-  "arccoth",
+  ...TRIG_OPERATORS,
+  "log",
+  "log^2",
+  "ln",
+  "ln^2",
+  "exp",
+  "exp^2",
 ] as const)
 
-export type TrigOperator = (typeof UNARY_OPERATORS)[number]
+export type UnaryOperator = (typeof UNARY_OPERATORS)[number]
 
-export type Step2 = Tree<
-  "sqrt" | "!" | "logb" | "logb^2",
-  "sum" | "prod" | "int",
-  "frac" | "binom" | "dual" | "nthroot" | "^" | "_",
-  StepFinal[]
->
+export type StepFinal = Step5
 
-export type StepFinal = Step2
-
-export function parseLatex(tokens: Step0[]): StepFinal[] {
-  const s1 = s1_parseLatexCommands(tokens)
-  const s2 = s2_parseSubscriptSuperscriptFactorial(s1)
-  return s2
+export function parseGroups(tokens: Step2[]): StepFinal[] {
+  const s3 = s3_parseLatexCommands(tokens)
+  const s4 = s4_parseSubscriptSuperscriptFactorial(s3)
+  const sa = s0_parseImplicitMultiplication(s4)
+  const s5 = s5_parseUnaryPrefixes(sa)
+  const sb = s0_parseImplicitMultiplication(s5)
+  return sb
 }
 
-function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
-  const output: Step1[] = []
+function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
+  const output: Step3[] = []
 
   for (let index = 0; index < tokens.length; index++) {
     const token = tokens[index]!
@@ -429,15 +489,15 @@ function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
               output.push({
                 type: "binary",
                 op: "nthroot",
-                a: parseLatex(next.contents),
-                b: parseLatex(next2.contents),
+                a: parseGroups(next.contents),
+                b: parseGroups(next2.contents),
               })
               index += 2
             } else if (next?.type == "group") {
               output.push({
                 type: "unary",
                 op: "sqrt",
-                contents: parseLatex(next.contents),
+                contents: parseGroups(next.contents),
               })
               index += 1
             } else {
@@ -457,8 +517,8 @@ function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
               output.push({
                 type: "binary",
                 op: token.name,
-                a: parseLatex(next.contents),
-                b: parseLatex(next2.contents),
+                a: parseGroups(next.contents),
+                b: parseGroups(next2.contents),
               })
               index += 2
             } else {
@@ -488,8 +548,8 @@ function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
               output.push({
                 type: "big",
                 op: token.name,
-                bottom: parseLatex(next2.contents),
-                top: parseLatex(next4.contents),
+                bottom: parseGroups(next2.contents),
+                top: parseGroups(next4.contents),
                 contents: [],
               })
               index += 4
@@ -504,8 +564,8 @@ function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
               output.push({
                 type: "big",
                 op: token.name,
-                bottom: parseLatex(next4.contents),
-                top: parseLatex(next2.contents),
+                bottom: parseGroups(next4.contents),
+                top: parseGroups(next2.contents),
                 contents: [],
               })
               index += 4
@@ -529,23 +589,23 @@ function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
       case "unary":
         output.push({
           ...token,
-          contents: parseLatex(token.contents),
+          contents: parseGroups(token.contents),
         })
         break
       case "big":
         output.push({
           type: "big",
           op: token.op,
-          top: parseLatex(token.top),
-          bottom: parseLatex(token.bottom),
-          contents: parseLatex(token.contents),
+          top: parseGroups(token.top),
+          bottom: parseGroups(token.bottom),
+          contents: parseGroups(token.contents),
         })
         break
       case "binary":
         output.push({
           ...token,
-          a: parseLatex(token.a),
-          b: parseLatex(token.b),
+          a: parseGroups(token.a),
+          b: parseGroups(token.b),
         })
         break
     }
@@ -554,7 +614,7 @@ function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
   return output
 }
 
-function isValue(node: Step2) {
+function isValue(node: Step4) {
   if (node.type == "unary") {
     return node.op != "logb" && node.op != "logb^2"
   } else {
@@ -562,8 +622,8 @@ function isValue(node: Step2) {
   }
 }
 
-function s2_parseSubscriptSuperscriptFactorial(tokens: Step1[]): Step2[] {
-  const output: Step2[] = []
+function s4_parseSubscriptSuperscriptFactorial(tokens: Step3[]): Step4[] {
+  const output: Step4[] = []
 
   for (let index = 0; index < tokens.length; index++) {
     const token = tokens[index]!
@@ -648,9 +708,25 @@ function s2_parseSubscriptSuperscriptFactorial(tokens: Step1[]): Step2[] {
 
             break
           }
-          case "!":
-            // TODO: implement factorial
-            throw new Error("unimplemented")
+          case "!": {
+            const prev = output[output.length - 1]
+
+            if (prev && isValue(prev)) {
+              output[output.length - 1] = {
+                type: "unary",
+                op: "!",
+                contents: [prev],
+              }
+            } else {
+              output.push({
+                type: "unary",
+                op: "!",
+                contents: [],
+              })
+            }
+
+            break
+          }
           default:
             output.push(token)
         }
@@ -658,6 +734,132 @@ function s2_parseSubscriptSuperscriptFactorial(tokens: Step1[]): Step2[] {
       default:
         output.push(token)
         break
+    }
+  }
+
+  return output
+}
+
+function isImplicitlyMultiplyable(token: Step5): boolean {
+  if (token.type == "binary") {
+    return true
+  }
+
+  if (token.type == "unary") {
+    return token.op != "logb" && token.op != "logb^2"
+  }
+
+  if (token.type == "n" || token.type == "v" || token.type == "bracket") {
+    return true
+  }
+
+  return false
+}
+
+function s0_parseImplicitMultiplication(tokens: Step5[]): Step5[] {
+  const output: Step5[] = []
+
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index]!
+    const prev = output[output.length - 1]
+
+    if (
+      isImplicitlyMultiplyable(token) &&
+      prev &&
+      isImplicitlyMultiplyable(prev)
+    ) {
+      output[output.length - 1] = {
+        type: "binary",
+        op: "implicit_mult",
+        a: [prev],
+        b: [token],
+      }
+    } else {
+      output.push(token)
+    }
+  }
+
+  return output
+}
+
+function canBeFollowedByUnaryNegation(token: Step5): boolean {
+  if (token.type == "big" || token.type == "op") {
+    return true
+  }
+
+  if (token.type == "unary") {
+    return token.op == "logb" || token.op == "logb^2"
+  }
+
+  return false
+}
+
+function s5_parseUnaryPrefixes(tokens: Step5[]): Step5[] {
+  const output: Step5[] = []
+
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index]!
+    const prev = output[output.length - 1]
+
+    if (
+      (token.type == "op" &&
+        ((["+", "-", "pm", "mp"].includes(token.name) &&
+          (!prev || canBeFollowedByUnaryNegation(prev))) ||
+          UNARY_OPERATORS.includes(token.name as any))) ||
+      (token.type == "unary" && (token.op == "logb" || token.op == "logb^2"))
+    ) {
+      const ops = [token]
+      let contents: StepFinal[] = []
+
+      while (true) {
+        const next = tokens[index + 1]
+
+        if (
+          (next?.type == "op" &&
+            (["+", "-", "pm", "mp"].includes(next.name) ||
+              UNARY_OPERATORS.includes(next.name as any))) ||
+          (next?.type == "unary" && (next.op == "logb" || next.op == "logb^2"))
+        ) {
+          ops.push(next)
+          index += 1
+          continue
+        }
+
+        if (next && isImplicitlyMultiplyable(next)) {
+          index += 1
+          contents = [next]
+          break
+        }
+
+        break
+      }
+
+      while (ops.length) {
+        const op = ops.pop()!
+
+        if (op.type == "op") {
+          contents = [
+            {
+              type: "unary",
+              contents,
+              op: op.name as UnaryOperator | "+" | "-" | "pm" | "mp",
+            },
+          ]
+        } else {
+          contents = [
+            {
+              type: "binary",
+              a: op.contents,
+              b: contents,
+              op: op.op as "logb" | "logb^2",
+            },
+          ]
+        }
+      }
+
+      output.push(...contents)
+    } else {
+      output.push(token)
     }
   }
 

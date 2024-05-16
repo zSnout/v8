@@ -1,5 +1,5 @@
 import { mq, type V3 } from "@/mathquill"
-import { groupTokens, parseLatex, tokenize } from "@/mathquill/parse"
+import { s2_groupTokens, parseGroups, s1_tokenize } from "@/mathquill/parse"
 import { createMemo, createSignal, untrack } from "solid-js"
 
 export function EditableMathQuill(
@@ -50,13 +50,13 @@ export function Main() {
     // } catch (error) {
     //   return error
     // }
-    const tokens = tokenize(tex)
-    const grouped = groupTokens(tokens)
+    const tokens = s1_tokenize(tex)
+    const grouped = s2_groupTokens(tokens)
     if (!grouped.ok) {
       return grouped
     }
     try {
-      return parseLatex(grouped.tokens)
+      return parseGroups(grouped.tokens)
     } catch (error) {
       return { error }
     }
