@@ -70,7 +70,7 @@ export type Token =
   | { type: "n"; value: string }
   | { type: "v"; name: string }
   | { type: "bracket"; bracket: MathBracket }
-  | { type: "lb"; bracket: LatexBracket }
+  | { type: "group"; bracket: LatexBracket }
 
 export type BuildableToken =
   | { type: "op"; name: string; opname: boolean }
@@ -91,6 +91,8 @@ export function tokenize(text: string): Token[] {
         tokens.push({ type: "bracket", bracket: "||L" })
       } else if (current.type == "op" && current.name == "rVert") {
         tokens.push({ type: "bracket", bracket: "||R" })
+      } else if (current.type == "op") {
+        tokens.push({ type: "op", name: current.name })
       } else if (current.type != "/") {
         tokens.push(current)
       }
@@ -127,7 +129,7 @@ export function tokenize(text: string): Token[] {
             pushCurrent()
           } else {
             pushCurrent()
-            tokens.push({ type: "lb", bracket: char })
+            tokens.push({ type: "group", bracket: char })
           }
         }
         break
@@ -197,7 +199,7 @@ export function tokenize(text: string): Token[] {
           pushCurrent()
 
           const prev = tokens[tokens.length - 1]
-          if (prev?.type == "lb" && prev.bracket == "{") {
+          if (prev?.type == "group" && prev.bracket == "{") {
             const prev2 = tokens[tokens.length - 2]
             if (prev2?.type == "op" && prev2.name == "operatorname") {
               tokens.splice(-2, 2)
@@ -222,15 +224,27 @@ export function tokenize(text: string): Token[] {
 
 export type DoubleBracket = "()" | "[]" | "{}" | "||" | "<>" | "||||"
 
-export type TokenOrGroup =
+export type Tree<Unary, Big, Binary, Inner> =
   | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
-  | { type: "bracket"; bracket: DoubleBracket; tokens: TokenOrGroup[] }
-  | { type: "lb"; tokens: TokenOrGroup[] }
+  | { type: "bracket"; bracket: DoubleBracket; contents: Inner }
+  | { type: "group"; contents: Inner }
+  | { type: "unary"; op: Unary; contents: Inner }
+  | { type: "big"; op: Big; bottom: Inner; top: Inner; contents: Inner }
+  | { type: "binary"; op: Binary; a: Inner; b: Inner }
 
-export type TokenOrGroupResult =
-  | { ok: true; tokens: TokenOrGroup[] }
+export type WellBehavedTree<Unary, Big, Binary> = Tree<
+  Unary,
+  Big,
+  Binary,
+  WellBehavedTree<Unary, Big, Binary>[]
+>
+
+export type Step0 = WellBehavedTree<never, never, never>
+
+export type GroupTokensResult =
+  | { ok: true; tokens: Step0[] }
   | { ok: false; reason: "unmatched latex '}'" }
   | { ok: false; reason: `unmatched math '${MathBracket}'` }
   | { ok: false; reason: "unmatched opening bracket" }
@@ -254,15 +268,15 @@ const RIGHT_TO_DOUBLE = Object.freeze({
   "||R": "||||",
 } as const)
 
-export function groupTokens(tokens: Token[]): TokenOrGroupResult {
-  let current: TokenOrGroup[] = []
-  const all: TokenOrGroup[][] = [current]
+export function groupTokens(tokens: Token[]): GroupTokensResult {
+  let current: Step0[] = []
+  const all: Step0[][] = [current]
 
   for (const token of tokens) {
-    if (token.type == "lb") {
+    if (token.type == "group") {
       if (token.bracket == "{") {
-        const group: TokenOrGroup[] = []
-        current.push({ type: "lb", tokens: group })
+        const group: Step0[] = []
+        current.push({ type: "group", contents: group })
         current = group
         all.push(current)
       } else {
@@ -277,7 +291,7 @@ export function groupTokens(tokens: Token[]): TokenOrGroupResult {
         }
 
         const last = current[current.length - 1]
-        if (last?.type != "lb") {
+        if (last?.type != "group") {
           return {
             ok: false,
             reason: "unmatched bracket pair",
@@ -293,11 +307,11 @@ export function groupTokens(tokens: Token[]): TokenOrGroupResult {
         token.bracket == "<" ||
         token.bracket == "||L"
       ) {
-        const group: TokenOrGroup[] = []
+        const group: Step0[] = []
         current.push({
           type: "bracket",
           bracket: LEFT_TO_DOUBLE[token.bracket],
-          tokens: group,
+          contents: group,
         })
         current = group
         all.push(current)
@@ -341,6 +355,315 @@ export function groupTokens(tokens: Token[]): TokenOrGroupResult {
   }
 }
 
+export class LatexParsingError extends Error {}
+
+export type Step1 = Tree<
+  "sqrt",
+  "sum" | "prod" | "int",
+  "frac" | "binom" | "dual" | "nthroot",
+  StepFinal[]
+>
+
+export const UNARY_OPERATORS = Object.freeze([
+  ,
+  "sin",
+  "arcsin",
+  "sinh",
+  "arcsinh",
+  "cos",
+  "arccos",
+  "cosh",
+  "arccosh",
+  "tan",
+  "arctan",
+  "tanh",
+  "arctanh",
+  "csc",
+  "arccsc",
+  "csch",
+  "arccsch",
+  "sec",
+  "arcsec",
+  "sech",
+  "arcsech",
+  "cot",
+  "arccot",
+  "coth",
+  "arccoth",
+] as const)
+
+export type TrigOperator = (typeof UNARY_OPERATORS)[number]
+
+export type Step2 = Tree<
+  "sqrt" | "!" | "logb" | "logb^2",
+  "sum" | "prod" | "int",
+  "frac" | "binom" | "dual" | "nthroot" | "^" | "_",
+  StepFinal[]
+>
+
+export type StepFinal = Step2
+
+export function parseLatex(tokens: Step0[]): StepFinal[] {
+  const s1 = s1_parseLatexCommands(tokens)
+  const s2 = s2_parseSubscriptSuperscriptFactorial(s1)
+  return s2
+}
+
+function s1_parseLatexCommands(tokens: Step0[]): Step1[] {
+  const output: Step1[] = []
+
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index]!
+
+    switch (token.type) {
+      case "op":
+        switch (token.name) {
+          case "sqrt": {
+            const next = tokens[index + 1]
+            const next2 = tokens[index + 2]
+            if (
+              next?.type == "bracket" &&
+              next.bracket == "[]" &&
+              next2?.type == "group"
+            ) {
+              output.push({
+                type: "binary",
+                op: "nthroot",
+                a: parseLatex(next.contents),
+                b: parseLatex(next2.contents),
+              })
+              index += 2
+            } else if (next?.type == "group") {
+              output.push({
+                type: "unary",
+                op: "sqrt",
+                contents: parseLatex(next.contents),
+              })
+              index += 1
+            } else {
+              throw new LatexParsingError(
+                "\\sqrt requires a {...} group after it.",
+              )
+            }
+            break
+          }
+          case "frac":
+          case "binom":
+          case "dual": {
+            const next = tokens[index + 1]
+            const next2 = tokens[index + 2]
+
+            if (next?.type == "group" && next2?.type == "group") {
+              output.push({
+                type: "binary",
+                op: token.name,
+                a: parseLatex(next.contents),
+                b: parseLatex(next2.contents),
+              })
+              index += 2
+            } else {
+              throw new LatexParsingError(
+                `Expected two {...} groups after \\${token.name}`,
+              )
+            }
+
+            break
+          }
+          case "sum":
+          case "prod":
+          case "int": {
+            const next1 = tokens[index + 1]
+            const next2 = tokens[index + 2]
+            const next3 = tokens[index + 3]
+            const next4 = tokens[index + 4]
+
+            if (
+              next1?.type == "op" &&
+              next3?.type == "op" &&
+              next1.name == "_" &&
+              next3.name == "^" &&
+              next2?.type == "group" &&
+              next4?.type == "group"
+            ) {
+              output.push({
+                type: "big",
+                op: token.name,
+                bottom: parseLatex(next2.contents),
+                top: parseLatex(next4.contents),
+                contents: [],
+              })
+              index += 4
+            } else if (
+              next1?.type == "op" &&
+              next3?.type == "op" &&
+              next1.name == "^" &&
+              next3.name == "_" &&
+              next2?.type == "group" &&
+              next4?.type == "group"
+            ) {
+              output.push({
+                type: "big",
+                op: token.name,
+                bottom: parseLatex(next4.contents),
+                top: parseLatex(next2.contents),
+                contents: [],
+              })
+              index += 4
+            } else {
+              throw new LatexParsingError(
+                `Expected _{...}^{...} after \\${token.name}`,
+              )
+            }
+            break
+          }
+          default:
+            output.push(token)
+        }
+        break
+      case "n":
+      case "v":
+        output.push(token)
+        break
+      case "bracket":
+      case "group":
+      case "unary":
+        output.push({
+          ...token,
+          contents: parseLatex(token.contents),
+        })
+        break
+      case "big":
+        output.push({
+          type: "big",
+          op: token.op,
+          top: parseLatex(token.top),
+          bottom: parseLatex(token.bottom),
+          contents: parseLatex(token.contents),
+        })
+        break
+      case "binary":
+        output.push({
+          ...token,
+          a: parseLatex(token.a),
+          b: parseLatex(token.b),
+        })
+        break
+    }
+  }
+
+  return output
+}
+
+function isValue(node: Step2) {
+  if (node.type == "unary") {
+    return node.op != "logb" && node.op != "logb^2"
+  } else {
+    return node.type != "big" && node.type != "group"
+  }
+}
+
+function s2_parseSubscriptSuperscriptFactorial(tokens: Step1[]): Step2[] {
+  const output: Step2[] = []
+
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index]!
+
+    switch (token.type) {
+      case "op":
+        switch (token.name) {
+          case "_":
+          case "^": {
+            const prev = output[output.length - 1]
+            const next = tokens[index + 1]
+            let contents: StepFinal[] = []
+
+            if (next?.type == "group") {
+              index += 1
+              contents = next.contents
+            }
+
+            if (
+              token.name == "^" &&
+              prev?.type == "op" &&
+              /^[A-Za-z]+$/.test(prev.name)
+            ) {
+              if (
+                contents.length == 1 &&
+                contents[0]?.type == "n" &&
+                contents[0].value == "2"
+              ) {
+                prev.name = prev.name + "^2"
+                break
+              }
+
+              if (
+                contents.length == 2 &&
+                contents[0]?.type == "op" &&
+                contents[0].name == "-" &&
+                contents[1]?.type == "n" &&
+                contents[1].value == "1"
+              ) {
+                prev.name = prev.name + "^-1"
+                break
+              }
+            }
+
+            if (
+              token.name == "^" &&
+              prev?.type == "unary" &&
+              prev.op == "logb" &&
+              contents.length == 1 &&
+              contents[0]?.type == "n" &&
+              contents[0].value == "2"
+            ) {
+              prev.op = "logb^2"
+              break
+            }
+
+            if (token.name == "_" && prev?.type == "op" && prev.name == "log") {
+              output[output.length - 1] = {
+                type: "unary",
+                op: "logb",
+                contents: contents,
+              }
+              break
+            }
+
+            if (prev && isValue(prev)) {
+              output[output.length - 1] = {
+                type: "binary",
+                op: token.name,
+                a: [prev],
+                b: contents,
+              }
+              break
+            }
+
+            output.push({
+              type: "binary",
+              op: token.name,
+              a: [],
+              b: contents,
+            })
+
+            break
+          }
+          case "!":
+            // TODO: implement factorial
+            throw new Error("unimplemented")
+          default:
+            output.push(token)
+        }
+        break
+      default:
+        output.push(token)
+        break
+    }
+  }
+
+  return output
+}
+
 export type LatexBinaryOperator =
   | "frac"
   | "binom"
@@ -354,34 +677,6 @@ export type LatexBinaryOperator =
 export type LatexBigOperator = "sum" | "prod" | "int"
 
 export type LatexUnaryOperator = "sqrt" | "!"
-
-export type Tree<Unary, Big, Binary> =
-  | { type: "op"; name: string }
-  | { type: "n"; value: string }
-  | { type: "v"; name: string }
-  | {
-      type: "bracket"
-      bracket: DoubleBracket
-      contents: Tree<Unary, Big, Binary>[]
-    }
-  | {
-      type: "unary"
-      op: LatexUnaryOperator
-      contents: Tree<Unary, Big, Binary>[]
-    }
-  | {
-      type: "big"
-      op: LatexBigOperator
-      bottom: Tree<Unary, Big, Binary>[]
-      top: Tree<Unary, Big, Binary>[]
-      contents: Tree<Unary, Big, Binary>[]
-    }
-  | {
-      type: "binary"
-      op: LatexBinaryOperator
-      a: Tree<Unary, Big, Binary>[]
-      b: Tree<Unary, Big, Binary>[]
-    }
 
 // export type TreeB =
 //   | { type: "op"; name: string }
@@ -522,7 +817,7 @@ export type Tree<Unary, Big, Binary> =
 //             if (
 //               next?.type == "bracket" &&
 //               next.bracket == "[]" &&
-//               next2?.type == "lb"
+//               next2?.type == "group"
 //             ) {
 //               output.push({
 //                 type: "nthroot",
@@ -530,7 +825,7 @@ export type Tree<Unary, Big, Binary> =
 //                 contents: treeAToB(next2.tokens),
 //               })
 //               index += 2
-//             } else if (next?.type == "lb") {
+//             } else if (next?.type == "group") {
 //               output.push({
 //                 type: "sqrt",
 //                 contents: treeAToB(next.tokens),
@@ -556,10 +851,10 @@ export type Tree<Unary, Big, Binary> =
 //             if (
 //               next1?.type == "op" &&
 //               next1.name == "_" &&
-//               next2?.type == "lb" &&
+//               next2?.type == "group" &&
 //               next3?.type == "op" &&
 //               next3.name == "^" &&
-//               next4?.type == "lb"
+//               next4?.type == "group"
 //             ) {
 //               output.push({
 //                 type: self.name,
@@ -570,10 +865,10 @@ export type Tree<Unary, Big, Binary> =
 //             } else if (
 //               next1?.type == "op" &&
 //               next1.name == "^" &&
-//               next2?.type == "lb" &&
+//               next2?.type == "group" &&
 //               next3?.type == "op" &&
 //               next3.name == "_" &&
-//               next4?.type == "lb"
+//               next4?.type == "group"
 //             ) {
 //               output.push({
 //                 type: self.name,
@@ -584,7 +879,7 @@ export type Tree<Unary, Big, Binary> =
 //             } else if (
 //               next1?.type == "op" &&
 //               next1.name == "_" &&
-//               next2?.type == "lb"
+//               next2?.type == "group"
 //             ) {
 //               output.push({
 //                 type: self.name,
@@ -595,7 +890,7 @@ export type Tree<Unary, Big, Binary> =
 //             } else if (
 //               next1?.type == "op" &&
 //               next1.name == "^" &&
-//               next2?.type == "lb"
+//               next2?.type == "group"
 //             ) {
 //               output.push({
 //                 type: self.name,
@@ -617,7 +912,7 @@ export type Tree<Unary, Big, Binary> =
 //             const next = tree[index + 1]
 //             const next2 = tree[index + 2]
 
-//             if (next?.type == "op" && next.name == "_" && next2?.type == "lb") {
+//             if (next?.type == "op" && next.name == "_" && next2?.type == "group") {
 //               output.push({
 //                 type: "logb",
 //                 base: treeAToB(next2.tokens),
@@ -635,7 +930,7 @@ export type Tree<Unary, Big, Binary> =
 //           case "_": {
 //             const next = tree[index + 1]
 
-//             if (next?.type == "lb") {
+//             if (next?.type == "group") {
 //               output.push({
 //                 type: "sub",
 //                 contents: treeAToB(next.tokens),
@@ -648,7 +943,7 @@ export type Tree<Unary, Big, Binary> =
 //           case "^": {
 //             const next = tree[index + 1]
 
-//             if (next?.type == "lb") {
+//             if (next?.type == "group") {
 //               const prev = output[output.length - 1]
 
 //               if (prev) {
@@ -689,7 +984,7 @@ export type Tree<Unary, Big, Binary> =
 //             const next = tree[index + 1]
 //             const next2 = tree[index + 2]
 
-//             if (next?.type == "lb" && next2?.type == "lb") {
+//             if (next?.type == "group" && next2?.type == "group") {
 //               output.push({
 //                 type: self.name,
 //                 a: treeAToB(next.tokens),
@@ -713,7 +1008,7 @@ export type Tree<Unary, Big, Binary> =
 //             const next = tree[index + 1]
 //             const next2 = tree[index + 2]
 
-//             if (next?.type == "op" && next.name == "^" && next2?.type == "lb") {
+//             if (next?.type == "op" && next.name == "^" && next2?.type == "group") {
 //               if (
 //                 next2.tokens.length == 1 &&
 //                 next2.tokens[0]?.type == "n" &&
@@ -768,7 +1063,7 @@ export type Tree<Unary, Big, Binary> =
 //         const next = tree[index + 1]
 //         const next2 = tree[index + 2]
 
-//         if (next?.type == "op" && next.name == "_" && next2?.type == "lb") {
+//         if (next?.type == "op" && next.name == "_" && next2?.type == "group") {
 //           me = {
 //             type: "vsub",
 //             name: self.name,
@@ -827,7 +1122,7 @@ export type Tree<Unary, Big, Binary> =
 //         break
 //       }
 
-//       case "lb":
+//       case "group":
 //     }
 //   }
 
