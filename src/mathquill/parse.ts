@@ -866,19 +866,17 @@ function s5_parseUnaryPrefixes(tokens: Step5[]): Step5[] {
   return output
 }
 
-export type LatexBinaryOperator =
-  | "frac"
-  | "binom"
-  | "dual"
-  | "sub"
-  | "power"
-  | "logb"
-  | "nthroot"
-  | "call"
+const MULTIPLICATIVE_OPERATORS = Object.freeze([
+  "*",
+  "/",
+  "%",
+  "#",
+  "mod",
+  "times",
+  "cdot",
+] as const)
 
-export type LatexBigOperator = "sum" | "prod" | "int"
-
-export type LatexUnaryOperator = "sqrt" | "!"
+export type MultiplicativeOperator = (typeof MULTIPLICATIVE_OPERATORS)[number]
 
 // export type TreeB =
 //   | { type: "op"; name: string }
