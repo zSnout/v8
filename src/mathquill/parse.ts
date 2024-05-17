@@ -60,7 +60,24 @@ export type Step5 = Tree<
 // STEP 5.5: PARSE LOOSE IMPLICIT MULTIPLICATION
 
 // STEP 6: PARSE MULTIPLICATIVE LEVEL OPERATORS
+export type Step6 = Tree<
+  "sqrt" | "!" | "logb" | "logb^2" | UnaryOperator | "+" | "-" | "pm" | "mp",
+  "sum" | "prod" | "int",
+  | "frac"
+  | "binom"
+  | "dual"
+  | "nthroot"
+  | "^"
+  | "_"
+  | "implicit_mult"
+  | "logb"
+  | "logb^2"
+  | MultiplicativeOperator,
+  StepFinal[]
+>
+
 // STEP 7: PARSE CONTENTS OF BIG OPERATORS
+
 // STEP 8: PARSE ALL OTHER BINARY OPERATORS
 
 const substitutions: Record<string, string> = Object.freeze({
@@ -458,7 +475,7 @@ export const UNARY_OPERATORS = Object.freeze([
 
 export type UnaryOperator = (typeof UNARY_OPERATORS)[number]
 
-export type StepFinal = Step5
+export type StepFinal = Step6
 
 export function parseGroups(tokens: Step2[]): StepFinal[] {
   const s3 = s3_parseLatexCommands(tokens)
@@ -466,7 +483,9 @@ export function parseGroups(tokens: Step2[]): StepFinal[] {
   const sa = s0_parseImplicitMultiplication(s4)
   const s5 = s5_parseUnaryPrefixes(sa)
   const sb = s0_parseImplicitMultiplication(s5)
-  return sb
+  const s6 = s6_parseMultiplicativeOperators(sb)
+  const s7 = s7_parseBigSymbolContents(s6)
+  return s7
 }
 
 function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
@@ -809,7 +828,7 @@ function s5_parseUnaryPrefixes(tokens: Step5[]): Step5[] {
       (token.type == "unary" && (token.op == "logb" || token.op == "logb^2"))
     ) {
       const ops = [token]
-      let contents: StepFinal[] = []
+      let contents: Step5[] = []
 
       while (true) {
         const next = tokens[index + 1]
@@ -874,6 +893,70 @@ const MULTIPLICATIVE_OPERATORS = Object.freeze([
   "mod",
   "times",
   "cdot",
+  "div",
 ] as const)
 
 export type MultiplicativeOperator = (typeof MULTIPLICATIVE_OPERATORS)[number]
+
+function isStep6Value(token: Step6): boolean {
+  return (
+    token.type == "n" ||
+    token.type == "v" ||
+    token.type == "binary" ||
+    token.type == "bracket" ||
+    token.type == "unary"
+  )
+}
+
+function s6_parseMultiplicativeOperators(tokens: Step5[]): Step6[] {
+  const output: Step6[] = []
+
+  for (const token of tokens) {
+    if (isStep6Value(token)) {
+      const prev = output[output.length - 1]
+      const prev2 = output[output.length - 2]
+
+      if (
+        prev &&
+        prev.type == "op" &&
+        MULTIPLICATIVE_OPERATORS.includes(prev.name as any) &&
+        prev2 &&
+        isStep6Value(prev2)
+      ) {
+        output.splice(-2, 2, {
+          type: "binary",
+          op: prev.name as any,
+          a: [prev2],
+          b: [token],
+        })
+        continue
+      }
+    }
+
+    output.push(token)
+  }
+
+  return output
+}
+
+function s7_parseBigSymbolContents(tokens: Step6[]): Step6[] {
+  const output: Step6[] = []
+
+  for (const token of tokens.reverse()) {
+    if (token.type == "big") {
+      const prev = output[output.length - 1]
+
+      if (prev && (prev.type == "big" || isStep6Value(prev))) {
+        output[output.length - 1] = {
+          ...token,
+          contents: [prev],
+        }
+        continue
+      }
+    }
+
+    output.push(token)
+  }
+
+  return output.reverse()
+}
