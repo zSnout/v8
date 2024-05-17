@@ -21,7 +21,7 @@ type Step1 =
   | { type: "group"; bracket: LatexBracket }
 
 // STEP 2: PARSE BRACKETS
-type Step2 = WellBehavedTree<never, never, never>
+type Step2 = Tree<never, never, never, Step2[]>
 
 // STEP 3: PARSE CORE LATEX COMMANDS
 type Step3 = Tree<
@@ -39,11 +39,17 @@ type Step4 = Tree<
   StepFinal[]
 >
 
-// STEP 4.5: PARSE TIGHT IMPLICIT MULTIPLICATION
-
 // STEP 5: PARSE UNARY PREFIX OPERATORS AND LOGB
 type Step5 = Tree<
-  "sqrt" | "!" | "logb" | "logb^2" | UnaryOperator | "+" | "-" | "pm" | "mp",
+  | "sqrt"
+  | "!"
+  | "logb"
+  | "logb^2"
+  | BaseUnaryOperator
+  | "+"
+  | "-"
+  | "pm"
+  | "mp",
   "sum" | "prod" | "int",
   | "frac"
   | "binom"
@@ -57,11 +63,17 @@ type Step5 = Tree<
   StepFinal[]
 >
 
-// STEP 5.5: PARSE LOOSE IMPLICIT MULTIPLICATION
-
 // STEP 6: PARSE MULTIPLICATIVE LEVEL OPERATORS
 type Step6 = Tree<
-  "sqrt" | "!" | "logb" | "logb^2" | UnaryOperator | "+" | "-" | "pm" | "mp",
+  | "sqrt"
+  | "!"
+  | "logb"
+  | "logb^2"
+  | BaseUnaryOperator
+  | "+"
+  | "-"
+  | "pm"
+  | "mp",
   "sum" | "prod" | "int",
   | "frac"
   | "binom"
@@ -72,13 +84,9 @@ type Step6 = Tree<
   | "implicit_mult"
   | "logb"
   | "logb^2"
-  | BinaryOperator,
+  | BaseBinaryOperator,
   StepFinal[]
 >
-
-// STEP 7: PARSE CONTENTS OF BIG OPERATORS
-
-// STEP 8: PARSE ALL OTHER BINARY OPERATORS
 
 const substitutions: Record<string, string> = Object.freeze({
   square: "□",
@@ -311,13 +319,6 @@ type Tree<Unary, Big, Binary, Inner> =
   | { type: "big"; op: Big; bottom: Inner; top: Inner; contents: Inner }
   | { type: "binary"; op: Binary; a: Inner; b: Inner }
 
-type WellBehavedTree<Unary, Big, Binary> = Tree<
-  Unary,
-  Big,
-  Binary,
-  WellBehavedTree<Unary, Big, Binary>[]
->
-
 type GroupTokensResult =
   | { ok: true; tokens: Step2[] }
   | { ok: false; reason: "unmatched latex '}'" }
@@ -475,7 +476,7 @@ const UNARY_OPERATORS = Object.freeze([
   "exp^2",
 ] as const)
 
-type UnaryOperator = (typeof UNARY_OPERATORS)[number]
+type BaseUnaryOperator = (typeof UNARY_OPERATORS)[number]
 
 type StepFinal = Step6
 
@@ -868,7 +869,7 @@ function s5_parseUnaryPrefixes(tokens: Step5[]): Step5[] {
             {
               type: "unary",
               contents,
-              op: op.name as UnaryOperator | "+" | "-" | "pm" | "mp",
+              op: op.name as BaseUnaryOperator | "+" | "-" | "pm" | "mp",
             },
           ]
         } else {
@@ -1055,13 +1056,56 @@ const BOOLEAN_OPERATORS = Object.freeze(["and", "or"] as const)
 
 const BINDING_OPERATORS = Object.freeze(["for", "with"] as const)
 
-type BinaryOperator =
+type BaseBinaryOperator =
   | MultiplicativeOperator
   | (typeof ADDITIVE_OPERATORS)[number]
   | (typeof COMPARISON_OPERATORS)[number]
   | (typeof BOOLEAN_OPERATORS)[number]
   | (typeof BINDING_OPERATORS)[number]
   | ","
+
+export type Node =
+  | { type: "n"; value: string }
+  | { type: "v"; name: string }
+  | { type: "bracket"; bracket: DoubleBracket; contents: Node }
+  | { type: "group"; contents: Node }
+  | { type: "unary"; op: Unary; contents: Node }
+  | { type: "big"; op: Big; bottom: Node; top: Node; contents: Node }
+  | { type: "binary"; op: Binary; a: Node; b: Node }
+
+export type Unary =
+  | "sqrt"
+  | "!"
+  | "logb"
+  | "logb^2"
+  | BaseUnaryOperator
+  | "+"
+  | "-"
+  | "pm"
+  | "mp"
+
+export type Big = "sum" | "prod" | "int"
+
+export type Binary =
+  | "frac"
+  | "binom"
+  | "dual"
+  | "nthroot"
+  | "^"
+  | "_"
+  | "implicit_mult"
+  | "logb"
+  | "logb^2"
+  | BaseBinaryOperator
+
+export function toNode(tree: StepFinal[]): Node[] {
+  const output: Node[] = []
+
+  for (const node of tree) {
+  }
+
+  return output
+}
 
 export type ParseLatexResult =
   | { ok: false; reason: string }
