@@ -483,7 +483,7 @@ export function parseGroups(tokens: Step2[]): StepFinal[] {
   const sa = s0_parseImplicitMultiplication(s4)
   const s5 = s5_parseUnaryPrefixes(sa)
   const sb = s0_parseImplicitMultiplication(s5)
-  const s6 = s6_parseMultiplicativeOperators(sb)
+  const s6 = s6_parseBinaryOperators(sb, MULTIPLICATIVE_OPERATORS)
   const s7 = s7_parseBigSymbolContents(s6)
   return s7
 }
@@ -898,7 +898,7 @@ const MULTIPLICATIVE_OPERATORS = Object.freeze([
 
 export type MultiplicativeOperator = (typeof MULTIPLICATIVE_OPERATORS)[number]
 
-function isStep6Value(token: Step6): boolean {
+function isStep6Value(token: { type: StepFinal["type"] }): boolean {
   return (
     token.type == "n" ||
     token.type == "v" ||
@@ -908,7 +908,10 @@ function isStep6Value(token: Step6): boolean {
   )
 }
 
-function s6_parseMultiplicativeOperators(tokens: Step5[]): Step6[] {
+function s6_parseBinaryOperators(
+  tokens: Step6[],
+  operators: readonly string[],
+): Step6[] {
   const output: Step6[] = []
 
   for (const token of tokens) {
@@ -919,7 +922,7 @@ function s6_parseMultiplicativeOperators(tokens: Step5[]): Step6[] {
       if (
         prev &&
         prev.type == "op" &&
-        MULTIPLICATIVE_OPERATORS.includes(prev.name as any) &&
+        operators.includes(prev.name as any) &&
         prev2 &&
         isStep6Value(prev2)
       ) {
@@ -960,3 +963,22 @@ function s7_parseBigSymbolContents(tokens: Step6[]): Step6[] {
 
   return output.reverse()
 }
+
+const ADDITIVE_OPERATORS = Object.freeze(["+", "-", "pm", "mp"] as const)
+
+const COMPARISON_OPERATORS = Object.freeze([
+  "=",
+  "<",
+  ">",
+  "le",
+  "ge",
+  "ne",
+] as const)
+
+const BOOLEAN_OPERATORS = Object.freeze(["and", "or"] as const)
+
+export type BinaryOperator =
+  | MultiplicativeOperator
+  | (typeof ADDITIVE_OPERATORS)[number]
+  | (typeof COMPARISON_OPERATORS)[number]
+  | (typeof BOOLEAN_OPERATORS)[number]
