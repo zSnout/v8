@@ -1,5 +1,5 @@
 import { mq, type V3 } from "@/mathquill"
-import { s2_groupTokens, parseGroups, s1_tokenize } from "@/mathquill/parse"
+import { parseLatex } from "@/mathquill/parse"
 import { createMemo, createSignal, untrack } from "solid-js"
 
 export function EditableMathQuill(
@@ -44,26 +44,7 @@ export function Main() {
   const [mathspeak, setMathspeak] = createSignal("y")
 
   const output = createMemo(() => {
-    const tex = latex()
-    // try {
-    //   return parse(tex)
-    // } catch (error) {
-    //   return error
-    // }
-    const tokens = s1_tokenize(tex)
-    const grouped = s2_groupTokens(tokens)
-    if (!grouped.ok) {
-      return grouped
-    }
-    try {
-      return parseGroups(grouped.tokens)
-    } catch (error) {
-      return { error }
-    }
-    // const treeB = treeAToB(treeA.tokens)
-    // const treeC = replaceUnaries(treeB)
-    // // const rpn = treeCToD(treeC)
-    // return treeC
+    return parseLatex(latex())
   })
 
   return (

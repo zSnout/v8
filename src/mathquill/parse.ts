@@ -13,7 +13,7 @@
  */
 
 // STEP 1: PARSE TOKENS
-export type Step1 =
+type Step1 =
   | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
@@ -21,10 +21,10 @@ export type Step1 =
   | { type: "group"; bracket: LatexBracket }
 
 // STEP 2: PARSE BRACKETS
-export type Step2 = WellBehavedTree<never, never, never>
+type Step2 = WellBehavedTree<never, never, never>
 
 // STEP 3: PARSE CORE LATEX COMMANDS
-export type Step3 = Tree<
+type Step3 = Tree<
   "sqrt",
   "sum" | "prod" | "int",
   "frac" | "binom" | "dual" | "nthroot",
@@ -32,7 +32,7 @@ export type Step3 = Tree<
 >
 
 // STEP 4: PARSE SUPERSCRIPT, SUBSCRIPT, FACTORIAL, LOGB
-export type Step4 = Tree<
+type Step4 = Tree<
   "sqrt" | "!" | "logb" | "logb^2",
   "sum" | "prod" | "int",
   "frac" | "binom" | "dual" | "nthroot" | "^" | "_",
@@ -42,7 +42,7 @@ export type Step4 = Tree<
 // STEP 4.5: PARSE TIGHT IMPLICIT MULTIPLICATION
 
 // STEP 5: PARSE UNARY PREFIX OPERATORS AND LOGB
-export type Step5 = Tree<
+type Step5 = Tree<
   "sqrt" | "!" | "logb" | "logb^2" | UnaryOperator | "+" | "-" | "pm" | "mp",
   "sum" | "prod" | "int",
   | "frac"
@@ -60,7 +60,7 @@ export type Step5 = Tree<
 // STEP 5.5: PARSE LOOSE IMPLICIT MULTIPLICATION
 
 // STEP 6: PARSE MULTIPLICATIVE LEVEL OPERATORS
-export type Step6 = Tree<
+type Step6 = Tree<
   "sqrt" | "!" | "logb" | "logb^2" | UnaryOperator | "+" | "-" | "pm" | "mp",
   "sum" | "prod" | "int",
   | "frac"
@@ -72,7 +72,7 @@ export type Step6 = Tree<
   | "implicit_mult"
   | "logb"
   | "logb^2"
-  | MultiplicativeOperator,
+  | BinaryOperator,
   StepFinal[]
 >
 
@@ -131,7 +131,7 @@ const substitutions: Record<string, string> = Object.freeze({
   forall: "∀",
 })
 
-export type MathBracket =
+type MathBracket =
   | "("
   | ")"
   | "["
@@ -145,14 +145,14 @@ export type MathBracket =
   | "<"
   | ">"
 
-export type LatexBracket = "{" | "}"
+type LatexBracket = "{" | "}"
 
-export type BuildableToken =
+type BuildableToken =
   | { type: "op"; name: string; opname: boolean }
   | { type: "n"; value: string }
   | { type: "/" }
 
-export function s1_tokenize(text: string): Step1[] {
+function s1_tokenize(text: string): Step1[] {
   const tokens: Step1[] = []
   let current: BuildableToken | undefined
 
@@ -167,7 +167,9 @@ export function s1_tokenize(text: string): Step1[] {
       } else if (current.type == "op" && current.name == "rVert") {
         tokens.push({ type: "bracket", bracket: "||R" })
       } else if (current.type == "op") {
-        tokens.push({ type: "op", name: current.name })
+        if (current.name != "left" && current.name != "right") {
+          tokens.push({ type: "op", name: current.name })
+        }
       } else if (current.type != "/") {
         tokens.push(current)
       }
@@ -297,9 +299,9 @@ export function s1_tokenize(text: string): Step1[] {
   return tokens
 }
 
-export type DoubleBracket = "()" | "[]" | "{}" | "||" | "<>" | "||||"
+type DoubleBracket = "()" | "[]" | "{}" | "||" | "<>" | "||||"
 
-export type Tree<Unary, Big, Binary, Inner> =
+type Tree<Unary, Big, Binary, Inner> =
   | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
@@ -309,14 +311,14 @@ export type Tree<Unary, Big, Binary, Inner> =
   | { type: "big"; op: Big; bottom: Inner; top: Inner; contents: Inner }
   | { type: "binary"; op: Binary; a: Inner; b: Inner }
 
-export type WellBehavedTree<Unary, Big, Binary> = Tree<
+type WellBehavedTree<Unary, Big, Binary> = Tree<
   Unary,
   Big,
   Binary,
   WellBehavedTree<Unary, Big, Binary>[]
 >
 
-export type GroupTokensResult =
+type GroupTokensResult =
   | { ok: true; tokens: Step2[] }
   | { ok: false; reason: "unmatched latex '}'" }
   | { ok: false; reason: `unmatched math '${MathBracket}'` }
@@ -341,7 +343,7 @@ const RIGHT_TO_DOUBLE = Object.freeze({
   "||R": "||||",
 } as const)
 
-export function s2_groupTokens(tokens: Step1[]): GroupTokensResult {
+function s2_groupTokens(tokens: Step1[]): GroupTokensResult {
   let current: Step2[] = []
   const all: Step2[][] = [current]
 
@@ -428,9 +430,9 @@ export function s2_groupTokens(tokens: Step1[]): GroupTokensResult {
   }
 }
 
-export class LatexParsingError extends Error {}
+class LatexParsingError extends Error {}
 
-export const TRIG_OPERATORS = Object.freeze(
+const TRIG_OPERATORS = Object.freeze(
   (
     [
       "sin",
@@ -461,9 +463,9 @@ export const TRIG_OPERATORS = Object.freeze(
   ).flatMap((x) => [x, `${x}^2`] as const),
 )
 
-export type TrigOperator = (typeof TRIG_OPERATORS)[number]
+type TrigOperator = (typeof TRIG_OPERATORS)[number]
 
-export const UNARY_OPERATORS = Object.freeze([
+const UNARY_OPERATORS = Object.freeze([
   ...TRIG_OPERATORS,
   "log",
   "log^2",
@@ -473,11 +475,11 @@ export const UNARY_OPERATORS = Object.freeze([
   "exp^2",
 ] as const)
 
-export type UnaryOperator = (typeof UNARY_OPERATORS)[number]
+type UnaryOperator = (typeof UNARY_OPERATORS)[number]
 
-export type StepFinal = Step6
+type StepFinal = Step6
 
-export function parseGroups(tokens: Step2[]): StepFinal[] {
+function parseGroups(tokens: Step2[]): StepFinal[] {
   const s3 = s3_parseLatexCommands(tokens)
   const s4 = s4_parseSubscriptSuperscriptFactorial(s3)
   const sa = s0_parseImplicitMultiplication(s4)
@@ -485,7 +487,12 @@ export function parseGroups(tokens: Step2[]): StepFinal[] {
   const sb = s0_parseImplicitMultiplication(s5)
   const s6 = s6_parseBinaryOperators(sb, MULTIPLICATIVE_OPERATORS)
   const s7 = s7_parseBigSymbolContents(s6)
-  return s7
+  const s8 = s6_parseBinaryOperators(s7, ADDITIVE_OPERATORS)
+  const s9 = s8_parseChainedComparisons(s8)
+  const s10 = s6_parseBinaryOperators(s9, BOOLEAN_OPERATORS)
+  const s11 = s6_parseBinaryOperators(s10, BINDING_OPERATORS)
+  const s12 = s6_parseBinaryOperators(s11, [","])
+  return s12
 }
 
 function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
@@ -896,7 +903,7 @@ const MULTIPLICATIVE_OPERATORS = Object.freeze([
   "div",
 ] as const)
 
-export type MultiplicativeOperator = (typeof MULTIPLICATIVE_OPERATORS)[number]
+type MultiplicativeOperator = (typeof MULTIPLICATIVE_OPERATORS)[number]
 
 function isStep6Value(token: { type: StepFinal["type"] }): boolean {
   return (
@@ -975,10 +982,105 @@ const COMPARISON_OPERATORS = Object.freeze([
   "ne",
 ] as const)
 
+function s8_parseChainedComparisons(tokens: Step6[]): Step6[] {
+  const output: Step6[] = []
+
+  for (const token of tokens) {
+    if (isStep6Value(token)) {
+      const prev = output[output.length - 1]
+      const prev2 = output[output.length - 2]
+
+      if (
+        prev &&
+        prev.type == "op" &&
+        COMPARISON_OPERATORS.includes(prev.name as any) &&
+        prev2 &&
+        isStep6Value(prev2)
+      ) {
+        if (
+          prev2.type == "binary" &&
+          COMPARISON_OPERATORS.includes(prev2.op as any)
+        ) {
+          output.splice(-2, 2, {
+            type: "binary",
+            op: "and",
+            a: [prev2],
+            b: [
+              {
+                type: "binary",
+                op: prev.name as any,
+                a: [...prev2.b],
+                b: [token],
+              },
+            ],
+          })
+        } else if (
+          prev2.type == "binary" &&
+          prev2.op == "and" &&
+          prev2.b.length == 1 &&
+          prev2.b[0]?.type == "binary"
+        ) {
+          output.splice(-2, 2, {
+            type: "binary",
+            op: "and",
+            a: [prev2],
+            b: [
+              {
+                type: "binary",
+                op: prev.name as any,
+                a: [...prev2.b[0].b],
+                b: [token],
+              },
+            ],
+          })
+        } else {
+          output.splice(-2, 2, {
+            type: "binary",
+            op: prev.name as any,
+            a: [prev2],
+            b: [token],
+          })
+        }
+        continue
+      }
+    }
+
+    output.push(token)
+  }
+
+  return output
+}
+
 const BOOLEAN_OPERATORS = Object.freeze(["and", "or"] as const)
 
-export type BinaryOperator =
+const BINDING_OPERATORS = Object.freeze(["for", "with"] as const)
+
+type BinaryOperator =
   | MultiplicativeOperator
   | (typeof ADDITIVE_OPERATORS)[number]
   | (typeof COMPARISON_OPERATORS)[number]
   | (typeof BOOLEAN_OPERATORS)[number]
+  | (typeof BINDING_OPERATORS)[number]
+  | ","
+
+export type ParseLatexResult =
+  | { ok: false; reason: string }
+  | { ok: true; value: StepFinal[] }
+
+export function parseLatex(latex: string): ParseLatexResult {
+  const s1 = s1_tokenize(latex)
+  const s2 = s2_groupTokens(s1)
+  if (!s2.ok) {
+    return { ok: false, reason: s2.reason }
+  }
+  try {
+    const tree = parseGroups(s2.tokens)
+    return { ok: true, value: tree }
+  } catch (error) {
+    if (error instanceof LatexParsingError) {
+      return { ok: false, reason: error.message }
+    } else {
+      throw error
+    }
+  }
+}
