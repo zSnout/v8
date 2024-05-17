@@ -1,7 +1,7 @@
 import { MathError, type Node } from "@/mathquill/parse"
 import { error, ok } from "../../result"
 import { optimize } from "./optimize"
-import { parse, UnaryFunction, type Tree, Constant, Operator } from "./parse"
+import { Constant, Operator, UnaryFunction, parse, type Tree } from "./parse"
 
 export function treeToGLSL(tree: Tree): string {
   if (tree.type == "number") {
@@ -164,5 +164,119 @@ export function nodeToTree(node: Node): Tree {
           `This calculator does not support the '${node.op}' operator.`,
         )
       }
+  }
+}
+
+function write(value: number): string {
+  let output = value.toFixed(12)
+
+  while (output.endsWith("0")) {
+    output = output.slice(0, -1)
+  }
+
+  if (output.endsWith(".")) {
+    output = output.slice(0, -1)
+  }
+
+  return output
+}
+
+const enum Precedence {
+  Leaf,
+  Exponentiation,
+  TightImplicitMultiplication,
+  UnaryFunction,
+  Multiplication,
+  Addition,
+}
+
+function treeToLatex(tree: Tree): { value: string; precedence: Precedence } {
+  switch (tree.type) {
+    case "number":
+      if (tree.value[0] && tree.value[1]) {
+        const a = write(tree.value[0])
+        let b = write(tree.value[1])
+        if (b[0] != "-") {
+          b = "+" + b
+        }
+        return { value: `${a}${b}i`, precedence: Precedence.Addition }
+      } else if (tree.value[1]) {
+        const written = write(tree.value[1])
+        return {
+          value: written + "i",
+          precedence: written.startsWith("-")
+            ? Precedence.UnaryFunction
+            : Precedence.TightImplicitMultiplication,
+        }
+      } else {
+        const written = write(tree.value[0])
+        return {
+          value: written,
+          precedence: written.startsWith("-")
+            ? Precedence.UnaryFunction
+            : Precedence.Leaf,
+        }
+      }
+    case "constant":
+      return {
+        value: {
+          c: "c",
+          z: "z",
+          p: "p",
+          iter: "\\operatorname{iter}",
+          u_mouse: "m",
+          u_slider: "s",
+          u_time: "t",
+        }[tree.name],
+        precedence: Precedence.Leaf,
+      }
+    case "unary-fn": {
+      const { value, precedence } = treeToLatex(tree.arg)
+
+      if (tree.name == "abs") {
+        return { value: `\\left|${value}\\right|`, precedence: Precedence.Leaf }
+      }
+
+      if (tree.name == "sqr" || tree.name == "cube") {
+        const arg =
+          precedence < Precedence.Exponentiation
+            ? value
+            : `\\left(${value}\\right)`
+
+        return {
+          value: `${arg}^{${tree.name == "sqr" ? "2" : "3"}}`,
+          precedence: Precedence.Exponentiation,
+        }
+      }
+
+      const arg =
+        precedence <= Precedence.UnaryFunction
+          ? value
+          : `\\left(${value}\\right)`
+
+      const fn = {
+        sin: "\\sin",
+        cos: "\\cos",
+        tan: "\\tan",
+        exp: "\\exp",
+        log: "\\log",
+        ln: "\\ln",
+        length: "\\operatorname{length}",
+        real: "\\operatorname{real}",
+        imag: "\\operatorname{imag}",
+        sign: "\\operatorname{sign}",
+        angle: "\\operatorname{angle}",
+        "+": "+",
+        "-": "-",
+      }[tree.name]
+
+      return {
+        value: `${fn}${arg}`,
+        precedence: Precedence.UnaryFunction,
+      }
+    }
+    case "binary-fn":
+      // TODO:
+      throw new Error("unimplemented")
   }
 }

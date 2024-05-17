@@ -10,6 +10,7 @@ export type UnaryFunction =
   | "tan"
   | "exp"
   | "log"
+  | "ln"
   | "abs"
   | "length"
   | "sqr"
@@ -44,7 +45,10 @@ const tokenize = createTokenizer<Token>(
   [/^\)/, () => ({ type: "right-paren" })],
   [
     /^(?:sin|cos|tan|exp|log|abs|length|real|imag|sign|angle)/,
-    ([match]) => ({ type: "unary-fn", name: match as UnaryFunction }),
+    ([match]) => ({
+      type: "unary-fn",
+      name: match == "log" ? "ln" : (match as UnaryFunction),
+    }),
   ],
   [/^iter/, () => ({ type: "constant", name: "iter" })],
   [/^i/, () => ({ type: "number", value: [0, 1] })],
