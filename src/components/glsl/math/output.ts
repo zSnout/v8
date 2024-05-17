@@ -190,9 +190,32 @@ const enum Precedence {
   Addition,
 }
 
-function treeToLatex(tree: Tree): { value: string; precedence: Precedence } {
+export function treeToLatex(tree: Tree): {
+  value: string
+  precedence: Precedence
+} {
   switch (tree.type) {
     case "number":
+      if (tree.value[0] == 1 && tree.value[1] == -1) {
+        return { value: `\\operatorname{fx}`, precedence: Precedence.Leaf }
+      }
+
+      if (tree.value[0] == -1 && tree.value[1] == 1) {
+        return { value: `\\operatorname{fy}`, precedence: Precedence.Leaf }
+      }
+
+      if (tree.value[0] == 0 && tree.value[1] == 1) {
+        return { value: `i`, precedence: Precedence.Leaf }
+      }
+
+      if (tree.value[0] == Math.E && tree.value[1] == 0) {
+        return { value: `e`, precedence: Precedence.Leaf }
+      }
+
+      if (tree.value[0] == Math.PI && tree.value[1] == 0) {
+        return { value: `\\pi`, precedence: Precedence.Leaf }
+      }
+
       if (tree.value[0] && tree.value[1]) {
         const a = write(tree.value[0])
         let b = write(tree.value[1])
@@ -255,12 +278,12 @@ function treeToLatex(tree: Tree): { value: string; precedence: Precedence } {
           : `\\left(${value}\\right)`
 
       const fn = {
-        sin: "\\sin",
-        cos: "\\cos",
-        tan: "\\tan",
-        exp: "\\exp",
-        log: "\\log",
-        ln: "\\ln",
+        sin: "\\sin ",
+        cos: "\\cos ",
+        tan: "\\tan ",
+        exp: "\\exp ",
+        log: "\\log ",
+        ln: "\\ln ",
         length: "\\operatorname{length}",
         real: "\\operatorname{real}",
         imag: "\\operatorname{imag}",
@@ -275,8 +298,126 @@ function treeToLatex(tree: Tree): { value: string; precedence: Precedence } {
         precedence: Precedence.UnaryFunction,
       }
     }
-    case "binary-fn":
-      // TODO:
-      throw new Error("unimplemented")
+    case "binary-fn": {
+      const { value: a, precedence: pa } = treeToLatex(tree.left)
+      const { value: b, precedence: pb } = treeToLatex(tree.right)
+
+      if (tree.name == "*" || tree.name == "**") {
+        if (
+          pa <= Precedence.TightImplicitMultiplication &&
+          pb <= Precedence.TightImplicitMultiplication
+        ) {
+          return {
+            value: `${a}${b}`,
+            precedence: Precedence.TightImplicitMultiplication,
+          }
+        }
+
+        if (pa <= Precedence.TightImplicitMultiplication) {
+          return {
+            value: `${a}\\left(${b}\\right)`,
+            precedence: Precedence.TightImplicitMultiplication,
+          }
+        }
+
+        if (pb <= Precedence.TightImplicitMultiplication) {
+          return {
+            value: `\\left(${a}\\right)${b}`,
+            precedence: Precedence.TightImplicitMultiplication,
+          }
+        }
+
+        if (
+          pa <= Precedence.Multiplication &&
+          pb <= Precedence.Multiplication
+        ) {
+          return {
+            value: `${a}\\cdot ${b}`,
+            precedence: Precedence.Multiplication,
+          }
+        }
+
+        if (pa <= Precedence.Multiplication) {
+          return {
+            value: `${a}\\cdot\\left(${b}\\right)`,
+            precedence: Precedence.Multiplication,
+          }
+        }
+
+        if (pb <= Precedence.Multiplication) {
+          return {
+            value: `\\left(${a}\\right)\\cdot ${b}`,
+            precedence: Precedence.Multiplication,
+          }
+        }
+
+        return {
+          value: `\\left(${a}\\right)\\left(${b}\\right)`,
+          precedence: Precedence.TightImplicitMultiplication,
+        }
+      }
+
+      if (tree.name == "^") {
+        if (pa < Precedence.Exponentiation) {
+          return { value: `${a}^{${b}}`, precedence: Precedence.Exponentiation }
+        }
+
+        return {
+          value: `\\left(${a}\\right)^{${b}}`,
+          precedence: Precedence.Exponentiation,
+        }
+      }
+
+      if (tree.name == "/") {
+        return { value: `\\frac{${a}}{${b}}`, precedence: Precedence.Leaf }
+      }
+
+      if (tree.name == "|") {
+        return { value: `\\dual{${a}}{${b}}`, precedence: Precedence.Leaf }
+      }
+
+      if (tree.name == "#") {
+        if (
+          pa <= Precedence.Multiplication &&
+          pb <= Precedence.Multiplication
+        ) {
+          return {
+            value: `${a}#${b}`,
+            precedence: Precedence.Multiplication,
+          }
+        }
+
+        if (pa <= Precedence.Multiplication) {
+          return {
+            value: `${a}#\\left(${b}\\right)`,
+            precedence: Precedence.Multiplication,
+          }
+        }
+
+        if (pb <= Precedence.Multiplication) {
+          return {
+            value: `\\left(${a}\\right)#${b}`,
+            precedence: Precedence.Multiplication,
+          }
+        }
+
+        return {
+          value: `\\left(${a}\\right)#\\left(${b}\\right)`,
+          precedence: Precedence.Multiplication,
+        }
+      }
+
+      if (pb < Precedence.Addition) {
+        return {
+          value: `${a}${tree.name}${b}`,
+          precedence: Precedence.Addition,
+        }
+      }
+
+      return {
+        value: `${a}${tree.name}\\left(${b}\\right)`,
+        precedence: Precedence.Addition,
+      }
+    }
   }
 }
