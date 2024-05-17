@@ -130,6 +130,8 @@ type BuildableToken =
   | { type: "n"; value: string }
   | { type: "/" }
 
+const MULTI_LETTER_VARIABLES = Object.freeze(["iter", "fx", "fy"])
+
 function s1_tokenize(text: string): Step1[] {
   const tokens: Step1[] = []
   let current: BuildableToken | undefined
@@ -145,7 +147,9 @@ function s1_tokenize(text: string): Step1[] {
       } else if (current.type == "op" && current.name == "rVert") {
         tokens.push({ type: "bracket", bracket: "||R" })
       } else if (current.type == "op") {
-        if (current.name != "left" && current.name != "right") {
+        if (MULTI_LETTER_VARIABLES.includes(current.name)) {
+          tokens.push({ type: "v", name: current.name })
+        } else if (current.name != "left" && current.name != "right") {
           tokens.push({ type: "op", name: current.name })
         }
       } else if (current.type != "/") {
@@ -401,7 +405,7 @@ function s2_groupTokens(tokens: Step1[]): GroupTokensResult {
   }
 }
 
-class LatexParsingError extends Error {}
+export class MathError extends Error {}
 
 const TRIG_OPERATORS = Object.freeze(
   (
@@ -442,6 +446,12 @@ const UNARY_OPERATORS = Object.freeze([
   "ln^2",
   "exp",
   "exp^2",
+  "length",
+  "real",
+  "imag",
+  "sign",
+  "angle",
+  "abs",
 ] as const)
 
 type BaseUnaryOperator = (typeof UNARY_OPERATORS)[number]
@@ -495,7 +505,7 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
               })
               index += 1
             } else {
-              throw new LatexParsingError(
+              throw new MathError(
                 "\\sqrt requires a {...} group after it.",
               )
             }
@@ -516,7 +526,7 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
               })
               index += 2
             } else {
-              throw new LatexParsingError(
+              throw new MathError(
                 `Expected two {...} groups after \\${token.name}`,
               )
             }
@@ -564,7 +574,7 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
               })
               index += 4
             } else {
-              throw new LatexParsingError(
+              throw new MathError(
                 `Expected _{...}^{...} after \\${token.name}`,
               )
             }
@@ -641,7 +651,7 @@ function s4_parseSubscriptSuperscriptFactorial(tokens: Step3[]): Step4[] {
             }
 
             if (!contents) {
-              throw new LatexParsingError(
+              throw new MathError(
                 `Expected {...} group after ${token.name}`,
               )
             }
@@ -697,7 +707,7 @@ function s4_parseSubscriptSuperscriptFactorial(tokens: Step3[]): Step4[] {
               break
             }
 
-            throw new LatexParsingError(
+            throw new MathError(
               `Invalid ${token.name == "^" ? "exponent" : "subscript"}`,
             )
           }
@@ -711,7 +721,7 @@ function s4_parseSubscriptSuperscriptFactorial(tokens: Step3[]): Step4[] {
                 contents: prev,
               }
             } else {
-              throw new LatexParsingError("Invalid factorial.")
+              throw new MathError("Invalid factorial.")
             }
 
             break
@@ -836,7 +846,7 @@ function s5_parseUnaryPrefixes(tokens: Step5[]): Step5[] {
         const op = ops.pop()!
 
         if (!contents) {
-          throw new LatexParsingError(
+          throw new MathError(
             `Sorry, I don't understand that usage of ${
               op.type == "op" ? op.name : op.op
             }`,
@@ -945,7 +955,7 @@ function s7_parseBigSymbolContents(tokens: Step5[]): Step5[] {
           contents: prev,
         }
       } else {
-        throw new LatexParsingError(
+        throw new MathError(
           `What do you want to take the ${
             token.op == "prod"
               ? "product"
@@ -1070,23 +1080,23 @@ const BINARY_OPERATORS = [
 
 function toNode(tree: Step5[]): Node {
   if (tree.length == 0) {
-    throw new LatexParsingError(`Empty expression.`)
+    throw new MathError(`Empty expression.`)
   }
   for (const node of tree) {
     if (node.type == "op") {
       if (BINARY_OPERATORS.includes(node.name)) {
-        throw new LatexParsingError(
+        throw new MathError(
           `You need something on both sides of the '${node.name}' symbol.`,
         )
       } else if (UNARY_OPERATORS.includes(node.name as any)) {
-        throw new LatexParsingError(
+        throw new MathError(
           `${node.name} is a function. Try using parentheses.`,
         )
       }
     }
   }
   if (tree.length > 1) {
-    throw new LatexParsingError(`Unrecognized symbol.`)
+    throw new MathError(`Unrecognized symbol.`)
   }
   const node = tree[0]!
   return node as Exclude<typeof node, { type: "op" }>
@@ -1131,7 +1141,7 @@ export function parseLatex(latex: string): ParseLatexResult {
     const tree = parseGroups(s2.tokens)
     return { ok: true, value: tree }
   } catch (error) {
-    if (error instanceof LatexParsingError) {
+    if (error instanceof MathError) {
       return { ok: false, reason: error.message }
     } else {
       throw error

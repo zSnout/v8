@@ -18,6 +18,8 @@ export type UnaryFunction =
   | "imag"
   | "sign"
   | "angle"
+  | "+"
+  | "-"
 
 export type Constant =
   | "c"
