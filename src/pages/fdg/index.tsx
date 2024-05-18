@@ -3,11 +3,14 @@
 
 import { For, Show, batch, createMemo, createSignal, onMount } from "solid-js"
 
+const RING_VALUES = [2, 5, 8]
+
 export interface Node {
   readonly label: string
   readonly locked: boolean
   readonly x: number
   readonly y: number
+  readonly ring?: number | undefined
 }
 
 export interface MutableNode {
@@ -65,7 +68,13 @@ export function createForceDirectedGraph() {
     const list = nodes()
     const currentHeld = dragging()?.index
 
-    const diffs = list.map(({ x, y }) => ({ x: -center * x, y: -center * y }))
+    const diffs = list.map(({ x, y, ring = 0 }) => {
+      const rawSize = Math.hypot(x, y) - ring
+      const direction = Math.atan2(y, x) + (rawSize > 0 ? Math.PI : 0)
+      const size = Math.abs(rawSize) * center
+      return { x: size * Math.cos(direction), y: size * Math.sin(direction) }
+    })
+
     const attractions = list.map(() => ({ x: 0, y: 0, n: 0 }))
 
     for (let i = 0; i < list.length; i++) {
@@ -156,7 +165,7 @@ export function createForceDirectedGraph() {
   const [position, setPosition] = createSignal<Position>({
     x: 0,
     y: 0,
-    w: 20,
+    w: 40,
   })
 
   const [links, setLinks] = createSignal<readonly Link[]>([
@@ -396,14 +405,17 @@ export function createForceDirectedGraph() {
         function click(cx: number, cy: number) {
           const cursor = mouseToSVG(cx, cy)
 
-          setNodes((nodes) =>
-            nodes.concat({
+          setNodes((nodes) => {
+            const ring =
+              RING_VALUES[Math.floor(RING_VALUES.length * Math.random())]!
+            return nodes.concat({
               x: cursor.x / scale(),
               y: cursor.y / scale(),
-              label: String(Math.floor(Math.random() * 900000 + 100000)),
+              label: "" + ring,
               locked: false,
-            }),
-          )
+              ring,
+            })
+          })
         }
 
         click(cx, cy)
