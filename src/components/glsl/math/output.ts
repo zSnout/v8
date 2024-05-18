@@ -262,7 +262,7 @@ export function treeToLatex(tree: Tree): {
       }
 
       if (tree.value[0] == Math.PI && tree.value[1] == 0) {
-        return { value: `\\pi`, precedence: Precedence.Leaf }
+        return { value: `\\pi `, precedence: Precedence.Leaf }
       }
 
       if (tree.value[0] && tree.value[1]) {
