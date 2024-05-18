@@ -197,8 +197,6 @@ export function Main() {
           z().match(/(?<!\\[A-Za-z]*)[mt]/) ||
           c().match(/(?<!\\[A-Za-z]*)[mt]/)
 
-        console.log({ unfrozen })
-
         if (unfrozen) {
           const m = untrack(mouse)
           const t = untrack(time)
