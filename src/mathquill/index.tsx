@@ -180,9 +180,9 @@ LatexCmds.frozentime = class extends MathCommand {
 
 export const config: Readonly<V3.Config> = Object.freeze({
   autoOperatorNames:
-    "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for and or not mod iter real imag log ln exp length sign angle",
+    "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for and or not mod iter real imag log ln exp length sign angle unsign fx fy",
   autoCommands:
-    "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans dual abs fx fy",
+    "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans dual abs",
   infixOperatorNames: "mod",
   autoSubscriptNumerals: true,
   disableAutoSubstitutionInSubscripts: true,

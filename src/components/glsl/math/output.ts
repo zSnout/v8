@@ -103,11 +103,11 @@ const BINARY_FUNCTION_MAP: Record<string, Operator> = {
   cdot: "*",
   times: "*",
   implicit_mult: "**",
-  "/": "/",
-  "^": "^",
-  "#": "#",
-  dual: "|",
   frac: "/",
+  "/": "/",
+  odot: "#",
+  "^": "^",
+  dual: "|",
 }
 
 export function nodeToTree(node: Node): Tree {
@@ -129,7 +129,11 @@ export function nodeToTree(node: Node): Tree {
       if (node.bracket == "()") {
         return nodeToTree(node.contents)
       } else if (node.bracket == "||") {
-        return { type: "unary-fn", name: "abs", arg: nodeToTree(node.contents) }
+        return {
+          type: "unary-fn",
+          name: "length",
+          arg: nodeToTree(node.contents),
+        }
       } else {
         throw new MathError(
           `This calculator does not support ${node.bracket} brackets.`,
@@ -142,6 +146,12 @@ export function nodeToTree(node: Node): Tree {
         return {
           type: "unary-fn",
           name: node.op as UnaryFunction,
+          arg: nodeToTree(node.contents),
+        }
+      } else if (node.op == "unsign") {
+        return {
+          type: "unary-fn",
+          name: "abs",
           arg: nodeToTree(node.contents),
         }
       } else if (node.op == "frozenmouse" || node.op == "frozentime") {
@@ -281,7 +291,7 @@ export function treeToLatex(tree: Tree): {
     case "unary-fn": {
       const { value, precedence } = treeToLatex(tree.arg)
 
-      if (tree.name == "abs") {
+      if (tree.name == "length") {
         return { value: `\\left|${value}\\right|`, precedence: Precedence.Leaf }
       }
 
@@ -309,13 +319,13 @@ export function treeToLatex(tree: Tree): {
         exp: "\\exp ",
         log: "\\log ",
         ln: "\\ln ",
-        length: "\\operatorname{length}",
         real: "\\operatorname{real}",
         imag: "\\operatorname{imag}",
         sign: "\\operatorname{sign}",
         angle: "\\operatorname{angle}",
         "+": "+",
         "-": "-",
+        abs: "\\operatorname{unsign}",
       }[tree.name]
 
       return {

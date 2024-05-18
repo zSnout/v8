@@ -134,6 +134,8 @@ const EXT: Record<ExtensionName, string> = {
   VELARIZED: "ʕ",
   CORE_GEMINATE: "=",
   EXTENSION_GEMINATE: "≈",
+  '"': "ʕ",
+  "¿": "ʖ",
 }
 
 const DIAC: Record<DiacriticName, string> = {

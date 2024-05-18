@@ -431,6 +431,7 @@ const UNARY_OPERATORS = Object.freeze([
   "sign",
   "angle",
   "abs",
+  "unsign",
 ] as const)
 
 type BaseUnaryOperator = (typeof UNARY_OPERATORS)[number]
@@ -860,7 +861,7 @@ const MULTIPLICATIVE_OPERATORS = Object.freeze([
   "*",
   "/",
   "%",
-  "#",
+  "odot",
   "mod",
   "times",
   "cdot",

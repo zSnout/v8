@@ -201,13 +201,9 @@ function untilNextParenthesis(tokens: Token[]): Tree {
         tokens.shift()
 
         partialTree.push({
-          type: "binary-fn",
+          type: "unary-fn",
           name: "-",
-          left: {
-            type: "number",
-            value: [0, 0],
-          },
-          right: getNext(tokens),
+          arg: getNext(tokens),
         })
 
         wasLastTokenAValue = true

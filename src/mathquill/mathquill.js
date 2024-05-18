@@ -6268,10 +6268,11 @@ LatexCmds["\u22b3"] = LatexCmds.triangleright = bindVanillaSymbol(
   "triangle right",
 )
 //circledot is not a not real LaTex command see https://github.com/mathquill/mathquill/pull/552 for more details
-LatexCmds["\u2299"] =
+LatexCmds["#"] =
+  LatexCmds["\u2299"] =
   LatexCmds.odot =
   LatexCmds.circledot =
-    bindVanillaSymbol("\\odot ", "&#8857;", "circle dot")
+    bindBinaryOperator("\\odot ", "&#8857;", "circle dot")
 LatexCmds["\u25ef"] = LatexCmds.bigcirc = bindVanillaSymbol(
   "\\bigcirc ",
   "&#9711;",

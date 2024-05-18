@@ -3,6 +3,7 @@ import { ErrorBoundary } from "@/components/Error"
 import { Fa } from "@/components/Fa"
 import { ModalButton } from "@/components/Modal"
 import { createEventListener } from "@/components/create-event-listener"
+import { isInteractive } from "@/components/draggable"
 import { CheckboxGroup, Radio } from "@/components/fields/Radio"
 import { Range } from "@/components/fields/Range"
 import { WebGLInteractiveCoordinateCanvas } from "@/components/glsl/canvas/interactive"
@@ -44,7 +45,6 @@ import {
   untrack,
 } from "solid-js"
 import fragmentSource from "./fragment.glsl"
-import { isInteractive } from "@/components/draggable"
 
 // Because users likely want more control over lower detail values, we map the
 // sliders so the bottom half [0, 500) actually maps to [0, 100), and the top

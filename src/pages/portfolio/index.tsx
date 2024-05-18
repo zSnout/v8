@@ -17,6 +17,7 @@ export type Icon =
   | "py"
   | "tailwind"
   | "glsl"
+  | "vue"
 
 export type Status = "draft" | "in progress" | "complete" | "constant revision"
 
@@ -458,6 +459,10 @@ export function createIcon(icon: Icon) {
           </defs>
         </svg>
       )
+
+    case "vue":
+      // TODO:
+      throw new Error("unimplemented")
   }
 }
 
