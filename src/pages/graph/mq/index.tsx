@@ -1,5 +1,6 @@
-import { treeToLatex } from "@/components/glsl/math/output"
+import { nodeToTree, treeToLatex } from "@/components/glsl/math/output"
 import { parse } from "@/components/glsl/math/parse"
+import { error } from "@/components/result"
 import { MQEditable } from "@/mathquill"
 import { parseLatex } from "@/mathquill/parse"
 import { createMemo, createSignal } from "solid-js"
@@ -11,7 +12,17 @@ export function Main() {
   const [glslTree, setGlslTree] = createSignal({})
 
   const output = createMemo(() => {
-    return parseLatex(latex())
+    const value = parseLatex(latex())
+    if (value.ok) {
+      try {
+        setGlslTree(nodeToTree(value.value))
+      } catch (err) {
+        setGlslTree(error(err))
+      }
+    } else {
+      setGlslTree({})
+    }
+    return value
   })
 
   return (

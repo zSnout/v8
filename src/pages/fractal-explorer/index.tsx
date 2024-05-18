@@ -136,7 +136,7 @@ function Equation(props: {
         }}
       />
 
-      <p class="absolute left-2 top-0 -translate-y-1/2 rounded bg-z-body px-2 py-1 text-sm text-z-subtitle transition [line-height:1]">
+      <p class="absolute left-2 top-0 -translate-y-1/2 rounded bg-z-body px-2 py-0 text-sm text-z-subtitle transition [line-height:1]">
         {props.label}
       </p>
 

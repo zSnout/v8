@@ -100,6 +100,7 @@ const BINARY_FUNCTION_MAP: Record<string, Operator> = {
   "^": "^",
   "#": "#",
   dual: "|",
+  frac: "/",
 }
 
 export function nodeToTree(node: Node): Tree {
