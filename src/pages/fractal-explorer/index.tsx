@@ -727,7 +727,7 @@ export function Main() {
             Functions usable in equations
           </h3>
 
-          {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"real"}, and ${"imag"} work as expected. ${"exp"} and ${"log"} use base ${"e"}. ${"|x|"} calculates the magnitude of a complex number; use ${"unsign"} to take the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-π"} and ${"π"}. All functions work on complex numbers.`}
+          {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"log"}, ${"ln"}, ${"real"}, and ${"imag"} work as expected. ${"exp"} is short for ${"e^x"}. ${"|x|"} calculates the magnitude of a complex number; use ${"unsign"} to take the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-π"} and ${"π"}. All functions work on complex numbers.`}
 
           <h3 class="mb-2 mt-4 text-center font-semibold">Dual graphing</h3>
 
