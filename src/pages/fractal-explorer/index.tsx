@@ -193,9 +193,9 @@ export function Main() {
         !isInteractive(event)
       ) {
         const unfrozen =
-          equation().match(/(?<!\\[A-Za-z]*)[mt]/) ||
-          z().match(/(?<!\\[A-Za-z]*)[mt]/) ||
-          c().match(/(?<!\\[A-Za-z]*)[mt]/)
+          equation().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)[mt]/) ||
+          z().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)[mt]/) ||
+          c().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)[mt]/)
 
         if (unfrozen) {
           const m = untrack(mouse)
@@ -327,9 +327,9 @@ export function Main() {
 
       <Show
         when={
-          equation().match(/(?<!\\[A-Za-z]*)s/) ||
-          z().match(/(?<!\\[A-Za-z]*)s/) ||
-          c().match(/(?<!\\[A-Za-z]*)s/)
+          equation().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/) ||
+          z().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/) ||
+          c().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/)
         }
       >
         <div class="fixed bottom-6 left-6 right-6 flex touch-none justify-center">
@@ -457,9 +457,9 @@ export function Main() {
         <Show when={view() == "main"}>
           <Show
             when={
-              equation().match(/(?<!\\[A-Za-z]*)t/) ||
-              z().match(/(?<!\\[A-Za-z]*)t/) ||
-              c().match(/(?<!\\[A-Za-z]*)t/)
+              equation().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/) ||
+              z().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/) ||
+              c().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/)
             }
           >
             <Range
