@@ -6,7 +6,13 @@ import { createEventListener } from "@/components/create-event-listener"
 import { CheckboxGroup, Radio } from "@/components/fields/Radio"
 import { Range } from "@/components/fields/Range"
 import { WebGLInteractiveCoordinateCanvas } from "@/components/glsl/canvas/interactive"
-import { latexToGLSL, treeToLatex } from "@/components/glsl/math/output"
+import {
+  freeze,
+  latexToGLSL,
+  nodeToTree,
+  treeToLatex,
+  unfreeze,
+} from "@/components/glsl/math/output"
 import { parse } from "@/components/glsl/math/parse"
 import { trackMouse } from "@/components/glsl/mixins/track-mouse"
 import { trackTime } from "@/components/glsl/mixins/track-time"
@@ -20,6 +26,7 @@ import {
   createSearchParam,
 } from "@/components/search-params"
 import { MQEditable } from "@/mathquill"
+import { parseLatex } from "@/mathquill/parse"
 import {
   faExclamationTriangle,
   faGears,
@@ -37,6 +44,7 @@ import {
   untrack,
 } from "solid-js"
 import fragmentSource from "./fragment.glsl"
+import { isInteractive } from "@/components/draggable"
 
 // Because users likely want more control over lower detail values, we map the
 // sliders so the bottom half [0, 500) actually maps to [0, 100), and the top
@@ -130,7 +138,7 @@ function Equation(props: {
     <div class="relative mt-4 w-full">
       <MQEditable
         class="z-field w-full rounded-lg border border-z p-0 shadow-none [&_.mq-root-block]:px-3 [&_.mq-root-block]:py-2"
-        latex={untrack(props.get)}
+        latex={props.get()}
         edit={(mq) => {
           props.set(mq.latex())
         }}
@@ -142,9 +150,9 @@ function Equation(props: {
 
       <Show when={props.error()}>
         <Fa
-          class="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2"
+          class="absolute right-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2"
           icon={faExclamationTriangle}
-          title="Error"
+          title={props.error() || ""}
         />
       </Show>
     </div>
@@ -250,34 +258,59 @@ export function Main() {
 
   if (typeof document != "undefined") {
     createEventListener(document, "keydown", (event) => {
-      // TODO: redo f
-      // if (
-      //   !event.altKey &&
-      //   !event.ctrlKey &&
-      //   !event.metaKey &&
-      //   (event.key == "f" || event.key == "F")
-      // ) {
-      //   function run(get: () => string, set: (x: string) => void) {
-      //     const eq = untrack(get)
-      //     const eqWithoutConstants = eq
-      //       .replace(/\$\([^)]*\)/g, "(m)")
-      //       .replace(/@\([^)]*\)/g, "(t)")
-      //     if (eq == eqWithoutConstants) {
-      //       const [x, y] = untrack(mouse)
-      //       set(
-      //         eq
-      //           .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
-      //           .replace(/t(?!an|er|h)/g, `@(${untrack(time)})`),
-      //       )
-      //       return
-      //     } else {
-      //       set(eqWithoutConstants)
-      //     }
-      //   }
-      //   run(equation, setEquation)
-      //   run(z, setZ)
-      //   run(c, setC)
-      // }
+      if (
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        (event.key == "f" || event.key == "F") &&
+        !isInteractive(event)
+      ) {
+        const unfrozen =
+          equation().match(/(?<!\\[A-Za-z]*)[mt]/) ||
+          z().match(/(?<!\\[A-Za-z]*)[mt]/) ||
+          c().match(/(?<!\\[A-Za-z]*)[mt]/)
+
+        console.log({ unfrozen })
+
+        if (unfrozen) {
+          const m = untrack(mouse)
+          const t = untrack(time)
+
+          for (const [get, set] of [
+            [equation, setEquation],
+            [z, setZ],
+            [c, setC],
+          ] as const) {
+            try {
+              const result = parseLatex(get())
+              if (!result.ok) {
+                continue
+              }
+              const node = freeze(result.value, m, t)
+              const tree = nodeToTree(node)
+              const latex = treeToLatex(tree).value
+              set(latex)
+            } catch {}
+          }
+        } else {
+          for (const [get, set] of [
+            [equation, setEquation],
+            [z, setZ],
+            [c, setC],
+          ] as const) {
+            try {
+              const result = parseLatex(get())
+              if (!result.ok) {
+                continue
+              }
+              const node = unfreeze(result.value)
+              const tree = nodeToTree(node)
+              const latex = treeToLatex(tree).value
+              set(latex)
+            } catch {}
+          }
+        }
+      }
     })
   }
 
@@ -369,9 +402,9 @@ export function Main() {
 
       <Show
         when={
-          equation().match(/(?<!ab|co)s(?!in)/) ||
-          z().match(/(?<!ab|co)s(?!in)/) ||
-          c().match(/(?<!ab|co)s(?!in)/)
+          equation().match(/(?<!\\[A-Za-z]*)s/) ||
+          z().match(/(?<!\\[A-Za-z]*)s/) ||
+          c().match(/(?<!\\[A-Za-z]*)s/)
         }
       >
         <div class="fixed bottom-6 left-6 right-6 flex touch-none justify-center">
@@ -497,7 +530,13 @@ export function Main() {
         />
 
         <Show when={view() == "main"}>
-          <Show when={equation().includes("t")}>
+          <Show
+            when={
+              equation().match(/(?<!\\[A-Za-z]*)t/) ||
+              z().match(/(?<!\\[A-Za-z]*)t/) ||
+              c().match(/(?<!\\[A-Za-z]*)t/)
+            }
+          >
             <Slider
               class="mt-3"
               name="Speed"
@@ -688,11 +727,11 @@ export function Main() {
             Functions usable in equations
           </h3>
 
-          {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"real"}, ${"imag"}, and ${"length"} work as expected. ${"exp"} and ${"log"} use base ${"e"}. ${"abs"} calculates the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-pi"} and ${"pi"}. All functions work on complex numbers.`}
+          {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"real"}, ${"imag"}, and ${"length"} work as expected. ${"exp"} and ${"log"} use base ${"e"}. ${"abs"} calculates the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-π"} and ${"π"}. All functions work on complex numbers.`}
 
           <h3 class="mb-2 mt-4 text-center font-semibold">Dual graphing</h3>
 
-          {p`Dual graphing is helpful for exploring Julia sets. Replace any expression with ${"x|y"} to enter dual mode. The value ${"x"} will be used in the main window, and ${"y"} in a smaller subwindow. Try changing all instances of ${"c"} to ${"c|m"}!`}
+          {p`Dual graphing is helpful for exploring Julia sets. Type ${"dual"} to create a dual value. The larger value will be used in the main window, and the smaller one in a smaller subwindow. Try changing all instances of ${"c"} to ${"dual(c,m)"}!`}
         </Show>
       </DynamicOptions>
     </>

@@ -1,5 +1,6 @@
 import { MathError, parseLatex, type Node } from "@/mathquill/parse"
 import { Result, error, ok } from "../../result"
+import type { Vec2 } from "../types"
 import { optimize } from "./optimize"
 import { Constant, Operator, UnaryFunction, parse, type Tree } from "./parse"
 
@@ -17,6 +18,12 @@ export function treeToGLSL(tree: Tree): string {
   }
 
   if (tree.type == "unary-fn") {
+    if (tree.name == "+") {
+      return treeToGLSL(tree.arg)
+    }
+    if (tree.name == "-") {
+      return `-(${treeToGLSL(tree.arg)})`
+    }
     return `cx_${tree.name}(${treeToGLSL(tree.arg)})`
   }
 
@@ -450,5 +457,146 @@ export function latexToGLSL(latex: string): Result<string> {
     return ok(treeToGLSL(tree))
   } catch (err) {
     return error(err)
+  }
+}
+
+export function treeHasSlider(tree: Tree): boolean {
+  switch (tree.type) {
+    case "number":
+      return false
+    case "binary-fn":
+      return treeHasSlider(tree.left) || treeHasSlider(tree.right)
+    case "unary-fn":
+      return treeHasSlider(tree.arg)
+    case "constant":
+      return tree.name == "u_slider"
+  }
+}
+
+export function nodeHasUnfrozenMouseTime(node: Node): boolean {
+  switch (node.type) {
+    case "n":
+      return false
+    case "v":
+      return node.name == "m" || node.name == "t"
+    case "bracket":
+    case "group":
+    case "unary":
+      return nodeHasUnfrozenMouseTime(node.contents)
+    case "big":
+      return (
+        nodeHasUnfrozenMouseTime(node.contents) ||
+        nodeHasUnfrozenMouseTime(node.top) ||
+        nodeHasUnfrozenMouseTime(node.bottom)
+      )
+    case "binary":
+      return (
+        nodeHasUnfrozenMouseTime(node.a) || nodeHasUnfrozenMouseTime(node.b)
+      )
+  }
+}
+
+export function unfreeze(node: Node): Node {
+  switch (node.type) {
+    case "n":
+    case "v":
+      return node
+    case "bracket":
+    case "group":
+    case "unary":
+      if (
+        node.type == "unary" &&
+        (node.op == "frozenmouse" || node.op == "frozentime")
+      ) {
+        return {
+          type: "v",
+          name: node.op == "frozenmouse" ? "m" : "t",
+        }
+      } else {
+        return { ...node, contents: unfreeze(node.contents) }
+      }
+    case "big":
+      return {
+        ...node,
+        contents: unfreeze(node.contents),
+        top: unfreeze(node.top),
+        bottom: unfreeze(node.bottom),
+      }
+    case "binary":
+      return {
+        ...node,
+        a: unfreeze(node.a),
+        b: unfreeze(node.b),
+      }
+  }
+}
+
+export function numberToNode(value: number): Node {
+  const str = write(value)
+
+  if (str.startsWith("-")) {
+    return {
+      type: "unary",
+      op: "-",
+      contents: { type: "n", value: str.slice(1) },
+    }
+  } else {
+    return { type: "n", value: str }
+  }
+}
+
+export function complexToNode(real: number, imag: number): Node {
+  const i = write(imag)
+
+  return {
+    type: "binary",
+    op: i.startsWith("-") ? "-" : "+",
+    a: numberToNode(real),
+    b: {
+      type: "binary",
+      op: "implicit_mult",
+      a: { type: "n", value: i.startsWith("-") ? i.slice(1) : i },
+      b: { type: "v", name: "i" },
+    },
+  }
+}
+
+export function freeze(node: Node, mouse: Vec2, time: number): Node {
+  switch (node.type) {
+    case "n":
+    case "v":
+      if (node.type == "v" && node.name == "m") {
+        return {
+          type: "unary",
+          op: "frozenmouse",
+          contents: complexToNode(mouse[0], mouse[1]),
+        }
+      }
+      if (node.type == "v" && node.name == "t") {
+        return {
+          type: "unary",
+          op: "frozentime",
+          contents: numberToNode(time),
+        }
+      }
+      return node
+    case "bracket":
+    case "group":
+    case "unary":
+      return { ...node, contents: freeze(node.contents, mouse, time) }
+
+    case "big":
+      return {
+        ...node,
+        contents: freeze(node.contents, mouse, time),
+        top: freeze(node.top, mouse, time),
+        bottom: freeze(node.bottom, mouse, time),
+      }
+    case "binary":
+      return {
+        ...node,
+        a: freeze(node.a, mouse, time),
+        b: freeze(node.b, mouse, time),
+      }
   }
 }

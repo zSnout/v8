@@ -3,7 +3,7 @@ import type { Point } from "./glsl/types"
 
 const interactiveTags = ["A", "BUTTON", "INPUT", "TEXTAREA"]
 
-function isInteractive(event: Event) {
+export function isInteractive(event: Event) {
   for (const el of event.composedPath()) {
     if (
       el instanceof HTMLElement &&

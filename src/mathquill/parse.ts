@@ -195,7 +195,7 @@ function s1_tokenize(text: string): Step1[] {
         break
 
       default:
-        if ("0" <= char && char < "9") {
+        if ("0" <= char && char <= "9") {
           if (current?.type == "n") {
             current.value += char
             break
@@ -1074,6 +1074,7 @@ function toNode(tree: Step5[]): Node {
     }
   }
   if (tree.length > 1) {
+    console.error(tree)
     throw new MathError(`Unrecognized symbol.`)
   }
   const node = tree[0]!
