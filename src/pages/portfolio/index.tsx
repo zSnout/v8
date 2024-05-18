@@ -462,7 +462,7 @@ export function createIcon(icon: Icon) {
 
     case "vue":
       // TODO:
-      throw new Error("unimplemented")
+      return createIcon("vite")
   }
 }
 
