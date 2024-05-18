@@ -91,12 +91,12 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
           <Range
             class="before:translate-x-[calc(-50%_-_0.75rem)]"
             name="Repetition"
-            min={1}
-            max={10}
+            min={Math.log(0.1)}
+            max={Math.log(9.99)}
             step="any"
-            get={repetition}
-            getLabel={() => repetition().toFixed(1) + "x"}
-            set={setRepetition}
+            get={() => Math.log(repetition())}
+            getLabel={() => Math.round(repetition() * 100) + "%"}
+            set={(x) => setRepetition(Math.exp(x))}
           />
         </div>
       </div>

@@ -548,59 +548,63 @@ export function Main() {
             />
           </Show>
 
-          <Slider
+          <Range
             class="mb-2 mt-6"
             name="Detail"
-            get={detail}
-            set={(value) => {
-              value = Math.floor(Math.max(5, value))
+            min={Math.log(10)}
+            max={Math.log(1000)}
+            step="any"
+            get={() => Math.log(detail())}
+            getLabel={() => "" + Math.round(detail())}
+            set={(v) => {
+              const value = Math.exp(v)
               setDetail(value)
 
               if (minDetail() > value) {
                 setMinDetail(value)
               }
             }}
-            valueToSlider={detailValueToSlider}
-            sliderToValue={detailSliderToValue}
           />
 
-          <Slider
+          <Range
             class="mb-2"
             name="Min. Detail"
-            get={minDetail}
-            set={(value) => {
-              value = Math.floor(value)
+            min={Math.log(1)}
+            max={Math.log(1001)}
+            step="any"
+            get={() => Math.log(minDetail() + 1)}
+            getLabel={() => "" + Math.round(minDetail())}
+            set={(v) => {
+              const value = Math.exp(v) - 1
+              setMinDetail(value)
 
-              if (minDetail() > detail()) {
-                setMinDetail(value)
+              if (value > detail()) {
                 setDetail(value)
-              } else {
-                setMinDetail(value)
               }
             }}
-            valueToSlider={detailValueToSlider}
-            sliderToValue={detailSliderToValue}
           />
 
-          <Slider
+          <Range
             class={theme() == "plot" ? "mb-2" : "mb-6"}
             name="Fractal Size"
-            get={fractalSize}
-            set={setFractalSize}
-            valueToSlider={fractalSizeValueToSlider}
-            sliderToValue={fractalSizeSliderToValue}
-            decimalDigits={2}
+            min={Math.log(0.1)}
+            max={Math.log(100)}
+            step="any"
+            get={() => Math.log(fractalSize())}
+            getLabel={() => fractalSize().toFixed(2)}
+            set={(v) => setFractalSize(Math.exp(v))}
           />
 
           <Show when={theme() == "plot"}>
-            <Slider
+            <Range
               class="mb-6"
               name="Plot Size"
-              get={plotSize}
-              set={setPlotSize}
-              valueToSlider={fractalSizeValueToSlider}
-              sliderToValue={fractalSizeSliderToValue}
-              decimalDigits={2}
+              min={Math.log(0.1)}
+              max={Math.log(10.1)}
+              step="any"
+              get={() => Math.log(plotSize() + 0.09999999)}
+              getLabel={() => plotSize().toFixed(2)}
+              set={(v) => setPlotSize(Math.exp(v) - 0.09999999)}
             />
           </Show>
 
