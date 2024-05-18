@@ -129,18 +129,6 @@ export function Canvas(props: {
             props.repetition * props.repetitionSign,
           )
 
-          // if (zEq.value.includes("u_mouse")) {
-          //   trackMouse(gl)
-          // }
-
-          // if (
-          //   zEq.value.includes("u_time") ||
-          //   cEq.value.includes("u_time") ||
-          //   eq.value.includes("u_time")
-          // ) {
-          //   trackTime(gl)
-          // }
-
           gl.draw()
 
           canvas.width = canvas.clientWidth * devicePixelRatio

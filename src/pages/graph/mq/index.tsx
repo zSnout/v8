@@ -1,4 +1,8 @@
-import { nodeToTree, treeToLatex } from "@/components/glsl/math/output"
+import {
+  nodeToTree,
+  treeToGLSL,
+  treeToLatex,
+} from "@/components/glsl/math/output"
 import { parse } from "@/components/glsl/math/parse"
 import { error } from "@/components/result"
 import { MQEditable } from "@/mathquill"
@@ -10,12 +14,15 @@ export function Main() {
   const [mathspeak, setMathspeak] = createSignal("y")
   const [precedence, setPrecedence] = createSignal(-1)
   const [glslTree, setGlslTree] = createSignal({})
+  const [glsl, setGlsl] = createSignal("")
 
   const output = createMemo(() => {
     const value = parseLatex(latex())
     if (value.ok) {
       try {
-        setGlslTree(nodeToTree(value.value))
+        const tree = nodeToTree(value.value)
+        setGlslTree(tree)
+        setGlsl(treeToGLSL(tree))
       } catch (err) {
         setGlslTree(error(err))
       }
@@ -55,7 +62,8 @@ export function Main() {
             console.error("invalid: " + tree.reason)
             return
           }
-          setGlslTree(tree)
+          setGlslTree(tree.value)
+          setGlsl(treeToGLSL(tree.value))
           const node = treeToLatex(tree.value)
           setPrecedence(node.precedence)
           setLatex(node.value)
@@ -65,6 +73,7 @@ export function Main() {
       <div>precedence: {precedence()}</div>
       <div>{latex()}</div>
       <div>{mathspeak()}</div>
+      <div>{glsl()}</div>
       <pre class="bg-red-100">{JSON.stringify(glslTree(), undefined, 2)}</pre>
       <pre class="bg-blue-100">{JSON.stringify(output(), undefined, 2)}</pre>
     </>
