@@ -83,7 +83,7 @@ const UNARY_FUNCTIONS: readonly UnaryFunction[] = [
   "cos",
   "tan",
   "exp",
-  "log",
+  "ln",
   "abs",
   "length",
   "sqr",
@@ -160,6 +160,12 @@ export function nodeToTree(node: Node): Tree {
         return {
           type: "unary-fn",
           name: "abs",
+          arg: nodeToTree(node.contents),
+        }
+      } else if (node.op == "log") {
+        return {
+          type: "unary-fn",
+          name: "log10",
           arg: nodeToTree(node.contents),
         }
       } else if (node.op == "frozenmouse" || node.op == "frozentime") {
@@ -325,7 +331,7 @@ export function treeToLatex(tree: Tree): {
         cos: "\\cos ",
         tan: "\\tan ",
         exp: "\\exp ",
-        log: "\\log ",
+        log10: "\\log ",
         ln: "\\ln ",
         real: "\\operatorname{real}",
         imag: "\\operatorname{imag}",

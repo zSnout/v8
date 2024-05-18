@@ -24,8 +24,12 @@ vec2 cx_exp(vec2 z) {
   return vec2(e * cos(z.y), e * sin(z.y));
 }
 
-vec2 cx_log(vec2 z) {
+vec2 cx_ln(vec2 z) {
   return vec2(log(length(z)), atan(z.y, z.x));
+}
+
+vec2 cx_log10(vec2 z) {
+  return cx_ln(z) / 2.303;
 }
 
 vec2 cx_abs(vec2 z) {
@@ -48,7 +52,7 @@ vec2 cx_cube(vec2 z) {
 }
 
 vec2 cx_pow(vec2 a, vec2 b) {
-  return cx_exp(cx_mult(b, cx_log(a)));
+  return cx_exp(cx_mult(b, cx_ln(a)));
 }
 
 vec2 cx_real(vec2 z) {

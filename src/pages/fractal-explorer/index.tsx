@@ -166,7 +166,7 @@ function p(strings: TemplateStringsArray, ...values: (number | string)[]) {
         {(value, index) => (
           <>
             {strings[index]}
-            <code class="rounded bg-z-body-selected px-1 text-z transition dark:bg-z-body">
+            <code class="inline-block max-w-[12rem] truncate rounded bg-z-body-selected px-1 align-bottom text-z transition dark:bg-z-body">
               {((value) => {
                 if (typeof value == "number") {
                   return value
@@ -727,11 +727,11 @@ export function Main() {
             Functions usable in equations
           </h3>
 
-          {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"real"}, ${"imag"}, and ${"length"} work as expected. ${"exp"} and ${"log"} use base ${"e"}. ${"abs"} calculates the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-π"} and ${"π"}. All functions work on complex numbers.`}
+          {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"real"}, and ${"imag"} work as expected. ${"exp"} and ${"log"} use base ${"e"}. ${"|x|"} calculates the magnitude of a complex number; use ${"unsign"} to take the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-π"} and ${"π"}. All functions work on complex numbers.`}
 
           <h3 class="mb-2 mt-4 text-center font-semibold">Dual graphing</h3>
 
-          {p`Dual graphing is helpful for exploring Julia sets. Type ${"dual"} to create a dual value. The larger value will be used in the main window, and the smaller one in a smaller subwindow. Try changing all instances of ${"c"} to ${"dual(c,m)"}!`}
+          {p`Dual graphing is helpful for exploring Julia sets. Type ${"dual"} to create a dual value, represented as two overlapping rectangles in the equation editor. The larger value will be used in the main window, and the smaller one in a smaller subwindow. Try changing all instances of ${"c"} to ${"dual(c,m)"}!`}
         </Show>
       </DynamicOptions>
     </>

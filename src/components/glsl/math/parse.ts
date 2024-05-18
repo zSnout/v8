@@ -9,7 +9,7 @@ export type UnaryFunction =
   | "cos"
   | "tan"
   | "exp"
-  | "log"
+  | "log10"
   | "ln"
   | "abs"
   | "length"
