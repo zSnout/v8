@@ -26,7 +26,9 @@ export function Main() {
           }}
           ref={(mq) => {
             setTimeout(() => {
-              mq.latex("\\left(z-m\\right)^2+c-m\\cross\\dual{c}{m}")
+              mq.latex(
+                "\\left(z-m\\right)^2+c-m\\cross\\dual{c}{m}\\cross\\frozenmouse{2+3i}",
+              )
             })
           }}
         />

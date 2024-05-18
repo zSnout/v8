@@ -160,6 +160,14 @@ html.no-transition * {
     @apply hidden;
   }
 
+  .mq-frozen {
+    @apply relative mx-[0.1em] my-[0.1em] inline-block min-w-[3em] rounded border-2 border-blue-500 bg-blue-50 px-[0.2em] py-[0.1em] text-center text-blue-500 dark:bg-blue-950 [.mq-selection_&]:bg-blue-500 [.mq-selection_&]:text-blue-50;
+  }
+
+  .mq-frozen:before {
+    @apply absolute left-1/2 top-full inline-block h-[calc(0.75em_+_4px)] -translate-x-1/2 -translate-y-1/2 rounded bg-blue-500 px-[0.2em] text-[50%] text-blue-50 content-[--label];
+  }
+
   :where(.mq-icon:not(.mq-selection > *)):first-child,
   :where(.mq-selection:first-child > .mq-icon):first-child,
   :where(.mq-cursor:first-child) + .mq-icon,

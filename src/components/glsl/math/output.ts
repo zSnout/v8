@@ -194,6 +194,17 @@ export function treeToLatex(tree: Tree): {
   value: string
   precedence: Precedence
 } {
+  if (
+    "__symbol" in tree &&
+    typeof tree.__symbol == "string" &&
+    (tree.__symbol == "$" || tree.__symbol == "@")
+  ) {
+    const { __symbol, ...next } = tree
+    const { value } = treeToLatex(next)
+    const op = __symbol == "$" ? "\\frozenmouse" : "\\frozentime"
+    return { value: `${op}{${value}}`, precedence: Precedence.Leaf }
+  }
+
   switch (tree.type) {
     case "number":
       if (tree.value[0] == 1 && tree.value[1] == -1) {

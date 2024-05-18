@@ -24,39 +24,18 @@ type Step1 =
 type Step2 = Tree<never, never, never, Step2[]>
 
 type Step3 = Tree<
-  "sqrt",
+  "sqrt" | "frozenmouse" | "frozentime",
   "sum" | "prod" | "int",
   "frac" | "binom" | "dual" | "nthroot"
 >
 
 type Step4 = Tree<
-  "sqrt" | "!" | "logb" | "logb^2",
+  "sqrt" | "!" | "logb" | "logb^2" | "frozenmouse" | "frozentime",
   "sum" | "prod" | "int",
   "frac" | "binom" | "dual" | "nthroot" | "^" | "_"
 >
 
-type Step5 = Tree<
-  | "sqrt"
-  | "!"
-  | "logb"
-  | "logb^2"
-  | BaseUnaryOperator
-  | "+"
-  | "-"
-  | "pm"
-  | "mp",
-  "sum" | "prod" | "int",
-  | "frac"
-  | "binom"
-  | "dual"
-  | "nthroot"
-  | "^"
-  | "_"
-  | "implicit_mult"
-  | "logb"
-  | "logb^2"
-  | BaseBinaryOperator
->
+type Step5 = Tree<Unary, Big, Binary>
 
 const substitutions: Record<string, string> = Object.freeze({
   square: "□",
@@ -482,10 +461,13 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
     switch (token.type) {
       case "op":
         switch (token.name) {
-          case "sqrt": {
+          case "sqrt":
+          case "frozenmouse":
+          case "frozentime": {
             const next = tokens[index + 1]
             const next2 = tokens[index + 2]
             if (
+              token.name == "sqrt" &&
               next?.type == "bracket" &&
               next.bracket == "[]" &&
               next2?.type == "group"
@@ -500,13 +482,13 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
             } else if (next?.type == "group") {
               output.push({
                 type: "unary",
-                op: "sqrt",
+                op: token.name,
                 contents: parseGroups(next.contents),
               })
               index += 1
             } else {
               throw new MathError(
-                "\\sqrt requires a {...} group after it.",
+                `\\${token.name} requires a {...} group after it.`,
               )
             }
             break
@@ -574,9 +556,7 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
               })
               index += 4
             } else {
-              throw new MathError(
-                `Expected _{...}^{...} after \\${token.name}`,
-              )
+              throw new MathError(`Expected _{...}^{...} after \\${token.name}`)
             }
             break
           }
@@ -651,9 +631,7 @@ function s4_parseSubscriptSuperscriptFactorial(tokens: Step3[]): Step4[] {
             }
 
             if (!contents) {
-              throw new MathError(
-                `Expected {...} group after ${token.name}`,
-              )
+              throw new MathError(`Expected {...} group after ${token.name}`)
             }
 
             if (
@@ -1112,6 +1090,8 @@ export type Unary =
   | "-"
   | "pm"
   | "mp"
+  | "frozenmouse"
+  | "frozentime"
 
 export type Big = "sum" | "prod" | "int"
 

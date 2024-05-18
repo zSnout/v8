@@ -15,7 +15,6 @@ import {
   MQNode,
   MathCommand,
   R,
-  SVG_SYMBOLS,
   U_ZERO_WIDTH_SPACE,
   V3,
   getInterface,
@@ -68,8 +67,6 @@ LatexCmds.s = class extends IconLetter {
   }
 }
 
-const DUAL_LEFT = SVG_SYMBOLS["{"]
-const DUAL_RIGHT = SVG_SYMBOLS["}"]
 LatexCmds.dual = class extends MathCommand {
   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
     super(ctrlSeq, domView, textTemplate)
@@ -129,6 +126,54 @@ LatexCmds.dual = class extends MathCommand {
         ", EndDualMode",
       ]
     }
+  }
+}
+
+LatexCmds.frozenmouse = class extends MathCommand {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+    super(ctrlSeq, domView, textTemplate)
+    this.ctrlSeq = "\\frozenmouse"
+    this.domView = new DOMView(1, function (blocks) {
+      return h.block(
+        "span",
+        { class: "mq-frozen", style: "--label:'mouse'" },
+        blocks[0]!,
+      )
+    })
+    this.textTemplate = ["frozenmouse(", ")"]
+    this.mathspeakTemplate = ["FrozenMouse", "EndFrozenMouse"]
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return MathCommand.prototype.mathspeak.call(this)
+  }
+}
+
+LatexCmds.frozentime = class extends MathCommand {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+    super(ctrlSeq, domView, textTemplate)
+    this.ctrlSeq = "\\frozentime"
+    this.domView = new DOMView(1, function (blocks) {
+      return h.block(
+        "span",
+        { class: "mq-frozen", style: "--label:'time'" },
+        blocks[0]!,
+      )
+    })
+    this.textTemplate = ["frozentime(", ")"]
+    this.mathspeakTemplate = ["FrozenTime", "EndFrozenTime"]
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return MathCommand.prototype.mathspeak.call(this)
   }
 }
 
