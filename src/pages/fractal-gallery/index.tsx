@@ -1,6 +1,11 @@
 import { WebGLCoordinateCanvas } from "@/components/glsl/canvas/coordinate"
-import { textToGLSL } from "@/components/glsl/math/output"
-import { unwrap } from "@/components/result"
+import {
+  nodeToTree,
+  textToGLSL,
+  treeToGLSL,
+} from "@/components/glsl/math/output"
+import { Result, error, ok, unwrap } from "@/components/result"
+import { parseLatex } from "@/mathquill/parse"
 import { For } from "solid-js"
 import { Theme, themeMap } from "../fractal-explorer"
 import fragmentSource from "../fractal-explorer/fragment.glsl"
@@ -23,6 +28,23 @@ const glCanvas = (
     }
   />
 ) as HTMLCanvasElement
+
+function toGlsl(eq: string): Result<string> {
+  try {
+    if (eq.startsWith("~~")) {
+      const node = parseLatex(eq.slice(2))
+      if (!node.ok) {
+        return node
+      }
+      const tree = nodeToTree(node.value)
+      return ok(treeToGLSL(tree))
+    } else {
+      return textToGLSL(eq)
+    }
+  } catch (err) {
+    return error(err)
+  }
+}
 
 export function Canvas(props: {
   class: string
@@ -53,9 +75,9 @@ export function Canvas(props: {
 }) {
   const [equationText, zText, cText] = [props.equation, props.z, props.c]
 
-  const eq = textToGLSL(equationText)
-  const zEq = textToGLSL(zText)
-  const cEq = textToGLSL(cText)
+  const eq = toGlsl(equationText)
+  const zEq = toGlsl(zText)
+  const cEq = toGlsl(cText)
 
   if (!(eq.ok && zEq.ok && cEq.ok)) {
     return
