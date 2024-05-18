@@ -32,7 +32,7 @@ export type Constant =
   | "u_time"
 
 export type Token =
-  | { type: "left-paren" }
+  | { type: "left-paren"; symbol?: "$" | "@" }
   | { type: "right-paren" }
   | { type: "operator"; name: Operator }
   | { type: "number"; value: Complex }
@@ -40,6 +40,10 @@ export type Token =
   | { type: "unary-fn"; name: UnaryFunction }
 
 const tokenize = createTokenizer<Token>(
+  [
+    /^[$@]\(/,
+    ([match]) => ({ type: "left-paren", symbol: match[0] as "$" | "@" }),
+  ],
   [/^[$@]/, () => undefined],
   [/^\(/, () => ({ type: "left-paren" })],
   [/^\)/, () => ({ type: "right-paren" })],
@@ -291,7 +295,11 @@ function getNext(tokens: Token[]): Tree {
   }
 
   if (next.type == "left-paren") {
-    return untilNextParenthesis(tokens)
+    const value = untilNextParenthesis(tokens)
+    if (next.symbol) {
+      Object.assign(value, { __symbol: next.symbol })
+    }
+    return value
   }
 
   throw new Error("Unexpected token type.")

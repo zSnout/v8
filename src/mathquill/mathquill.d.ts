@@ -1,3 +1,5 @@
+// @ts-check
+
 import type { JSX } from "solid-js"
 
 /** The global MathQuill object */
@@ -246,7 +248,26 @@ export declare var LatexCmds: Record<
   | ((...args: any[]) => { domView: DOMView })
 >
 
-export declare class MQSymbol {
+export declare class NodeBase {}
+
+export declare class MQNode extends NodeBase {
+  domView: DOMView
+  ctrlSeq: string
+  textTemplate: string[]
+  mathspeakTemplate: string[]
+  mathspeak(opts?: any)
+  getEnd(end: number): any
+}
+
+export declare class MathElement extends MQNode {}
+
+export declare class MathCommand extends MathElement {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[])
+  upInto: unknown
+  downInto: unknown
+}
+
+export declare class MQSymbol extends MathCommand {
   constructor(
     latex: string,
     html: JSX.Element,
@@ -264,13 +285,19 @@ export declare class MQSymbol {
   domView: DOMView
 }
 
+export declare class Block {
+  __blockTag: "block"
+}
+
 export declare var getInterface: MathQuill["getInterface"]
 
 export declare class DOMView {
-  constructor(children: number, contents: () => JSX.Element)
+  constructor(children: number, contents: (blocks: Block[]) => JSX.Element)
 }
 
-export declare class Letter {
+export declare class Variable extends MQSymbol {}
+
+export declare class Letter extends Variable {
   constructor(letter: string)
 
   domView: DOMView
@@ -280,4 +307,30 @@ export declare class Letter {
 
 export declare class DOMFragment {
   toggleClass(name: string, active: boolean): void
+}
+
+export declare var SVG_SYMBOLS: {
+  sqrt: { width: string; html: () => JSX.Element }
+  "|": { width: string; html: () => JSX.Element }
+  "[": { width: string; html: () => JSX.Element }
+  "]": { width: string; html: () => JSX.Element }
+  "(": { width: string; html: () => JSX.Element }
+  ")": { width: string; html: () => JSX.Element }
+  "{": { width: string; html: () => JSX.Element }
+  "}": { width: string; html: () => JSX.Element }
+  "&#8741;": { width: string; html: () => JSX.Element }
+  "&lang;": { width: string; html: () => JSX.Element }
+  "&rang;": { width: string; html: () => JSX.Element }
+}
+
+export declare var U_ZERO_WIDTH_SPACE: string
+
+export declare var L: number
+
+export declare var R: number
+
+export declare var h: {
+  (type: string, attribute: object, children?: JSX.Element[]): JSX.Element
+  block(type: string, attribute: object, block: Block): JSX.Element
+  text(text: string): JSX.Element
 }

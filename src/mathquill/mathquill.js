@@ -10242,67 +10242,21 @@ CharCmds["\\"] = /** @class */ (function (_super) {
   }
   return LatexCommandInput
 })(MathCommand)
-const DUAL_LEFT = SVG_SYMBOLS["{"]
-const DUAL_RIGHT = SVG_SYMBOLS["}"]
-var Dual = (LatexCmds.dual = /** @class */ (function (_super) {
-  __extends(DualNode, _super)
-  function DualNode() {
-    var _this_1 = (_super !== null && _super.apply(this, arguments)) || this
-    _this_1.ctrlSeq = "\\dual"
-    _this_1.domView = new DOMView(2, function (blocks) {
-      return h("span", { class: "mq-non-leaf mq-dual-container" }, [
-        h.block("span", { class: "mq-dual-numerator" }, blocks[0]),
-        h.block("span", { class: "mq-dual-denominator" }, blocks[1]),
-        h("span", { style: "display:inline-block;width:0" }, [
-          h.text(U_ZERO_WIDTH_SPACE),
-        ]),
-      ])
-    })
-    _this_1.textTemplate = ["(", ")dual(", ")"]
-    return _this_1
-  }
-  DualNode.prototype.finalizeTree = function () {
-    var endsL = this.getEnd(L)
-    var endsR = this.getEnd(R)
-    this.upInto = endsR.upOutOf = endsL
-    this.downInto = endsL.downOutOf = endsR
-    endsL.ariaLabel = "numerator"
-    endsR.ariaLabel = "denominator"
-    if (this.getDualDepth() > 1) {
-      this.mathspeakTemplate = [
-        "NestedDualLargeValue,",
-        "NestedDualSmallValue",
-        ", EndNestedDualMode",
-      ]
-    } else {
-      this.mathspeakTemplate = [
-        "DualLargeValue,",
-        "DualSmallValue",
-        ", EndDualMode",
-      ]
-    }
-  }
-  DualNode.prototype.mathspeak = function (opts) {
-    if (opts && opts.createdLeftOf) {
-      var cursor = opts.createdLeftOf
-      return cursor.parent.mathspeak()
-    }
-    return _super.prototype.mathspeak.call(this)
-  }
-  DualNode.prototype.getDualDepth = function () {
-    var level = 0
-    var walkUp = function (item, level) {
-      if (
-        item instanceof MQNode &&
-        item.ctrlSeq &&
-        item.ctrlSeq.toLowerCase().search("dual") >= 0
-      )
-        level += 1
-      if (item && item.parent) return walkUp(item.parent, level)
-      else return level
-    }
-    return walkUp(this, level)
-  }
-  return DualNode
-})(MathCommand))
-export { LatexCmds, MQSymbol, getInterface, Letter, DOMView, DOMFragment }
+export {
+  LatexCmds,
+  MQSymbol,
+  getInterface,
+  Letter,
+  DOMView,
+  DOMFragment,
+  SVG_SYMBOLS,
+  MathCommand,
+  L,
+  R,
+  MQNode,
+  U_ZERO_WIDTH_SPACE,
+  h,
+  NodeBase,
+  MathElement,
+  Variable,
+}

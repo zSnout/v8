@@ -6,13 +6,18 @@ import { createEventListener } from "@/components/create-event-listener"
 import { CheckboxGroup, Radio } from "@/components/fields/Radio"
 import { Range } from "@/components/fields/Range"
 import { WebGLInteractiveCoordinateCanvas } from "@/components/glsl/canvas/interactive"
-import { textToGLSL } from "@/components/glsl/math/output"
+import {
+  textToGLSL,
+  treeToGLSL,
+  treeToLatex,
+} from "@/components/glsl/math/output"
 import { trackMouse } from "@/components/glsl/mixins/track-mouse"
 import { trackTime } from "@/components/glsl/mixins/track-time"
 import type { Vec2 } from "@/components/glsl/types"
 import { DynamicOptions } from "@/components/nav/Options"
 import { unwrap } from "@/components/result"
 import {
+  SignalLike,
   createBooleanSearchParam,
   createNumericalSearchParam,
   createSearchParam,
@@ -34,6 +39,7 @@ import {
   untrack,
 } from "solid-js"
 import fragmentSource from "./fragment.glsl"
+import { parse } from "@/components/glsl/math/parse"
 
 // Because users likely want more control over lower detail values, we map the
 // sliders so the bottom half [0, 500) actually maps to [0, 100), and the top
@@ -173,14 +179,47 @@ function p(strings: TemplateStringsArray, ...values: (number | string)[]) {
   )
 }
 
+function createEquationSearchParam(
+  name: string,
+  initial: string,
+): SignalLike<string> {
+  const [value, setValue] = createSearchParam(name, `~~${initial}`)
+
+  return [
+    () => {
+      const v = value()
+      if (v.startsWith("~~")) {
+        return v.slice(0, 2)
+      } else {
+        const val = parse(v)
+        if (!val.ok) {
+          return initial
+        } else {
+          try {
+            return treeToLatex(val.value).value
+          } catch {
+            return initial
+          }
+        }
+      }
+    },
+    (value) => {
+      setValue("~~" + value)
+    },
+  ]
+}
+
 export function Main() {
-  const [equation, setEquation] = createSearchParam("equation", "z^2 + c")
+  const [equation, setEquation] = createEquationSearchParam(
+    "equation",
+    "z^{2}+c",
+  )
   const [eqParseError, setEqParseError] = createSignal<string>()
 
-  const [c, setC] = createSearchParam("c", "p")
+  const [c, setC] = createEquationSearchParam("c", "p")
   const [cParseError, setCParseError] = createSignal<string>()
 
-  const [z, setZ] = createSearchParam("z", "p")
+  const [z, setZ] = createEquationSearchParam("z", "p")
   const [zParseError, setZParseError] = createSignal<string>()
 
   const [theme, setTheme] = createSearchParam<Theme>("theme", "simple")
@@ -215,38 +254,34 @@ export function Main() {
 
   if (typeof document != "undefined") {
     createEventListener(document, "keydown", (event) => {
-      if (
-        !event.altKey &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        (event.key == "f" || event.key == "F")
-      ) {
-        function run(get: () => string, set: (x: string) => void) {
-          const eq = untrack(get)
-
-          const eqWithoutConstants = eq
-            .replace(/\$\([^)]*\)/g, "(m)")
-            .replace(/@\([^)]*\)/g, "(t)")
-
-          if (eq == eqWithoutConstants) {
-            const [x, y] = untrack(mouse)
-
-            set(
-              eq
-                .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
-                .replace(/t(?!an|er|h)/g, `@(${untrack(time)})`),
-            )
-
-            return
-          } else {
-            set(eqWithoutConstants)
-          }
-        }
-
-        run(equation, setEquation)
-        run(z, setZ)
-        run(c, setC)
-      }
+      // TODO: redo f
+      // if (
+      //   !event.altKey &&
+      //   !event.ctrlKey &&
+      //   !event.metaKey &&
+      //   (event.key == "f" || event.key == "F")
+      // ) {
+      //   function run(get: () => string, set: (x: string) => void) {
+      //     const eq = untrack(get)
+      //     const eqWithoutConstants = eq
+      //       .replace(/\$\([^)]*\)/g, "(m)")
+      //       .replace(/@\([^)]*\)/g, "(t)")
+      //     if (eq == eqWithoutConstants) {
+      //       const [x, y] = untrack(mouse)
+      //       set(
+      //         eq
+      //           .replace(/m/g, `$(${x} ${y < 0.0 ? y : `+ ${y}`}i)`)
+      //           .replace(/t(?!an|er|h)/g, `@(${untrack(time)})`),
+      //       )
+      //       return
+      //     } else {
+      //       set(eqWithoutConstants)
+      //     }
+      //   }
+      //   run(equation, setEquation)
+      //   run(z, setZ)
+      //   run(c, setC)
+      // }
     })
   }
 

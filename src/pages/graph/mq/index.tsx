@@ -8,6 +8,7 @@ export function Main() {
   const [latex, setLatex] = createSignal("y=ax^2+bx+c")
   const [mathspeak, setMathspeak] = createSignal("y")
   const [precedence, setPrecedence] = createSignal(-1)
+  const [glslTree, setGlslTree] = createSignal({})
 
   const output = createMemo(() => {
     return parseLatex(latex())
@@ -25,7 +26,7 @@ export function Main() {
           }}
           ref={(mq) => {
             setTimeout(() => {
-              mq.latex("\\left(z-m\\right)^2+c-m")
+              mq.latex("\\left(z-m\\right)^2+c-m\\cross\\dual{c}{m}")
             })
           }}
         />
@@ -41,6 +42,7 @@ export function Main() {
             console.error("invalid: " + tree.reason)
             return
           }
+          setGlslTree(tree)
           const node = treeToLatex(tree.value)
           setPrecedence(node.precedence)
           setLatex(node.value)
@@ -50,7 +52,8 @@ export function Main() {
       <div>precedence: {precedence()}</div>
       <div>{latex()}</div>
       <div>{mathspeak()}</div>
-      <pre>{JSON.stringify(output(), undefined, 2)}</pre>
+      <pre class="bg-red-100">{JSON.stringify(glslTree(), undefined, 2)}</pre>
+      <pre class="bg-blue-100">{JSON.stringify(output(), undefined, 2)}</pre>
     </>
   )
 }

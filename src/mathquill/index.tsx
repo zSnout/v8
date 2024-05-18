@@ -7,7 +7,20 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, untrack } from "solid-js"
 import "./mathquill.css"
-import { DOMView, LatexCmds, Letter, V3, getInterface } from "./mathquill.js"
+import {
+  DOMView,
+  L,
+  LatexCmds,
+  Letter,
+  MQNode,
+  MathCommand,
+  R,
+  SVG_SYMBOLS,
+  U_ZERO_WIDTH_SPACE,
+  V3,
+  getInterface,
+  h,
+} from "./mathquill.js"
 export type * from "./mathquill"
 
 export abstract class IconLetter extends Letter {
@@ -52,6 +65,70 @@ LatexCmds.m = class extends IconLetter {
 LatexCmds.s = class extends IconLetter {
   override icon(): IconDefinition {
     return faSliders
+  }
+}
+
+const DUAL_LEFT = SVG_SYMBOLS["{"]
+const DUAL_RIGHT = SVG_SYMBOLS["}"]
+LatexCmds.dual = class extends MathCommand {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+    super(ctrlSeq, domView, textTemplate)
+    this.ctrlSeq = "\\dual"
+    this.domView = new DOMView(2, function (blocks) {
+      return h("span", { class: "mq-non-leaf mq-dual-container" }, [
+        h.block("span", { class: "mq-dual-numerator" }, blocks[0]!),
+        h.block("span", { class: "mq-dual-denominator" }, blocks[1]!),
+        h("span", { style: "display:inline-block;width:0" }, [
+          h.text(U_ZERO_WIDTH_SPACE),
+        ]),
+      ])
+    })
+    this.textTemplate = ["(", ")dual(", ")"]
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return MathCommand.prototype.mathspeak.call(this)
+  }
+
+  getDualDepth() {
+    var level = 0
+    var walkUp = function (item: any, level: number) {
+      if (
+        item instanceof MQNode &&
+        item.ctrlSeq &&
+        item.ctrlSeq.toLowerCase().search("dual") >= 0
+      )
+        level += 1
+      if (item && item.parent) return walkUp(item.parent, level)
+      else return level
+    }
+    return walkUp(this, level)
+  }
+
+  finalizeTree() {
+    var endsL = this.getEnd(L)
+    var endsR = this.getEnd(R)
+    this.upInto = endsR.upOutOf = endsL
+    this.downInto = endsL.downOutOf = endsR
+    endsL.ariaLabel = "numerator"
+    endsR.ariaLabel = "denominator"
+    if (this.getDualDepth() > 1) {
+      this.mathspeakTemplate = [
+        "NestedDualLargeValue,",
+        "NestedDualSmallValue",
+        ", EndNestedDualMode",
+      ]
+    } else {
+      this.mathspeakTemplate = [
+        "DualLargeValue,",
+        "DualSmallValue",
+        ", EndDualMode",
+      ]
+    }
   }
 }
 
