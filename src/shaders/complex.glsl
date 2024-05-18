@@ -25,7 +25,16 @@ vec2 cx_exp(vec2 z) {
 }
 
 vec2 cx_ln(vec2 z) {
+  if (z == vec2(0)) {
+    return vec2(-1.0 / 0.0, 0.0);
+  } else {
+    return vec2(log(length(z)), atan(z.y, z.x));
+  }
+}
+
+vec2 cx_unchecked_ln(vec2 z) {
   return vec2(log(length(z)), atan(z.y, z.x));
+
 }
 
 vec2 cx_log10(vec2 z) {
@@ -52,7 +61,11 @@ vec2 cx_cube(vec2 z) {
 }
 
 vec2 cx_pow(vec2 a, vec2 b) {
-  return cx_exp(cx_mult(b, cx_ln(a)));
+  if (a == vec2(0)) {
+    return vec2(0);
+  } else {
+    return cx_exp(cx_mult(b, cx_unchecked_ln(a)));
+  }
 }
 
 vec2 cx_real(vec2 z) {
