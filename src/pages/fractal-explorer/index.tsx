@@ -46,79 +46,6 @@ import {
 } from "solid-js"
 import fragmentSource from "./fragment.glsl"
 
-// Because users likely want more control over lower detail values, we map the
-// sliders so the bottom half [0, 500) actually maps to [0, 100), and the top
-// half [500, 1000] maps to [100, 1000].
-
-function detailValueToSlider(value: number) {
-  value = Math.min(1000, Math.max(0, value))
-
-  if (value < 100) {
-    return value * 5
-  }
-
-  return (value - 100) / 1.8 + 500
-}
-
-function detailSliderToValue(value: number) {
-  value = Math.min(1000, Math.max(0, value))
-
-  if (value < 500) {
-    return value / 5
-  }
-
-  return 1.8 * (value - 500) + 100
-}
-
-// Similar logic for fractal size; this time [0, 500) maps to [0, 2) and
-// [500, 1000] maps to [2, 10].
-
-function fractalSizeValueToSlider(value: number) {
-  value = Math.min(10, Math.max(0, value))
-
-  if (value < 2) {
-    return 250 * value
-  }
-
-  return (125 * (value + 6)) / 2
-}
-
-function fractalSizeSliderToValue(value: number) {
-  value = Math.min(1000, Math.max(0, value))
-
-  if (value < 500) {
-    return value / 250
-  }
-
-  return (2 * value) / 125 - 6
-}
-
-function Slider(props: {
-  class?: string
-  name: string
-  decimalDigits?: number
-
-  get: () => number
-  set: (value: number) => void
-
-  valueToSlider: (value: number) => number
-  sliderToValue: (value: number) => number
-}) {
-  return (
-    <Range
-      class={props.class}
-      decimalDigits={props.decimalDigits}
-      name={props.name}
-      min={0}
-      max={1000}
-      step="any"
-      get={() => props.valueToSlider(props.get())}
-      getLabel={() => props.get().toFixed(props.decimalDigits)}
-      set={(value) => props.set(props.sliderToValue(value))}
-    />
-  )
-}
-
 export type Theme = "simple" | "gradient" | "plot" | "trig"
 
 export const themeMap: Record<Theme, number> = {
@@ -537,14 +464,15 @@ export function Main() {
               c().match(/(?<!\\[A-Za-z]*)t/)
             }
           >
-            <Slider
+            <Range
               class="mt-3"
               name="Speed"
-              get={speed}
-              set={setSpeed}
-              valueToSlider={fractalSizeValueToSlider}
-              sliderToValue={fractalSizeSliderToValue}
-              decimalDigits={2}
+              min={Math.log(0.01)}
+              max={Math.log(10)}
+              step="any"
+              get={() => Math.log(speed())}
+              getLabel={() => speed().toFixed(2)}
+              set={(v) => setSpeed(Math.exp(v))}
             />
           </Show>
 
