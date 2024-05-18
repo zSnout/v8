@@ -20,6 +20,7 @@ import {
   getInterface,
   h,
 } from "./mathquill.js"
+import { isServer } from "solid-js/web"
 export type * from "./mathquill"
 
 export abstract class IconLetter extends Letter {
@@ -203,9 +204,11 @@ export function MQEditable(
     ref?(field: V3.EditableMathQuill): void
   } & V3.HandlerOptions,
 ) {
+  const className = untrack(() => props.class)
+
   return (
     <div
-      class={props.class}
+      class={className + (isServer ? "" : " mq-editable-field mq-math-mode")}
       ref={(el) => {
         const field = mq.MathField(el, { ...config, handlers: props })
         createEffect(() => {
@@ -216,34 +219,6 @@ export function MQEditable(
         })
         props.ref?.(field)
       }}
-    >
-      {untrack(() => props.latex)}
-    </div>
-  )
-}
-
-export function MQ(
-  props: {
-    class?: string | undefined
-    latex: string
-    ref?(field: V3.BaseMathQuill): void
-  } & V3.HandlerOptions,
-) {
-  return (
-    <div
-      class={props.class}
-      ref={(el) => {
-        const field = mq.StaticMath(el, { ...config, handlers: props })
-        createEffect(() => {
-          const latex = props.latex
-          if (field.latex() != latex) {
-            field.latex(latex)
-          }
-        })
-        props.ref?.(field)
-      }}
-    >
-      {untrack(() => props.latex)}
-    </div>
+    />
   )
 }

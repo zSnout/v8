@@ -7,7 +7,9 @@ function isInteractive(event: Event) {
   for (const el of event.composedPath()) {
     if (
       el instanceof HTMLElement &&
-      (interactiveTags.includes(el.tagName) || el.dataset.zInteractive != null)
+      (interactiveTags.includes(el.tagName) ||
+        el.dataset.zInteractive != null ||
+        el.classList.contains("mq-editable-field"))
     ) {
       return true
     }

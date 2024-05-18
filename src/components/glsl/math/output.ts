@@ -1,5 +1,5 @@
-import { MathError, type Node } from "@/mathquill/parse"
-import { error, ok } from "../../result"
+import { MathError, parseLatex, type Node } from "@/mathquill/parse"
+import { Result, error, ok } from "../../result"
 import { optimize } from "./optimize"
 import { Constant, Operator, UnaryFunction, parse, type Tree } from "./parse"
 
@@ -136,7 +136,13 @@ export function nodeToTree(node: Node): Tree {
           name: node.op as UnaryFunction,
           arg: nodeToTree(node.contents),
         }
-      } else {
+      } else if (node.op == "frozenmouse" || node.op == "frozentime") {
+        const symbol = node.op == "frozenmouse" ? "$" : "@"
+        const tree = nodeToTree(node.contents)
+        Object.assign(tree, { __symbol: symbol })
+        return tree
+      }
+      {
         throw new MathError(
           `This calculator does not support the ${node.op} function.`,
         )
@@ -430,5 +436,18 @@ export function treeToLatex(tree: Tree): {
         precedence: Precedence.Addition,
       }
     }
+  }
+}
+
+export function latexToGLSL(latex: string): Result<string> {
+  try {
+    const node = parseLatex(latex)
+    if (!node.ok) {
+      return node
+    }
+    const tree = nodeToTree(node.value)
+    return ok(treeToGLSL(tree))
+  } catch (err) {
+    return error(err)
   }
 }

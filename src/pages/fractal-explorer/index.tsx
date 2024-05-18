@@ -6,11 +6,8 @@ import { createEventListener } from "@/components/create-event-listener"
 import { CheckboxGroup, Radio } from "@/components/fields/Radio"
 import { Range } from "@/components/fields/Range"
 import { WebGLInteractiveCoordinateCanvas } from "@/components/glsl/canvas/interactive"
-import {
-  textToGLSL,
-  treeToGLSL,
-  treeToLatex,
-} from "@/components/glsl/math/output"
+import { latexToGLSL, treeToLatex } from "@/components/glsl/math/output"
+import { parse } from "@/components/glsl/math/parse"
 import { trackMouse } from "@/components/glsl/mixins/track-mouse"
 import { trackTime } from "@/components/glsl/mixins/track-time"
 import type { Vec2 } from "@/components/glsl/types"
@@ -22,6 +19,7 @@ import {
   createNumericalSearchParam,
   createSearchParam,
 } from "@/components/search-params"
+import { MQEditable } from "@/mathquill"
 import {
   faExclamationTriangle,
   faGears,
@@ -39,7 +37,6 @@ import {
   untrack,
 } from "solid-js"
 import fragmentSource from "./fragment.glsl"
-import { parse } from "@/components/glsl/math/parse"
 
 // Because users likely want more control over lower detail values, we map the
 // sliders so the bottom half [0, 500) actually maps to [0, 100), and the top
@@ -131,18 +128,17 @@ function Equation(props: {
 }) {
   return (
     <div class="relative mt-4 w-full">
-      <input
-        class="z-field w-full bg-z-body font-mono"
-        onInput={(event) => props.set(event.currentTarget.value)}
-        type="text"
-        value={props.get()}
+      <MQEditable
+        class="z-field w-full rounded-lg border border-z p-0 shadow-none [&_.mq-root-block]:px-3 [&_.mq-root-block]:py-2"
+        latex={untrack(props.get)}
+        edit={(mq) => {
+          props.set(mq.latex())
+        }}
       />
 
-      <Show when={props.label}>
-        <p class="absolute left-2 top-0 -translate-y-1/2 rounded bg-z-body px-2 py-1 text-sm text-z-subtitle transition [line-height:1]">
-          {props.label}
-        </p>
-      </Show>
+      <p class="absolute left-2 top-0 -translate-y-1/2 rounded bg-z-body px-2 py-1 text-sm text-z-subtitle transition [line-height:1]">
+        {props.label}
+      </p>
 
       <Show when={props.error()}>
         <Fa
@@ -189,7 +185,7 @@ function createEquationSearchParam(
     () => {
       const v = value()
       if (v.startsWith("~~")) {
-        return v.slice(0, 2)
+        return v.slice(2)
       } else {
         const val = parse(v)
         if (!val.ok) {
@@ -310,21 +306,21 @@ export function Main() {
                     return
                   }
 
-                  const eq = textToGLSL(equationText)
+                  const eq = latexToGLSL(equationText)
                   if (!eq.ok) {
                     setEqParseError(eq.reason)
                   } else {
                     setEqParseError()
                   }
 
-                  const zEq = textToGLSL(zText)
+                  const zEq = latexToGLSL(zText)
                   if (!zEq.ok) {
                     setZParseError(zEq.reason)
                   } else {
                     setZParseError()
                   }
 
-                  const cEq = textToGLSL(cText)
+                  const cEq = latexToGLSL(cText)
                   if (!cEq.ok) {
                     setCParseError(cEq.reason)
                   } else {
@@ -357,9 +353,9 @@ export function Main() {
               gl.setReactiveUniform(
                 "u_dual_enabled",
                 () =>
-                  equation().includes("|") ||
-                  z().includes("|") ||
-                  c().includes("|"),
+                  equation().includes("\\dual{") ||
+                  z().includes("\\dual{") ||
+                  c().includes("\\dual{"),
               )
 
               mouse = trackMouse(gl)
