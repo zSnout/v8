@@ -431,27 +431,27 @@ export function treeToLatex(tree: Tree): {
           pb <= Precedence.Multiplication
         ) {
           return {
-            value: `${a}#${b}`,
+            value: `${a}\\odot ${b}`,
             precedence: Precedence.Multiplication,
           }
         }
 
         if (pa <= Precedence.Multiplication) {
           return {
-            value: `${a}#\\left(${b}\\right)`,
+            value: `${a}\\odot\\left(${b}\\right)`,
             precedence: Precedence.Multiplication,
           }
         }
 
         if (pb <= Precedence.Multiplication) {
           return {
-            value: `\\left(${a}\\right)#${b}`,
+            value: `\\left(${a}\\right)\\odot ${b}`,
             precedence: Precedence.Multiplication,
           }
         }
 
         return {
-          value: `\\left(${a}\\right)#\\left(${b}\\right)`,
+          value: `\\left(${a}\\right)\\odot\\left(${b}\\right)`,
           precedence: Precedence.Multiplication,
         }
       }
