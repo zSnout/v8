@@ -117,6 +117,14 @@ export function nodeToTree(node: Node): Tree {
     case "v":
       if (node.name == "i") {
         return { type: "number", value: [0, 1] }
+      } else if (node.name == "e") {
+        return { type: "number", value: [Math.E, 0] }
+      } else if (node.name == "π") {
+        return { type: "number", value: [Math.PI, 0] }
+      } else if (node.name == "fx") {
+        return { type: "number", value: [1, -1] }
+      } else if (node.name == "fy") {
+        return { type: "number", value: [-1, 1] }
       } else if (node.name in NODE_NAME_MAP) {
         return {
           type: "constant",
