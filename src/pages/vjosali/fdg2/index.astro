@@ -1,0 +1,26 @@
+---
+import FullscreenLayout from "@/layouts/FullscreenLayout.astro"
+import { Main } from "."
+// import openGraphImage from "./_home/open-graph.jpg"
+---
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap"
+  rel="stylesheet"
+/>
+
+<FullscreenLayout
+  description="TODO"
+  title="TODO"
+  og={{
+    imageSrc: "TODO",
+    imageAlt: "TODO",
+    title: "TODO",
+  }}
+>
+  <div class="flex h-full w-full">
+    <Main client:only />
+  </div>
+</FullscreenLayout>

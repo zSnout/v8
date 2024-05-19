@@ -10,6 +10,7 @@ export interface Node {
   readonly locked: boolean
   readonly x: number
   readonly y: number
+  readonly emoji?: string | undefined
   readonly ring?: number | undefined
 }
 
@@ -18,6 +19,8 @@ export interface MutableNode {
   locked: boolean
   x: number
   y: number
+  emoji?: string | undefined
+  ring?: number | undefined
 }
 
 export interface Link {
@@ -58,7 +61,10 @@ export interface Linking {
   readonly moved: boolean
 }
 
-export function createForceDirectedGraph() {
+export function createForceDirectedGraph(props?: {
+  hideLinks?: boolean
+  smallText?: boolean
+}) {
   if (typeof document == "undefined") {
     throw new Error("<ForceDirectedGraph /> may only be loaded client-side.")
   }
@@ -132,7 +138,7 @@ export function createForceDirectedGraph() {
   let lastTime = Date.now()
   setInterval(() => {
     const delta = -(lastTime - (lastTime = Date.now()))
-    setNodes(iterate((speed() * delta) / 1000))
+    setNodes(iterate(Math.min((speed() * delta) / 1000, 1)))
   })
 
   const [nodes, setNodes] = createSignal<readonly Node[]>([
@@ -497,19 +503,21 @@ export function createForceDirectedGraph() {
         )}
       </Show>
 
-      <For each={links()}>
-        {(link) => (
-          <line
-            class="stroke-z-text-heading"
-            stroke-width={link.n}
-            x1={nodes()[link.a]!.x * scale()}
-            y1={nodes()[link.a]!.y * scale()}
-            x2={nodes()[link.b]!.x * scale()}
-            y2={nodes()[link.b]!.y * scale()}
-            stroke-linecap="round"
-          ></line>
-        )}
-      </For>
+      <Show when={!props?.hideLinks}>
+        <For each={links()}>
+          {(link) => (
+            <line
+              class="stroke-z-text-heading"
+              stroke-width={link.n}
+              x1={nodes()[link.a]!.x * scale()}
+              y1={nodes()[link.a]!.y * scale()}
+              x2={nodes()[link.b]!.x * scale()}
+              y2={nodes()[link.b]!.y * scale()}
+              stroke-linecap="round"
+            ></line>
+          )}
+        </For>
+      </Show>
 
       <Show when={showNodes()}>
         <For each={nodes()}>
@@ -522,10 +530,13 @@ export function createForceDirectedGraph() {
                 height={96}
               >
                 <div
-                  class="flex h-full w-full select-none items-center justify-center rounded-full border border-z-text-heading text-3xl"
+                  class="relative flex h-full w-full select-none items-center justify-center rounded-full border border-z-text-heading"
                   classList={{
                     "bg-z-body": !node.locked,
                     "bg-z-body-selected": node.locked,
+                    "text-3xl": !props?.smallText,
+                    "text-2xl": props?.smallText,
+                    "border-none": !!node.emoji,
                   }}
                   onPointerDown={(event) => {
                     event.preventDefault()
@@ -558,7 +569,10 @@ export function createForceDirectedGraph() {
                     event.preventDefault()
                   }}
                 >
-                  {node.label}
+                  <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl">
+                    {node.emoji}
+                  </div>
+                  <span class="relative">{node.emoji ? "" : node.label}</span>
                 </div>
               </foreignObject>
             </>
