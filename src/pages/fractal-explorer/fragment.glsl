@@ -40,19 +40,28 @@ vec3 simple_palette(vec2 z, float i) {
     1.0
   );
 
-  return hsv2rgb(modify_hsv(original));
+  vec3 rgb = hsv2rgb(modify_hsv(original));
+  if (u_effect_outer_c) {
+    rgb *= mod(i * 0.02, 1.0);
+  }
+
+  return rgb;
 }
 
-vec3 gradient_palette(vec3 sz, float i) {
+vec3 gradient_palette(vec3 sz, float i, bool is_outer) {
   if (i != 0.0) {
     sz = abs(sz) / i;
   }
 
   vec3 rgb = sin(abs(sz * 5.0)) * 0.45 + 0.5;
-  return modify_rgb(rgb);
+  rgb = modify_rgb(rgb);
+  if (is_outer && u_effect_outer_c) {
+    rgb *= mod(i * 0.02, 1.0);
+  }
+  return rgb;
 }
 
-vec3 plot_palette(vec2 z) {
+vec3 plot_palette(vec2 z, float i, bool is_outer) {
   float hue =
     atan(z.y, z.x) / 6.2831853071795864769252867665590057683943387987502;
 
@@ -64,7 +73,11 @@ vec3 plot_palette(vec2 z) {
   r = min(r, 1.0);
   r = sqrt(r);
 
-  return hsv2rgb(modify_hsv(vec3(hue, 1.0, r)));
+  vec3 rgb = hsv2rgb(modify_hsv(vec3(hue, 1.0, r)));
+  if (is_outer && u_effect_outer_c) {
+    rgb *= mod(i * 0.02, 1.0);
+  }
+  return rgb;
 }
 
 vec3 trig_palette(float i) {
@@ -87,7 +100,9 @@ vec3 trig_palette(float i) {
   }
 
   rgb = modify_rgb(rgb);
-  // if (darkness) rgb *= mod(i * 0.02, 1.0);
+  if (u_effect_outer_c) {
+    rgb *= mod(i * 0.02, 1.0);
+  }
 
   return rgb;
 }
@@ -96,7 +111,7 @@ void outer_palette(float i, vec2 z, vec3 sz) {
   if (u_theme == 4.0) {
     color = vec4(trig_palette(i), 1.0);
   } else if (u_theme == 3.0) {
-    color = vec4(plot_palette(z), 1);
+    color = vec4(plot_palette(z, i, true), 1);
   } else if (u_theme == 5.0) {
     float x = 0.0;
     if (u_effect_outer_b) {
@@ -107,7 +122,7 @@ void outer_palette(float i, vec2 z, vec3 sz) {
     }
     color = vec4(x, x, x, 1.0);
   } else if (u_theme == 2.0) {
-    color = vec4(gradient_palette(sz, i), 1.0);
+    color = vec4(gradient_palette(sz, i, true), 1.0);
   } else {
     color = vec4(simple_palette(z, i), 1.0);
   }
@@ -115,9 +130,9 @@ void outer_palette(float i, vec2 z, vec3 sz) {
 
 void inner_palette(float i, vec2 z, vec3 sz) {
   if (u_inner_theme == 2.0) {
-    color = vec4(gradient_palette(sz, i), 1.0);
+    color = vec4(gradient_palette(sz, i, false), 1.0);
   } else if (u_inner_theme == 3.0) {
-    color = vec4(plot_palette(z), 1);
+    color = vec4(plot_palette(z, i, false), 1);
   } else {
     if (u_effect_inner_a) {
       color = vec4(1.0, 1.0, 1.0, 1.0);

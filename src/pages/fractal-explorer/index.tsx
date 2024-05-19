@@ -65,17 +65,17 @@ export interface InnerThemeInfo {
 }
 
 export const themeMap: Record<Theme, OuterThemeInfo> = Object.freeze({
-  simple: { id: 1, a: "split outside" },
-  gradient: { id: 2, a: "split outside" },
-  plot: { id: 3 },
-  trig: { id: 4, a: "alt colors", b: "alt colors" },
+  simple: { id: 1, a: "split out", c: "darkness" },
+  gradient: { id: 2, a: "split out", c: "darkness" },
+  plot: { id: 3, c: "darkness" },
+  trig: { id: 4, a: "alt colors", b: "alt colors", c: "darkness" },
   black: { id: 5, a: "white", b: "glow" },
   none: { id: 6 },
 })
 
 export const innerThemeMap: Record<InnerTheme, InnerThemeInfo> = Object.freeze({
-  black: { id: 1, a: "white inside" },
-  gradient: { id: 2, a: "split inside" },
+  black: { id: 1, a: "white" },
+  gradient: { id: 2, a: "split in" },
   plot: { id: 3 },
 })
 
@@ -187,6 +187,7 @@ export function Main() {
   )
 
   // TODO: change help text
+  const [split, setSplit] = createSearchParam("split")
   const [effectOuterA, setEffectOuterA] = createBooleanSearchParamWithFallback(
     "outer_a",
     "split",
@@ -204,6 +205,16 @@ export function Main() {
     "inner_b",
     "alt_colors",
   )
+
+  createEffect(() => {
+    if (split()) {
+      if (theme() == "plot") {
+        setTheme("none")
+        setInnerTheme("plot")
+      }
+      setSplit(null)
+    }
+  })
 
   const [detail, setDetail] = createNumericalSearchParam("detail", 100)
   const [minDetail, setMinDetail] = createNumericalSearchParam("min_detail", 0)
