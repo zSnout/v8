@@ -65,6 +65,10 @@ export function createSearchParam<T extends string | null = null>(
 ): SignalLike<string | T> {
   const [get, set] = createSignal<string | null>(null)
 
+  if (typeof location == "object") {
+    set(new URLSearchParams(location.search).get(name))
+  }
+
   createEffect(() => set(rawSearch().get(name)))
 
   return [

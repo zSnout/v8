@@ -7,7 +7,7 @@ import {
 import { Result, error, ok, unwrap } from "@/components/result"
 import { parseLatex } from "@/mathquill/parse"
 import { For } from "solid-js"
-import { Theme, themeMap } from "../fractal-explorer"
+import { InnerTheme, Theme, themeMap } from "../fractal-explorer"
 import fragmentSource from "../fractal-explorer/fragment.glsl"
 
 let gl: WebGLCoordinateCanvas
@@ -46,20 +46,25 @@ function toGlsl(eq: string): Result<string> {
   }
 }
 
-export function Canvas(props: {
+function Canvas(props: {
   class: string
 
   equation: string
   z: string
   c: string
 
-  effectSplit: boolean
-  effectAltColors: boolean
+  effectOuterA: boolean
+  effectOuterB: boolean
+  effectOuterC: boolean
+  effectInnerA: boolean
+  effectInnerB: boolean
+
   detail: number
   fractalSize: number
   minDetail: number
   plotSize: number
   theme: Theme
+  innerTheme: Theme
   slider: number
 
   top: number
@@ -112,9 +117,13 @@ export function Canvas(props: {
               .replace(/EQ/g, eq.value),
           )
 
-          gl.setUniform("u_theme", themeMap[props.theme])
-          gl.setUniform("u_effect_split", +props.effectSplit)
-          gl.setUniform("u_effect_alt_colors", +props.effectAltColors)
+          gl.setUniform("u_theme", themeMap[props.theme].id)
+          gl.setUniform("u_inner_theme", themeMap[props.innerTheme].id)
+          gl.setUniform("u_effect_outer_a", +props.effectOuterA)
+          gl.setUniform("u_effect_outer_b", +props.effectOuterB)
+          gl.setUniform("u_effect_outer_c", +props.effectOuterC)
+          gl.setUniform("u_effect_inner_a", +props.effectInnerA)
+          gl.setUniform("u_effect_inner_b", +props.effectInnerB)
           gl.setUniform("u_detail", props.detail)
           gl.setUniform("u_detail_min", props.minDetail)
           gl.setUniform("u_fractal_size", props.fractalSize ** 2)
@@ -155,13 +164,35 @@ export function Fractal(props: { class: string; url: string }) {
   const equation = (url.searchParams.get("equation") ?? "z^2+c")!
   const z = (url.searchParams.get("z") ?? "p")!
   const c = (url.searchParams.get("c") ?? "p")!
-  const effectSplit = (url.searchParams.get("split") ?? null) != null
-  const effectAltColors = (url.searchParams.get("alt_colors") ?? null) != null
+  let effectSplit = !(
+    url.searchParams.get("split") == "false" ||
+    url.searchParams.get("split") == null
+  )
+  const effectAltColors = !(
+    url.searchParams.get("alt_colors") == "false" ||
+    url.searchParams.get("alt_colors") == null
+  )
+  function fallback(name: string, fallback: boolean) {
+    const value = url.searchParams.get(name)
+    if (value == "true") {
+      return true
+    }
+    if (value == "false") {
+      return false
+    }
+    return fallback
+  }
+  const effectOuterA = fallback("outer_a", effectSplit)
+  const effectOuterB = fallback("outer_b", effectAltColors)
+  const effectOuterC = url.searchParams.get("outer_c") == "true"
+  const effectInnerA = fallback("inner_a", effectSplit)
+  const effectInnerB = fallback("inner_b", effectAltColors)
   const detail = +(url.searchParams.get("detail") ?? 100)!
   const fractalSize = +(url.searchParams.get("size") ?? 2)!
   const minDetail = +(url.searchParams.get("min_detail") ?? 0)!
-  const plotSize = +(url.searchParams.get("plot_size") ?? 1)!
-  const theme = (url.searchParams.get("theme") ?? "simple")! as Theme
+  let plotSize = +(url.searchParams.get("plot_size") ?? 1)!
+  let theme = (url.searchParams.get("theme") ?? "simple")! as Theme
+  let innerTheme = url.searchParams.get("inner_theme") as InnerTheme | "" | null
   const slider = +(url.searchParams.get("slider") ?? 0)!
   const top = +(url.searchParams.get("top") ?? 1.25)!
   const left = +(url.searchParams.get("left") ?? -2)!
@@ -173,19 +204,48 @@ export function Fractal(props: { class: string; url: string }) {
   const repetition = +(url.searchParams.get("repetition") ?? 1)!
   const repetitionSign = +(url.searchParams.get("repetitionSign") ?? -1)!
 
+  if (
+    // @ts-ignore rotation is no longer a valid theme value
+    theme == "rotation"
+  ) {
+    theme = "plot"
+    plotSize = 0
+  }
+
+  if (!innerTheme) {
+    innerTheme =
+      theme == "simple" || theme == "trig"
+        ? "black"
+        : theme == "none"
+        ? "plot"
+        : theme
+  }
+
+  if (effectSplit) {
+    if (theme == "plot") {
+      theme = "none"
+      innerTheme = "plot"
+    }
+    effectSplit = false
+  }
+
   return (
     <Canvas
       class={props.class}
       equation={equation}
+      effectOuterA={effectOuterA}
+      effectOuterB={effectOuterB}
+      effectOuterC={effectOuterC}
+      effectInnerA={effectInnerA}
+      effectInnerB={effectInnerB}
       z={z}
       c={c}
-      effectSplit={effectSplit}
-      effectAltColors={effectAltColors}
       detail={detail}
       fractalSize={fractalSize}
       minDetail={minDetail}
       plotSize={plotSize}
       theme={theme}
+      innerTheme={innerTheme}
       slider={slider}
       top={top}
       left={left}
@@ -370,7 +430,14 @@ export function Main() {
       <div class="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-1">
         <For each={FRACTALS}>
           {(url) => (
-            <a class="hover:opacity-70" href={url}>
+            <a
+              class="hover:opacity-70"
+              href={
+                url.startsWith("https://v8.zsnout.com")
+                  ? url.slice("https://v8.zsnout.com".length)
+                  : url
+              }
+            >
               <Fractal
                 class="aspect-square w-full touch-none rounded bg-white"
                 url={url}

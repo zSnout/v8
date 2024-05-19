@@ -351,6 +351,7 @@ export function Main() {
   const [zParseError, setZParseError] = createSignal<string>()
 
   const [theme, setTheme] = createSearchParam<Theme>("theme", "simple")
+  console.log(theme())
   const [innerTheme, setInnerTheme] = createSearchParam<InnerTheme>(
     "inner_theme",
     (() => {
