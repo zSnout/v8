@@ -39,6 +39,7 @@ import {
 import {
   Accessor,
   Index,
+  JSX,
   Setter,
   Show,
   createEffect,
@@ -51,33 +52,205 @@ export type Theme = "simple" | "gradient" | "plot" | "trig" | "black" | "none"
 
 export type InnerTheme = "black" | "gradient" | "plot"
 
+export interface OuterHelp {
+  readonly main: JSX.Element
+}
+
+export interface InnerHelp {
+  readonly main: JSX.Element
+  readonly none: JSX.Element
+}
+
 export interface OuterThemeInfo {
   readonly id: number
   readonly a?: string | undefined
   readonly b?: string | undefined
   readonly c?: string | undefined
+  help(props: { a: boolean; b: boolean; c: boolean }): OuterHelp
 }
 
 export interface InnerThemeInfo {
   readonly id: number
   readonly a?: string | undefined
   readonly b?: string | undefined
+  help(props: { a: boolean; b: boolean }): InnerHelp
 }
 
-export const themeMap: Record<Theme, OuterThemeInfo> = Object.freeze({
-  simple: { id: 1, a: "split out", c: "darkness" },
-  gradient: { id: 2, a: "split out", c: "darkness" },
-  plot: { id: 3, c: "darkness" },
-  trig: { id: 4, a: "alt colors", b: "alt colors", c: "darkness" },
-  black: { id: 5, a: "white", b: "glow" },
-  none: { id: 6 },
-})
+/*
+ * simple: [
+    p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
 
-export const innerThemeMap: Record<InnerTheme, InnerThemeInfo> = Object.freeze({
-  black: { id: 1, a: "white" },
-  gradient: { id: 2, a: "split in" },
-  plot: { id: 3 },
-})
+    p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
+
+    true // TODO:effectSplit()
+      ? p`${"split?"} is enabled, so points that escape and
+        end up below the ${"y = 0"} line will be colored
+        according to the opposite direction of usual (e.g. towards
+        oranges and yellows instead of purples and blues).`
+      : undefined,
+  ],
+
+  gradient: [
+    p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
+
+    p`Once ${"z"} escapes this region or once the iteration function has been applied ${detail()} (detail level) times, the point on-screen is colored according to the path it took and the final value of ${"z"}.`,
+
+    true // TODO:effectSplit()
+      ? p`${"split?"} is enabled, so the colors of points that escape will be adjusted according to the magnitudes of the last three values of ${"z"}.`
+      : undefined,
+  ],
+
+  plot: (true // TODO: effectSplit()
+    ? [
+        p`${"z"} is set to ${equation()} (iteration function). The iteration function is then applied ${detail()} (detail level) times.`,
+      ]
+    : [
+        p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin, being applied at most ${detail()} (detail level) times.`,
+      ]
+  ).concat([
+    p`The hue of the point is then given by ${"z"}'s direction from the origin, and the darkness is given by how close ${"z"} is to the origin. How much space is covered by darkness is adjustable using the ${"plot size"} setting.`,
+  ]),
+
+  trig: [
+    p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
+
+    p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
+
+    true // TODO:effectSplit()
+      ? p`${"split?"} is enabled, so points that escape and
+        end up below the ${"y = 0"} line will be colored
+        according to the opposite direction of usual (e.g. towards
+        oranges and yellows instead of purples and blues).`
+      : undefined,
+  ],
+
+  black: "TODO:",
+  none: "TODO:",
+ */
+
+export const themeMap: Record<Theme, OuterThemeInfo> = {
+  simple: {
+    id: 1,
+    a: "split out",
+    c: "darkness",
+    help() {
+      return {
+        main: p`If ${"z"} escapes that region, the point on-screen is assigned a color based on how quickly ${"z"} escaped.`,
+
+        // notes: (
+        //   <Show when={props.a}>
+        //     {p`${"split out"} is enabled, so points that escape and end up below the ${"y = 0"} line will be colored according to the opposite direction of usual (e.g. towards oranges and yellows instead of purples and blues).`}
+        //   </Show>
+        // ),
+      }
+    },
+  },
+  gradient: {
+    id: 2,
+    a: "split out",
+    c: "darkness",
+    help() {
+      return {
+        main: p`If ${"z"} escapes that region, the point on-screen is colored according to the path it took and the final value of ${"z"}.`,
+      }
+    },
+  },
+  plot: {
+    id: 3,
+    c: "darkness",
+    help() {
+      return {
+        main: p`If ${"z"} escapes that region, the hue of the point is then given by ${"z"}'s direction from the origin, and the darkness is given by how close ${"z"} is to the origin. How much space is covered by darkness is adjustable using the ${"plot size"} setting.`,
+      }
+    },
+  },
+  trig: {
+    id: 4,
+    a: "alt colors",
+    b: "alt colors",
+    c: "darkness",
+    help() {
+      return {
+        main: p`If ${"z"} escapes that region, the point on-screen is assigned a color based on how quickly ${"z"} escaped.`,
+      }
+    },
+  },
+  black: {
+    id: 5,
+    a: "white",
+    b: "glow",
+    help(props) {
+      return {
+        main: (
+          <Show
+            when={props.b}
+            fallback={
+              <Show
+                when={props.a}
+                fallback={p`If ${"z"} escapes that region, it is colored black.`}
+              >
+                {p`If ${"z"} escapes that region, it is colored white.`}
+              </Show>
+            }
+          >
+            {p`If ${"z"} escapes that region, it is colored gray, with the shade depending on how quickly it escaped.`}
+          </Show>
+        ),
+      }
+    },
+  },
+  none: {
+    id: 6,
+    help() {
+      return {
+        main: p`The fractal size is set to infinity, so the point will never escape.`,
+      }
+    },
+  },
+}
+
+export const innerThemeMap: Record<InnerTheme, InnerThemeInfo> = {
+  black: {
+    id: 1,
+    a: "white",
+    help(props) {
+      return {
+        main: (
+          <Show
+            when={props.a}
+            fallback={p`If ${"z"} stays bounded, it is colored black.`}
+          >
+            {p`If ${"z"} stays bounded, it is colored white.`}
+          </Show>
+        ),
+        none: (
+          <Show when={props.a} fallback={p`The point is then colored black.`}>
+            {p`The point is then colored white.`}
+          </Show>
+        ),
+      }
+    },
+  },
+  gradient: {
+    id: 2,
+    a: "split in",
+    help() {
+      return {
+        main: p`If ${"z"} stays bounded, the point on-screen is colored according to the path it took and the final value of ${"z"}.`,
+        none: p`The point is then colored according to the path it took and the final value of ${"z"}.`,
+      }
+    },
+  },
+  plot: {
+    id: 3,
+    help() {
+      return {
+        main: p`If ${"z"} stays bounded, the hue of the point is then given by ${"z"}'s direction from the origin, and the darkness is given by how close ${"z"} is to the origin. How much space is covered by darkness is adjustable using the ${"plot size"} setting.`,
+        none: p`The point's hue is then given by ${"z"}'s direction from the origin, and the darkness is given by how close ${"z"} is to the origin. How much space is covered by darkness is adjustable using the ${"plot size"} setting.`,
+      }
+    },
+  },
+}
 
 function Equation(props: {
   get: () => string
@@ -112,12 +285,12 @@ function Equation(props: {
 
 function p(strings: TemplateStringsArray, ...values: (number | string)[]) {
   return (
-    <p class="text-z transition">
+    <div class="text-z transition">
       <Index each={values}>
         {(value, index) => (
           <>
             {strings[index]}
-            <code class="inline-block max-w-[12rem] truncate rounded bg-z-body-selected px-1 align-bottom text-z transition dark:bg-z-body">
+            <span class="inline-block max-w-[12rem] truncate rounded bg-z-body-selected px-1 align-bottom font-mono text-z transition dark:bg-z-body">
               {((value) => {
                 if (typeof value == "number") {
                   return value
@@ -125,12 +298,12 @@ function p(strings: TemplateStringsArray, ...values: (number | string)[]) {
                   return String(value)
                 }
               })(value())}
-            </code>
+            </span>
           </>
         )}
       </Index>
       {strings.at(-1)}
-    </p>
+    </div>
   )
 }
 
@@ -570,7 +743,7 @@ export function Main() {
             get={() => Math.log(detail())}
             getLabel={() => "" + Math.round(detail())}
             set={(v) => {
-              const value = Math.exp(v)
+              const value = Math.round(Math.exp(v))
               setDetail(value)
 
               if (minDetail() > value) {
@@ -588,7 +761,7 @@ export function Main() {
             get={() => Math.log(minDetail() + 1)}
             getLabel={() => "" + Math.round(minDetail())}
             set={(v) => {
-              const value = Math.exp(v) - 1
+              const value = Math.round(Math.exp(v) - 1)
               setMinDetail(value)
 
               if (value > detail()) {
@@ -628,66 +801,36 @@ export function Main() {
 
         <Show when={view() == "help"}>
           <h3 class="mb-2 mt-4 text-center font-semibold">
-            Overview of the {theme()} renderer
+            Rendering process (depends on theme)
           </h3>
 
           <div class="flex flex-col gap-2">
             {p`To start, the variable ${"p"} is set to the complex number represented by its point on-screen (e.g. the center is ${"0"}, a unit above is ${"i"}, a unit to the right is ${"1"}, and so on). The variable ${"c"} is set to ${c()}, and the variable ${"z"} is set to ${z()}.
             `}
 
-            {
+            <Show
+              when={theme() == "none"}
+              fallback={[
+                p`${"z"} is then set to ${equation()} (iteration function). That is repeated is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin for a maximum of ${detail()} (detail level) repetitions.`,
+                themeMap[theme()].help({
+                  a: effectOuterA(),
+                  b: effectOuterB(),
+                  c: effectOuterC(),
+                }).main,
+                innerThemeMap[innerTheme()].help({
+                  a: effectInnerA(),
+                  b: effectInnerB(),
+                }).main,
+              ]}
+            >
+              {p`${"z"} is then set to ${equation()} (iteration function). That is repeated ${detail()} (detail level) times.`}
               {
-                simple: [
-                  p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
-
-                  p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
-
-                  true // TODO:effectSplit()
-                    ? p`${"split?"} is enabled, so points that escape and
-                      end up below the ${"y = 0"} line will be colored
-                      according to the opposite direction of usual (e.g. towards
-                      oranges and yellows instead of purples and blues).`
-                    : undefined,
-                ],
-
-                gradient: [
-                  p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
-
-                  p`Once ${"z"} escapes this region or once the iteration function has been applied ${detail()} (detail level) times, the point on-screen is colored according to the path it took and the final value of ${"z"}.`,
-
-                  true // TODO:effectSplit()
-                    ? p`${"split?"} is enabled, so the colors of points that escape will be adjusted according to the magnitudes of the last three values of ${"z"}.`
-                    : undefined,
-                ],
-
-                plot: (true // TODO: effectSplit()
-                  ? [
-                      p`${"z"} is set to ${equation()} (iteration function). The iteration function is then applied ${detail()} (detail level) times.`,
-                    ]
-                  : [
-                      p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin, being applied at most ${detail()} (detail level) times.`,
-                    ]
-                ).concat([
-                  p`The hue of the point is then given by ${"z"}'s direction from the origin, and the darkness is given by how close ${"z"} is to the origin. How much space is covered by darkness is adjustable using the ${"plot size"} setting.`,
-                ]),
-
-                trig: [
-                  p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
-
-                  p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
-
-                  true // TODO:effectSplit()
-                    ? p`${"split?"} is enabled, so points that escape and
-                      end up below the ${"y = 0"} line will be colored
-                      according to the opposite direction of usual (e.g. towards
-                      oranges and yellows instead of purples and blues).`
-                    : undefined,
-                ],
-
-                black: "TODO:",
-                none: "TODO:",
-              }[theme()]
-            }
+                innerThemeMap[innerTheme()].help({
+                  a: effectInnerA(),
+                  b: effectInnerB(),
+                }).none
+              }
+            </Show>
           </div>
         </Show>
 
