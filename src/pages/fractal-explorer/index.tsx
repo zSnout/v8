@@ -23,6 +23,7 @@ import { unwrap } from "@/components/result"
 import {
   SignalLike,
   createBooleanSearchParam,
+  createBooleanSearchParamWithFallback,
   createNumericalSearchParam,
   createSearchParam,
 } from "@/components/search-params"
@@ -46,14 +47,37 @@ import {
 } from "solid-js"
 import fragmentSource from "./fragment.glsl"
 
-export type Theme = "simple" | "gradient" | "plot" | "trig"
+export type Theme = "simple" | "gradient" | "plot" | "trig" | "black" | "none"
 
-export const themeMap: Record<Theme, number> = {
-  simple: 1,
-  gradient: 2,
-  plot: 3,
-  trig: 4,
+export type InnerTheme = "black" | "gradient" | "plot"
+
+export interface OuterThemeInfo {
+  readonly id: number
+  readonly a?: string | undefined
+  readonly b?: string | undefined
+  readonly c?: string | undefined
 }
+
+export interface InnerThemeInfo {
+  readonly id: number
+  readonly a?: string | undefined
+  readonly b?: string | undefined
+}
+
+export const themeMap: Record<Theme, OuterThemeInfo> = Object.freeze({
+  simple: { id: 1, a: "split outside" },
+  gradient: { id: 2, a: "split outside" },
+  plot: { id: 3 },
+  trig: { id: 4, a: "alt colors", b: "alt colors" },
+  black: { id: 5, a: "white", b: "glow" },
+  none: { id: 6 },
+})
+
+export const innerThemeMap: Record<InnerTheme, InnerThemeInfo> = Object.freeze({
+  black: { id: 1, a: "white inside" },
+  gradient: { id: 2, a: "split inside" },
+  plot: { id: 3 },
+})
 
 function Equation(props: {
   get: () => string
@@ -154,10 +178,32 @@ export function Main() {
   const [zParseError, setZParseError] = createSignal<string>()
 
   const [theme, setTheme] = createSearchParam<Theme>("theme", "simple")
+  const [innerTheme, setInnerTheme] = createSearchParam<InnerTheme>(
+    "inner_theme",
+    (() => {
+      const t = untrack(theme)
+      return t == "simple" || t == "trig" ? "black" : t == "none" ? "plot" : t
+    })(),
+  )
 
-  const [effectSplit, setEffectSplit] = createBooleanSearchParam("split")
-  const [effectAltColors, setEffectAltColors] =
-    createBooleanSearchParam("alt_colors")
+  // TODO: change help text
+  const [effectOuterA, setEffectOuterA] = createBooleanSearchParamWithFallback(
+    "outer_a",
+    "split",
+  )
+  const [effectOuterB, setEffectOuterB] = createBooleanSearchParamWithFallback(
+    "outer_b",
+    "alt_colors",
+  )
+  const [effectOuterC, setEffectOuterC] = createBooleanSearchParam("outer_c")
+  const [effectInnerA, setEffectInnerA] = createBooleanSearchParamWithFallback(
+    "inner_a",
+    "split",
+  )
+  const [effectInnerB, setEffectInnerB] = createBooleanSearchParamWithFallback(
+    "inner_b",
+    "alt_colors",
+  )
 
   const [detail, setDetail] = createNumericalSearchParam("detail", 100)
   const [minDetail, setMinDetail] = createNumericalSearchParam("min_detail", 0)
@@ -300,9 +346,16 @@ export function Main() {
                 } catch {}
               })
 
-              gl.setReactiveUniform("u_theme", () => themeMap[theme()])
-              gl.setReactiveUniform("u_effect_split", effectSplit)
-              gl.setReactiveUniform("u_effect_alt_colors", effectAltColors)
+              gl.setReactiveUniform("u_theme", () => themeMap[theme()].id)
+              gl.setReactiveUniform(
+                "u_inner_theme",
+                () => innerThemeMap[innerTheme()].id,
+              )
+              gl.setReactiveUniform("u_effect_outer_a", effectOuterA)
+              gl.setReactiveUniform("u_effect_outer_b", effectOuterB)
+              gl.setReactiveUniform("u_effect_outer_c", effectOuterC)
+              gl.setReactiveUniform("u_effect_inner_a", effectInnerA)
+              gl.setReactiveUniform("u_effect_inner_b", effectInnerB)
               gl.setReactiveUniform("u_detail", detail)
               gl.setReactiveUniform("u_detail_min", minDetail)
               gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
@@ -403,33 +456,56 @@ export function Main() {
         <Radio<Theme>
           get={theme}
           label="Theme"
-          options={["simple", "gradient", "plot", "trig"]}
+          options={["simple", "gradient", "plot", "trig", "black", "none"]}
           set={setTheme}
         />
 
-        <CheckboxGroup
+        <Radio<InnerTheme>
           class="mt-2"
-          options={[
-            [
-              theme() == "trig"
-                ? "alt colors?"
-                : theme() == "plot"
-                ? "ignore size?"
-                : "split?",
-              effectSplit,
-              setEffectSplit,
-            ],
-          ]}
+          get={innerTheme}
+          label="Inner Theme"
+          options={["black", "gradient", "plot"]}
+          set={setInnerTheme}
         />
 
-        <Show when={theme() == "trig"}>
-          <CheckboxGroup
-            class="mt-2"
-            options={[
-              ["more alt colors?", effectAltColors, setEffectAltColors],
-            ]}
-          />
-        </Show>
+        {CheckboxGroup({
+          get class() {
+            const o = themeMap[theme()]
+            const i = innerThemeMap[innerTheme()]
+
+            if (!(o.a || o.b || o.c || i.a || i.b)) {
+              return "mt-2 opacity-30 pointer-events-none"
+            } else {
+              return "mt-2"
+            }
+          },
+          get options() {
+            const o = themeMap[theme()]
+            const i = innerThemeMap[innerTheme()]
+
+            const all = [
+              [o.a, effectOuterA, setEffectOuterA],
+              [o.b, effectOuterB, setEffectOuterB],
+              [o.c, effectOuterC, setEffectOuterC],
+              [i.a, effectInnerA, setEffectInnerA],
+              [i.b, effectInnerB, setEffectInnerB],
+            ] as const
+
+            const opts = all.filter(([x]) => x)
+
+            if (opts.length) {
+              return opts
+            } else {
+              return [
+                [
+                  <em>no color options available</em>,
+                  () => false,
+                  () => {},
+                ] as const,
+              ]
+            }
+          },
+        })}
 
         <Show when={view() == "equations"}>
           <Equation
@@ -511,7 +587,9 @@ export function Main() {
           />
 
           <Range
-            class={theme() == "plot" ? "mb-2" : "mb-6"}
+            class={
+              theme() == "plot" || innerTheme() == "plot" ? "mb-2" : "mb-6"
+            }
             name="Fractal Size"
             min={Math.log(0.1)}
             max={Math.log(100)}
@@ -521,7 +599,7 @@ export function Main() {
             set={(v) => setFractalSize(Math.exp(v))}
           />
 
-          <Show when={theme() == "plot"}>
+          <Show when={theme() == "plot" || innerTheme() == "plot"}>
             <Range
               class="mb-6"
               name="Plot Size"
@@ -553,7 +631,7 @@ export function Main() {
 
                   p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
 
-                  effectSplit()
+                  true // TODO:effectSplit()
                     ? p`${"split?"} is enabled, so points that escape and
                       end up below the ${"y = 0"} line will be colored
                       according to the opposite direction of usual (e.g. towards
@@ -566,12 +644,12 @@ export function Main() {
 
                   p`Once ${"z"} escapes this region or once the iteration function has been applied ${detail()} (detail level) times, the point on-screen is colored according to the path it took and the final value of ${"z"}.`,
 
-                  effectSplit()
+                  true // TODO:effectSplit()
                     ? p`${"split?"} is enabled, so the colors of points that escape will be adjusted according to the magnitudes of the last three values of ${"z"}.`
                     : undefined,
                 ],
 
-                plot: (effectSplit()
+                plot: (true // TODO: effectSplit()
                   ? [
                       p`${"z"} is set to ${equation()} (iteration function). The iteration function is then applied ${detail()} (detail level) times.`,
                     ]
@@ -587,13 +665,16 @@ export function Main() {
 
                   p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
 
-                  effectSplit()
+                  true // TODO:effectSplit()
                     ? p`${"split?"} is enabled, so points that escape and
                       end up below the ${"y = 0"} line will be colored
                       according to the opposite direction of usual (e.g. towards
                       oranges and yellows instead of purples and blues).`
                     : undefined,
                 ],
+
+                black: "TODO:",
+                none: "TODO:",
               }[theme()]
             }
           </div>

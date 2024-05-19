@@ -91,7 +91,23 @@ export function createNumericalSearchParam(
 export function createBooleanSearchParam(name: string): SignalLike<boolean> {
   const [get, set] = createSearchParam(name)
 
-  return [() => get() != null, (value) => set(value ? "" : null)]
+  return [
+    () => (get() == "false" ? false : get() == "true" ? true : get() != null),
+    (value) => set(value ? "true" : "false"),
+  ]
+}
+
+export function createBooleanSearchParamWithFallback(
+  name: string,
+  fallback: string,
+): SignalLike<boolean> {
+  const [base] = createBooleanSearchParam(fallback)
+  const [get, set] = createSearchParam(name)
+
+  return [
+    () => (get() == "true" ? true : get() == "false" ? false : base()),
+    (value) => set(value ? "true" : "false"),
+  ]
 }
 
 export function getSearchParam(name: string): string | null {

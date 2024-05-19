@@ -1,4 +1,11 @@
-import { createEffect, createMemo, createSignal, For, untrack } from "solid-js"
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  JSX,
+  untrack,
+} from "solid-js"
 
 export function Radio<T extends string>(props: {
   class?: string
@@ -68,7 +75,7 @@ export function Radio<T extends string>(props: {
           return (
             <div
               aria-checked={isActive()}
-              class="font-mono relative flex-1 rounded px-1 py-1 text-center text-xs text-z transition"
+              class="relative flex-1 rounded px-1 py-1 text-center font-mono text-xs text-z transition"
               onClick={() => props.set(option)}
               role="radio"
               ref={(button) => {
@@ -101,11 +108,11 @@ export function Radio<T extends string>(props: {
 
 export function CheckboxGroup(props: {
   class?: string
-  options: readonly [
-    label: string,
+  options: readonly (readonly [
+    label: JSX.Element,
     get: () => boolean,
     set: (value: boolean) => void,
-  ][]
+  ])[]
 }) {
   return (
     <div
@@ -119,7 +126,7 @@ export function CheckboxGroup(props: {
           return (
             <button
               aria-checked={get()}
-              class="font-mono relative flex-1 rounded px-1 py-1 text-center text-xs text-z transition"
+              class="relative flex-1 rounded px-1 py-1 text-center font-mono text-xs text-z transition"
               classList={{
                 "bg-z-body-selected": get(),
               }}
