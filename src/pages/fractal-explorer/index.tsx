@@ -370,7 +370,6 @@ export function Main() {
     })(),
   )
 
-  // TODO: change help text
   const [split, setSplit] = createSearchParam("split")
   const [effectOuterA, setEffectOuterA] = createBooleanSearchParamWithFallback(
     "outer_a",
