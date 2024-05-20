@@ -109,7 +109,7 @@ vec3 trig_palette(float i) {
 
 vec3 noise_palette(vec2 sz) {
   float angle = atan(sz.y / sz.x);
-  float hue = angle / 3.14159;
+  float hue = angle / 3.1415926536;
   vec3 hsv = vec3(1.0 - hue, 1.0, 1.0);
   return hsv2rgb(modify_hsv(hsv));
 }
@@ -192,7 +192,11 @@ void run_with_sz(vec2 p, vec2 c, vec2 z, bool dual) {
       return;
     }
 
-    sz2 = sin(sz2 + z) + cos(sz2) + z;
+    if (u_inner_theme == 4.0) {
+      vec2 a = u_effect_inner_a ? cx_mult(sz2, z) : sz2 + z;
+      vec2 b = u_effect_inner_b ? cos(z) : z;
+      sz2 = sin(a) + cos(sz2) + b;
+    }
     sz.x += dot(z - pz, pz - ppz);
     sz.y += dot(z - pz, z - pz);
     sz.z += dot(z - ppz, z - ppz);

@@ -166,8 +166,8 @@ export const themeMap: Record<Theme, OuterThemeInfo> = {
   },
   trig: {
     id: 4,
-    a: "alt colors",
-    b: "alt colors",
+    a: "alts a",
+    b: "alts b",
     c: "darkness",
     help() {
       return {
@@ -252,8 +252,13 @@ export const innerThemeMap: Record<InnerTheme, InnerThemeInfo> = {
   },
   blobs: {
     id: 4,
+    a: "alts a",
+    b: "alts b",
     help() {
-      return { main: "TODO:", none: "TODO:" }
+      return {
+        main: p`If ${"z"} stays bounded, the hue of the point is given by calculations involving the path it traveled along.`,
+        none: p`The hue of the point is then given by calculations involving the path it traveled along.`,
+      }
     },
   },
 }
