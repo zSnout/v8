@@ -50,7 +50,7 @@ import fragmentSource from "./fragment.glsl"
 
 export type Theme = "simple" | "gradient" | "plot" | "trig" | "black" | "none"
 
-export type InnerTheme = "black" | "gradient" | "plot"
+export type InnerTheme = "black" | "gradient" | "plot" | "blobs"
 
 export interface OuterHelp {
   readonly main: JSX.Element
@@ -250,6 +250,12 @@ export const innerThemeMap: Record<InnerTheme, InnerThemeInfo> = {
       }
     },
   },
+  blobs: {
+    id: 4,
+    help() {
+      return { main: "TODO:", none: "TODO:" }
+    },
+  },
 }
 
 function Equation(props: {
@@ -351,7 +357,6 @@ export function Main() {
   const [zParseError, setZParseError] = createSignal<string>()
 
   const [theme, setTheme] = createSearchParam<Theme>("theme", "simple")
-  console.log(theme())
   const [innerTheme, setInnerTheme] = createSearchParam<InnerTheme>(
     "inner_theme",
     (() => {
@@ -649,7 +654,7 @@ export function Main() {
           class="mt-2"
           get={innerTheme}
           label="Inner Theme"
-          options={["black", "gradient", "plot"]}
+          options={["black", "gradient", "plot", "blobs"]}
           set={setInnerTheme}
         />
 

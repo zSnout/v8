@@ -107,6 +107,13 @@ vec3 trig_palette(float i) {
   return rgb;
 }
 
+vec3 noise_palette(vec2 sz) {
+  float angle = atan(sz.y / sz.x);
+  float hue = angle / 3.14159;
+  vec3 hsv = vec3(1.0 - hue, 1.0, 1.0);
+  return hsv2rgb(modify_hsv(hsv));
+}
+
 void outer_palette(float i, vec2 z, vec3 sz) {
   if (u_theme == 4.0) {
     color = vec4(trig_palette(i), 1.0);
@@ -128,11 +135,13 @@ void outer_palette(float i, vec2 z, vec3 sz) {
   }
 }
 
-void inner_palette(float i, vec2 z, vec3 sz) {
+void inner_palette(float i, vec2 z, vec3 sz, vec2 sz2) {
   if (u_inner_theme == 2.0) {
     color = vec4(gradient_palette(sz, i, false), 1.0);
   } else if (u_inner_theme == 3.0) {
     color = vec4(plot_palette(z, i, false), 1);
+  } else if (u_inner_theme == 4.0) {
+    color = vec4(noise_palette(sz2), 1.0);
   } else {
     if (u_effect_inner_a) {
       color = vec4(1.0, 1.0, 1.0, 1.0);
@@ -158,11 +167,11 @@ void run(vec2 p, vec2 c, vec2 z, bool dual) {
 
   }
 
-  inner_palette(i, z, vec3(0));
+  inner_palette(i, z, vec3(0), vec2(0));
 }
 
 void run_with_sz(vec2 p, vec2 c, vec2 z, bool dual) {
-  vec2 pz, ppz;
+  vec2 pz, ppz, sz2;
   vec3 sz, sz_split;
 
   float i = 0.0;
@@ -183,6 +192,7 @@ void run_with_sz(vec2 p, vec2 c, vec2 z, bool dual) {
       return;
     }
 
+    sz2 = sin(sz2 + z) + cos(sz2) + z;
     sz.x += dot(z - pz, pz - ppz);
     sz.y += dot(z - pz, z - pz);
     sz.z += dot(z - ppz, z - ppz);
@@ -192,7 +202,7 @@ void run_with_sz(vec2 p, vec2 c, vec2 z, bool dual) {
   if (u_effect_inner_a) {
     sz += sz_split;
   }
-  inner_palette(i, z, sz);
+  inner_palette(i, z, sz, sz2);
 }
 
 void main() {
@@ -207,7 +217,7 @@ void main() {
   vec2 c = EQ_C;
   vec2 z = EQ_Z;
 
-  if (u_theme == 2.0 || u_inner_theme == 2.0) {
+  if (u_theme == 2.0 || u_inner_theme == 2.0 || u_inner_theme == 4.0) {
     run_with_sz(p, c, z, dual);
   } else {
     run(p, c, z, dual);

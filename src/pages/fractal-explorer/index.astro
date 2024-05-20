@@ -2,6 +2,9 @@
 import FullscreenLayout from "@/layouts/FullscreenLayout.astro"
 import { Main } from "."
 import openGraphImage from "./open-graph.png"
+if (import.meta.env.PROD) {
+  throw new Error("nuh uh")
+}
 ---
 
 <FullscreenLayout
