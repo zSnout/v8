@@ -7,7 +7,7 @@ import {
 import { Result, error, ok, unwrap } from "@/components/result"
 import { parseLatex } from "@/mathquill/parse"
 import { For } from "solid-js"
-import { InnerTheme, Theme, themeMap } from "../fractal-explorer"
+import { InnerTheme, Theme, innerThemeMap, themeMap } from "../fractal-explorer"
 import fragmentSource from "../fractal-explorer/fragment.glsl"
 
 let gl: WebGLCoordinateCanvas
@@ -64,7 +64,7 @@ function Canvas(props: {
   minDetail: number
   plotSize: number
   theme: Theme
-  innerTheme: Theme
+  innerTheme: InnerTheme
   slider: number
 
   top: number
@@ -118,7 +118,7 @@ function Canvas(props: {
           )
 
           gl.setUniform("u_theme", themeMap[props.theme].id)
-          gl.setUniform("u_inner_theme", themeMap[props.innerTheme].id)
+          gl.setUniform("u_inner_theme", innerThemeMap[props.innerTheme].id)
           gl.setUniform("u_effect_outer_a", +props.effectOuterA)
           gl.setUniform("u_effect_outer_b", +props.effectOuterB)
           gl.setUniform("u_effect_outer_c", +props.effectOuterC)
@@ -419,6 +419,9 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?top=-0.9491299439299168&right=-0.13183969228951045&bottom=-1.099640990028579&left=-0.28235073837709423&equation=%7E%7E%5Coperatorname%7Bunsign%7D%5Cleft%28z-z%5E%7B2%7D%5Cright%29%2Bc&theme=gradient&size=10&split=&detail=1000&spectrum=38.9221556886228&smoothness=63.9221556886228&colorOffset=206.946107784431",
   "https://v8.zsnout.com/fractal-explorer?top=-0.9902424394818155&right=-0.2178020917944848&bottom=-1.0826697821582953&left=-0.31022943446413503&equation=abs%28z-z%5E2%29+%2B+c&theme=gradient&size=10&detail=55&spectrum=13.7724550898204&smoothness=63.9221556886228&colorOffset=251.137724550898&split=",
   "https://v8.zsnout.com/fractal-explorer?top=-0.7149475672764496&right=-0.2515657787563698&bottom=-0.8686257206797308&left=-0.40524393214827537&equation=abs%28z-z%5E2%29+%2B+c%2B1&theme=gradient&size=10&detail=37&spectrum=13.7724550898204&smoothness=63.9221556886228&colorOffset=251.137724550898&split=&plot_size=1.4491017964071842",
+  "https://v8.zsnout.com/fractal-explorer?theme=none&equation=%7E%7Ez-%5Cfrac%7Bz%5E%7B3%7D%2Bz%5Cleft%28c-1%5Cright%29-c%7D%7B3z%5E%7B2%7D%2Bc-1%7D&inner_theme=blobs&top=2.2951172592412905&right=2.0297880548799303&bottom=-2.3469437348718283&left=-2.612272939233189&z=%7E%7E0&c=%7E%7Ep%5Codot%5Coperatorname%7Bfx%7D&repetitionSign=1&detail=98",
+  "https://v8.zsnout.com/fractal-explorer?top=0.6142580703517614&right=-0.5965780093026045&bottom=0.6134834930742413&left=-0.5973525865801246&theme=gradient&z=%7E%7Ep&c=%7E%7Ep&size=1.4120203087484517&equation=%7E%7Ez%5E%7B2%7D%2Bc&outer_c=false&inner_theme=blobs&inner_a=true&detail=358&outer_b=true&outer_a=false&inner_b=true&colorOffset=313.332709580838&smoothness=50",
+  "https://v8.zsnout.com/fractal-explorer?equation=%7E%7E%5Cleft%28%5Coperatorname%7Bunsign%7Dz%5Cright%29%5E%7B2%7D%2Bc%5Codot%5Coperatorname%7Bfx%7D&top=0.9270793425225151&right=-0.034734374790994726&bottom=0.9261424423595729&left=-0.03567127495393681&inner_theme=blobs&theme=black&outer_a=true&outer_b=true&repetition=1.0052359216489732&detail=37&spectrum=18.4693113772455&colorOffset=350.518338323353",
 ]
 
 export function Main() {
