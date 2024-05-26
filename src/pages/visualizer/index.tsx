@@ -1,8 +1,8 @@
 import { error } from "@/components/result"
 import {
   FDG,
+  MutableNode as M,
   MutableLink,
-  MutableNode,
   createForceDirectedGraph,
 } from "@/pages/fdg"
 import { diff, rgb_to_lab } from "color-diff"
@@ -10,6 +10,8 @@ import { JSX, batch, createSignal } from "solid-js"
 import { isServer } from "solid-js/web"
 import { ZipInfo, setOptions, unzip } from "unzipit"
 import worker from "unzipit/dist/unzipit-worker?url"
+
+type MutableNode = M & { email: string }
 
 setOptions({ workerURL: worker })
 
@@ -79,6 +81,20 @@ function Img(props: {
   )
 }
 
+function setNodes(graph: FDG, nodes: readonly MutableNode[]) {
+  graph.setNodes((prev) => {
+    return nodes.map((node) => {
+      const p = prev.find((p) => "email" in p && p.email == node.email)
+
+      if (p) {
+        return { ...node, x: p.x, y: p.y }
+      } else {
+        return node
+      }
+    })
+  })
+}
+
 async function showColors(zip: ZipInfo, graph: FDG) {
   const colors = zip.entries["data/colors.txt"]
   if (!colors) {
@@ -111,6 +127,7 @@ async function showColors(zip: ZipInfo, graph: FDG) {
     locked: false,
     x: 5 * Math.random() - 2.5,
     y: 5 * Math.random() - 2.5,
+    email: x.email,
   }))
   const links: MutableLink[] = []
   for (const { rgb: a, index: i } of data) {
@@ -123,7 +140,7 @@ async function showColors(zip: ZipInfo, graph: FDG) {
     }
   }
   batch(() => {
-    graph.setNodes(nodes)
+    setNodes(graph, nodes)
     graph.setLinks(links)
     graph.setForces({
       center: 1,
@@ -162,6 +179,7 @@ async function showAnimals(zip: ZipInfo, graph: FDG) {
     locked: false,
     x: 5 * Math.random() - 2.5,
     y: 5 * Math.random() - 2.5,
+    email: x.email,
   }))
   const links: MutableLink[] = []
   for (const { animal: a, index: i } of data) {
@@ -172,7 +190,7 @@ async function showAnimals(zip: ZipInfo, graph: FDG) {
     }
   }
   batch(() => {
-    graph.setNodes(nodes)
+    setNodes(graph, nodes)
     graph.setLinks(links)
     graph.setForces({
       center: 1,
@@ -226,6 +244,7 @@ async function showFractals(zip: ZipInfo, graph: FDG) {
     locked: false,
     x: 5 * Math.random() - 2.5,
     y: 5 * Math.random() - 2.5,
+    email: x.email,
   }))
   const links: MutableLink[] = []
   for (const { index: i, fa: aa, fb: ab } of data) {
@@ -242,7 +261,7 @@ async function showFractals(zip: ZipInfo, graph: FDG) {
     }
   }
   batch(() => {
-    graph.setNodes(nodes)
+    setNodes(graph, nodes)
     graph.setLinks(links)
     graph.setForces({
       center: 1,
