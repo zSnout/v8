@@ -187,7 +187,7 @@ const init = [
   )
 
 export function Main() {
-  const [events, setEvents] = createSignal<readonly Event[]>(init)
+  const [events] = createSignal<readonly Event[]>(init)
 
   return (
     <div class="flex flex-1 flex-col gap-4 border-l border-z-text-heading py-8">
