@@ -3919,9 +3919,13 @@ var latexMathParser = (function () {
         .skip(optWhitespace),
     )
     .skip(string("]"))
+  var subBlock = string("_").then(function () {
+    return mathGroup
+  })
   var latexMath = mathSequence
   latexMath.block = mathBlock
   latexMath.optBlock = optMathBlock
+  latexMath.subBlock = subBlock
   return latexMath
 })()
 baseOptionProcessors.maxDepth = function (depth) {
@@ -6644,11 +6648,11 @@ LatexCmds.closecurlybrace = LatexCmds.rbrace = bindVanillaSymbol(
   "}",
   "right brace",
 )
-LatexCmds.lbrack = bindVanillaSymbol("[", "left bracket")
-LatexCmds.rbrack = bindVanillaSymbol("]", "right bracket")
+LatexCmds.lbrack = bindVanillaSymbol("[", "[", "left bracket")
+LatexCmds.rbrack = bindVanillaSymbol("]", "]", "right bracket")
 //various symbols
-LatexCmds.slash = bindVanillaSymbol("/", "slash")
-LatexCmds.vert = bindVanillaSymbol("|", "vertical bar")
+LatexCmds.slash = bindVanillaSymbol("/", "/", "slash")
+LatexCmds.vert = bindVanillaSymbol("|", "|", "vertical bar")
 LatexCmds.perp = LatexCmds.perpendicular = bindVanillaSymbol(
   "\\perp ",
   "&perp;",
@@ -9212,6 +9216,7 @@ var LiveFraction =
                 leftward instanceof (LatexCmds.text || noop) ||
                 leftward instanceof SummationNotation ||
                 leftward.ctrlSeq === "\\ " ||
+                leftward.ctrlSeq === "\\lim" ||
                 /^[,;:]$/.test(leftward.ctrlSeq)
               ) //lookbehind for operator
             )
@@ -10260,4 +10265,5 @@ export {
   NodeBase,
   MathElement,
   Variable,
+  latexMathParser,
 }

@@ -1,3 +1,5 @@
+// TODO: lim, coprod, align
+
 /** Latex Parsing Steps
  *
  * 1. parse tokens
@@ -25,13 +27,13 @@ type Step2 = Tree<never, never, never, Step2[]>
 
 type Step3 = Tree<
   "sqrt" | "frozenmouse" | "frozentime",
-  "sum" | "prod" | "int",
+  Big,
   "frac" | "binom" | "dual" | "nthroot"
 >
 
 type Step4 = Tree<
   "sqrt" | "!" | "logb" | "logb^2" | "frozenmouse" | "frozentime",
-  "sum" | "prod" | "int",
+  Big,
   "frac" | "binom" | "dual" | "nthroot" | "^" | "_"
 >
 
@@ -109,7 +111,7 @@ type BuildableToken =
   | { type: "n"; value: string }
   | { type: "/" }
 
-const MULTI_LETTER_VARIABLES = Object.freeze(["iter", "fx", "fy"])
+const MULTI_LETTER_VARIABLES = Object.freeze(["iter", "fx", "fy", "infty"])
 
 function s1_tokenize(text: string): Step1[] {
   const tokens: Step1[] = []
@@ -432,6 +434,7 @@ const UNARY_OPERATORS = Object.freeze([
   "angle",
   "abs",
   "unsign",
+  "neg",
 ] as const)
 
 type BaseUnaryOperator = (typeof UNARY_OPERATORS)[number]
@@ -440,17 +443,19 @@ function parseGroups(tokens: Step2[]): Node {
   const s3 = s3_parseLatexCommands(tokens)
   const s4 = s4_parseSubscriptSuperscriptFactorial(s3)
   const sa = s0_parseImplicitMultiplication(s4)
-  const s5 = s5_parseUnaryPrefixes(sa)
+  const s5 = s5_parseUnaryPrefixes(sa, false)
   const sb = s0_parseImplicitMultiplication(s5)
   const s6 = s6_parseBinaryOperators(sb, MULTIPLICATIVE_OPERATORS, false)
   const s7 = s7_parseBigSymbolContents(s6)
-  const s8 = s6_parseBinaryOperators(s7, ADDITIVE_OPERATORS, true)
+  const s75 = s5_parseUnaryPrefixes(s7, true)
+  const s8 = s6_parseBinaryOperators(s75, ADDITIVE_OPERATORS, true)
   const s9 = s9_parseChainedComparisons(s8)
   const s10 = s6_parseBinaryOperators(s9, BOOLEAN_OPERATORS, true)
-  const s11 = s6_parseBinaryOperators(s10, BINDING_OPERATORS, true)
-  const s12 = s6_parseBinaryOperators(s11, [","], true)
-  const s13 = toNode(s12)
-  return s13
+  const s11 = s6_parseBinaryOperators(s10, BINDING_OPERATORS_A, true)
+  const s12 = s6_parseBinaryOperators(s11, BINDING_OPERATORS_B, true)
+  const s13 = s6_parseBinaryOperators(s12, [","], true)
+  const s14 = toNode(s13)
+  return s14
 }
 
 function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
@@ -518,6 +523,7 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
           }
           case "sum":
           case "prod":
+          case "coprod":
           case "int": {
             const next1 = tokens[index + 1]
             const next2 = tokens[index + 2]
@@ -558,6 +564,27 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
               index += 4
             } else {
               throw new MathError(`Expected _{...}^{...} after \\${token.name}`)
+            }
+            break
+          }
+          case "lim": {
+            const next1 = tokens[index + 1]
+            const next2 = tokens[index + 2]
+            if (
+              next1?.type == "op" &&
+              next1.name == "_" &&
+              next2?.type == "group"
+            ) {
+              output.push({
+                type: "big",
+                op: "lim",
+                top: { type: "v", name: "placeholder" },
+                bottom: parseGroups(next2.contents),
+                contents: { type: "v", name: "placeholder" },
+              })
+              index += 2
+            } else {
+              throw new MathError(`Expected _{...} after \\lim`)
             }
             break
           }
@@ -720,14 +747,10 @@ function s4_parseSubscriptSuperscriptFactorial(tokens: Step3[]): Step4[] {
 
 function isImplicitlyMultiplyable(
   token: Step5,
-): token is Step5 &
-  (
-    | { type: "binary" }
-    | { type: "unary" }
-    | { type: "n" }
-    | { type: "v" }
-    | { type: "bracket" }
-  ) {
+  contentsMayBeBig: boolean,
+): token is Step5 & {
+  type: "binary" | "unary" | "n" | "v" | "bracket" | "big"
+} {
   if (token.type == "binary") {
     return true
   }
@@ -737,6 +760,10 @@ function isImplicitlyMultiplyable(
   }
 
   if (token.type == "n" || token.type == "v" || token.type == "bracket") {
+    return true
+  }
+
+  if (contentsMayBeBig && token.type == "big") {
     return true
   }
 
@@ -751,9 +778,9 @@ function s0_parseImplicitMultiplication(tokens: Step5[]): Step5[] {
     const prev = output[output.length - 1]
 
     if (
-      isImplicitlyMultiplyable(token) &&
+      isImplicitlyMultiplyable(token, false) &&
       prev &&
-      isImplicitlyMultiplyable(prev)
+      isImplicitlyMultiplyable(prev, false)
     ) {
       output[output.length - 1] = {
         type: "binary",
@@ -781,10 +808,14 @@ function canBeFollowedByUnaryNegation(token: Step5): boolean {
   return false
 }
 
-function s5_parseUnaryPrefixes(tokens: Step5[]): Step5[] {
+function s5_parseUnaryPrefixes(
+  tokens: Step5[],
+  contentsMayBeBig: boolean,
+): Step5[] {
   const output: Step5[] = []
 
-  for (let index = 0; index < tokens.length; index++) {
+  main: for (let index = 0; index < tokens.length; index++) {
+    const initialIndex = index
     const token = tokens[index]!
     const prev = output[output.length - 1]
 
@@ -812,10 +843,19 @@ function s5_parseUnaryPrefixes(tokens: Step5[]): Step5[] {
           continue
         }
 
-        if (next && isImplicitlyMultiplyable(next)) {
-          index += 1
-          contents = next
-          break
+        if (next) {
+          if (isImplicitlyMultiplyable(next, contentsMayBeBig)) {
+            index += 1
+            contents = next
+            break
+          } else if (
+            !contentsMayBeBig &&
+            isImplicitlyMultiplyable(next, true)
+          ) {
+            index = initialIndex
+            output.push(token)
+            continue main
+          }
         }
 
         break
@@ -1027,16 +1067,19 @@ function s9_parseChainedComparisons(tokens: Step5[]): Step5[] {
   return output
 }
 
-const BOOLEAN_OPERATORS = Object.freeze(["and", "or"] as const)
+const BOOLEAN_OPERATORS = Object.freeze(["and", "or", "wedge", "vee"] as const)
 
-const BINDING_OPERATORS = Object.freeze(["for", "with"] as const)
+const BINDING_OPERATORS_A = Object.freeze(["to"] as const)
+
+const BINDING_OPERATORS_B = Object.freeze(["for", "with"] as const)
 
 type BaseBinaryOperator =
   | MultiplicativeOperator
   | (typeof ADDITIVE_OPERATORS)[number]
   | (typeof COMPARISON_OPERATORS)[number]
   | (typeof BOOLEAN_OPERATORS)[number]
-  | (typeof BINDING_OPERATORS)[number]
+  | (typeof BINDING_OPERATORS_A)[number]
+  | (typeof BINDING_OPERATORS_B)[number]
   | ","
 
 export type Node =
@@ -1053,7 +1096,8 @@ const BINARY_OPERATORS = [
   ...ADDITIVE_OPERATORS,
   ...COMPARISON_OPERATORS,
   ...BOOLEAN_OPERATORS,
-  ...BINDING_OPERATORS,
+  ...BINDING_OPERATORS_A,
+  ...BINDING_OPERATORS_B,
   ",",
 ]
 
@@ -1095,7 +1139,13 @@ export type Unary =
   | "frozenmouse"
   | "frozentime"
 
-export type Big = "sum" | "prod" | "int"
+export type Big =
+  | "sum"
+  | "prod"
+  | "int"
+  | "coprod"
+  // lim isn't a `big` operator, but it's easier to do this than special-case it
+  | "lim"
 
 export type Binary =
   | "frac"

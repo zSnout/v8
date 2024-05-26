@@ -6,6 +6,7 @@ import {
   faSliders,
 } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, untrack } from "solid-js"
+import { isServer } from "solid-js/web"
 import "./mathquill.css"
 import {
   DOMView,
@@ -19,8 +20,8 @@ import {
   V3,
   getInterface,
   h,
+  latexMathParser,
 } from "./mathquill.js"
-import { isServer } from "solid-js/web"
 export type * from "./mathquill"
 
 export abstract class IconLetter extends Letter {
@@ -74,8 +75,8 @@ LatexCmds.dual = class extends MathCommand {
     this.ctrlSeq = "\\dual"
     this.domView = new DOMView(2, function (blocks) {
       return h("span", { class: "mq-non-leaf mq-dual-container" }, [
-        h.block("span", { class: "mq-dual-numerator" }, blocks[0]!),
-        h.block("span", { class: "mq-dual-denominator" }, blocks[1]!),
+        h.block("span", { class: "mq-dual-numerator" }, blocks[0]),
+        h.block("span", { class: "mq-dual-denominator" }, blocks[1]),
         h("span", { style: "display:inline-block;width:0" }, [
           h.text(U_ZERO_WIDTH_SPACE),
         ]),
@@ -138,7 +139,7 @@ LatexCmds.frozenmouse = class extends MathCommand {
       return h.block(
         "span",
         { class: "mq-frozen", style: "--label:'mouse'" },
-        blocks[0]!,
+        blocks[0],
       )
     })
     this.textTemplate = ["frozenmouse(", ")"]
@@ -162,7 +163,7 @@ LatexCmds.frozentime = class extends MathCommand {
       return h.block(
         "span",
         { class: "mq-frozen", style: "--label:'time'" },
-        blocks[0]!,
+        blocks[0],
       )
     })
     this.textTemplate = ["frozentime(", ")"]
@@ -178,18 +179,173 @@ LatexCmds.frozentime = class extends MathCommand {
   }
 }
 
+LatexCmds.limit = LatexCmds.lim = class Limit extends MathCommand {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+    super(ctrlSeq, domView, textTemplate)
+    this.ctrlSeq = "\\lim"
+    this.domView = new DOMView(1, function (blocks) {
+      return h("span", { class: "mq-limit mq-non-leaf" }, [
+        h("span", { class: "mq-limit-label" }, [h.text("lim")]),
+        h.block("span", { class: "mq-limit-sub mq-non-leaf" }, blocks[0]),
+      ])
+    })
+    this.textTemplate = ["lim(", ")"]
+    this.mathspeakTemplate = ["Limit", "EndLimit"]
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return MathCommand.prototype.mathspeak.call(this)
+  }
+
+  latexRecursive(this: any, ctx: any) {
+    this.checkCursorContextOpen(ctx)
+    ctx.latex += "\\lim_{"
+    this.getEnd(L).latexRecursive(ctx)
+    ctx.latex += "}"
+    this.checkCursorContextClose(ctx)
+  }
+
+  parser() {
+    return (
+      latexMathParser.subBlock
+        .map(function (block: any) {
+          const limit: any = new Limit("\\lim", undefined!, undefined!)
+          limit.blocks = [block]
+          block.adopt(limit, 0, 0)
+          return limit
+        })
+        // @ts-expect-error `parser` property isn't in the typedocs
+        .or(super.parser.call(this))
+    )
+  }
+}
+
+LatexCmds.align = class extends MathCommand {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+    super(ctrlSeq, domView, textTemplate)
+    this.ctrlSeq = "\\align"
+    this.domView = new DOMView(4, function (blocks) {
+      return h("span", { class: "mq-align mq-non-leaf" }, [
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
+          blocks[0],
+        ),
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
+          blocks[1],
+        ),
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
+          blocks[2],
+        ),
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
+          blocks[3],
+        ),
+      ])
+    })
+    this.textTemplate = ["align(", "", ")(", "", ")"]
+    this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return MathCommand.prototype.mathspeak.call(this)
+  }
+
+  latexRecursive(this: any, ctx: any) {
+    this.checkCursorContextOpen(ctx)
+    ctx.latex += "\\begin{align*}"
+    this.blocks[0].latexRecursive(ctx)
+    ctx.latex += "&"
+    this.blocks[1].latexRecursive(ctx)
+    ctx.latex += "\\"
+    this.blocks[2].latexRecursive(ctx)
+    ctx.latex += "&"
+    this.blocks[3].latexRecursive(ctx)
+    ctx.latex += "\\end{align*}"
+    this.checkCursorContextClose(ctx)
+  }
+}
+
+LatexCmds.piecewise = class extends MathCommand {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+    super(ctrlSeq, domView, textTemplate)
+    this.ctrlSeq = "\\align"
+    this.domView = new DOMView(4, function (blocks) {
+      return h("span", { class: "mq-align mq-non-leaf" }, [
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
+          blocks[0],
+        ),
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
+          blocks[1],
+        ),
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
+          blocks[2],
+        ),
+        h.block(
+          "span",
+          { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
+          blocks[3],
+        ),
+      ])
+    })
+    this.textTemplate = ["align(", "", ")(", "", ")"]
+    this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return MathCommand.prototype.mathspeak.call(this)
+  }
+
+  latexRecursive(this: any, ctx: any) {
+    this.checkCursorContextOpen(ctx)
+    ctx.latex += "\\begin{align*}"
+    this.blocks[0].latexRecursive(ctx)
+    ctx.latex += "&"
+    this.blocks[1].latexRecursive(ctx)
+    ctx.latex += "\\"
+    this.blocks[2].latexRecursive(ctx)
+    ctx.latex += "&"
+    this.blocks[3].latexRecursive(ctx)
+    ctx.latex += "\\end{align*}"
+    this.checkCursorContextClose(ctx)
+  }
+}
+
 export const config: Readonly<V3.Config> = Object.freeze({
   autoOperatorNames:
     "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for and or not mod iter real imag log ln exp length sign angle unsign fx fy",
   autoCommands:
-    "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot int cross ans dual abs",
+    "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma varsigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot integral cross ans dual abs infinity infty limit choose binom digamma",
   infixOperatorNames: "mod",
   autoSubscriptNumerals: true,
   disableAutoSubstitutionInSubscripts: true,
   tripleDotsAreEllipsis: true,
   enableDigitGrouping: true,
   spaceBehavesLikeTab: true,
-  statelessClipboard: true,
+  statelessClipboard: false,
   sumStartsWithNEquals: true,
   supSubsRequireOperand: true,
   restrictMismatchedBrackets: true,

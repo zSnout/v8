@@ -126,8 +126,15 @@ html.no-transition * {
   }
 
   :where(.mq-operator-name) + .mq-binary-operator,
+  :where(.mq-operator-name + .mq-cursor) + .mq-binary-operator,
   :where(.mq-operator-name + .mq-selection > .mq-binary-operator):first-child {
     @apply pr-0;
+  }
+
+  :where(.mq-large-operator) + .mq-binary-operator,
+  :where(.mq-large-operator + .mq-cursor) + .mq-binary-operator,
+  :where(.mq-large-operator + .mq-selection > .mq-binary-operator):first-child {
+    @apply px-0;
   }
 
   :where(.mq-operator-name.mq-last + .mq-operator-name).mq-first,

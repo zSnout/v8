@@ -292,6 +292,17 @@ export declare class Block {
 export declare var getInterface: MathQuill["getInterface"]
 
 export declare class DOMView {
+  constructor(children: 0, contents: (blocks: []) => JSX.Element)
+  constructor(children: 1, contents: (blocks: [Block]) => JSX.Element)
+  constructor(children: 2, contents: (blocks: [Block, Block]) => JSX.Element)
+  constructor(
+    children: 3,
+    contents: (blocks: [Block, Block, Block]) => JSX.Element,
+  )
+  constructor(
+    children: 4,
+    contents: (blocks: [Block, Block, Block, Block]) => JSX.Element,
+  )
   constructor(children: number, contents: (blocks: Block[]) => JSX.Element)
 }
 
@@ -334,3 +345,6 @@ export declare var h: {
   block(type: string, attribute: object, block: Block): JSX.Element
   text(text: string): JSX.Element
 }
+
+// FIXME: give this a better type
+export declare var latexMathParser: any
