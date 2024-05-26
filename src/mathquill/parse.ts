@@ -1,4 +1,4 @@
-// TODO: lim, coprod, align
+// TODO: align
 
 /** Latex Parsing Steps
  *
