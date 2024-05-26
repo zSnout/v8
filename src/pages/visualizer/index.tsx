@@ -6,11 +6,49 @@ import {
   createForceDirectedGraph,
 } from "@/pages/fdg"
 import { diff, rgb_to_lab } from "color-diff"
-import { batch, createSignal } from "solid-js"
+import { JSX, batch, createSignal } from "solid-js"
+import { isServer } from "solid-js/web"
 import { ZipInfo, setOptions, unzip } from "unzipit"
 import worker from "unzipit/dist/unzipit-worker?url"
 
 setOptions({ workerURL: worker })
+
+const alerts = "x-" + Math.random().toString().slice(2)
+function alert(info: JSX.Element) {
+  if (isServer) {
+    return
+  }
+
+  const el = (
+    <div
+      class="fixed bottom-4 left-1/2 w-96 max-w-full origin-center -translate-x-1/2 scale-100 rounded-md border border-red-400 bg-red-100 px-2 py-1 text-center text-z transition-all"
+      id={alerts}
+    >
+      {info}
+    </div>
+  ) as HTMLDivElement
+
+  setTimeout(() => {
+    el.style.setProperty("--tw-scale-x", "1.25")
+    el.style.setProperty("--tw-scale-y", "1.25")
+    el.addEventListener(
+      "transitionend",
+      () => {
+        el.style.setProperty("--tw-scale-x", "1")
+        el.style.setProperty("--tw-scale-y", "1")
+      },
+      { once: true },
+    )
+  })
+
+  setTimeout(() => {
+    el.style.bottom = "0"
+    el.style.opacity = "0"
+  }, 3000)
+
+  document.getElementById(alerts)?.remove()
+  document.body.appendChild(el)
+}
 
 function Img(props: { zip: ZipInfo; pfp: string; bg: string }) {
   return (
