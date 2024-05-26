@@ -50,12 +50,19 @@ function alert(info: JSX.Element) {
   document.body.appendChild(el)
 }
 
-function Img(props: { zip: ZipInfo; pfp: string; bg: string }) {
+function Img(props: {
+  zip: ZipInfo
+  pfp: string
+  bg: string
+  children?: JSX.Element
+}) {
   return (
     <div
       class="relative h-full w-full rounded-full bg-cover bg-center"
       style={{ "background-image": props.bg, "background-color": props.bg }}
     >
+      {props.children}
+
       <img
         class="absolute -right-[12.5%] -top-[12.5%] h-[50%] w-[50%] rounded-full bg-white"
         ref={async (el) => {
@@ -175,6 +182,76 @@ async function showAnimals(zip: ZipInfo, graph: FDG) {
   })
 }
 
+async function showFractals(zip: ZipInfo, graph: FDG) {
+  const fractals = zip.entries["data/fractals.txt"]
+  if (!fractals) {
+    throw new Error("theres no fractal data")
+  }
+  const data = await Promise.all(
+    (await fractals.text()).split("\n").map(async (x, i) => {
+      const [a, b, c] = x.split("\t")
+      if (a && b && c) {
+        return {
+          email: a,
+          fa: +b,
+          fb: +c,
+          fai: URL.createObjectURL(
+            await zip.entries["photos/Option " + b + ".png"]?.blob(
+              "image/png",
+            )!,
+          ),
+          fbi: URL.createObjectURL(
+            await zip.entries["photos/Option " + c + ".png"]?.blob(
+              "image/png",
+            )!,
+          ),
+          index: i,
+        }
+      } else {
+        throw new Error("invalid data in fractal file")
+      }
+    }),
+  )
+  const nodes: MutableNode[] = data.map((x) => ({
+    label: "",
+    el: (
+      <Img zip={zip} pfp={x.email} bg="black">
+        <div class="flex h-full w-full overflow-clip rounded-full">
+          <img class="h-full w-1/2 object-cover" src={x.fai} />
+          <img class="h-full w-1/2 object-cover" src={x.fbi} />
+        </div>
+      </Img>
+    ),
+    noBorder: true,
+    locked: false,
+    x: 5 * Math.random() - 2.5,
+    y: 5 * Math.random() - 2.5,
+  }))
+  const links: MutableLink[] = []
+  for (const { index: i, fa: aa, fb: ab } of data) {
+    for (const { index: j, fa: ba, fb: bb } of data) {
+      if (i > j) {
+        if (aa == ba || ab == ba || aa == bb || ab == bb) {
+          links.push({
+            a: i,
+            b: j,
+            n: +(aa == ba) + +(ab == ba) + +(aa == bb) + +(ab == bb),
+          })
+        }
+      }
+    }
+  }
+  batch(() => {
+    graph.setNodes(nodes)
+    graph.setLinks(links)
+    graph.setForces({
+      center: 1,
+      repulsion: 2,
+      attraction: 1,
+    })
+  })
+}
+
 export function Main() {
   const graph = createForceDirectedGraph({})
   graph.setPosition({ x: 0, y: 0, w: 10 })
@@ -224,6 +301,7 @@ export function Main() {
 
         <button onClick={() => show(showColors)}>by colors</button>
         <button onClick={() => show(showAnimals)}>by animals</button>
+        <button onClick={() => show(showFractals)}>by fractals</button>
         <button
           onClick={() => {
             const i = +setTimeout(() => {})
