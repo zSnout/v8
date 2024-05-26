@@ -1,26 +1,38 @@
 // gravity should drag towards average of locked nodes
 // make forces adjustable
 
-import { For, Show, batch, createMemo, createSignal, onMount } from "solid-js"
+import {
+  For,
+  JSX,
+  Show,
+  batch,
+  createMemo,
+  createSignal,
+  onMount,
+} from "solid-js"
 
 const RING_VALUES = [2, 5, 8]
 
 export interface Node {
-  readonly label: string
+  readonly label: JSX.Element
   readonly locked: boolean
   readonly x: number
   readonly y: number
-  readonly emoji?: string | undefined
+  readonly emoji?: JSX.Element | undefined
   readonly ring?: number | undefined
+  readonly noBorder?: boolean | undefined
+  readonly el?: JSX.Element | undefined
 }
 
 export interface MutableNode {
-  label: string
+  label: JSX.Element
   locked: boolean
   x: number
   y: number
-  emoji?: string | undefined
+  emoji?: JSX.Element | undefined
   ring?: number | undefined
+  border?: boolean | undefined
+  el?: JSX.Element | undefined
 }
 
 export interface Link {
@@ -60,6 +72,8 @@ export interface Linking {
   readonly y2: number
   readonly moved: boolean
 }
+
+export type FDG = ReturnType<typeof createForceDirectedGraph>
 
 export function createForceDirectedGraph(props?: {
   hideLinks?: boolean
@@ -528,6 +542,7 @@ export function createForceDirectedGraph(props?: {
                 y={scale() * node.y - 48}
                 width={96}
                 height={96}
+                overflow="visible"
               >
                 <div
                   class="relative flex h-full w-full select-none items-center justify-center rounded-full border border-z-text-heading"
@@ -536,7 +551,7 @@ export function createForceDirectedGraph(props?: {
                     "bg-z-body-selected": node.locked,
                     "text-3xl": !props?.smallText,
                     "text-2xl": props?.smallText,
-                    "border-none": !!node.emoji,
+                    "border-none": node.noBorder || !!node.emoji,
                   }}
                   onPointerDown={(event) => {
                     event.preventDefault()
@@ -572,7 +587,9 @@ export function createForceDirectedGraph(props?: {
                   <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-7xl">
                     {node.emoji}
                   </div>
-                  <span class="relative">{node.emoji ? "" : node.label}</span>
+                  {node.el || (
+                    <span class="relative">{node.emoji ? "" : node.label}</span>
+                  )}
                 </div>
               </foreignObject>
             </>

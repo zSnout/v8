@@ -1,0 +1,18 @@
+---
+import FullscreenLayout from "@/layouts/FullscreenLayout.astro"
+import { Main } from "."
+---
+
+<FullscreenLayout
+  description="TODO"
+  title="TODO"
+  og={{
+    imageSrc: "TODO",
+    imageAlt: "TODO",
+    title: "TODO",
+  }}
+>
+  <div class="flex h-full w-full">
+    <Main client:only />
+  </div>
+</FullscreenLayout>
