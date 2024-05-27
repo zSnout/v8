@@ -384,49 +384,6 @@ export abstract class MathExtendable extends MathCommand {
 
   abstract updateDomView(size: number): void
 
-  updateTemplates(size: number) {
-    if (size == 0) {
-      this.textTemplate = ["extendable()"]
-    } else {
-      this.textTemplate = [
-        "extendable(",
-        ...Array.from({ length: size - 1 }, () => ")("),
-        ")",
-      ]
-    }
-
-    if (size == 0) {
-      this.mathspeakTemplate = ["Extendable EndExtendable"]
-    } else {
-      this.mathspeakTemplate = [
-        "Extendable",
-        ...Array.from({ length: size - 1 }, () => "Item"),
-        "EndExtendable",
-      ]
-    }
-  }
-
-  updateDomView(size: number) {
-    this.domView = new DOMView(size, (blocks) => {
-      return h(
-        "span",
-        { class: "mq-non-leaf", style: "padding:0 0.2em" },
-        blocks
-          .map((block) =>
-            h.block(
-              "span",
-              {
-                class: "mq-non-leaf",
-                style: "border:1px solid red;padding: 0.2em",
-              },
-              block,
-            ),
-          )
-          .concat(this.more, this.less),
-      )
-    })
-  }
-
   override mathspeak(opts: any) {
     if (opts && opts.createdLeftOf) {
       var cursor = opts.createdLeftOf
