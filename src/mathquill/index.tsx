@@ -92,7 +92,7 @@ LatexCmds.dual = class extends MathCommand {
       var cursor = opts.createdLeftOf
       return cursor.parent.mathspeak()
     }
-    return MathCommand.prototype.mathspeak.call(this)
+    return super.mathspeak()
   }
 
   getDualDepth() {
@@ -153,7 +153,7 @@ LatexCmds.frozenmouse = class extends MathCommand {
       var cursor = opts.createdLeftOf
       return cursor.parent.mathspeak()
     }
-    return MathCommand.prototype.mathspeak.call(this)
+    return super.mathspeak()
   }
 }
 
@@ -177,7 +177,7 @@ LatexCmds.frozentime = class extends MathCommand {
       var cursor = opts.createdLeftOf
       return cursor.parent.mathspeak()
     }
-    return MathCommand.prototype.mathspeak.call(this)
+    return super.mathspeak()
   }
 }
 
@@ -200,7 +200,7 @@ LatexCmds.limit = LatexCmds.lim = class Limit extends MathCommand {
       var cursor = opts.createdLeftOf
       return cursor.parent.mathspeak()
     }
-    return MathCommand.prototype.mathspeak.call(this)
+    return super.mathspeak()
   }
 
   override latexRecursive(ctx: LatexRecursiveContext) {
@@ -211,18 +211,15 @@ LatexCmds.limit = LatexCmds.lim = class Limit extends MathCommand {
     this.checkCursorContextClose(ctx)
   }
 
-  parser() {
-    return (
-      latexMathParser.subBlock
-        .map(function (block: MathBlock) {
-          const limit = new Limit("\\lim", undefined!, undefined!)
-          limit.blocks = [block]
-          block.adopt(limit, 0, 0)
-          return limit
-        })
-        // @ts-expect-error `parser` property isn't in the typedocs
-        .or(super.parser.call(this))
-    )
+  override parser() {
+    return latexMathParser.subBlock
+      .map(function (block) {
+        const limit = new Limit("\\lim", undefined!, undefined!)
+        limit.blocks = [block]
+        block.adopt(limit, 0, 0)
+        return limit
+      })
+      .or(super.parser())
   }
 }
 
@@ -263,7 +260,7 @@ LatexCmds.align = class extends MathCommand {
       var cursor = opts.createdLeftOf
       return cursor.parent.mathspeak()
     }
-    return MathCommand.prototype.mathspeak.call(this)
+    return super.mathspeak()
   }
 
   override latexRecursive(ctx: LatexRecursiveContext) {
@@ -281,69 +278,72 @@ LatexCmds.align = class extends MathCommand {
   }
 }
 
-LatexCmds.piecewise = class extends MathCommand {
-  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
-    super(ctrlSeq, domView, textTemplate)
-    this.ctrlSeq = "\\align"
-    this.domView = new DOMView(4, function (blocks) {
-      return h("span", { class: "mq-align mq-non-leaf" }, [
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
-          blocks[0],
-        ),
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
-          blocks[1],
-        ),
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
-          blocks[2],
-        ),
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
-          blocks[3],
-        ),
-      ])
-    })
-    this.textTemplate = ["align(", "", ")(", "", ")"]
-    this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
-  }
+// LatexCmds.piecewise = class extends MathCommand {
+//   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+//     super(ctrlSeq, domView, textTemplate)
+//     this.ctrlSeq = "\\align"
+//     this.domView = new DOMView(4, function (blocks) {
+//       return h("span", { class: "mq-align mq-non-leaf" }, [
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
+//           blocks[0],
+//         ),
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
+//           blocks[1],
+//         ),
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
+//           blocks[2],
+//         ),
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
+//           blocks[3],
+//         ),
+//       ])
+//     })
+//     this.textTemplate = ["align(", "", ")(", "", ")"]
+//     this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
+//   }
 
-  override mathspeak(opts: any) {
-    if (opts && opts.createdLeftOf) {
-      var cursor = opts.createdLeftOf
-      return cursor.parent.mathspeak()
-    }
-    return MathCommand.prototype.mathspeak.call(this)
-  }
+//   override mathspeak(opts: any) {
+//     if (opts && opts.createdLeftOf) {
+//       var cursor = opts.createdLeftOf
+//       return cursor.parent.mathspeak()
+//     }
+//     return super.mathspeak()
+//   }
 
-  override latexRecursive(ctx: LatexRecursiveContext) {
-    this.checkCursorContextOpen(ctx)
-    ctx.latex += "\\begin{align*}"
-    this.blocks[0]!.latexRecursive(ctx)
-    ctx.latex += "&"
-    this.blocks[1]!.latexRecursive(ctx)
-    ctx.latex += "\\"
-    this.blocks[2]!.latexRecursive(ctx)
-    ctx.latex += "&"
-    this.blocks[3]!.latexRecursive(ctx)
-    ctx.latex += "\\end{align*}"
-    this.checkCursorContextClose(ctx)
-  }
-}
+//   override latexRecursive(ctx: LatexRecursiveContext) {
+//     this.checkCursorContextOpen(ctx)
+//     ctx.latex += "\\begin{align*}"
+//     this.blocks[0]!.latexRecursive(ctx)
+//     ctx.latex += "&"
+//     this.blocks[1]!.latexRecursive(ctx)
+//     ctx.latex += "\\"
+//     this.blocks[2]!.latexRecursive(ctx)
+//     ctx.latex += "&"
+//     this.blocks[3]!.latexRecursive(ctx)
+//     ctx.latex += "\\end{align*}"
+//     this.checkCursorContextClose(ctx)
+//   }
+// }
 
 export abstract class MathExtendable extends MathCommand {
   constructor(
     ctrlSeq: string,
     domView: DOMView,
     textTemplate: string[],
-    size = 3,
+    size: number | undefined,
   ) {
     super(ctrlSeq, domView, textTemplate)
+    if (size == null) {
+      size = this.defaultSize()
+    }
     this.updateDomView(size)
     this.updateTemplates(size)
   }
@@ -380,6 +380,8 @@ export abstract class MathExtendable extends MathCommand {
     }
   }
 
+  abstract defaultSize(): number
+
   abstract updateTemplates(size: number): void
 
   abstract updateDomView(size: number): void
@@ -389,8 +391,20 @@ export abstract class MathExtendable extends MathCommand {
       var cursor = opts.createdLeftOf
       return cursor.parent.mathspeak()
     }
-    return MathCommand.prototype.mathspeak.call(this)
+    return super.mathspeak()
   }
+}
+
+LatexCmds.piecewise = class extends MathExtendable {
+  override defaultSize(): number {
+    return 4
+  }
+
+  override updateDomView(size: number): void {
+    this.domView = new DOMView(size, (blocks)=>h('span',{class:"mq-non-leaf"}))
+  }
+
+  override updateTemplates(size: number): void {}
 }
 
 export const config: Readonly<V3.Config> = Object.freeze({

@@ -248,7 +248,9 @@ export declare var LatexCmds: Record<
   | ((...args: any[]) => { domView: DOMView })
 >
 
-export declare class NodeBase {}
+export declare class NodeBase {
+  parser(): Parser
+}
 
 export declare class MQNode extends NodeBase {
   domView: DOMView
@@ -376,5 +378,47 @@ export declare var h: {
   text(text: string): JSX.Element
 }
 
-// FIXME: give this a better type
-export declare var latexMathParser: any
+export declare var latexMathParser: {
+  subBlock: Parser<MathBlock>
+}
+
+export type UnknownParserResult = any
+
+export type ParserBody<T> = (
+  stream: string,
+  onSuccess: (stream: string, result: T) => UnknownParserResult,
+  onFailure: (stream: string, msg: string) => UnknownParserResult,
+) => T
+
+export class Parser<T> {
+  _: ParserBody<T>
+
+  constructor(body: ParserBody<T>)
+
+  parse(stream: unknown): T
+  or<Q>(alternative: Parser<Q>): Parser<T | Q>
+  then<Q>(next: Parser<Q> | ((result: T) => Parser<Q>)): Parser<Q>
+  many(): Parser<T[]>
+  times(min: number, max?: number): Parser<T[]>
+  result<Q>(res: Q): Parser<Q>
+  atMost(n: number): Parser<T[]>
+  atLeast(n: number): Parser<T[]>
+  map<Q>(fn: (result: T) => Q): Parser<Q>
+  skip<Q>(two: Parser<Q>): Parser<T>
+
+  static string(str: string): Parser<string>
+  static regex(re: RegExp): Parser<string>
+  static succeed<Q>(result: Q): Parser<Q>
+  static fail(msg: string): Parser<never>
+
+  static letter = Parser.regex(/^[a-z]/i)
+  static letters = Parser.regex(/^[a-z]*/i)
+  static digit = Parser.regex(/^[0-9]/)
+  static digits = Parser.regex(/^[0-9]*/)
+  static whitespace = Parser.regex(/^\s+/)
+  static optWhitespace = Parser.regex(/^\s*/)
+
+  static any: Parser<string>
+  static all: Parser<string>
+  static eof: Parser<string>
+}

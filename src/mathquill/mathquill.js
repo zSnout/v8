@@ -10267,4 +10267,5 @@ export {
   getInterface,
   h,
   latexMathParser,
+  Parser,
 }
