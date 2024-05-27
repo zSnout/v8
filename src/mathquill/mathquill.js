@@ -1,8 +1,3 @@
-// @ts-nocheck
-
-// regions:
-// CUSTOM LETTERS
-
 /**
  * MathQuill v0.10.1, by Han, Jeanine, and Mary
  * http://mathquill.com | maintainers@mathquill.com
@@ -56,7 +51,7 @@ var __assign =
       }
     return __assign.apply(this, arguments)
   }
-// ;(function () {
+
 var L = -1
 var R = 1
 var min = Math.min
@@ -1584,7 +1579,6 @@ var Fragment = /** @class */ (function () {
  * (Commands are all subclasses of Node.)
  */
 var LatexCmds = {}
-Object.assign(globalThis, { LatexCmds })
 var CharCmds = {}
 function isMQNodeClass(cmd) {
   return cmd && cmd.prototype instanceof MQNode
@@ -2129,6 +2123,7 @@ var processedOptions = {
   autoParenthesizedFunctions: true,
   autoOperatorNames: true,
   infixOperatorNames: true,
+  prefixOperatorNames: true,
   leftRightIntoCmdGoes: true,
   maxDepth: true,
   interpretTildeAsSim: true,
@@ -3203,7 +3198,7 @@ var Controller_focusBlur = /** @class */ (function (_super) {
       _this_1.disableGroupingForSeconds(0)
       _this_1.blurred = true
       _this_1.blurTimeout = setTimeout(function () {
-        // wait for blur on window; if
+        // wait for blur on globalThis; if
         _this_1.root.postOrder(function (node) {
           node.intentionalBlur()
         }) // none, intentional blur: #264
@@ -3228,8 +3223,8 @@ var Controller_focusBlur = /** @class */ (function (_super) {
       })
     }
     _this_1.handleWindowBlur = function () {
-      // blur event also fired on window, just switching
-      clearTimeout(_this_1.blurTimeout) // tabs/windows, not intentional blur
+      // blur event also fired on globalThis, just switching
+      clearTimeout(_this_1.blurTimeout) // tabs/globalThiss, not intentional blur
       if (_this_1.cursor.selection)
         _this_1.cursor.selection.domFrag().addClass("mq-blur")
       _this_1.blurWithoutResettingCursor()
@@ -3919,13 +3914,9 @@ var latexMathParser = (function () {
         .skip(optWhitespace),
     )
     .skip(string("]"))
-  var subBlock = string("_").then(function () {
-    return mathGroup
-  })
   var latexMath = mathSequence
   latexMath.block = mathBlock
   latexMath.optBlock = optMathBlock
-  latexMath.subBlock = subBlock
   return latexMath
 })()
 baseOptionProcessors.maxDepth = function (depth) {
@@ -5164,6 +5155,12 @@ var BinaryOperator = /** @class */ (function (_super) {
     }
     return _this_1
   }
+  /**
+   * PlusMinus overrides this to be false when it looks like unary positive/negative.
+   */
+  BinaryOperator.prototype.isBinaryOperator = function () {
+    return true
+  }
   return BinaryOperator
 })(MQSymbol)
 function bindBinaryOperator(ctrlSeq, htmlEntity, text, mathspeak) {
@@ -5308,15 +5305,32 @@ var MathBlock = /** @class */ (function (_super) {
     return node.seek(clientX, cursor)
   }
   MathBlock.prototype.chToCmd = function (ch, options) {
+    var _c
     var cons
-    // #region CUSTOM LETTERS
+    // extract customCharacters early so we can easily default it to 'f'
+    var customCharacters =
+      (_c =
+        options === null || options === void 0
+          ? void 0
+          : options.customCharacters) !== null && _c !== void 0
+        ? _c
+        : "f"
     if (
-      // exclude f because it gets a dedicated command with more spacing
-      ch.match(/^[a-eg-zA-Z]$/) &&
-      !options.specializedLetters?.includes(ch)
+      customCharacters.indexOf(ch) >= 0 &&
+      (cons = CharCmds[ch] || LatexCmds[ch])
     ) {
+      if (cons.constructor) {
+        return new cons(ch)
+      } else {
+        return cons(ch)
+      }
+    } else if (
+      // the patch to exclude 'f' from this regex is no longer needed since we
+      // usecustomCharacters
+      ch.match(/^[a-zA-Z]$/)
+    )
       return new Letter(ch)
-    } else if (/^\d$/.test(ch)) return new Digit(ch)
+    else if (/^\d$/.test(ch)) return new Digit(ch)
     else if (options && options.typingSlashWritesDivisionSymbol && ch === "/")
       return LatexCmds["\u00f7"](ch)
     else if (options && options.typingAsteriskWritesTimesSymbol && ch === "*")
@@ -6272,11 +6286,10 @@ LatexCmds["\u22b3"] = LatexCmds.triangleright = bindVanillaSymbol(
   "triangle right",
 )
 //circledot is not a not real LaTex command see https://github.com/mathquill/mathquill/pull/552 for more details
-LatexCmds["#"] =
-  LatexCmds["\u2299"] =
+LatexCmds["\u2299"] =
   LatexCmds.odot =
   LatexCmds.circledot =
-    bindBinaryOperator("\\odot ", "&#8857;", "circle dot")
+    bindVanillaSymbol("\\odot ", "&#8857;", "circle dot")
 LatexCmds["\u25ef"] = LatexCmds.bigcirc = bindVanillaSymbol(
   "\\bigcirc ",
   "&#9711;",
@@ -7290,7 +7303,7 @@ var Letter = /** @class */ (function (_super) {
   Letter.prototype.italicize = function (bool) {
     this.isItalic = bool
     this.isPartOfOperator = !bool
-    if (bool) delete this.endsWord
+    if (bool) delete this.endsCategory
     this.domFrag().toggleClass("mq-operator-name", !bool)
     return this
   }
@@ -7357,7 +7370,11 @@ var Letter = /** @class */ (function (_super) {
           var isBuiltIn = BuiltInOpNames.hasOwnProperty(word)
           first.ctrlSeq = (isBuiltIn ? "\\" : "\\operatorname{") + first.ctrlSeq
           last.ctrlSeq += isBuiltIn ? " " : "}"
-          last.endsWord = word
+          if (opts.infixOperatorNames[word]) {
+            last.endsCategory = "infix"
+          } else if (opts.prefixOperatorNames[word]) {
+            last.endsCategory = "prefix"
+          }
           if (TwoWordOpNames.hasOwnProperty(word)) {
             var lastL = last[L]
             var lastLL = lastL && lastL[L]
@@ -7403,7 +7420,7 @@ var Letter = /** @class */ (function (_super) {
     if (node.ctrlSeq === ".") return true
     // do not add padding between letter and binary operator. The
     // binary operator already has padding
-    if (node instanceof BinaryOperator) return true
+    if (node instanceof BinaryOperator && node.isBinaryOperator()) return true
     if (node instanceof SummationNotation) return true
     return false
   }
@@ -7423,7 +7440,7 @@ function defaultAutoOpNames() {
     _maxLength: 9,
   }
   var mostOps = (
-    "arg deg det dim exp gcd hom inf ker lg lim ln log max min sup" +
+    "arg deg det dim exp gcd hom inf ker lg ln log max min sup" +
     " limsup liminf injlim projlim Pr"
   ).split(" ")
   for (var i = 0; i < mostOps.length; i += 1) {
@@ -7466,7 +7483,7 @@ baseOptionProcessors.autoOperatorNames = function (cmds) {
   var maxLength = 0
   for (var i = 0; i < list.length; i += 1) {
     var cmd = list[i]
-    if (cmd.length < 1) {
+    if (cmd.length < 2) {
       throw '"' + cmd + '" not minimum length of 2'
     }
     if (cmd.indexOf("|") < 0) {
@@ -7490,7 +7507,10 @@ baseOptionProcessors.autoOperatorNames = function (cmds) {
   return dict
 }
 Options.prototype.infixOperatorNames = {}
-baseOptionProcessors.infixOperatorNames = function (cmds) {
+baseOptionProcessors.infixOperatorNames = splitWordsIntoDict
+Options.prototype.prefixOperatorNames = {}
+baseOptionProcessors.prefixOperatorNames = splitWordsIntoDict
+function splitWordsIntoDict(cmds) {
   if (typeof cmds !== "string") {
     throw '"' + cmds + '" not a space-delimited list'
   }
@@ -7919,6 +7939,12 @@ LatexCmds["\u00be"] = function () {
 LatexCmds["\u221a"] = function () {
   return new LatexFragment("\\sqrt{}")
 }
+function nodeEndsBinaryOperator(node) {
+  return (
+    node instanceof BinaryOperator ||
+    (node instanceof Letter && node.endsCategory == "infix")
+  )
+}
 // Binary operator determination is used in several contexts for PlusMinus nodes and their descendants.
 // For instance, we set the item's class name based on this factor, and also assign different mathspeak values (plus vs positive, negative vs minus).
 function plusMinusIsBinaryOperator(node) {
@@ -7929,7 +7955,8 @@ function plusMinusIsBinaryOperator(node) {
     // or an open bracket (open parenthesis, open square bracket)
     // consider the operator to be unary
     if (
-      nodeL instanceof BinaryOperator ||
+      nodeEndsBinaryOperator(nodeL) ||
+      (nodeL instanceof Letter && nodeL.endsCategory == "prefix") ||
       /^(\\ )|[,;:\(\[]$/.test(nodeL.ctrlSeq)
     ) {
       return false
@@ -7952,6 +7979,9 @@ var PlusMinus = /** @class */ (function (_super) {
   __extends(class_7, _super)
   function class_7(ch, html, mathspeak) {
     return _super.call(this, ch, html, undefined, mathspeak, true) || this
+  }
+  class_7.prototype.isBinaryOperator = function () {
+    return plusMinusIsBinaryOperator(this)
   }
   class_7.prototype.contactWeld = function (cursor, dir) {
     this.sharedSiblingMethod(cursor.options, dir)
@@ -8331,9 +8361,7 @@ var SVG_SYMBOLS = {
     width: ".7em",
     html: function () {
       return h("svg", { preserveAspectRatio: "none", viewBox: "0 0 10 54" }, [
-        h("path", {
-          d: "M3.2 0 L3.2 54 L4 54 L4 0 M6.8 0 L6.8 54 L6 54 L6 0",
-        }),
+        h("path", { d: "M3.2 0 L3.2 54 L4 54 L4 0 M6.8 0 L6.8 54 L6 54 L6 0" }),
       ])
     },
   },
@@ -9207,16 +9235,13 @@ var LiveFraction =
             while (
               leftward &&
               !(
-                leftward instanceof BinaryOperator ||
-                (leftward instanceof Letter &&
-                  leftward.endsWord &&
-                  cursor.options.infixOperatorNames[leftward.endsWord]) ||
+                nodeEndsBinaryOperator(leftward) ||
                 (leftward instanceof DigitGroupingChar &&
                   leftward._groupingClass === "mq-ellipsis-end") ||
                 leftward instanceof (LatexCmds.text || noop) ||
                 leftward instanceof SummationNotation ||
+                leftward instanceof Limit ||
                 leftward.ctrlSeq === "\\ " ||
-                leftward.ctrlSeq === "\\lim" ||
                 /^[,;:]$/.test(leftward.ctrlSeq)
               ) //lookbehind for operator
             )
@@ -10119,6 +10144,44 @@ var EmbedNode = /** @class */ (function (_super) {
   return EmbedNode
 })(MQSymbol)
 LatexCmds.embed = EmbedNode
+var Limit = /** @class */ (function (_super) {
+  __extends(Limit, _super)
+  function Limit(ctrlSeq, domView, textTemplate) {
+    var _this_1 = _super.call(this, ctrlSeq, domView, textTemplate) || this
+    _this_1.ctrlSeq = "\\lim"
+    _this_1.domView = new DOMView(1, function (blocks) {
+      return h("span", { class: "mq-limit mq-non-leaf" }, [
+        h("span", { class: "mq-limit-label" }, [h.text("lim")]),
+        h.block("span", { class: "mq-limit-sub mq-non-leaf" }, blocks[0]),
+      ])
+    })
+    _this_1.textTemplate = ["lim(", ")"]
+    _this_1.mathspeakTemplate = ["Limit", "EndLimit"]
+    return _this_1
+  }
+  Limit.prototype.latexRecursive = function (ctx) {
+    this.checkCursorContextOpen(ctx)
+    ctx.latex += "\\lim_{"
+    this.getEnd(L).latexRecursive(ctx)
+    ctx.latex += "}"
+    this.checkCursorContextClose(ctx)
+  }
+  Limit.prototype.parser = function () {
+    return Parser.string("_")
+      .then(function () {
+        return latexMathParser
+      })
+      .map(function (block) {
+        var limit = new Limit("\\lim", undefined, undefined)
+        limit.blocks = [block]
+        block.adopt(limit, 0, 0)
+        return limit
+      })
+      .or(_super.prototype.parser.call(this))
+  }
+  return Limit
+})(MathCommand)
+LatexCmds.limit = LatexCmds.lim = Limit
 /****************************************
  * Input box to type backslash commands
  ***************************************/
@@ -10268,4 +10331,5 @@ export {
   h,
   latexMathParser,
   Parser,
+  bindBinaryOperator,
 }

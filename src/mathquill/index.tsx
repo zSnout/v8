@@ -20,11 +20,26 @@ import {
   R,
   U_ZERO_WIDTH_SPACE,
   V3,
+  bindBinaryOperator,
   getInterface,
   h,
-  latexMathParser,
 } from "./mathquill.js"
 export type * from "./mathquill"
+
+/** TODO: notable changes
+ * - #, odot, and circledot are a single binary operator, not vanilla symbol
+ * - remove automatic load of v1
+ * - export a ton of stuff
+ *
+ * implemented in the mq clone
+ * - limit exists
+ * - LiveFraction.leftward stops at \\lim
+ * - custom letters
+ * - lbrack, rbrack, slash, and vert properly display
+ *
+ * we don't need these:
+ * - auto operators >= 1
+ */
 
 export abstract class IconLetter extends Letter {
   constructor(letter: string) {
@@ -52,6 +67,12 @@ export abstract class IconLetter extends Letter {
     return Letter.prototype.italicize.call(this, active)
   }
 }
+
+LatexCmds["#"] =
+  LatexCmds["⊙"] =
+  LatexCmds.odot =
+  LatexCmds.circledot =
+    bindBinaryOperator("\\odot ", "&#8857;", "circle dot")
 
 LatexCmds.t = class extends IconLetter {
   override icon(): IconDefinition {
@@ -181,48 +202,6 @@ LatexCmds.frozentime = class extends MathCommand {
   }
 }
 
-LatexCmds.limit = LatexCmds.lim = class Limit extends MathCommand {
-  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
-    super(ctrlSeq, domView, textTemplate)
-    this.ctrlSeq = "\\lim"
-    this.domView = new DOMView(1, function (blocks) {
-      return h("span", { class: "mq-limit mq-non-leaf" }, [
-        h("span", { class: "mq-limit-label" }, [h.text("lim")]),
-        h.block("span", { class: "mq-limit-sub mq-non-leaf" }, blocks[0]),
-      ])
-    })
-    this.textTemplate = ["lim(", ")"]
-    this.mathspeakTemplate = ["Limit", "EndLimit"]
-  }
-
-  override mathspeak(opts: any) {
-    if (opts && opts.createdLeftOf) {
-      var cursor = opts.createdLeftOf
-      return cursor.parent.mathspeak()
-    }
-    return super.mathspeak()
-  }
-
-  override latexRecursive(ctx: LatexRecursiveContext) {
-    this.checkCursorContextOpen(ctx)
-    ctx.latex += "\\lim_{"
-    this.getEnd(L).latexRecursive(ctx)
-    ctx.latex += "}"
-    this.checkCursorContextClose(ctx)
-  }
-
-  override parser() {
-    return latexMathParser.subBlock
-      .map(function (block) {
-        const limit = new Limit("\\lim", undefined!, undefined!)
-        limit.blocks = [block]
-        block.adopt(limit, 0, 0)
-        return limit
-      })
-      .or(super.parser())
-  }
-}
-
 LatexCmds.align = class extends MathCommand {
   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
     super(ctrlSeq, domView, textTemplate)
@@ -277,61 +256,6 @@ LatexCmds.align = class extends MathCommand {
     this.checkCursorContextClose(ctx)
   }
 }
-
-// LatexCmds.piecewise = class extends MathCommand {
-//   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
-//     super(ctrlSeq, domView, textTemplate)
-//     this.ctrlSeq = "\\align"
-//     this.domView = new DOMView(4, function (blocks) {
-//       return h("span", { class: "mq-align mq-non-leaf" }, [
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
-//           blocks[0],
-//         ),
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
-//           blocks[1],
-//         ),
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
-//           blocks[2],
-//         ),
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
-//           blocks[3],
-//         ),
-//       ])
-//     })
-//     this.textTemplate = ["align(", "", ")(", "", ")"]
-//     this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
-//   }
-
-//   override mathspeak(opts: any) {
-//     if (opts && opts.createdLeftOf) {
-//       var cursor = opts.createdLeftOf
-//       return cursor.parent.mathspeak()
-//     }
-//     return super.mathspeak()
-//   }
-
-//   override latexRecursive(ctx: LatexRecursiveContext) {
-//     this.checkCursorContextOpen(ctx)
-//     ctx.latex += "\\begin{align*}"
-//     this.blocks[0]!.latexRecursive(ctx)
-//     ctx.latex += "&"
-//     this.blocks[1]!.latexRecursive(ctx)
-//     ctx.latex += "\\"
-//     this.blocks[2]!.latexRecursive(ctx)
-//     ctx.latex += "&"
-//     this.blocks[3]!.latexRecursive(ctx)
-//     ctx.latex += "\\end{align*}"
-//     this.checkCursorContextClose(ctx)
-//   }
-// }
 
 export abstract class MathExtendable extends MathCommand {
   constructor(
@@ -401,7 +325,9 @@ LatexCmds.piecewise = class extends MathExtendable {
   }
 
   override updateDomView(size: number): void {
-    this.domView = new DOMView(size, (blocks)=>h('span',{class:"mq-non-leaf"}))
+    this.domView = new DOMView(size, (blocks) =>
+      h("span", { class: "mq-non-leaf" }),
+    )
   }
 
   override updateTemplates(size: number): void {}
@@ -412,7 +338,6 @@ export const config: Readonly<V3.Config> = Object.freeze({
     "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for and or not mod iter real imag log ln exp length sign angle unsign fx fy",
   autoCommands:
     "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma varsigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot integral cross ans dual abs infinity infty limit choose binom digamma",
-  infixOperatorNames: "mod",
   autoSubscriptNumerals: true,
   disableAutoSubstitutionInSubscripts: true,
   tripleDotsAreEllipsis: true,

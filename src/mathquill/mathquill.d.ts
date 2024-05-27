@@ -18,11 +18,9 @@ export declare namespace V3 {
   type EmbedOptions = V1.EmbedOptions
   type EmbedOptionsData = V1.EmbedOptionsData
 
-  type SpecializableLetter = "m" | "t"
-
   type Config = Omit<V1.Config, "substituteKeyboardEvents" | "handlers"> & {
     handlers?: HandlerOptions
-    specializedLetters?: SpecializedLetters
+    customCharacters?: string | readonly string[]
   }
 
   interface BaseMathQuill {
@@ -140,6 +138,7 @@ export declare namespace V1 {
     overrideKeystroke?: (key: string, event: KeyboardEvent) => void
     autoOperatorNames?: string
     infixOperatorNames?: string
+    prefixOperatorNames?: string
     autoCommands?: string
     logAriaAlerts?: boolean
     autoParenthesizedFunctions?: string
@@ -382,15 +381,15 @@ export declare var latexMathParser: {
   subBlock: Parser<MathBlock>
 }
 
-export type UnknownParserResult = any
+export declare type UnknownParserResult = any
 
-export type ParserBody<T> = (
+export declare type ParserBody<T> = (
   stream: string,
   onSuccess: (stream: string, result: T) => UnknownParserResult,
   onFailure: (stream: string, msg: string) => UnknownParserResult,
 ) => T
 
-export class Parser<T> {
+export declare class Parser<T> {
   _: ParserBody<T>
 
   constructor(body: ParserBody<T>)
@@ -421,4 +420,13 @@ export class Parser<T> {
   static any: Parser<string>
   static all: Parser<string>
   static eof: Parser<string>
+}
+
+export declare var bindBinaryOperator: {
+  (
+    ctrlSeq?: string,
+    htmlEntity?: string,
+    text?: string,
+    mathspeak?: string,
+  ): () => MQNode
 }
