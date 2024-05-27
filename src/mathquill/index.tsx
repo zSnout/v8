@@ -12,8 +12,10 @@ import {
   DOMView,
   L,
   LatexCmds,
+  LatexRecursiveContext,
   Letter,
   MQNode,
+  MathBlock,
   MathCommand,
   R,
   U_ZERO_WIDTH_SPACE,
@@ -201,7 +203,7 @@ LatexCmds.limit = LatexCmds.lim = class Limit extends MathCommand {
     return MathCommand.prototype.mathspeak.call(this)
   }
 
-  latexRecursive(this: any, ctx: any) {
+  override latexRecursive(ctx: LatexRecursiveContext) {
     this.checkCursorContextOpen(ctx)
     ctx.latex += "\\lim_{"
     this.getEnd(L).latexRecursive(ctx)
@@ -212,8 +214,8 @@ LatexCmds.limit = LatexCmds.lim = class Limit extends MathCommand {
   parser() {
     return (
       latexMathParser.subBlock
-        .map(function (block: any) {
-          const limit: any = new Limit("\\lim", undefined!, undefined!)
+        .map(function (block: MathBlock) {
+          const limit = new Limit("\\lim", undefined!, undefined!)
           limit.blocks = [block]
           block.adopt(limit, 0, 0)
           return limit
@@ -264,16 +266,16 @@ LatexCmds.align = class extends MathCommand {
     return MathCommand.prototype.mathspeak.call(this)
   }
 
-  latexRecursive(this: any, ctx: any) {
+  override latexRecursive(ctx: LatexRecursiveContext) {
     this.checkCursorContextOpen(ctx)
     ctx.latex += "\\begin{align*}"
-    this.blocks[0].latexRecursive(ctx)
+    this.blocks[0]!.latexRecursive(ctx)
     ctx.latex += "&"
-    this.blocks[1].latexRecursive(ctx)
+    this.blocks[1]!.latexRecursive(ctx)
     ctx.latex += "\\"
-    this.blocks[2].latexRecursive(ctx)
+    this.blocks[2]!.latexRecursive(ctx)
     ctx.latex += "&"
-    this.blocks[3].latexRecursive(ctx)
+    this.blocks[3]!.latexRecursive(ctx)
     ctx.latex += "\\end{align*}"
     this.checkCursorContextClose(ctx)
   }
@@ -319,18 +321,118 @@ LatexCmds.piecewise = class extends MathCommand {
     return MathCommand.prototype.mathspeak.call(this)
   }
 
-  latexRecursive(this: any, ctx: any) {
+  override latexRecursive(ctx: LatexRecursiveContext) {
     this.checkCursorContextOpen(ctx)
     ctx.latex += "\\begin{align*}"
-    this.blocks[0].latexRecursive(ctx)
+    this.blocks[0]!.latexRecursive(ctx)
     ctx.latex += "&"
-    this.blocks[1].latexRecursive(ctx)
+    this.blocks[1]!.latexRecursive(ctx)
     ctx.latex += "\\"
-    this.blocks[2].latexRecursive(ctx)
+    this.blocks[2]!.latexRecursive(ctx)
     ctx.latex += "&"
-    this.blocks[3].latexRecursive(ctx)
+    this.blocks[3]!.latexRecursive(ctx)
     ctx.latex += "\\end{align*}"
     this.checkCursorContextClose(ctx)
+  }
+}
+
+export abstract class MathExtendable extends MathCommand {
+  constructor(
+    ctrlSeq: string,
+    domView: DOMView,
+    textTemplate: string[],
+    size = 3,
+  ) {
+    super(ctrlSeq, domView, textTemplate)
+    this.updateDomView(size)
+    this.updateTemplates(size)
+  }
+
+  setSize(size: number) {
+    const prev = this._el!
+    this.updateDomView(size)
+    this.updateTemplates(size)
+    this.createBlocks()
+    this._el = this.domView.render(this.blocks!)
+    prev.replaceWith(this._el)
+  }
+
+  createBlocks() {
+    const prev = this.blocks
+    const numBlocks = this.numBlocks()
+    const blocks = (this.blocks = Array(numBlocks))
+    for (let i = 0; i < numBlocks; i += 1) {
+      let next = prev?.[i]
+      if (!next) {
+        next = new MathBlock()
+        next.domFrag().addClass("mq-empty")
+      }
+      blocks[i] = next
+      next.adopt(this, this.getEnd(R), 0)
+    }
+    if (this.blocks[0]) {
+      // @ts-expect-error these are annoying to type
+      this.blocks[0][L] = 0
+    }
+    if (this.blocks[this.blocks.length - 1]) {
+      // @ts-expect-error these are annoying to type
+      this.blocks[this.blocks.length - 1][R] = 0
+    }
+  }
+
+  abstract updateTemplates(size: number): void
+
+  abstract updateDomView(size: number): void
+
+  updateTemplates(size: number) {
+    if (size == 0) {
+      this.textTemplate = ["extendable()"]
+    } else {
+      this.textTemplate = [
+        "extendable(",
+        ...Array.from({ length: size - 1 }, () => ")("),
+        ")",
+      ]
+    }
+
+    if (size == 0) {
+      this.mathspeakTemplate = ["Extendable EndExtendable"]
+    } else {
+      this.mathspeakTemplate = [
+        "Extendable",
+        ...Array.from({ length: size - 1 }, () => "Item"),
+        "EndExtendable",
+      ]
+    }
+  }
+
+  updateDomView(size: number) {
+    this.domView = new DOMView(size, (blocks) => {
+      return h(
+        "span",
+        { class: "mq-non-leaf", style: "padding:0 0.2em" },
+        blocks
+          .map((block) =>
+            h.block(
+              "span",
+              {
+                class: "mq-non-leaf",
+                style: "border:1px solid red;padding: 0.2em",
+              },
+              block,
+            ),
+          )
+          .concat(this.more, this.less),
+      )
+    })
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return MathCommand.prototype.mathspeak.call(this)
   }
 }
 

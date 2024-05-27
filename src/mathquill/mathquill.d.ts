@@ -257,14 +257,31 @@ export declare class MQNode extends NodeBase {
   mathspeakTemplate: string[]
   mathspeak(opts?: any)
   getEnd(end: number): any
+  adopt(parent: MQNode, leftward: MQNode | 0, rightward: MQNode | 0): void
 }
 
-export declare class MathElement extends MQNode {}
+export interface LatexRecursiveContext {
+  latex: string
+}
+
+export declare class MathElement extends MQNode {
+  latexRecursive(ctx: LatexRecursiveContext): void
+  checkCursorContextOpen(ctx: LatexRecursiveContext): void
+  checkCursorContextClose(ctx: LatexRecursiveContext): void
+}
 
 export declare class MathCommand extends MathElement {
   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[])
+  setCtrlSeqHtmlAndText(
+    ctrlSeq: string,
+    domView: DOMView,
+    textTemplate: string[],
+  ): void
   upInto: unknown
   downInto: unknown
+  blocks: MathBlock[]
+  _el: HTMLElement | SVGElement
+  numBlocks(): number
 }
 
 export declare class MQSymbol extends MathCommand {
@@ -275,35 +292,37 @@ export declare class MQSymbol extends MathCommand {
     mathspeak?: string,
   )
 
-  setCtrlSeqHtmlTextAndMathspeak(
-    latex: string,
-    html: JSX.Element,
-    text: string,
-    mathspeak?: string,
-  ): void
-
   domView: DOMView
 }
 
-export declare class Block {
+export declare class MathBlock extends MathElement {
   __blockTag: "block"
+  domFrag(): DOMFragment
 }
 
 export declare var getInterface: MathQuill["getInterface"]
 
 export declare class DOMView {
   constructor(children: 0, contents: (blocks: []) => JSX.Element)
-  constructor(children: 1, contents: (blocks: [Block]) => JSX.Element)
-  constructor(children: 2, contents: (blocks: [Block, Block]) => JSX.Element)
+  constructor(children: 1, contents: (blocks: [MathBlock]) => JSX.Element)
+  constructor(
+    children: 2,
+    contents: (blocks: [MathBlock, MathBlock]) => JSX.Element,
+  )
   constructor(
     children: 3,
-    contents: (blocks: [Block, Block, Block]) => JSX.Element,
+    contents: (blocks: [MathBlock, MathBlock, MathBlock]) => JSX.Element,
   )
   constructor(
     children: 4,
-    contents: (blocks: [Block, Block, Block, Block]) => JSX.Element,
+    contents: (
+      blocks: [MathBlock, MathBlock, MathBlock, MathBlock],
+    ) => JSX.Element,
   )
-  constructor(children: number, contents: (blocks: Block[]) => JSX.Element)
+  constructor(children: number, contents: (blocks: MathBlock[]) => JSX.Element)
+
+  childCount: number
+  render: (blocks: MathBlock[]) => HTMLElement | SVGElement
 }
 
 export declare class Variable extends MQSymbol {}
@@ -318,6 +337,7 @@ export declare class Letter extends Variable {
 
 export declare class DOMFragment {
   toggleClass(name: string, active: boolean): void
+  addClass(name: string): void
 }
 
 export declare var SVG_SYMBOLS: {
@@ -341,8 +361,18 @@ export declare var L: number
 export declare var R: number
 
 export declare var h: {
+  <K extends keyof HTMLElementTagNameMap>(
+    type: K,
+    attribute: object,
+    children?: JSX.Element[],
+  ): HTMLElementTagNameMap[K]
+  <K extends "path" | "svg">(
+    type: K,
+    attribute: object,
+    children?: JSX.Element[],
+  ): SVGElementTagNameMap[K]
   (type: string, attribute: object, children?: JSX.Element[]): JSX.Element
-  block(type: string, attribute: object, block: Block): JSX.Element
+  block(type: string, attribute: object, block: MathBlock): JSX.Element
   text(text: string): JSX.Element
 }
 
