@@ -224,7 +224,7 @@
   height: 100%;
 }
 :where(.mq-math-mode .mq-empty) {
-  background: var(--z-mq-empty);
+  background: var(--z-mq);
 }
 :where(.mq-math-mode .mq-empty.mq-root-block) {
   background: transparent;
@@ -532,16 +532,6 @@
   background: var(--z-mq-selection) !important;
 }
 :where(
-    .mq-math-mode .mq-selection.mq-blur,
-    .mq-editable-field .mq-selection.mq-blur,
-    .mq-math-mode .mq-selection.mq-blur .mq-non-leaf,
-    .mq-editable-field .mq-selection.mq-blur .mq-non-leaf,
-    .mq-math-mode .mq-selection.mq-blur .mq-scaled,
-    .mq-editable-field .mq-selection.mq-blur .mq-scaled
-  ) {
-  background: var(--z-mq-selection-blur) !important;
-}
-:where(
     html body .mq-math-mode .mq-selection .mq-nthroot-container *,
     html body .mq-editable-field .mq-selection .mq-nthroot-container *
   ) {
@@ -608,7 +598,7 @@
   border-color: currentColor;
   border-width: 1px 1px 0 1px;
   margin: -0.4em 0 0 -0.4em;
-  background: var(--z-bg-body);
+  background: var(--z-mq);
   font-size: 72%;
   bottom: 0;
   grid-area: 2 / 2 / 3 / 3;
@@ -617,7 +607,7 @@
   background: var(--z-mq-selection);
 }
 :where(.mq-math-mode .mq-dual-denominator.mq-empty) {
-  background: var(--z-mq-empty);
+  background: var(--z-mq);
 }
 :where(.mq-math-mode .mq-limit) {
   padding: 0 0.2em;
@@ -649,4 +639,37 @@
 }
 :where(.mq-math-mode .mq-align-2) {
   text-align: left;
+}
+:where(.mq-math-mode .mq-piecewise-container) {
+  vertical-align: middle;
+}
+:where(.mq-math-mode .mq-piecewise-grid) {
+  display: inline-grid;
+  gap: 0.2em 0em;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+}
+:where(.mq-math-mode .mq-piecewise-right)::before {
+  content: "if";
+  padding: 0 0.2em;
+  background-color: var(--z-mq-root);
+}
+:where(.mq-math-mode .mq-selection .mq-piecewise-right)::before {
+  background-color: var(--z-mq-root-selection);
+}
+:where(.mq-math-mode .mq-piecewise-otherwise) {
+  padding-left: 0.2em;
+}
+:where(.mq-math-mode .mq-piecewise-final.mq-empty) {
+  padding-left: 0.2em;
+  background-color: var(--z-mq-root-maybe-selected);
+  &::before {
+    content: "";
+    padding: 0;
+  }
+  &::after {
+    content: "else";
+    opacity: 30%;
+    visibility: visible;
+  }
 }

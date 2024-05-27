@@ -7,7 +7,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, untrack } from "solid-js"
 import { isServer } from "solid-js/web"
-import "./mathquill.css"
 import {
   DOMView,
   L,
@@ -18,12 +17,14 @@ import {
   MathBlock,
   MathCommand,
   R,
+  SVG_SYMBOLS,
   U_ZERO_WIDTH_SPACE,
   V3,
   bindBinaryOperator,
   getInterface,
   h,
 } from "./mathquill.js"
+import "./mathquill.postcss"
 export type * from "./mathquill"
 
 /** TODO: notable changes
@@ -259,10 +260,10 @@ LatexCmds.align = class extends MathCommand {
 
 export abstract class MathExtendable extends MathCommand {
   constructor(
-    ctrlSeq: string,
-    domView: DOMView,
-    textTemplate: string[],
-    size: number | undefined,
+    ctrlSeq?: string,
+    domView?: DOMView,
+    textTemplate?: string[],
+    size?: number | undefined,
   ) {
     super(ctrlSeq, domView, textTemplate)
     if (size == null) {
@@ -320,14 +321,78 @@ export abstract class MathExtendable extends MathCommand {
 }
 
 LatexCmds.piecewise = class extends MathExtendable {
+  constructor(
+    ctrlSeq?: string,
+    domView?: DOMView,
+    textTemplate?: string[],
+    size?: number | undefined,
+  ) {
+    super(ctrlSeq, domView, textTemplate, size)
+    this.ctrlSeq = "\\piecewise"
+  }
+
   override defaultSize(): number {
     return 4
   }
 
   override updateDomView(size: number): void {
-    this.domView = new DOMView(size, (blocks) =>
-      h("span", { class: "mq-non-leaf" }),
-    )
+    const leftSymbol = SVG_SYMBOLS["{"]
+    const rightSymbol = SVG_SYMBOLS["}"]
+    this.domView = new DOMView(size, (blocks) => {
+      const inner = blocks.map((block, index) =>
+        h.block(
+          "span",
+          {
+            class:
+              index % 2
+                ? "mq-piecewise-right" +
+                  (index == size - 1 ? " mq-piecewise-final" : "")
+                : "mq-piecewise-left",
+          },
+          block,
+        ),
+      )
+      if (inner.length % 2) {
+        inner.push(
+          h("span", { class: "mq-piecewise-otherwise" }, [h.text("otherwise")]),
+        )
+      }
+      return h(
+        // be set by createLeftOf or parser
+        "span",
+        { class: "mq-non-leaf mq-bracket-container mq-piecewise-container" },
+        [
+          h(
+            "span",
+            {
+              style: "width:" + leftSymbol.width,
+              class: "mq-scaled mq-bracket-l mq-paren",
+            },
+            [leftSymbol.html()],
+          ),
+          h(
+            "span",
+            {
+              style:
+                "margin-left:" +
+                leftSymbol.width +
+                ";margin-right:" +
+                rightSymbol.width,
+              class: "mq-bracket-middle mq-non-leaf mq-piecewise-grid",
+            },
+            inner,
+          ),
+          h(
+            "span",
+            {
+              style: "width:" + rightSymbol.width,
+              class: "mq-scaled mq-bracket-r mq-paren",
+            },
+            [rightSymbol.html()],
+          ),
+        ],
+      )
+    })
   }
 
   override updateTemplates(size: number): void {}

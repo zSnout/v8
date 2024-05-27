@@ -272,7 +272,7 @@ export declare class MathElement extends MQNode {
 }
 
 export declare class MathCommand extends MathElement {
-  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[])
+  constructor(ctrlSeq?: string, domView?: DOMView, textTemplate?: string[])
   setCtrlSeqHtmlAndText(
     ctrlSeq: string,
     domView: DOMView,
