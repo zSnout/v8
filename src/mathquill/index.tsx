@@ -132,7 +132,7 @@ LatexCmds.dual = class extends MathCommand {
     return walkUp(this, level)
   }
 
-  finalizeTree() {
+  override finalizeTree() {
     var endsL = this.getEnd(L)
     var endsR = this.getEnd(R)
     this.upInto = endsR.upOutOf = endsL
@@ -258,7 +258,7 @@ LatexCmds.align = class extends MathCommand {
   }
 }
 
-export abstract class MathExtendable extends MathCommand {
+export abstract class Extendable extends MathCommand {
   constructor(
     ctrlSeq?: string,
     domView?: DOMView,
@@ -273,19 +273,9 @@ export abstract class MathExtendable extends MathCommand {
     this.updateTemplates(size)
   }
 
-  setSize(size: number) {
-    const prev = this._el!
-    this.updateDomView(size)
-    this.updateTemplates(size)
-    this.createBlocks()
-    this._el = this.domView.render(this.blocks!)
-    prev.replaceWith(this._el)
-  }
-
-  createBlocks() {
-    const prev = this.blocks
+  private __setBlocks(prev: ArrayLike<MathBlock | undefined>) {
     const numBlocks = this.numBlocks()
-    const blocks = (this.blocks = Array(numBlocks))
+    const blocks = (this.blocks = Array<MathBlock>(numBlocks))
     for (let i = 0; i < numBlocks; i += 1) {
       let next = prev?.[i]
       if (!next) {
@@ -295,14 +285,50 @@ export abstract class MathExtendable extends MathCommand {
       blocks[i] = next
       next.adopt(this, this.getEnd(R), 0)
     }
-    if (this.blocks[0]) {
-      // @ts-expect-error these are annoying to type
-      this.blocks[0][L] = 0
+    if (blocks[0]) {
+      blocks[0][L] = 0
     }
-    if (this.blocks[this.blocks.length - 1]) {
-      // @ts-expect-error these are annoying to type
-      this.blocks[this.blocks.length - 1][R] = 0
+    if (blocks[blocks.length - 1]) {
+      blocks[blocks.length - 1]![R] = 0
     }
+  }
+
+  setBlocks(blocks: (MathBlock | undefined)[]) {
+    const prev = this._el!
+    const size = blocks.length
+    this.updateDomView(size)
+    this.updateTemplates(size)
+    this.__setBlocks(blocks)
+    this._el = this.domView.render(this.blocks!)
+    prev.replaceWith(this._el)
+    for (const block of this.blocks) {
+      if (block.isEmpty()) {
+        block.domFrag().addClass("mq-empty")
+      }
+    }
+    this.finalizeTree?.()
+  }
+
+  extendLeft(size: number) {
+    const next = Array.from({ length: size }, (_, i) =>
+      this.blocks.at(i - size),
+    )
+    this.setBlocks(next)
+  }
+
+  extendRight(size: number) {
+    const next = Array.from({ length: size }, (_, i) => this.blocks[i])
+    this.setBlocks(next)
+  }
+
+  createBlocks() {
+    const blocks = this.blocks || []
+    this.__setBlocks(
+      Array.from(
+        { length: this.numBlocks() },
+        (_, i) => blocks[i] || undefined,
+      ),
+    )
   }
 
   abstract defaultSize(): number
@@ -320,7 +346,7 @@ export abstract class MathExtendable extends MathCommand {
   }
 }
 
-LatexCmds.piecewise = class extends MathExtendable {
+LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
   constructor(
     ctrlSeq?: string,
     domView?: DOMView,
@@ -395,14 +421,36 @@ LatexCmds.piecewise = class extends MathExtendable {
     })
   }
 
-  override updateTemplates(size: number): void {}
+  override updateTemplates(size: number): void {
+    // TODO: piecewise templates
+  }
+
+  override finalizeTree() {
+    for (let i = 0; i < this.blocks.length; i++) {
+      const block = this.blocks[i]!
+      const above = this.blocks[i - 2]
+      const below = this.blocks[i + 2]
+      block.upOutOf =
+        above ||
+        (() => {
+          this.extendLeft(this.numBlocks() + 2)
+          return this.blocks[i]!
+        })
+      block.downOutOf =
+        below ||
+        (() => {
+          this.extendRight(this.numBlocks() + 2)
+          return this.blocks[i + 2]!
+        })
+    }
+  }
 }
 
 export const config: Readonly<V3.Config> = Object.freeze({
   autoOperatorNames:
-    "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for and or not mod iter real imag log ln exp length sign angle unsign fx fy",
+    "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for not mod iter real imag log ln exp length sign angle unsign fx fy",
   autoCommands:
-    "sum prod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma varsigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot integral cross ans dual abs infinity infty limit choose binom digamma",
+    "sum prod coprod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma varsigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot integral cross ans dual infinity infty lim choose binom digamma piecewise switch floor ceil and or",
   autoSubscriptNumerals: true,
   disableAutoSubstitutionInSubscripts: true,
   tripleDotsAreEllipsis: true,

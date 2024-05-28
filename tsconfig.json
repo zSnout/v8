@@ -5,10 +5,11 @@
     "exactOptionalPropertyTypes": false,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
+    "module": "ESNext",
     "paths": {
       "~/assets/*": ["src/assets/*"],
       "@/*": ["src/*"]
     },
-    "module": "ESNext"
+    "skipLibCheck": false
   }
 }

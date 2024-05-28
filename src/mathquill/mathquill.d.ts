@@ -1,17 +1,15 @@
-// @ts-check
-
 import type { JSX } from "solid-js"
 
 /** The global MathQuill object */
-export declare interface MathQuill {
+export interface MathQuill {
   getInterface(version: 1): V1.API
   getInterface(version: 2): V1.API
   getInterface(version: 3): V3.API
 }
 
-export declare type Direction = -1 | 1
+export type Direction = -1 | 1
 
-export declare namespace V3 {
+export namespace V3 {
   type HandlersWithDirection = V1.HandlersWithDirection
   type HandlersWithoutDirection = V1.HandlersWithoutDirection
   type HandlerOptions = V1.HandlerOptions<BaseMathQuill>
@@ -103,7 +101,7 @@ export declare namespace V3 {
   }
 }
 
-export declare namespace V1 {
+export namespace V1 {
   interface Config<$ = DefaultJquery> {
     ignoreNextMousedown?: (_el: MouseEvent) => boolean
     substituteTextarea?: () => HTMLElement
@@ -235,43 +233,55 @@ export declare namespace V1 {
   }
 }
 
-export declare interface DefaultJquery {
+export interface DefaultJquery {
   (el: HTMLElement): DefaultJquery
   length: number
   [index: number]: HTMLElement | undefined
 }
 
-export declare var LatexCmds: Record<
+export var LatexCmds: Record<
   string,
   | (new (...args: any[]) => { domView: DOMView })
   | ((...args: any[]) => { domView: DOMView })
 >
 
-export declare class NodeBase {
-  parser(): Parser
+export class NodeBase {
+  parser(): Parser<this>
+  isEmpty(): boolean
 }
 
-export declare class MQNode extends NodeBase {
+export type VertOutOf = MQNode | true
+
+export interface MathspeakOptions {
+  createdLeftOf?: Cursor
+  ignoreShorthand?: boolean
+}
+
+export class MQNode extends NodeBase {
+  [L]: MQNode | 0;
+  [R]: MQNode | 0
   domView: DOMView
   ctrlSeq: string
   textTemplate: string[]
   mathspeakTemplate: string[]
-  mathspeak(opts?: any)
+  mathspeak(opts?: MathspeakOptions): string
   getEnd(end: number): any
   adopt(parent: MQNode, leftward: MQNode | 0, rightward: MQNode | 0): void
+  upOutOf?: VertOutOf | ((cursor: Cursor) => VertOutOf)
+  downOutOf?: VertOutOf | ((cursor: Cursor) => VertOutOf)
 }
 
 export interface LatexRecursiveContext {
   latex: string
 }
 
-export declare class MathElement extends MQNode {
+export class MathElement extends MQNode {
   latexRecursive(ctx: LatexRecursiveContext): void
   checkCursorContextOpen(ctx: LatexRecursiveContext): void
   checkCursorContextClose(ctx: LatexRecursiveContext): void
 }
 
-export declare class MathCommand extends MathElement {
+export class MathCommand extends MathElement {
   constructor(ctrlSeq?: string, domView?: DOMView, textTemplate?: string[])
   setCtrlSeqHtmlAndText(
     ctrlSeq: string,
@@ -283,9 +293,10 @@ export declare class MathCommand extends MathElement {
   blocks: MathBlock[]
   _el: HTMLElement | SVGElement
   numBlocks(): number
+  finalizeTree?(): void
 }
 
-export declare class MQSymbol extends MathCommand {
+export class MQSymbol extends MathCommand {
   constructor(
     latex: string,
     html: JSX.Element,
@@ -296,14 +307,14 @@ export declare class MQSymbol extends MathCommand {
   domView: DOMView
 }
 
-export declare class MathBlock extends MathElement {
+export class MathBlock extends MathElement {
   __blockTag: "block"
   domFrag(): DOMFragment
 }
 
-export declare var getInterface: MathQuill["getInterface"]
+export var getInterface: MathQuill["getInterface"]
 
-export declare class DOMView {
+export class DOMView {
   constructor(children: 0, contents: (blocks: []) => JSX.Element)
   constructor(children: 1, contents: (blocks: [MathBlock]) => JSX.Element)
   constructor(
@@ -326,9 +337,9 @@ export declare class DOMView {
   render: (blocks: MathBlock[]) => HTMLElement | SVGElement
 }
 
-export declare class Variable extends MQSymbol {}
+export class Variable extends MQSymbol {}
 
-export declare class Letter extends Variable {
+export class Letter extends Variable {
   constructor(letter: string)
 
   domView: DOMView
@@ -336,12 +347,12 @@ export declare class Letter extends Variable {
   italicize(isItalic: boolean): void
 }
 
-export declare class DOMFragment {
+export class DOMFragment {
   toggleClass(name: string, active: boolean): void
   addClass(name: string): void
 }
 
-export declare var SVG_SYMBOLS: {
+export var SVG_SYMBOLS: {
   sqrt: { width: string; html: () => JSX.Element }
   "|": { width: string; html: () => JSX.Element }
   "[": { width: string; html: () => JSX.Element }
@@ -355,13 +366,13 @@ export declare var SVG_SYMBOLS: {
   "&rang;": { width: string; html: () => JSX.Element }
 }
 
-export declare var U_ZERO_WIDTH_SPACE: string
+export var U_ZERO_WIDTH_SPACE: string
 
-export declare var L: number
+export var L: -1
 
-export declare var R: number
+export var R: 1
 
-export declare var h: {
+export var h: {
   <K extends keyof HTMLElementTagNameMap>(
     type: K,
     attribute: object,
@@ -377,19 +388,19 @@ export declare var h: {
   text(text: string): JSX.Element
 }
 
-export declare var latexMathParser: {
+export var latexMathParser: {
   subBlock: Parser<MathBlock>
 }
 
-export declare type UnknownParserResult = any
+export type UnknownParserResult = any
 
-export declare type ParserBody<T> = (
+export type ParserBody<T> = (
   stream: string,
   onSuccess: (stream: string, result: T) => UnknownParserResult,
   onFailure: (stream: string, msg: string) => UnknownParserResult,
 ) => T
 
-export declare class Parser<T> {
+export class Parser<T> {
   _: ParserBody<T>
 
   constructor(body: ParserBody<T>)
@@ -410,19 +421,19 @@ export declare class Parser<T> {
   static succeed<Q>(result: Q): Parser<Q>
   static fail(msg: string): Parser<never>
 
-  static letter = Parser.regex(/^[a-z]/i)
-  static letters = Parser.regex(/^[a-z]*/i)
-  static digit = Parser.regex(/^[0-9]/)
-  static digits = Parser.regex(/^[0-9]*/)
-  static whitespace = Parser.regex(/^\s+/)
-  static optWhitespace = Parser.regex(/^\s*/)
+  static letter: Parser<string>
+  static letters: Parser<string>
+  static digit: Parser<string>
+  static digits: Parser<string>
+  static whitespace: Parser<string>
+  static optWhitespace: Parser<string>
 
   static any: Parser<string>
   static all: Parser<string>
   static eof: Parser<string>
 }
 
-export declare var bindBinaryOperator: {
+export var bindBinaryOperator: {
   (
     ctrlSeq?: string,
     htmlEntity?: string,
@@ -430,3 +441,91 @@ export declare var bindBinaryOperator: {
     mathspeak?: string,
   ): () => MQNode
 }
+
+export type NodeRef = MQNode | 0
+
+export class Point {
+  static copy(pt: Point): Point
+
+  [L]: NodeRef;
+  [R]: NodeRef
+  parent: MQNode
+
+  constructor(parent: MQNode, leftward: NodeRef, rightward: NodeRef)
+  init(parent: MQNode, leftward: NodeRef, rightward: NodeRef): void
+}
+
+export class Cursor extends Point {
+  controller: Controller
+  parent: MQNode
+  options: CursorOptions
+
+  /** Slightly more than just a "cache", this remembers the cursor's position in each block node, so that we can return to the right
+   * point in that node when moving up and down among blocks.
+   */
+  upDownCache: Record<number | string, Point | undefined>
+  blink: () => void
+  private readonly cursorElement
+  private _domFrag
+  selection: MQSelection | undefined
+  intervalId: number
+  anticursor: Anticursor | undefined
+
+  constructor(
+    initParent: MQNode,
+    options: CursorOptions,
+    controller: Controller,
+  )
+
+  setDOMFrag(frag: DOMFragment): this
+
+  domFrag(): DOMFragment
+
+  show(): this
+  hide(): this
+  withDirInsertAt(
+    dir: Direction,
+    parent: MQNode,
+    withDir: NodeRef,
+    oppDir: NodeRef,
+  ): void
+  /** Place the cursor before or after `el`, according the side specified by `dir`. */
+  insDirOf(dir: Direction, el: MQNode): this
+  insLeftOf(el: MQNode): this
+  insRightOf(el: MQNode): this
+
+  /** Place the cursor inside `el` at either the left or right end, according the side specified by `dir`. */
+  insAtDirEnd(dir: Direction, el: MQNode): this
+  insAtLeftEnd(el: MQNode): this
+  insAtRightEnd(el: MQNode): this
+
+  /**
+   * jump up or down from one block Node to another:
+   * - cache the current Point in the node we're jumping from
+   * - check if there's a Point in it cached for the node we're jumping to
+   *   + if so put the cursor there,
+   *   + if not seek a position in the node that is horizontally closest to
+   *     the cursor's current position
+   */
+  jumpUpDown(from: MQNode, to: MQNode): void
+  getBoundingClientRectWithoutMargin(): { left: number; right: number }
+  unwrapGramp(): void
+  startSelection(): void
+  endSelection(): void
+  select(): boolean
+  resetToEnd(controller: ControllerBase): void
+  clearSelection(): this
+  deleteSelection(): void
+  replaceSelection(): MQSelection | undefined
+  depth(): number
+  isTooDeep(offset?: number): boolean
+
+  // can be overridden
+  selectionChanged(): void
+}
+
+export type Controller = unknown
+export type CursorOptions = unknown
+export type MQSelection = unknown
+export type Anticursor = unknown
+export type ControllerBase = unknown

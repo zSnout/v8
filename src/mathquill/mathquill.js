@@ -6631,26 +6631,26 @@ LatexCmds.bigotimes = bindVanillaSymbol(
 LatexCmds.bigoplus = bindVanillaSymbol("\\bigoplus ", "&#8853;", "big o plus")
 LatexCmds.biguplus = bindVanillaSymbol("\\biguplus ", "&#8846;", "big u plus")
 //delimiters
-LatexCmds["\u230a"] = LatexCmds.lfloor = bindVanillaSymbol(
-  "\\lfloor ",
-  "&#8970;",
-  "left floor",
-)
-LatexCmds["\u230b"] = LatexCmds.rfloor = bindVanillaSymbol(
-  "\\rfloor ",
-  "&#8971;",
-  "right floor",
-)
-LatexCmds["\u2308"] = LatexCmds.lceil = bindVanillaSymbol(
-  "\\lceil ",
-  "&#8968;",
-  "left ceiling",
-)
-LatexCmds["\u2309"] = LatexCmds.rceil = bindVanillaSymbol(
-  "\\rceil ",
-  "&#8969;",
-  "right ceiling",
-)
+// LatexCmds["\u230a"] = LatexCmds.lfloor = bindVanillaSymbol(
+//   "\\lfloor ",
+//   "&#8970;",
+//   "left floor",
+// )
+// LatexCmds["\u230b"] = LatexCmds.rfloor = bindVanillaSymbol(
+//   "\\rfloor ",
+//   "&#8971;",
+//   "right floor",
+// )
+// LatexCmds["\u2308"] = LatexCmds.lceil = bindVanillaSymbol(
+//   "\\lceil ",
+//   "&#8968;",
+//   "left ceiling",
+// )
+// LatexCmds["\u2309"] = LatexCmds.rceil = bindVanillaSymbol(
+//   "\\rceil ",
+//   "&#8969;",
+//   "right ceiling",
+// )\
 LatexCmds.opencurlybrace = LatexCmds.lbrace = bindVanillaSymbol(
   "\\lbrace ",
   "{",
@@ -8309,6 +8309,39 @@ var SVG_SYMBOLS = {
       ])
     },
   },
+  "&lfloor;": {
+    width: ".55em",
+    html: function () {
+      // return h("span", { class: "mq-lfloor" })
+      return h("svg", { preserveAspectRatio: "none", viewBox: "0 0 11 24" }, [
+        h("path", { d: "M4 0 L3 0 L3 24 L8 24 L8 23 L4 23 L4 1 L4 1" }),
+      ])
+    },
+  },
+  "&rfloor;": {
+    width: ".55em",
+    html: function () {
+      return h("svg", { preserveAspectRatio: "none", viewBox: "0 0 11 24" }, [
+        h("path", { d: "M7 0 L8 0 L8 24 L3 24 L3 23 L7 23 L7 1" }),
+      ])
+    },
+  },
+  "&lceil;": {
+    width: ".55em",
+    html: function () {
+      return h("svg", { preserveAspectRatio: "none", viewBox: "0 0 11 24" }, [
+        h("path", { d: "M8 0 L3 0 L3 24 L4 24 L4 23 L4 23 L4 1 L8 1" }),
+      ])
+    },
+  },
+  "&rceil;": {
+    width: ".55em",
+    html: function () {
+      return h("svg", { preserveAspectRatio: "none", viewBox: "0 0 11 24" }, [
+        h("path", { d: "M3 0 L8 0 L8 24 L7 24 L7 23 L7 23 L7 1 L3 1" }),
+      ])
+    },
+  },
   "(": {
     width: ".55em",
     html: function () {
@@ -9827,6 +9860,10 @@ var OPP_BRACKS = {
   "|": "|",
   "\\lVert ": "\\rVert ",
   "\\rVert ": "\\lVert ",
+  "\\lfloor ": "\\rfloor ",
+  "\\rfloor ": "\\lfloor ",
+  "\\lceil ": "\\rceil ",
+  "\\rceil ": "\\lceil ",
 }
 var BRACKET_NAMES = {
   "&lang;": "angle-bracket",
@@ -9863,6 +9900,24 @@ LatexCmds.lVert = function () {
 LatexCmds.rVert = function () {
   return new Bracket(R, "&#8741;", "&#8741;", "\\lVert ", "\\rVert ")
 }
+CharCmds["⌊"] =
+  LatexCmds.floor =
+  LatexCmds.lfloor =
+    function () {
+      return new Bracket(L, "&lfloor;", "&rfloor;", "\\lfloor ", "\\rfloor ")
+    }
+CharCmds["⌋"] = LatexCmds.rfloor = function () {
+  return new Bracket(R, "&lfloor;", "&rfloor;", "\\lfloor ", "\\rfloor ")
+}
+CharCmds["⌈"] =
+  LatexCmds.ceil =
+  LatexCmds.lceil =
+    function () {
+      return new Bracket(L, "&lceil;", "&rceil;", "\\lceil ", "\\rceil ")
+    }
+CharCmds["⌉"] = LatexCmds.rceil = function () {
+  return new Bracket(R, "&lceil;", "&rceil;", "\\lceil ", "\\rceil ")
+}
 LatexCmds.left = /** @class */ (function (_super) {
   __extends(left, _super)
   function left() {
@@ -9873,7 +9928,7 @@ LatexCmds.left = /** @class */ (function (_super) {
     var string = Parser.string
     var optWhitespace = Parser.optWhitespace
     return optWhitespace
-      .then(regex(/^(?:[([|]|\\\{|\\langle(?![a-zA-Z])|\\lVert(?![a-zA-Z]))/))
+      .then(regex(/^(?:[([|]|\\\{|\\(langle|lVert|lfloor|lceil)(?![a-zA-Z]))/))
       .then(function (ctrlSeq) {
         var open = ctrlSeq.replace(/^\\/, "")
         if (ctrlSeq == "\\langle") {
@@ -9884,12 +9939,20 @@ LatexCmds.left = /** @class */ (function (_super) {
           open = "&#8741;"
           ctrlSeq = ctrlSeq + " "
         }
+        if (ctrlSeq == "\\lfloor") {
+          open = "&lfloor;"
+          ctrlSeq = ctrlSeq + " "
+        }
+        if (ctrlSeq == "\\lceil") {
+          open = "&lceil;"
+          ctrlSeq = ctrlSeq + " "
+        }
         return latexMathParser.then(function (block) {
           return string("\\right")
             .skip(optWhitespace)
             .then(
               regex(
-                /^(?:[\])|]|\\\}|\\rangle(?![a-zA-Z])|\\rVert(?![a-zA-Z]))/,
+                /^(?:[\])|]|\\\}|\\(rangle|rVert|rfloor|rceil)(?![a-zA-Z]))/,
               ),
             )
             .map(function (end) {
@@ -9900,6 +9963,14 @@ LatexCmds.left = /** @class */ (function (_super) {
               }
               if (end == "\\rVert") {
                 close = "&#8741;"
+                end = end + " "
+              }
+              if (end == "\\rfloor") {
+                close = "&rfloor;"
+                end = end + " "
+              }
+              if (end == "\\rceil") {
+                close = "&rceil;"
                 end = end + " "
               }
               var cmd = new Bracket(0, open, close, ctrlSeq, end)
