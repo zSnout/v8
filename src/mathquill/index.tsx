@@ -27,20 +27,13 @@ import {
 import "./mathquill.postcss"
 export type * from "./mathquill"
 
-/** TODO: notable changes
- * - #, odot, and circledot are a single binary operator, not vanilla symbol
- * - remove automatic load of v1
- * - export a ton of stuff
- *
- * implemented in the mq clone
- * - limit exists
- * - LiveFraction.leftward stops at \\lim
- * - custom letters
- * - lbrack, rbrack, slash, and vert properly display
- *
- * we don't need these:
- * - auto operators >= 1
- */
+// NOTABLE CHANGES TO `MATHQUILL.JS`
+//
+// - `\lim` and `\limit` are custom nodes
+// - LiveFraction stops extending to the left when it hits `\lim`
+// - `customCharacters` option exists
+// - `\lbrack`, `\rbrack`, `\slash`, and `\vert` display properly
+// - MathQuill V1 isn't automatically loaded
 
 export abstract class IconLetter extends Letter {
   constructor(letter: string) {
