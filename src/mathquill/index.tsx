@@ -171,61 +171,6 @@ LatexCmds.frozentime = class extends MathCommand {
   }
 }
 
-// LatexCmds.align = class extends MathCommand {
-//   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
-//     super(ctrlSeq, domView, textTemplate)
-//     this.ctrlSeq = "\\align"
-//     this.domView = new DOMView(4, function (blocks) {
-//       return h("span", { class: "mq-align mq-non-leaf" }, [
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
-//           blocks[0],
-//         ),
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
-//           blocks[1],
-//         ),
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
-//           blocks[2],
-//         ),
-//         h.block(
-//           "span",
-//           { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
-//           blocks[3],
-//         ),
-//       ])
-//     })
-//     this.textTemplate = ["align(", "", ")(", "", ")"]
-//     this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
-//   }
-
-//   override mathspeak(opts: any) {
-//     if (opts && opts.createdLeftOf) {
-//       var cursor = opts.createdLeftOf
-//       return cursor.parent.mathspeak()
-//     }
-//     return super.mathspeak()
-//   }
-
-//   override latexRecursive(ctx: LatexRecursiveContext) {
-//     this.checkCursorContextOpen(ctx)
-//     ctx.latex += "\\begin{align*}"
-//     this.blocks[0]!.latexRecursive(ctx)
-//     ctx.latex += "&"
-//     this.blocks[1]!.latexRecursive(ctx)
-//     ctx.latex += "\\"
-//     this.blocks[2]!.latexRecursive(ctx)
-//     ctx.latex += "&"
-//     this.blocks[3]!.latexRecursive(ctx)
-//     ctx.latex += "\\end{align*}"
-//     this.checkCursorContextClose(ctx)
-//   }
-// }
-
 export abstract class Extendable extends MathCommand {
   constructor(
     ctrlSeq?: string,
