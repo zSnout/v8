@@ -11,6 +11,7 @@ import { createMemo, createSignal } from "solid-js"
 
 export function Main() {
   const [latex, setLatex] = createSignal("y=ax^2+bx+c")
+  const [plaintext, setPlaintext] = createSignal("y")
   const [mathspeak, setMathspeak] = createSignal("y")
   const [precedence, setPrecedence] = createSignal(-1)
   const [glslTree, setGlslTree] = createSignal({})
@@ -41,11 +42,13 @@ export function Main() {
           edit={(mq) => {
             setLatex(mq.latex())
             setMathspeak(mq.mathspeak())
+            setPlaintext(mq.text())
           }}
           ref={(mq) => {
             setTimeout(() => {
               mq.latex(
-                "\\left(z-m\\right)^2+c-m\\cross\\dual{c}{m}\\cross\\frozenmouse{2+3i}",
+                // String.raw`\left(z-m\right)^{2}\times\dual{c}{m}\times\frozenmouse{2+3i}\piecewise{x^{2}-3}{x<4}{\log_{2}x}{4<x\le89}{a}{b}{c}{d}\align{243&3}{43&3^{26^{2^{3^{3}}}}}`,
+                String.raw`\align{22267}{&65543}{&23}{4}{&5^{6^{7}}}`,
               )
             })
           }}
@@ -72,6 +75,7 @@ export function Main() {
 
       <div>precedence: {precedence()}</div>
       <div>{latex()}</div>
+      <div>{plaintext()}</div>
       <div>{mathspeak()}</div>
       <div>{glsl()}</div>
       <pre class="bg-red-100">{JSON.stringify(glslTree(), undefined, 2)}</pre>

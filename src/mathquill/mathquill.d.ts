@@ -265,10 +265,11 @@ export class MQNode extends NodeBase {
   textTemplate: string[]
   mathspeakTemplate: string[]
   mathspeak(opts?: MathspeakOptions): string
-  getEnd(end: number): any
+  getEnd(end: Direction): MQNode | 0
   adopt(parent: MQNode, leftward: MQNode | 0, rightward: MQNode | 0): void
   upOutOf?: VertOutOf | ((cursor: Cursor) => VertOutOf)
   downOutOf?: VertOutOf | ((cursor: Cursor) => VertOutOf)
+  deleteOutOf?: (dir: Direction, cursor: Cursor) => void
 }
 
 export interface LatexRecursiveContext {
@@ -388,7 +389,7 @@ export var h: {
   text(text: string): JSX.Element
 }
 
-export var latexMathParser: {
+export var latexMathParser: Parser<MathBlock> & {
   subBlock: Parser<MathBlock>
 }
 

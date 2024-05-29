@@ -11,11 +11,11 @@ import {
   DOMView,
   L,
   LatexCmds,
-  LatexRecursiveContext,
   Letter,
-  MQNode,
+  MQSymbol,
   MathBlock,
   MathCommand,
+  Parser,
   R,
   SVG_SYMBOLS,
   U_ZERO_WIDTH_SPACE,
@@ -23,6 +23,7 @@ import {
   bindBinaryOperator,
   getInterface,
   h,
+  latexMathParser,
 } from "./mathquill.js"
 import "./mathquill.postcss"
 export type * from "./mathquill"
@@ -34,6 +35,7 @@ export type * from "./mathquill"
 // - `customCharacters` option exists
 // - `\lbrack`, `\rbrack`, `\slash`, and `\vert` display properly
 // - MathQuill V1 isn't automatically loaded
+// - `\lfloor` and `\lceil` work as brackets
 
 export abstract class IconLetter extends Letter {
   constructor(letter: string) {
@@ -110,41 +112,14 @@ LatexCmds.dual = class extends MathCommand {
     return super.mathspeak()
   }
 
-  getDualDepth() {
-    var level = 0
-    var walkUp = function (item: any, level: number) {
-      if (
-        item instanceof MQNode &&
-        item.ctrlSeq &&
-        item.ctrlSeq.toLowerCase().search("dual") >= 0
-      )
-        level += 1
-      if (item && item.parent) return walkUp(item.parent, level)
-      else return level
-    }
-    return walkUp(this, level)
-  }
-
   override finalizeTree() {
     var endsL = this.getEnd(L)
     var endsR = this.getEnd(R)
     this.upInto = endsR.upOutOf = endsL
     this.downInto = endsL.downOutOf = endsR
-    endsL.ariaLabel = "numerator"
-    endsR.ariaLabel = "denominator"
-    if (this.getDualDepth() > 1) {
-      this.mathspeakTemplate = [
-        "NestedDualLargeValue,",
-        "NestedDualSmallValue",
-        ", EndNestedDualMode",
-      ]
-    } else {
-      this.mathspeakTemplate = [
-        "DualLargeValue,",
-        "DualSmallValue",
-        ", EndDualMode",
-      ]
-    }
+    endsL.ariaLabel = "dual-large"
+    endsR.ariaLabel = "dual-small"
+    this.mathspeakTemplate = ["Dual,", "DualSmall", ", EndDual"]
   }
 }
 
@@ -196,60 +171,60 @@ LatexCmds.frozentime = class extends MathCommand {
   }
 }
 
-LatexCmds.align = class extends MathCommand {
-  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
-    super(ctrlSeq, domView, textTemplate)
-    this.ctrlSeq = "\\align"
-    this.domView = new DOMView(4, function (blocks) {
-      return h("span", { class: "mq-align mq-non-leaf" }, [
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
-          blocks[0],
-        ),
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
-          blocks[1],
-        ),
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
-          blocks[2],
-        ),
-        h.block(
-          "span",
-          { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
-          blocks[3],
-        ),
-      ])
-    })
-    this.textTemplate = ["align(", "", ")(", "", ")"]
-    this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
-  }
+// LatexCmds.align = class extends MathCommand {
+//   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+//     super(ctrlSeq, domView, textTemplate)
+//     this.ctrlSeq = "\\align"
+//     this.domView = new DOMView(4, function (blocks) {
+//       return h("span", { class: "mq-align mq-non-leaf" }, [
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-a mq-align-1 mq-non-leaf" },
+//           blocks[0],
+//         ),
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-a mq-align-2 mq-non-leaf" },
+//           blocks[1],
+//         ),
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-b mq-align-1 mq-non-leaf" },
+//           blocks[2],
+//         ),
+//         h.block(
+//           "span",
+//           { class: "mq-align-item mq-align-b mq-align-2 mq-non-leaf" },
+//           blocks[3],
+//         ),
+//       ])
+//     })
+//     this.textTemplate = ["align(", "", ")(", "", ")"]
+//     this.mathspeakTemplate = ["Align", "Then", "NextLine", "Then", "EndAlign"]
+//   }
 
-  override mathspeak(opts: any) {
-    if (opts && opts.createdLeftOf) {
-      var cursor = opts.createdLeftOf
-      return cursor.parent.mathspeak()
-    }
-    return super.mathspeak()
-  }
+//   override mathspeak(opts: any) {
+//     if (opts && opts.createdLeftOf) {
+//       var cursor = opts.createdLeftOf
+//       return cursor.parent.mathspeak()
+//     }
+//     return super.mathspeak()
+//   }
 
-  override latexRecursive(ctx: LatexRecursiveContext) {
-    this.checkCursorContextOpen(ctx)
-    ctx.latex += "\\begin{align*}"
-    this.blocks[0]!.latexRecursive(ctx)
-    ctx.latex += "&"
-    this.blocks[1]!.latexRecursive(ctx)
-    ctx.latex += "\\"
-    this.blocks[2]!.latexRecursive(ctx)
-    ctx.latex += "&"
-    this.blocks[3]!.latexRecursive(ctx)
-    ctx.latex += "\\end{align*}"
-    this.checkCursorContextClose(ctx)
-  }
-}
+//   override latexRecursive(ctx: LatexRecursiveContext) {
+//     this.checkCursorContextOpen(ctx)
+//     ctx.latex += "\\begin{align*}"
+//     this.blocks[0]!.latexRecursive(ctx)
+//     ctx.latex += "&"
+//     this.blocks[1]!.latexRecursive(ctx)
+//     ctx.latex += "\\"
+//     this.blocks[2]!.latexRecursive(ctx)
+//     ctx.latex += "&"
+//     this.blocks[3]!.latexRecursive(ctx)
+//     ctx.latex += "\\end{align*}"
+//     this.checkCursorContextClose(ctx)
+//   }
+// }
 
 export abstract class Extendable extends MathCommand {
   constructor(
@@ -326,9 +301,29 @@ export abstract class Extendable extends MathCommand {
 
   abstract defaultSize(): number
 
+  abstract validateBlocks(blocks: MathBlock[]): (MathBlock | undefined)[]
+
   abstract updateTemplates(size: number): void
 
   abstract updateDomView(size: number): void
+
+  override parser(): Parser<this> {
+    const block = Parser.string("{")
+      .then(() => latexMathParser)
+      .skip(Parser.string("}"))
+
+    return block.many().map((raw) => {
+      const blocks = (this.blocks = this.validateBlocks(raw).map(
+        (x) => x || new MathBlock(),
+      ))
+      for (let i = 0; i < blocks.length; i += 1) {
+        blocks[i]!.adopt(this, this.getEnd(R), 0)
+      }
+      this.updateTemplates(blocks.length)
+      this.updateDomView(blocks.length)
+      return this
+    })
+  }
 
   override mathspeak(opts: any) {
     if (opts && opts.createdLeftOf) {
@@ -354,6 +349,18 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
     return 4
   }
 
+  override validateBlocks(blocks: MathBlock[]): (MathBlock | undefined)[] {
+    if (blocks.length == 0) {
+      return [undefined, undefined]
+    }
+
+    if (blocks.length % 2) {
+      return (blocks as (MathBlock | undefined)[]).concat(undefined)
+    }
+
+    return blocks
+  }
+
   override updateDomView(size: number): void {
     const leftSymbol = SVG_SYMBOLS["{"]
     const rightSymbol = SVG_SYMBOLS["}"]
@@ -364,18 +371,13 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
           {
             class:
               index % 2
-                ? "mq-piecewise-right" +
+                ? "mq-non-leaf mq-piecewise-right" +
                   (index == size - 1 ? " mq-piecewise-final" : "")
-                : "mq-piecewise-left",
+                : "mq-non-leaf mq-piecewise-left",
           },
           block,
         ),
       )
-      if (inner.length % 2) {
-        inner.push(
-          h("span", { class: "mq-piecewise-otherwise" }, [h.text("otherwise")]),
-        )
-      }
       return h(
         // be set by createLeftOf or parser
         "span",
@@ -415,7 +417,41 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
   }
 
   override updateTemplates(size: number): void {
-    // TODO: piecewise templates
+    if (size == 0) {
+      this.textTemplate = ["piecewise()"]
+    } else {
+      this.textTemplate = [
+        "piecewise(",
+        ...Array.from({ length: size }, (_, i) => {
+          if (i == size - 1) {
+            return ")"
+          }
+          if (i % 2) {
+            return " if "
+          } else {
+            return ","
+          }
+        }),
+      ]
+    }
+
+    if (size == 0) {
+      this.mathspeakTemplate = ["EmptyPiecewise"]
+    } else {
+      this.mathspeakTemplate = [
+        "Piecewise",
+        ...Array.from({ length: size }, (_, i) => {
+          if (i == size - 1) {
+            return "EndPiecewise"
+          }
+          if (i % 2) {
+            return " If "
+          } else {
+            return " Alternative "
+          }
+        }),
+      ]
+    }
   }
 
   override finalizeTree() {
@@ -435,9 +471,197 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
           this.extendRight(this.numBlocks() + 2)
           return this.blocks[i + 2]!
         })
+      block.deleteOutOf = (dir, cursor) => {
+        if (dir == L) {
+          if (i % 2) {
+            cursor.insAtRightEnd(this.blocks[i - 1]!)
+          } else {
+            if (this.blocks.length <= 2) {
+              cursor.insLeftOf(this)
+              return
+            }
+            this.setBlocks(this.blocks.toSpliced(i % 2 ? i - 1 : i, 2))
+            const next = this.blocks[i - 2] || this.blocks[i]
+            if (next) {
+              cursor.insAtLeftEnd(next)
+            } else {
+              cursor.insLeftOf(this)
+            }
+          }
+        } else {
+          if (i % 2) {
+            if (this.blocks.length <= 2) {
+              cursor.insRightOf(this)
+              return
+            }
+            this.setBlocks(this.blocks.toSpliced(i % 2 ? i - 1 : i, 2))
+            const next = this.blocks[i - 1]
+            if (next) {
+              cursor.insAtLeftEnd(next)
+            } else {
+              cursor.insRightOf(this)
+            }
+          } else {
+            cursor.insAtRightEnd(this.blocks[i - 1]!)
+          }
+        }
+      }
     }
   }
 }
+
+LatexCmds.align = class extends Extendable {
+  constructor(
+    ctrlSeq?: string,
+    domView?: DOMView,
+    textTemplate?: string[],
+    size?: number | undefined,
+  ) {
+    super(ctrlSeq, domView, textTemplate, size)
+    this.ctrlSeq = "\\align"
+  }
+
+  override defaultSize(): number {
+    return 2
+  }
+
+  override validateBlocks(blocks: MathBlock[]): (MathBlock | undefined)[] {
+    if (blocks.length == 0) {
+      return [undefined]
+    }
+
+    return blocks
+  }
+
+  override updateDomView(size: number): void {
+    this.domView = new DOMView(size, (blocks) => {
+      return h(
+        "span",
+        { class: "mq-non-leaf mq-align-grid" },
+        blocks.map((block, index) => {
+          const left = block.getEnd(L)
+          return h.block(
+            "span",
+            {
+              class:
+                "mq-align-item mq-non-leaf" +
+                (left instanceof Ampersand
+                  ? " mq-align-sameline"
+                  : " mq-align-newline"),
+              style:
+                "--index:" +
+                blocks
+                  .slice(0, index + 1)
+                  .reduce(
+                    (a, b) => (b.getEnd(L) instanceof Ampersand ? a : a + 1),
+                    0,
+                  ),
+            },
+            block,
+          )
+        }),
+      )
+    })
+  }
+
+  override updateTemplates(size: number): void {
+    if (size == 0) {
+      this.textTemplate = ["align()"]
+    } else {
+      this.textTemplate = [
+        "align(",
+        ...Array.from({ length: size }, (_, i) => {
+          if (i == size - 1) {
+            return ")"
+          } else {
+            return ","
+          }
+        }),
+      ]
+    }
+
+    if (size == 0) {
+      this.mathspeakTemplate = ["EmptyAlign"]
+    } else {
+      this.mathspeakTemplate = [
+        "Align",
+        ...Array.from({ length: size }, (_, i) => {
+          if (i == size - 1) {
+            return "EndAlign"
+          } else {
+            return "LineBreak"
+          }
+        }),
+      ]
+    }
+  }
+
+  override finalizeTree() {
+    for (let i = 0; i < this.blocks.length; i++) {
+      const block = this.blocks[i]!
+      const above = this.blocks[i - 1]
+      const below = this.blocks[i + 1]
+      block.upOutOf =
+        above ||
+        (() => {
+          this.extendLeft(this.numBlocks() + 1)
+          return this.blocks[i]!
+        })
+      block.downOutOf =
+        below ||
+        (() => {
+          this.extendRight(this.numBlocks() + 1)
+          return this.blocks[i + 1]!
+        })
+      block.deleteOutOf = (dir, cursor) => {
+        if (dir == R) {
+          throw new Error("TODO: implement this")
+        }
+        if (block.getEnd(L) instanceof Ampersand) {
+          
+        }
+        // if (dir == L) {
+        //   if (this.blocks.length <= 1) {
+        //     cursor.insLeftOf(this)
+        //     return
+        //   }
+        //   this.setBlocks(this.blocks.toSpliced(i, 1))
+        //   const next = this.blocks[i - 1] || this.blocks[i]
+        //   if (next) {
+        //     cursor.insAtLeftEnd(next)
+        //   } else {
+        //     cursor.insLeftOf(this)
+        //   }
+        // } else {
+        //   if (this.blocks.length <= 1) {
+        //     cursor.insRightOf(this)
+        //     return
+        //   }
+        //   this.setBlocks(this.blocks.toSpliced(i, 1))
+        //   const next = this.blocks[i]
+        //   if (next) {
+        //     cursor.insAtRightEnd(next)
+        //   } else {
+        //     cursor.insRightOf(this)
+        //   }
+        // }
+      }
+    }
+  }
+}
+
+class Ampersand extends MQSymbol {
+  constructor() {
+    super(
+      "&",
+      h("span", { class: "mq-amp mq-nonSymbola" }, [h.text("&")]),
+      "&",
+      "ampersand",
+    )
+  }
+}
+
+LatexCmds["&"] = Ampersand
 
 export const config: Readonly<V3.Config> = Object.freeze({
   autoOperatorNames:
