@@ -202,8 +202,10 @@ export abstract class Extendable extends MathCommand {
       }
       blocks[i] = next
       next.adopt(this, this.getEnd(R), 0)
-      next[L] = blocks[i - 1] || 0
-      next[R] = blocks[i + 1] || 0
+    }
+    for (let i = 0; i < numBlocks; i += 1) {
+      blocks[i]![L] = blocks[i - 1] || 0
+      blocks[i]![R] = blocks[i + 1] || 0
     }
     if (blocks[0]) {
       blocks[0][L] = 0
@@ -740,6 +742,8 @@ class AlignBar extends MQSymbol {
     left.adopt(blockLeft, 0, 0)
     const blockRight = new MathBlock()
     right.adopt(blockRight, 0, 0)
+    blockLeft[R] = blockRight
+    blockRight[L] = blockLeft
 
     const next = extendable.blocks.toSpliced(
       extendable.blocks.indexOf(block),
@@ -797,25 +801,42 @@ class AlignBar extends MQSymbol {
 
 CharCmds["&"] = AlignBar
 
-{
-  const insDirOf = Cursor.prototype.insDirOf
-
-  Cursor.prototype.insDirOf = function (dir, el) {
-    if (
-      dir == L &&
-      el instanceof AlignBar &&
-      el.parent instanceof MathBlock &&
-      el.parent.parent instanceof Extendable
-    ) {
-      const idx = el.parent.parent.blocks.indexOf(el.parent)
-      // idx cannot be first block
-      if (idx > 0) {
-        return this.insAtRightEnd(el.parent.parent.blocks[idx - 1]!)
-      }
-    }
-    return insDirOf.call(this, dir, el)
-  }
-}
+// {
+// const insDirOf = Cursor.prototype.insDirOf
+// Cursor.prototype.insDirOf = function (dir, el) {
+//   if (
+//     dir == L &&
+//     el instanceof AlignBar &&
+//     el.parent instanceof MathBlock &&
+//     el.parent.parent instanceof Extendable
+//   ) {
+//     const idx = el.parent.parent.blocks.indexOf(el.parent)
+//     // idx cannot be first block
+//     if (idx > 0) {
+//       return this.insAtRightEnd(el.parent.parent.blocks[idx - 1]!)
+//     }
+//   }
+//   return insDirOf.call(this, dir, el)
+// }
+// const insAtDirEnd = Cursor.prototype.insAtDirEnd
+// Cursor.prototype.insAtDirEnd = function (dir, el) {
+//   if (dir == L) {
+//     const left = el.children().ends[L]
+//     if (
+//       left instanceof AlignBar &&
+//       el instanceof MathBlock &&
+//       el.parent instanceof Extendable
+//     ) {
+//       const idx = el.parent.blocks.indexOf(el)
+//       // idx cannot be first block
+//       if (idx > 0) {
+//         return this.insAtRightEnd(el.parent.blocks[idx - 1]!)
+//       }
+//     }
+//   }
+//   return insAtDirEnd.call(this, dir, el)
+// }
+// }
 
 export const config: Readonly<V3.Config> = Object.freeze({
   autoOperatorNames:

@@ -686,7 +686,8 @@
   align-items: baseline;
   padding: 0 0.2em;
 }
-:where(.mq-math-mode .mq-align-grid:has(.mq-hasCursor) .mq-amp) {
+:where(.mq-math-mode :has(.mq-hasCursor) > * > .mq-amp),
+:where(.mq-math-mode .mq-selection .mq-amp) {
   display: inline-block;
 }
 :where(.mq-math-mode .mq-align-item-first) {
