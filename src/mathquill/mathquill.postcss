@@ -529,13 +529,13 @@
     .mq-math-mode .mq-selection .mq-scaled,
     .mq-editable-field .mq-selection .mq-scaled
   ) {
-  background: var(--z-mq-selection) !important;
+  background: var(--z-mq-selection);
 }
 :where(
     html body .mq-math-mode .mq-selection .mq-nthroot-container *,
     html body .mq-editable-field .mq-selection .mq-nthroot-container *
   ) {
-  background: transparent !important;
+  background: transparent;
 }
 :where(.mq-editable-field .mq-textarea, .mq-math-mode .mq-textarea) {
   position: relative;
@@ -645,9 +645,10 @@
 }
 :where(.mq-math-mode .mq-piecewise-grid) {
   display: inline-grid;
-  gap: 0.2em 0em;
+  gap: 0.2em 0;
   grid-template-columns: auto auto;
   align-items: baseline;
+  text-align: left;
 }
 :where(.mq-math-mode .mq-piecewise-right)::before {
   content: "if";
@@ -659,12 +660,14 @@
 }
 :where(.mq-math-mode .mq-piecewise-final.mq-empty) {
   padding-left: 0.2em;
-  background-color: var(--z-mq-root-maybe-selected);
+  background-color: transparent;
   &::before {
     content: "";
     padding: 0;
+    background-color: transparent;
   }
   &::after {
+    background-color: transparent;
     content: "else";
     opacity: 30%;
     visibility: visible;
