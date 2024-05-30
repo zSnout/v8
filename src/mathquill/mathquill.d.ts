@@ -239,11 +239,8 @@ export interface DefaultJquery {
   [index: number]: HTMLElement | undefined
 }
 
-export var LatexCmds: Record<
-  string,
-  | (new (...args: any[]) => { domView: DOMView })
-  | ((...args: any[]) => { domView: DOMView })
->
+export var LatexCmds: Record<string, new (...args: any[]) => MQNode>
+export var CharCmds: Record<string, new (...args: any[]) => MQNode>
 
 export class NodeBase {
   parser(): Parser<this>
@@ -260,16 +257,37 @@ export interface MathspeakOptions {
 export class MQNode extends NodeBase {
   [L]: MQNode | 0;
   [R]: MQNode | 0
+  parent: MQNode | undefined
   domView: DOMView
   ctrlSeq: string
   textTemplate: string[]
   mathspeakTemplate: string[]
   mathspeak(opts?: MathspeakOptions): string
   getEnd(end: Direction): MQNode | 0
-  adopt(parent: MQNode, leftward: MQNode | 0, rightward: MQNode | 0): void
+  children(): Fragment
+  html(): void
+  adopt(parent: MQNode, leftward: MQNode | 0, rightward: MQNode | 0): MQNode | 0
   upOutOf?: VertOutOf | ((cursor: Cursor) => VertOutOf)
   downOutOf?: VertOutOf | ((cursor: Cursor) => VertOutOf)
-  deleteOutOf?: (dir: Direction, cursor: Cursor) => void
+  moveOutOf(
+    direction: Direction,
+    cursor: Cursor,
+    updown: "up" | "down" | undefined,
+  ): void
+  moveTowards(
+    direction: Direction,
+    cursor: Cursor,
+    updown: "up" | "down" | undefined,
+  ): void
+  createDir(direction: Direction, cursor: Cursor): void
+  createLeftOf(cursor: Cursor): void
+  deleteOutOf(direction: Direction, cursor: Cursor): void
+  deleteTowards(direction: Direction, cursor: Cursor): void
+  unselectInto(direction: Direction, cursor: Cursor): void
+  selectOutOf(direction: Direction, cursor: Cursor): void
+  selectTowards(direction: Direction, cursor: Cursor): void
+  ariaLabel: string
+  domFrag(): DOMFragment
 }
 
 export interface LatexRecursiveContext {
@@ -295,6 +313,11 @@ export class MathCommand extends MathElement {
   _el: HTMLElement | SVGElement
   numBlocks(): number
   finalizeTree?(): void
+  moveTowards(
+    dir: Direction,
+    cursor: Cursor,
+    updown: "up" | "down" | undefined,
+  ): void
 }
 
 export class MQSymbol extends MathCommand {
@@ -349,8 +372,11 @@ export class Letter extends Variable {
 }
 
 export class DOMFragment {
+  constructor(left: Element | undefined, right: Element | undefined)
   toggleClass(name: string, active: boolean): void
   addClass(name: string): void
+  insDirOf(dir: Direction, frag: DOMFragment): void
+  ends?: { [L]: Element; [R]: Element }
 }
 
 export var SVG_SYMBOLS: {
@@ -440,7 +466,7 @@ export var bindBinaryOperator: {
     htmlEntity?: string,
     text?: string,
     mathspeak?: string,
-  ): () => MQNode
+  ): new () => MQNode
 }
 
 export type NodeRef = MQNode | 0
@@ -530,3 +556,18 @@ export type CursorOptions = unknown
 export type MQSelection = unknown
 export type Anticursor = unknown
 export type ControllerBase = unknown
+
+export class Fragment {
+  ends: {
+    [L]: MQNode | 0
+    [R]: MQNode | 0
+  }
+
+  constructor(withDir: MQNode | 0, oppDir: MQNode | 0, dir: Direction)
+
+  domFrag(): DOMFragment
+  adopt(parent: MQNode, leftward: MQNode | 0, rightward: MQNode | 0): MQNode
+  disown(): Fragment
+  remove(): Fragment
+  each(fn: (node: MQNode) => void): void
+}

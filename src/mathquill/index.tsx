@@ -8,10 +8,15 @@ import {
 import { createEffect, untrack } from "solid-js"
 import { isServer } from "solid-js/web"
 import {
+  CharCmds,
+  Cursor,
   DOMView,
+  Direction,
+  Fragment,
   L,
   LatexCmds,
   Letter,
+  MQNode,
   MQSymbol,
   MathBlock,
   MathCommand,
@@ -113,8 +118,8 @@ LatexCmds.dual = class extends MathCommand {
   }
 
   override finalizeTree() {
-    var endsL = this.getEnd(L)
-    var endsR = this.getEnd(R)
+    const endsL = this.getEnd(L) as MQNode
+    const endsR = this.getEnd(R) as MQNode
     this.upInto = endsR.upOutOf = endsL
     this.downInto = endsL.downOutOf = endsR
     endsL.ariaLabel = "dual-large"
@@ -197,6 +202,8 @@ export abstract class Extendable extends MathCommand {
       }
       blocks[i] = next
       next.adopt(this, this.getEnd(R), 0)
+      next[L] = blocks[i - 1] || 0
+      next[R] = blocks[i + 1] || 0
     }
     if (blocks[0]) {
       blocks[0][L] = 0
@@ -490,7 +497,7 @@ LatexCmds.align = class extends Extendable {
             {
               class:
                 "mq-align-item mq-non-leaf" +
-                (left instanceof Ampersand
+                (left instanceof AlignBar
                   ? " mq-align-sameline"
                   : " mq-align-newline"),
               style:
@@ -498,7 +505,7 @@ LatexCmds.align = class extends Extendable {
                 blocks
                   .slice(0, index + 1)
                   .reduce(
-                    (a, b) => (b.getEnd(L) instanceof Ampersand ? a : a + 1),
+                    (a, b) => (b.getEnd(L) instanceof AlignBar ? a : a + 1),
                     0,
                   ),
             },
@@ -546,6 +553,20 @@ LatexCmds.align = class extends Extendable {
       const block = this.blocks[i]!
       const above = this.blocks[i - 1]
       const below = this.blocks[i + 1]
+      const orig = block.moveOutOf
+      block.moveOutOf = function (dir, cursor, updown) {
+        if (dir == R) {
+          const next = this[R]
+          if (next) {
+            const left = next.getEnd(L)
+            if (left instanceof AlignBar) {
+              cursor.insRightOf(left)
+              return
+            }
+          }
+        }
+        orig.call(this, dir, cursor, updown)
+      }
       block.upOutOf =
         above ||
         (() => {
@@ -558,55 +579,172 @@ LatexCmds.align = class extends Extendable {
           this.extendRight(this.numBlocks() + 1)
           return this.blocks[i + 1]!
         })
-      block.deleteOutOf = (dir, cursor) => {
+      block.deleteOutOf = (dir, _cursor) => {
         if (dir == R) {
           throw new Error("TODO: implement this")
         }
-        if (block.getEnd(L) instanceof Ampersand) {
-          
+        if (block.getEnd(L) instanceof AlignBar) {
         }
-        // if (dir == L) {
-        //   if (this.blocks.length <= 1) {
-        //     cursor.insLeftOf(this)
-        //     return
-        //   }
-        //   this.setBlocks(this.blocks.toSpliced(i, 1))
-        //   const next = this.blocks[i - 1] || this.blocks[i]
-        //   if (next) {
-        //     cursor.insAtLeftEnd(next)
-        //   } else {
-        //     cursor.insLeftOf(this)
-        //   }
-        // } else {
-        //   if (this.blocks.length <= 1) {
-        //     cursor.insRightOf(this)
-        //     return
-        //   }
-        //   this.setBlocks(this.blocks.toSpliced(i, 1))
-        //   const next = this.blocks[i]
-        //   if (next) {
-        //     cursor.insAtRightEnd(next)
-        //   } else {
-        //     cursor.insRightOf(this)
-        //   }
-        // }
       }
     }
   }
 }
 
-class Ampersand extends MQSymbol {
+class PlainAmpersand extends MQSymbol {
+  constructor() {
+    super("\\&", h("span", { class: "mq-nonSymbola" }, [h.text("&")]), "and")
+  }
+}
+
+class AlignBar extends MQSymbol {
   constructor() {
     super(
       "&",
       h("span", { class: "mq-amp mq-nonSymbola" }, [h.text("&")]),
       "&",
-      "ampersand",
+      "alignment marker",
     )
+  }
+
+  override moveTowards(
+    dir: Direction,
+    cursor: Cursor,
+    _updown: "up" | "down" | undefined,
+  ): void {
+    if (dir == L) {
+      if (this.parent instanceof MathBlock) {
+        const prev = this.parent[L]
+        if (prev instanceof MathBlock) {
+          cursor.insAtRightEnd(prev)
+          return
+        }
+      }
+    } else {
+      cursor.insRightOf(this)
+      return
+    }
+    cursor.domFrag().insDirOf(dir, this.domFrag())
+    cursor[-dir as Direction] = this
+    cursor[dir] = this[dir]
+    ;(cursor.controller as any).aria.queue(this)
+  }
+
+  override createDir(direction: Direction, cursor: Cursor): void {
+    if (
+      !(cursor.parent instanceof MathBlock) ||
+      !(cursor.parent.parent instanceof Extendable)
+    ) {
+      new PlainAmpersand().createDir(direction, cursor)
+      return
+    }
+
+    // TODO: make this work when inserting to right
+    this.createLeftOf(cursor)
+    return
+  }
+
+  override createLeftOf(cursor: Cursor): void {
+    if (
+      !(cursor.parent instanceof MathBlock) ||
+      !(cursor.parent.parent instanceof Extendable)
+    ) {
+      new PlainAmpersand().createLeftOf(cursor)
+      return
+    }
+
+    const block = cursor.parent
+    const extendable = cursor.parent.parent
+
+    // const align = new AlignBar()
+    // super.createLeftOf.call(align, cursor)
+    const left =
+      cursor[L] && block.getEnd(L)
+        ? new Fragment(block.getEnd(L), cursor[L], L)
+        : new Fragment(0, 0, 1)
+    const right =
+      cursor[R] && block.getEnd(R)
+        ? new Fragment(cursor[R], block.getEnd(R), L)
+        : new Fragment(0, 0, 1)
+    const blockLeft = new MathBlock()
+    left.adopt(blockLeft, 0, 0)
+    const blockRight = new MathBlock()
+    right.adopt(blockRight, 0, 0)
+
+    const next = extendable.blocks.toSpliced(
+      extendable.blocks.indexOf(block),
+      1,
+      blockLeft,
+      blockRight,
+    )
+
+    const align = new AlignBar()
+    align.html()
+    align.adopt(blockRight, 0, blockRight.getEnd(L))
+    align.domFrag().insDirOf(L, blockRight.domFrag())
+    extendable.setBlocks(next)
+    cursor.insRightOf(align)
+  }
+
+  override deleteTowards(direction: Direction, cursor: Cursor): void {
+    if (
+      // this node should only ever be at the beginning of extendables
+      // let it do its normal thing in other cases
+      !(this.parent instanceof MathBlock) ||
+      !(this.parent.parent instanceof Extendable) ||
+      // your cursor is never allowed to be on the left side of an align node
+      direction == R
+    ) {
+      super.deleteTowards(direction, cursor)
+      return
+    }
+
+    const block = this.parent
+    const extendable = this.parent.parent
+
+    const left =
+      extendable.blocks[extendable.blocks.indexOf(block) - 1]?.children()
+    const right = block.children()
+
+    if (!left) {
+      super.deleteTowards(direction, cursor)
+      return
+    }
+
+    const blockJoin = new MathBlock()
+    left.adopt(blockJoin, blockJoin.getEnd(R), 0)
+    right.adopt(blockJoin, blockJoin.getEnd(R), 0)
+    const next = extendable.blocks.toSpliced(
+      extendable.blocks.indexOf(block) - 1,
+      2,
+      blockJoin,
+    )
+    extendable.setBlocks(next)
+    cursor.insRightOf(this)
+    super.deleteTowards(L, cursor)
   }
 }
 
-LatexCmds["&"] = Ampersand
+CharCmds["&"] = AlignBar
+
+{
+  const insDirOf = Cursor.prototype.insDirOf
+
+  Cursor.prototype.insDirOf = function (dir, el) {
+    if (
+      dir == L &&
+      el instanceof AlignBar &&
+      el.parent instanceof MathBlock &&
+      el.parent.parent instanceof Extendable
+    ) {
+      const idx = el.parent.parent.blocks.indexOf(el.parent)
+      // idx cannot be first block
+      if (idx > 0) {
+        return this.insAtRightEnd(el.parent.parent.blocks[idx - 1]!)
+      }
+    }
+    return insDirOf.call(this, dir, el)
+  }
+}
 
 export const config: Readonly<V3.Config> = Object.freeze({
   autoOperatorNames:

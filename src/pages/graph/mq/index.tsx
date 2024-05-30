@@ -83,3 +83,29 @@ export function Main() {
     </>
   )
 }
+
+export function Main2() {
+  return (
+    <div class="x-group">
+      <div class="x-item">
+        <span>2</span>
+        <span>3</span>
+        <span>4</span>
+        <span>5</span>
+        <span class="x-divider x-after">=</span>
+        <sup class="x-after">37</sup>
+      </div>
+      <div class="x-item">
+        <span>y</span>
+        <span class="x-divider x-after">=</span>
+        <span class="x-after">x</span>
+        <span class="x-after">^</span>
+        <span class="x-after">2</span>
+        <span class="x-after">+</span>
+        <span class="x-after">3</span>
+        <span class="x-after">-</span>
+        <span class="x-after">7</span>
+      </div>
+    </div>
+  )
+}

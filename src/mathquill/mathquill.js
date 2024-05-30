@@ -3894,7 +3894,26 @@ var latexMathParser = (function () {
         return fail("unknown command: \\" + ctrlSeq)
       }
     })
-  var command = controlSequence.or(variable).or(number).or(symbol)
+  var loneAmpersand = regex(/^&/).then(() => {
+    // TODO - is Parser<MQNode> correct?
+    var cmdKlass = CharCmds["&"] || LatexCmds["&"]
+    if (cmdKlass) {
+      if (cmdKlass.constructor) {
+        var actualClass = cmdKlass // TODO - figure out how to know the difference
+        return new actualClass("&").parser()
+      } else {
+        var builder = cmdKlass // TODO - figure out how to know the difference
+        return builder("&").parser()
+      }
+    } else {
+      return fail("unknown command: \\&")
+    }
+  })
+  var command = loneAmpersand
+    .or(controlSequence)
+    .or(variable)
+    .or(number)
+    .or(symbol)
   // Parsers yielding MathBlocks
   var mathGroup = string("{")
     .then(function () {
@@ -10383,8 +10402,9 @@ CharCmds["\\"] = /** @class */ (function (_super) {
   return LatexCommandInput
 })(MathCommand)
 export {
-  DOMFragment,
+  CharCmds, Cursor, DOMFragment,
   DOMView,
+  Fragment,
   L,
   LatexCmds,
   Letter,
@@ -10394,13 +10414,14 @@ export {
   MathCommand,
   MathElement,
   NodeBase,
+  Parser,
   R,
   SVG_SYMBOLS,
   U_ZERO_WIDTH_SPACE,
   Variable,
+  bindBinaryOperator,
   getInterface,
   h,
-  latexMathParser,
-  Parser,
-  bindBinaryOperator,
+  latexMathParser
 }
+
