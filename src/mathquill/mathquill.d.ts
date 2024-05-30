@@ -286,6 +286,8 @@ export class MQNode extends NodeBase {
   unselectInto(direction: Direction, cursor: Cursor): void
   selectOutOf(direction: Direction, cursor: Cursor): void
   selectTowards(direction: Direction, cursor: Cursor): void
+  finalizeTree?(options: V3.Config, direction: Direction): void
+  sharedSiblingMethod?(options: V3.Config, direction: Direction): void
   ariaLabel: string
   domFrag(): DOMFragment
 }
@@ -312,7 +314,6 @@ export class MathCommand extends MathElement {
   blocks: MathBlock[]
   _el: HTMLElement | SVGElement
   numBlocks(): number
-  finalizeTree?(): void
   moveTowards(
     dir: Direction,
     cursor: Cursor,
@@ -489,7 +490,7 @@ export class Point {
 export class Cursor extends Point {
   controller: Controller
   parent: MQNode
-  options: CursorOptions
+  options: V3.Config
 
   /** Slightly more than just a "cache", this remembers the cursor's position in each block node, so that we can return to the right
    * point in that node when moving up and down among blocks.
@@ -502,11 +503,7 @@ export class Cursor extends Point {
   intervalId: number
   anticursor: Anticursor | undefined
 
-  constructor(
-    initParent: MQNode,
-    options: CursorOptions,
-    controller: Controller,
-  )
+  constructor(initParent: MQNode, options: V3.Config, controller: Controller)
 
   setDOMFrag(frag: DOMFragment): this
 
@@ -556,7 +553,6 @@ export class Cursor extends Point {
 }
 
 export type Controller = unknown
-export type CursorOptions = unknown
 export type MQSelection = unknown
 export type Anticursor = unknown
 export type ControllerBase = unknown

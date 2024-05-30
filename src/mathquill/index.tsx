@@ -213,7 +213,7 @@ export abstract class Extendable extends MathCommand {
     }
   }
 
-  setBlocks(blocks: (MathBlock | undefined)[]) {
+  setBlocks(blocks: (MathBlock | undefined)[], options: V3.Config) {
     const prev = this._el!
     const size = blocks.length
     this.updateDomView(size)
@@ -225,20 +225,24 @@ export abstract class Extendable extends MathCommand {
       if (block.isEmpty()) {
         block.domFrag().addClass("mq-empty")
       }
+      block.children().each((node) => {
+        node.finalizeTree?.(options, L)
+        node.sharedSiblingMethod?.(options, L)
+      })
     }
-    this.finalizeTree?.()
+    this.finalizeTree?.(options, L)
   }
 
-  extendLeft(size: number) {
+  extendLeft(size: number, options: V3.Config) {
     const next = Array.from({ length: size }, (_, i) =>
       this.blocks.at(i - size),
     )
-    this.setBlocks(next)
+    this.setBlocks(next, options)
   }
 
-  extendRight(size: number) {
+  extendRight(size: number, options: V3.Config) {
     const next = Array.from({ length: size }, (_, i) => this.blocks[i])
-    this.setBlocks(next)
+    this.setBlocks(next, options)
   }
 
   createBlocks() {
@@ -413,14 +417,14 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
       const below = this.blocks[i + 2]
       block.upOutOf =
         above ||
-        (() => {
-          this.extendLeft(this.numBlocks() + 2)
+        ((cursor) => {
+          this.extendLeft(this.numBlocks() + 2, cursor.options)
           return this.blocks[i]!
         })
       block.downOutOf =
         below ||
-        (() => {
-          this.extendRight(this.numBlocks() + 2)
+        ((cursor) => {
+          this.extendRight(this.numBlocks() + 2, cursor.options)
           return this.blocks[i + 2]!
         })
       block.deleteOutOf = (dir, cursor) => {
@@ -432,7 +436,10 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
               cursor.insLeftOf(this)
               return
             }
-            this.setBlocks(this.blocks.toSpliced(i % 2 ? i - 1 : i, 2))
+            this.setBlocks(
+              this.blocks.toSpliced(i % 2 ? i - 1 : i, 2),
+              cursor.options,
+            )
             const next = this.blocks[i - 2] || this.blocks[i]
             if (next) {
               cursor.insAtLeftEnd(next)
@@ -446,7 +453,10 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
               cursor.insRightOf(this)
               return
             }
-            this.setBlocks(this.blocks.toSpliced(i % 2 ? i - 1 : i, 2))
+            this.setBlocks(
+              this.blocks.toSpliced(i % 2 ? i - 1 : i, 2),
+              cursor.options,
+            )
             const next = this.blocks[i - 1]
             if (next) {
               cursor.insAtLeftEnd(next)
@@ -591,14 +601,14 @@ LatexCmds.align = class extends Extendable {
       }
       block.upOutOf =
         above ||
-        (() => {
-          this.extendLeft(this.numBlocks() + 1)
+        ((cursor) => {
+          this.extendLeft(this.numBlocks() + 1, cursor.options)
           return this.blocks[i]!
         })
       block.downOutOf =
         below ||
-        (() => {
-          this.extendRight(this.numBlocks() + 1)
+        ((cursor) => {
+          this.extendRight(this.numBlocks() + 1, cursor.options)
           return this.blocks[i + 1]!
         })
       block.deleteOutOf = (_dir, _cursor) => {
@@ -699,7 +709,7 @@ class AlignBar extends MQSymbol {
     align.html()
     align.adopt(blockRight, 0, blockRight.getEnd(L))
     align.domFrag().insDirOf(L, blockRight.domFrag())
-    extendable.setBlocks(next)
+    extendable.setBlocks(next, cursor.options)
     cursor.insRightOf(align)
   }
 
@@ -736,7 +746,7 @@ class AlignBar extends MQSymbol {
       2,
       blockJoin,
     )
-    extendable.setBlocks(next)
+    extendable.setBlocks(next, cursor.options)
     cursor.insRightOf(this)
     super.deleteTowards(L, cursor)
   }
