@@ -233,6 +233,23 @@ export abstract class Extendable extends MathCommand {
     this.finalizeTree?.(options, L)
   }
 
+  refreshDOMView(options: V3.Config) {
+    const prev = this._el
+    this.updateDomView(this.blocks.length)
+    this._el = this.domView.render(this.blocks)
+    prev.replaceWith(this._el)
+    for (const block of this.blocks) {
+      if (block.isEmpty()) {
+        block.domFrag().addClass("mq-empty")
+      }
+      block.children().each((node) => {
+        node.finalizeTree?.(options, L)
+        node.sharedSiblingMethod?.(options, L)
+      })
+    }
+    this.finalizeTree?.(options, L)
+  }
+
   extendLeft(size: number, options: V3.Config) {
     const next = Array.from({ length: size }, (_, i) =>
       this.blocks.at(i - size),
@@ -335,7 +352,6 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
         ),
       )
       return h(
-        // be set by createLeftOf or parser
         "span",
         { class: "mq-non-leaf mq-bracket-container mq-piecewise-container" },
         [
@@ -585,7 +601,6 @@ LatexCmds.align = class extends Extendable {
       const block = this.blocks[i]!
       const above = this.blocks[i - 1]
       const below = this.blocks[i + 1]
-      const orig = block.moveOutOf
       block.moveOutOf = function (dir, cursor, updown) {
         if (dir == R) {
           const next = this[R]
@@ -597,7 +612,7 @@ LatexCmds.align = class extends Extendable {
             }
           }
         }
-        orig.call(this, dir, cursor, updown)
+        MathBlock.prototype.moveOutOf.call(this, dir, cursor, updown)
       }
       block.upOutOf =
         above ||
@@ -611,8 +626,39 @@ LatexCmds.align = class extends Extendable {
           this.extendRight(this.numBlocks() + 1, cursor.options)
           return this.blocks[i + 1]!
         })
-      block.deleteOutOf = (_dir, _cursor) => {
-        throw new Error("TODO: implement this")
+      block.deleteOutOf = (dir, cursor) => {
+        if (dir == L) {
+          if (i == 0) {
+            cursor.insLeftOf(this)
+            return
+          }
+          const left = this.getEnd(L)
+          if (left instanceof AlignBar) {
+            left.deleteTowards(dir, cursor)
+          } else {
+            const bar = new AlignBar()
+            MQSymbol.prototype.createDir.call(bar, L, cursor)
+            this.refreshDOMView(cursor.options)
+            cursor.insRightOf(bar)
+          }
+        } else {
+          const nextBlock = this.blocks[i + 1]
+          if (!nextBlock) {
+            cursor.insRightOf(this)
+            return
+          }
+          const leftNext = nextBlock.getEnd(L)
+          if (leftNext instanceof AlignBar) {
+            cursor.insRightOf(leftNext)
+            leftNext.deleteTowards(L, cursor)
+          } else {
+            const bar = new AlignBar()
+            cursor.insAtLeftEnd(nextBlock)
+            MQSymbol.prototype.createDir.call(bar, L, cursor)
+            this.refreshDOMView(cursor.options)
+            cursor.insAtRightEnd(block)
+          }
+        }
       }
     }
   }
@@ -666,7 +712,6 @@ class AlignBar extends MQSymbol {
       return
     }
 
-    // TODO: make this work when inserting to right
     this.createLeftOf(cursor)
     return
   }
@@ -683,8 +728,6 @@ class AlignBar extends MQSymbol {
     const block = cursor.parent
     const extendable = cursor.parent.parent
 
-    // const align = new AlignBar()
-    // super.createLeftOf.call(align, cursor)
     const left =
       cursor[L] && block.getEnd(L)
         ? new Fragment(block.getEnd(L), cursor[L], L)
