@@ -487,31 +487,53 @@ LatexCmds.align = class extends Extendable {
 
   override updateDomView(size: number): void {
     this.domView = new DOMView(size, (blocks) => {
-      return h(
-        "span",
-        { class: "mq-non-leaf mq-align-grid" },
-        blocks.map((block, index) => {
-          const left = block.getEnd(L)
-          return h.block(
+      let row = 0
+      let col = 0
+      let maxCol = 1
+
+      const inner: HTMLElement[] = []
+      for (const block of blocks) {
+        if (block.getEnd(L) instanceof AlignBar) {
+          if (row == 0) {
+            row += 1
+          }
+          col += 1
+        } else {
+          row += 1
+          maxCol = Math.max(maxCol, col)
+          col = 1
+          const prev = inner[inner.length - 1]
+          if (prev) {
+            prev.classList.add("mq-align-item-extended")
+          }
+        }
+
+        inner.push(
+          h.block(
             "span",
             {
-              class:
-                "mq-align-item mq-non-leaf" +
-                (left instanceof AlignBar
-                  ? " mq-align-sameline"
-                  : " mq-align-newline"),
-              style:
-                "--index:" +
-                blocks
-                  .slice(0, index + 1)
-                  .reduce(
-                    (a, b) => (b.getEnd(L) instanceof AlignBar ? a : a + 1),
-                    0,
-                  ),
+              class: "mq-non-leaf" + (col == 1 ? " mq-align-item-first" : ""),
+              style: `grid-row:${row} / ${row + 1};grid-column:${col} / ${
+                col + 1
+              }`,
             },
             block,
-          )
-        }),
+          ),
+        )
+      }
+
+      const prev = inner[inner.length - 1]
+      if (prev) {
+        prev.classList.add("mq-align-item-extended")
+      }
+
+      return h(
+        "span",
+        {
+          class: "mq-non-leaf mq-align-grid",
+          style: `--mq-final-col:${maxCol + 1}`,
+        },
+        inner,
       )
     })
   }
@@ -579,12 +601,8 @@ LatexCmds.align = class extends Extendable {
           this.extendRight(this.numBlocks() + 1)
           return this.blocks[i + 1]!
         })
-      block.deleteOutOf = (dir, _cursor) => {
-        if (dir == R) {
-          throw new Error("TODO: implement this")
-        }
-        if (block.getEnd(L) instanceof AlignBar) {
-        }
+      block.deleteOutOf = (_dir, _cursor) => {
+        throw new Error("TODO: implement this")
       }
     }
   }

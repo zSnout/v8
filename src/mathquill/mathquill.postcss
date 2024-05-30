@@ -671,12 +671,13 @@
   }
 }
 :where(.mq-math-mode .mq-amp) {
-  display: inline-block;
+  display: none;
   width: 1px;
+  margin: 0 0.1em;
   border-left: 1px dashed currentColor;
   overflow: clip;
-  margin: 0 0.1em;
   height: 100%;
+  opacity: 50%;
 }
 :where(.mq-math-mode .mq-align-grid) {
   vertical-align: middle;
@@ -684,6 +685,9 @@
   gap: 0.2em 0em;
   align-items: baseline;
 }
-:where(.mq-math-mode .mq-align-item) {
-  grid-row: var(--index) / calc(var(--index) + 1);
+:where(.mq-math-mode .mq-align-grid:has(.mq-hasCursor) .mq-amp) {
+  display: inline-block;
+}
+:where(.mq-math-mode .mq-align-item-first) {
+  text-align: right;
 }

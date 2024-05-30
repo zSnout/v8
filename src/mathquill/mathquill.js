@@ -10402,7 +10402,9 @@ CharCmds["\\"] = /** @class */ (function (_super) {
   return LatexCommandInput
 })(MathCommand)
 export {
-  CharCmds, Cursor, DOMFragment,
+  CharCmds,
+  Cursor,
+  DOMFragment,
   DOMView,
   Fragment,
   L,
@@ -10422,6 +10424,5 @@ export {
   bindBinaryOperator,
   getInterface,
   h,
-  latexMathParser
+  latexMathParser,
 }
-

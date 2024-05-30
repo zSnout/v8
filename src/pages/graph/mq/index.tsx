@@ -48,7 +48,7 @@ export function Main() {
             setTimeout(() => {
               mq.latex(
                 // String.raw`\left(z-m\right)^{2}\times\dual{c}{m}\times\frozenmouse{2+3i}\piecewise{x^{2}-3}{x<4}{\log_{2}x}{4<x\le89}{a}{b}{c}{d}\align{243&3}{43&3^{26^{2^{3^{3}}}}}`,
-                String.raw`\align{22267}{&65543}{&23}{4}{&5^{6^{7}}}`,
+                String.raw`\align{22267}{&65543}{&23}{4}{&5^{6^{7}}}{}`,
               )
             })
           }}
@@ -78,34 +78,12 @@ export function Main() {
       <div>{plaintext()}</div>
       <div>{mathspeak()}</div>
       <div>{glsl()}</div>
-      <pre class="bg-red-100">{JSON.stringify(glslTree(), undefined, 2)}</pre>
-      <pre class="bg-blue-100">{JSON.stringify(output(), undefined, 2)}</pre>
+      <pre class="bg-red-100 text-z dark:bg-red-950">
+        {JSON.stringify(glslTree(), undefined, 2)}
+      </pre>
+      <pre class="bg-blue-100 text-z dark:bg-blue-950">
+        {JSON.stringify(output(), undefined, 2)}
+      </pre>
     </>
-  )
-}
-
-export function Main2() {
-  return (
-    <div class="x-group">
-      <div class="x-item">
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>5</span>
-        <span class="x-divider x-after">=</span>
-        <sup class="x-after">37</sup>
-      </div>
-      <div class="x-item">
-        <span>y</span>
-        <span class="x-divider x-after">=</span>
-        <span class="x-after">x</span>
-        <span class="x-after">^</span>
-        <span class="x-after">2</span>
-        <span class="x-after">+</span>
-        <span class="x-after">3</span>
-        <span class="x-after">-</span>
-        <span class="x-after">7</span>
-      </div>
-    </div>
   )
 }

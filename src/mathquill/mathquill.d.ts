@@ -411,7 +411,11 @@ export var h: {
     children?: JSX.Element[],
   ): SVGElementTagNameMap[K]
   (type: string, attribute: object, children?: JSX.Element[]): JSX.Element
-  block(type: string, attribute: object, block: MathBlock): JSX.Element
+  block(
+    type: keyof HTMLElementTagNameMap,
+    attribute: object,
+    block: MathBlock,
+  ): HTMLElement
   text(text: string): JSX.Element
 }
 
