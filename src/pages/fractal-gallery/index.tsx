@@ -422,6 +422,7 @@ const FRACTALS = [
   "https://v8.zsnout.com/fractal-explorer?theme=none&equation=%7E%7Ez-%5Cfrac%7Bz%5E%7B3%7D%2Bz%5Cleft%28c-1%5Cright%29-c%7D%7B3z%5E%7B2%7D%2Bc-1%7D&inner_theme=blobs&top=2.2951172592412905&right=2.0297880548799303&bottom=-2.3469437348718283&left=-2.612272939233189&z=%7E%7E0&c=%7E%7Ep%5Codot%5Coperatorname%7Bfx%7D&repetitionSign=1&detail=98",
   "https://v8.zsnout.com/fractal-explorer?top=0.6142580703517614&right=-0.5965780093026045&bottom=0.6134834930742413&left=-0.5973525865801246&theme=gradient&z=%7E%7Ep&c=%7E%7Ep&size=1.4120203087484517&equation=%7E%7Ez%5E%7B2%7D%2Bc&outer_c=false&inner_theme=blobs&inner_a=true&detail=358&outer_b=true&outer_a=false&inner_b=true&colorOffset=313.332709580838&smoothness=50",
   "https://v8.zsnout.com/fractal-explorer?equation=%7E%7E%5Cleft%28%5Coperatorname%7Bunsign%7Dz%5Cright%29%5E%7B2%7D%2Bc%5Codot%5Coperatorname%7Bfx%7D&top=0.9270793425225151&right=-0.034734374790994726&bottom=0.9261424423595729&left=-0.03567127495393681&inner_theme=blobs&theme=black&outer_a=true&outer_b=true&repetition=1.0052359216489732&detail=37&spectrum=18.4693113772455&colorOffset=350.518338323353",
+  "https://v8.zsnout.com/fractal-explorer?top=0.945308355529488&right=1.5725626087613018&bottom=-0.9322555870149579&left=-0.3050013337834061&equation=%7E%7E%5Cleft%7Cz%5E%7B2%7Dc%5Cright%7C-z%5E%7B2%7D-c&theme=gradient&inner_theme=black&outer_a=false&outer_b=false&inner_a=false&outer_c=true",
 ]
 
 export function Main() {
