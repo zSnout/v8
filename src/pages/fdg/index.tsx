@@ -39,12 +39,14 @@ export interface Link {
   readonly a: number
   readonly b: number
   readonly n: number
+  readonly vert?: number | undefined // a or b
 }
 
 export interface MutableLink {
   a: number
   b: number
   n: number
+  vert?: number | undefined // a or b
 }
 
 export interface Position {
@@ -113,21 +115,42 @@ export function createForceDirectedGraph(props?: {
       }
     }
 
-    for (const { a, b, n } of links()) {
+    for (const { a, b, n, vert } of links()) {
       const na = list[a]!
       const nb = list[b]!
-      const d = Math.hypot(na.x - nb.x, na.y - nb.y)
-      const atan = Math.atan2(na.y - nb.y, na.x - nb.x)
+      let dx: number, dy: number
+      if (vert == a || vert == b) {
+        const n0 = vert == a ? list[a]! : list[b]!
+        const n1 = vert == a ? list[b]! : list[a]!
+        const d = n0.y - n1.y
+        dx = 0
+        // positive dy means n0 up, n1 down
+        if (d > 0) {
+          // n0 is lower / has more y
+          dy = d + 1
+        } else {
+          // n0 is higher / has less y
+          dy = 1 / (1 - d)
+        }
+        if (vert == b) {
+          dy = -dy
+        }
+      } else {
+        const d = Math.hypot(na.x - nb.x, na.y - nb.y)
+        const atan = Math.atan2(na.y - nb.y, na.x - nb.x)
+        dx = n * attraction * (Math.cos(atan) * d)
+        dy = n * attraction * (Math.sin(atan) * d)
+      }
 
       attractions[a] = {
-        x: attractions[a]!.x - n * attraction * (Math.cos(atan) * d),
-        y: attractions[a]!.y - n * attraction * (Math.sin(atan) * d),
+        x: attractions[a]!.x - dx,
+        y: attractions[a]!.y - dy,
         n: attractions[a]!.n + n,
       }
 
       attractions[b] = {
-        x: attractions[b]!.x + n * attraction * (Math.cos(atan) * d),
-        y: attractions[b]!.y + n * attraction * (Math.sin(atan) * d),
+        x: attractions[b]!.x + dx,
+        y: attractions[b]!.y + dy,
         n: attractions[b]!.n + n,
       }
     }
@@ -343,6 +366,7 @@ export function createForceDirectedGraph(props?: {
                     a: link.index,
                     b: closestNode.index,
                     n: 1,
+                    vert: link.index,
                   })
                 }
               })
@@ -433,7 +457,7 @@ export function createForceDirectedGraph(props?: {
               y: cursor.y / scale(),
               label: "" + ring,
               locked: false,
-              ring,
+              // ring,
             })
           })
         }
@@ -646,7 +670,10 @@ export function Main() {
     setMoveY,
     forces,
     setForces,
+    setPosition,
   } = createForceDirectedGraph()
+
+  setPosition({ x: 0, y: 0, w: 15 })
 
   return (
     <div class="relative h-full w-full">
