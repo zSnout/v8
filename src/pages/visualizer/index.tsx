@@ -139,14 +139,15 @@ async function showColors(zip: ZipInfo, graph: FDG) {
       }
     }
   }
+
   batch(() => {
     setNodes(graph, nodes)
     graph.setLinks(links)
-    graph.setForces({
-      center: 1,
+    graph.setForces((forces) => ({
+      ...forces,
       repulsion: 2,
       attraction: 1,
-    })
+    }))
   })
 }
 
@@ -192,11 +193,11 @@ async function showAnimals(zip: ZipInfo, graph: FDG) {
   batch(() => {
     setNodes(graph, nodes)
     graph.setLinks(links)
-    graph.setForces({
-      center: 1,
+    graph.setForces((forces) => ({
+      ...forces,
       repulsion: 2,
       attraction: 1,
-    })
+    }))
   })
 }
 
@@ -263,11 +264,11 @@ async function showFractals(zip: ZipInfo, graph: FDG) {
   batch(() => {
     setNodes(graph, nodes)
     graph.setLinks(links)
-    graph.setForces({
-      center: 1,
+    graph.setForces((forces) => ({
+      ...forces,
       repulsion: 2,
       attraction: 1,
-    })
+    }))
   })
 }
 

@@ -77,26 +77,35 @@ side		一	丨
 寺	寺	土	寸		
 時	時	日	寺		`
   .split("\n")
-  .map((row) => {
+  .map((row, index) => {
     const [name, kanji, ...inner] = row.split("\t")
 
     return {
       name: name || "",
       kanji: kanji || "",
       inner: inner.filter((x) => x).filter((x, i, a) => a.indexOf(x) == i),
+      index,
     }
   })
 
+const SCALE = 0.5
+const MAX_STRENGTH = 1
+const MAX_STROKES = 3
+
 export function Main() {
   const nodes: MutableNode[] = []
-  for (const { name } of data) {
+  for (const { name, index, inner } of data) {
+    const yStroke = (inner.length * (50 / MAX_STROKES) - 25) * SCALE
+    const yIndex = (index / data.length - 0.5) * 50 * SCALE
     nodes.push({
       x: Math.random() * 10 - 5,
       y: Math.random() * 10 - 5,
       locked: false,
       label: name,
+      // preferredY: (yStroke + yIndex) / 2,
+      // preferredY: yIndex,
       el: (
-        <span class="rounded-3xl border border-z-text-heading bg-white p-2 text-center text-9xl">
+        <span class="rounded-3xl bg-z-body-selected p-2 text-center text-9xl">
           {name.length == 1 ? name : "〜"}
         </span>
       ),
@@ -113,14 +122,14 @@ export function Main() {
       links.push({
         a: ai,
         b: bi,
-        n: 1,
+        n: (MAX_STRENGTH * (bi - ai)) / data.length,
         vert: ai,
       })
 
       links.push({
         a: ai,
         b: bi,
-        n: 0.1,
+        n: (MAX_STRENGTH * (bi - ai)) / data.length,
       })
     }
   }
@@ -129,14 +138,19 @@ export function Main() {
     createForceDirectedGraph()
 
   batch(() => {
-    setPosition({ x: 0, y: 0, w: 50 })
-    setSpeed(2000)
+    setPosition({ x: 0, y: 0, w: 40 })
+    setSpeed(20)
     setNodes(nodes)
     setLinks(links)
     setForces({
       center: 0.1,
-      repulsion: 1,
-      attraction: 1,
+      preferredHeight: 0,
+
+      repulsion: SCALE * 1,
+
+      attraction: 0.1,
+      vertOnlyWhenFixed: 5,
+      vertOnlyWhenRepairing: 50,
     })
   })
 

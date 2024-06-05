@@ -22,6 +22,7 @@ export interface Node {
   readonly ring?: number | undefined
   readonly noBorder?: boolean | undefined
   readonly el?: JSX.Element | undefined
+  readonly preferredY?: number | undefined
 }
 
 export interface MutableNode {
@@ -33,6 +34,7 @@ export interface MutableNode {
   ring?: number | undefined
   border?: boolean | undefined
   el?: JSX.Element | undefined
+  preferredY?: number | undefined
 }
 
 export interface Link {
@@ -56,9 +58,14 @@ export interface Position {
 }
 
 export interface Forces {
-  readonly repulsion: number
-  readonly attraction: number
   readonly center: number
+  readonly preferredHeight: number
+
+  readonly repulsion: number
+
+  readonly attraction: number
+  readonly vertOnlyWhenRepairing: number
+  readonly vertOnlyWhenFixed: number
 }
 
 export interface Dragging {
@@ -86,15 +93,29 @@ export function createForceDirectedGraph(props?: {
   }
 
   function iterate(time: number) {
-    const { attraction, center, repulsion } = forces()
+    const {
+      center,
+      preferredHeight,
+      repulsion,
+      attraction,
+      vertOnlyWhenRepairing,
+      vertOnlyWhenFixed,
+    } = forces()
     const list = nodes()
     const currentHeld = dragging()?.index
 
-    const diffs = list.map(({ x, y, ring = 0 }) => {
+    const diffs = list.map(({ x, y, ring = 0, preferredY }) => {
       const rawSize = Math.hypot(x, y) - ring
       const direction = Math.atan2(y, x) + (rawSize > 0 ? Math.PI : 0)
       const size = Math.abs(rawSize) * center
-      return { x: size * Math.cos(direction), y: size * Math.sin(direction) }
+      const diff = {
+        x: size * Math.cos(direction),
+        y: size * Math.sin(direction),
+      }
+      if (preferredY != null) {
+        diff.y += (preferredY - y) * preferredHeight
+      }
+      return diff
     })
 
     const attractions = list.map(() => ({ x: 0, y: 0, n: 0 }))
@@ -127,10 +148,10 @@ export function createForceDirectedGraph(props?: {
         // positive dy means n0 up, n1 down
         if (d > 0) {
           // n0 is lower / has more y
-          dy = d + 1
+          dy = (d + 1) * n * vertOnlyWhenRepairing
         } else {
           // n0 is higher / has less y
-          dy = 1 / (1 - d)
+          dy = (n * vertOnlyWhenFixed) / (1 - d)
         }
         if (vert == b) {
           dy = -dy
@@ -219,8 +240,11 @@ export function createForceDirectedGraph(props?: {
 
   const [forces, setForces] = createSignal<Forces>({
     center: 1,
+    preferredHeight: 1,
     repulsion: 1,
     attraction: 0.25,
+    vertOnlyWhenFixed: 0.25,
+    vertOnlyWhenRepairing: 0.25,
   })
 
   // Set internally
@@ -382,12 +406,13 @@ export function createForceDirectedGraph(props?: {
 
             setLinks((links) => {
               const next = links
-                .map(({ a, b, n }) => {
+                .map(({ a, b, n, ...link }) => {
                   if (a == linkIndex || b == linkIndex) {
                     return undefined
                   }
 
                   const next = {
+                    ...link,
                     a: a > linkIndex ? a - 1 : a,
                     b: b > linkIndex ? b - 1 : b,
                     n,
@@ -396,8 +421,6 @@ export function createForceDirectedGraph(props?: {
                   return next
                 })
                 .filter((x): x is typeof x & {} => !!x)
-
-              console.log(next)
 
               return next
             })

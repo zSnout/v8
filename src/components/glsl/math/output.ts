@@ -186,6 +186,8 @@ export function nodeToTree(node: Node): Tree {
             sum: "summation notation",
             prod: "product notation",
             int: "integrals",
+            coprod: "coprod notation",
+            lim: "limits",
           }[node.op]
         }.`,
       )
