@@ -97,7 +97,7 @@ export function Main() {
       label: name,
       el: (
         <span class="rounded-3xl border border-z-text-heading bg-white p-2 text-center text-9xl">
-          {name}
+          {name.length == 1 ? name : "〜"}
         </span>
       ),
     })
@@ -130,7 +130,7 @@ export function Main() {
 
   batch(() => {
     setPosition({ x: 0, y: 0, w: 50 })
-    setSpeed(200)
+    setSpeed(2000)
     setNodes(nodes)
     setLinks(links)
     setForces({
