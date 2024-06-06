@@ -1,3 +1,4 @@
+import { createStorage } from "@/stores/local-storage-store"
 import { JSX, createSignal, onMount } from "solid-js"
 
 const ALL_WORDS =
@@ -12,9 +13,9 @@ function Label(props: { children: JSX.Element }) {
 }
 
 function pickWords() {
-  const a = ALL_WORDS[Math.random() * ALL_WORDS.length]!
+  const a = ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)]!
   const b = ALL_WORDS.filter((x) => x != a)[
-    Math.random() * (ALL_WORDS.length - 1)
+    Math.floor(Math.random() * (ALL_WORDS.length - 1))
   ]!
 
   return [a, b] as const
@@ -23,14 +24,28 @@ function pickWords() {
 export function Main() {
   const [words, setWords] = createSignal(pickWords())
 
+  const [user, setUser] = createStorage(
+    "user",
+    "" + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+  )
+
+  function answer(value: number) {
+    let uid = +user()
+    if (!Number.isSafeInteger(uid)) {
+      uid = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+      setUser("" + uid)
+    }
+
+    // answer (words, value)
+  }
+
   onMount(() => document.getElementById("wile-js")?.remove())
 
   return (
-    // <div class="flex h-full gap-8 font-sp-sans text-2xl/[1]">
     <div class="flex min-h-full w-full flex-col justify-center font-sp-sans text-2xl/[1]">
       <div class="flex w-full justify-center gap-4 text-8xl/[1]">
-        <div class="rounded-lg bg-z-body-selected">toki</div>
-        <div class="rounded-lg bg-z-body-selected">sona</div>
+        <div class="rounded-lg bg-z-body-selected">{words()[0]}</div>
+        <div class="rounded-lg bg-z-body-selected">{words()[1]}</div>
       </div>
 
       <div class="mt-16 text-center">nimi ni li sama seme</div>
@@ -88,21 +103,11 @@ export function Main() {
         </p>
 
         <p>sina toki e sona la nimi sin li kama la o sike toki a</p>
+
+        <p>
+          nimi li sama kulupu <Label>suli nanpa tu</Label> lon ilo [linja..ku.]
+        </p>
       </div>
     </div>
-
-    /* <div class="flex h-full w-96 flex-col gap-4">
-        <div class="w-full rounded-lg border border-z py-1 text-center text-z transition">
-          sina pana e sona{" "}
-          <span class="rounded-md bg-z-body-selected px-2 font-sans text-z transition">
-            23
-          </span>
-        </div>
-
-        <div class="flex w-full flex-1 flex-col rounded-lg border border-z">
-          ji
-        </div>
-      </div> */
-    // </div>
   )
 }
