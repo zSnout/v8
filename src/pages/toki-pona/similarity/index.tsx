@@ -324,6 +324,16 @@ export function Main() {
       </div>
 
       <div class="mt-16 grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-1 text-base/[1]">
+        <div class="flex rounded border border-z px-2 py-1">
+          <div class="mx-auto flex items-center">
+            <span class="text-xs/[1]">sona</span>
+            <span class="-my-0.5 mx-1 rounded bg-z-body-selected px-2 py-0.5 font-sans font-semibold">
+              {log().length}
+            </span>
+            <span class="text-xs/[1]">li lon</span>
+          </div>
+        </div>
+
         <For each={log()}>
           {(entry) => (
             <div
