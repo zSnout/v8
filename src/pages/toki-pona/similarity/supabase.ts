@@ -17,6 +17,7 @@ export type Database = {
           similarity: number
           word1: string
           word2: string
+          local_id: number
         }
         Insert: {
           created_at?: string
@@ -25,6 +26,7 @@ export type Database = {
           similarity: number
           word1: string
           word2: string
+          local_id: number
         }
         Update: {
           created_at?: string
@@ -33,6 +35,7 @@ export type Database = {
           similarity?: number
           word1?: string
           word2?: string
+          local_id?: number
         }
         Relationships: []
       }

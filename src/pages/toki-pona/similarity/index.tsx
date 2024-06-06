@@ -2,11 +2,13 @@ import { Fa } from "@/components/Fa"
 import { isTypable } from "@/components/draggable"
 import { createStorage } from "@/stores/local-storage-store"
 import {
+  IconDefinition,
   faCheck,
+  faCloud,
   faExclamationTriangle,
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons"
-import { createClient } from "@supabase/supabase-js"
+import { RealtimeChannel, createClient } from "@supabase/supabase-js"
 import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js"
 import type { Database } from "./supabase"
 
@@ -25,6 +27,14 @@ function Label(props: { children: JSX.Element }) {
   )
 }
 
+function IconLabel(props: { icon: IconDefinition; title: string }) {
+  return (
+    <span class="relative top-px -my-5 inline-flex h-[2.125rem] max-h-[2.125rem] min-h-[2.125rem] w-8 min-w-8 max-w-8 items-center justify-center border border-z bg-z-body-selected">
+      <Fa class="inline h-5 w-5" icon={props.icon} title={props.title} />
+    </span>
+  )
+}
+
 function pickWords() {
   const a = ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)]!
   const b = ALL_WORDS.filter((x) => x != a)[
@@ -35,40 +45,42 @@ function pickWords() {
 }
 
 interface LogEntry {
-  status: "sending" | "done" | "error"
-  a: string
-  b: string
-  s: 4 | 1 | 2 | 3
-  id: number
+  status: "sending" | "done" | "error" | "cloud"
+  word1: string
+  word2: string
+  similarity: 4 | 1 | 2 | 3
+  local_id: number
 }
 
 export function Main() {
   const [words, setWords] = createSignal(pickWords())
   const [log, setLog] = createSignal<LogEntry[]>([])
+  const [user, setUser] = createStorage("user", "xx")
 
-  const [user, setUser] = createStorage(
-    "user",
-    "" + Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
-  )
-
-  async function answer(value: 1 | 2 | 3 | 4) {
-    let uid = +user()
-    if (!Number.isSafeInteger(uid)) {
-      uid = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
-      setUser("" + uid)
+  function getCreator() {
+    let creator = +user()
+    if (!Number.isSafeInteger(creator)) {
+      creator = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+      setUser("" + creator)
     }
 
-    const id = Math.random()
-    const [a, b] = words()
+    return creator
+  }
+
+  async function answer(similarity: 1 | 2 | 3 | 4) {
+    const creator = getCreator()
+
+    const local_id = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)
+    const [word1, word2] = words()
 
     setLog((log) => {
       const next = log.slice()
       next.unshift({
         status: "sending",
-        a,
-        b,
-        s: value,
-        id,
+        word1: word1,
+        word2: word2,
+        similarity: similarity,
+        local_id: local_id,
       })
       return next
     })
@@ -77,19 +89,24 @@ export function Main() {
 
     try {
       const result = await supabase.from("similarity").insert({
-        creator: uid,
-        similarity: value,
-        word1: a,
-        word2: b,
+        creator,
+        similarity,
+        word1,
+        word2,
+        local_id,
       })
 
       if (result.error) {
         setLog((log) =>
-          log.map((x) => (x.id == id ? { ...x, status: "error" } : x)),
+          log.map((x) =>
+            x.local_id == local_id ? { ...x, status: "error" } : x,
+          ),
         )
       } else {
         setLog((log) =>
-          log.map((x) => (x.id == id ? { ...x, status: "done" } : x)),
+          log.map((x) =>
+            x.local_id == local_id ? { ...x, status: "done" } : x,
+          ),
         )
       }
     } catch (error) {}
@@ -116,13 +133,99 @@ export function Main() {
     }
   }
 
-  onMount(() => {
+  let channel: RealtimeChannel
+  onMount(async () => {
     document.getElementById("wile-js")?.remove()
     document.body.addEventListener("keydown", onKeyDown)
+    channel = supabase
+      .channel("hi", { config: { broadcast: { self: false } } })
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public" },
+        (event) => {
+          const data = event.new as unknown
+          if (
+            typeof data != "object" ||
+            !data ||
+            !("word1" in data) ||
+            typeof data.word1 != "string" ||
+            !("word2" in data) ||
+            typeof data.word2 != "string" ||
+            !("similarity" in data) ||
+            typeof data.similarity != "number" ||
+            !(
+              data.similarity == 1 ||
+              data.similarity == 2 ||
+              data.similarity == 3 ||
+              data.similarity == 4
+            ) ||
+            !("local_id" in data) ||
+            typeof data.local_id != "number" ||
+            !("creator" in data) ||
+            typeof data.creator != "number"
+          ) {
+            return
+          }
+          const { word1, word2, similarity, local_id, creator } = data
+          const me = getCreator()
+
+          setLog((log) => {
+            if (log.some((x) => x.local_id == local_id)) {
+              return log
+            }
+
+            const next = log.slice()
+
+            next.unshift({
+              word1,
+              word2,
+              similarity,
+              local_id,
+              status: creator == me ? "done" : "cloud",
+            })
+
+            return next
+          })
+        },
+      )
+      .subscribe()
+    const data = await supabase.from("similarity").select()
+    if (data.error) {
+      return
+    }
+    setLog((log) => {
+      const me = getCreator()
+      const results: LogEntry[] = []
+
+      for (const { word1, word2, similarity, local_id, creator } of data.data) {
+        if (
+          !(
+            similarity == 1 ||
+            similarity == 2 ||
+            similarity == 3 ||
+            similarity == 4
+          )
+        ) {
+          continue
+        }
+
+        results.push({
+          word1,
+          word2,
+          similarity,
+          local_id,
+          status: creator == me ? "done" : "cloud",
+        })
+      }
+
+      results.reverse()
+      return log.concat(results)
+    })
   })
 
   onCleanup(() => {
     document.body.removeEventListener("keydown", onKeyDown)
+    channel.unsubscribe()
   })
 
   return (
@@ -201,14 +304,35 @@ export function Main() {
         <p>sina toki e sona la nimi sin li kama la o sike toki a</p>
 
         <p>
-          nimi li sama kulupu <Label>suli nanpa tu</Label> lon ilo [linja..ku.]
+          nimi li tan kulupu <Label>suli nanpa tu</Label> lon ilo [linja..ku.]
+        </p>
+
+        <p>
+          sina pana e sona la sona li tawa anpa li kule{" "}
+          <IconLabel icon={faSpinner} title="spinner" />
+        </p>
+
+        <p>
+          mi pana pona e sona tawa kulupu la kule li kama{" "}
+          <IconLabel icon={faCheck} title="check" />
+        </p>
+
+        <p>
+          ijo ante li pana la sona ona li tawa anpa li kule{" "}
+          <IconLabel icon={faCloud} title="cloud" />
         </p>
       </div>
 
       <div class="mt-16 grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-1 text-base/[1]">
         <For each={log()}>
           {(entry) => (
-            <div class="flex rounded bg-z-body-selected px-2 py-1">
+            <div
+              class="flex rounded border border-transparent px-2 py-1"
+              classList={{
+                "bg-z-body-selected": entry.status != "cloud",
+                "border-z": entry.status == "cloud",
+              }}
+            >
               <Fa
                 class={
                   "h-4 w-4" +
@@ -221,6 +345,7 @@ export function Main() {
                     sending: faSpinner,
                     done: faCheck,
                     error: faExclamationTriangle,
+                    cloud: faCloud,
                   }[entry.status]
                 }
                 title={entry.status}
@@ -230,20 +355,24 @@ export function Main() {
                 <Show
                   fallback={
                     <>
-                      <span>{entry.a}</span>
+                      <span>{entry.word1}</span>
                       <span class="text-xs/[1]">
                         sama{" "}
-                        {entry.s == 3 ? "mute" : entry.s == 2 ? "lili" : "ala"}
+                        {entry.similarity == 3
+                          ? "mute"
+                          : entry.similarity == 2
+                          ? "lili"
+                          : "ala"}
                       </span>
-                      <span>{entry.b}</span>
+                      <span>{entry.word2}</span>
                     </>
                   }
-                  when={entry.s == 4}
+                  when={entry.similarity == 4}
                 >
                   <span class="text-xs/[1]">mi sona ala e</span>
-                  <span>{entry.a}</span>
+                  <span>{entry.word1}</span>
                   <span class="text-xs/[1]">e</span>
-                  <span>{entry.b}</span>
+                  <span>{entry.word2}</span>
                 </Show>
               </div>
             </div>
