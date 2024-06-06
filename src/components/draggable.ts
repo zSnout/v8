@@ -1,14 +1,29 @@
 import { createEventListener } from "./create-event-listener"
 import type { Point } from "./glsl/types"
 
-const interactiveTags = ["A", "BUTTON", "INPUT", "TEXTAREA"]
+const typableTags = ["A", "BUTTON", "INPUT", "TEXTAREA"]
 
 export function isInteractive(event: Event) {
   for (const el of event.composedPath()) {
     if (
       el instanceof HTMLElement &&
-      (interactiveTags.includes(el.tagName) ||
+      (typableTags.includes(el.tagName) ||
         el.dataset.zInteractive != null ||
+        el.classList.contains("mq-editable-field"))
+    ) {
+      return true
+    }
+  }
+
+  return false
+}
+
+export function isTypable(event: Event) {
+  for (const el of event.composedPath()) {
+    if (
+      el instanceof HTMLElement &&
+      (typableTags.includes(el.tagName) ||
+        el.dataset.zInteractive == "typable" ||
         el.classList.contains("mq-editable-field"))
     ) {
       return true
