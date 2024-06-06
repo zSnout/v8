@@ -38,11 +38,12 @@
 
 :root {
   @apply font-sans;
-  --font-sp: "nasin-nanpa", "sitelen seli kiwen juniko";
+  --font-sp: "linja lipamanka", "nasin-nanpa", "sitelen seli kiwen juniko";
 }
 
 :root,
-.light {
+.light,
+.dark .theme-invert {
   @apply z-light-slate z-light-focus-blue;
   color-scheme: light;
   --z-mq-filled: var(--z-bg-body);
@@ -53,7 +54,9 @@
   --z-mq-empty-selection-blur: #aeaeae;
 }
 
-.dark {
+.dark,
+.theme-invert,
+.light .theme-invert {
   @apply z-dark-slate z-dark-focus-blue;
   color-scheme: dark;
   --z-mq-filled: var(--z-bg-body);
