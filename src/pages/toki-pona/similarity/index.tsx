@@ -1,6 +1,9 @@
 import { Fa } from "@/components/Fa"
 import { isTypable } from "@/components/draggable"
-import { createStorage } from "@/stores/local-storage-store"
+import {
+  createStorage,
+  createStorageBoolean,
+} from "@/stores/local-storage-store"
 import {
   IconDefinition,
   faCheck,
@@ -35,6 +38,14 @@ function IconLabel(props: { icon: IconDefinition; title: string }) {
   )
 }
 
+function SmallLabel(props: { children: JSX.Element }) {
+  return (
+    <span class="-my-0.5 mx-1 rounded bg-z-body-selected p-0.5 first:ml-0 last:mr-0">
+      {props.children}
+    </span>
+  )
+}
+
 function pickWords() {
   const a = ALL_WORDS[Math.floor(Math.random() * ALL_WORDS.length)]!
   const b = ALL_WORDS.filter((x) => x != a)[
@@ -50,12 +61,17 @@ interface LogEntry {
   word2: string
   similarity: 4 | 1 | 2 | 3
   local_id: number
+  creator: number
 }
 
 export function Main() {
   const [words, setWords] = createSignal(pickWords())
   const [log, setLog] = createSignal<LogEntry[]>([])
-  const [user, setUser] = createStorage("user", "xx")
+  const [user, setUser] = createStorage("toki-pona:similarity:user", "xx")
+  const [hideGuide, setHideGuide] = createStorageBoolean(
+    "toki-pona:similarity:show-guide",
+    false,
+  )
 
   function getCreator() {
     let creator = +user()
@@ -77,10 +93,11 @@ export function Main() {
       const next = log.slice()
       next.unshift({
         status: "sending",
-        word1: word1,
-        word2: word2,
-        similarity: similarity,
-        local_id: local_id,
+        word1,
+        word2,
+        similarity,
+        local_id,
+        creator,
       })
       return next
     })
@@ -182,6 +199,7 @@ export function Main() {
               similarity,
               local_id,
               status: creator == me ? "done" : "cloud",
+              creator,
             })
 
             return next
@@ -215,6 +233,7 @@ export function Main() {
           similarity,
           local_id,
           status: creator == me ? "done" : "cloud",
+          creator,
         })
       }
 
@@ -231,8 +250,19 @@ export function Main() {
   return (
     <div class="flex min-h-full w-full flex-col justify-center font-sp-sans text-2xl/[1]">
       <div class="flex w-full justify-center gap-4 text-8xl/[1]">
-        <div class="rounded-lg bg-z-body-selected">{words()[0]}</div>
-        <div class="rounded-lg bg-z-body-selected">{words()[1]}</div>
+        <div class="flex flex-col rounded-lg bg-z-body-selected">
+          <span>{words()[0]}</span>
+          <span class="pb-1 text-center font-sans text-base/[1]">
+            {words()[0]}
+          </span>
+        </div>
+
+        <div class="flex flex-col rounded-lg bg-z-body-selected">
+          <span>{words()[1]}</span>
+          <span class="pb-1 text-center font-sans text-base/[1]">
+            {words()[1]}
+          </span>
+        </div>
       </div>
 
       <div class="mt-16 text-center">nimi ni li sama seme</div>
@@ -240,7 +270,7 @@ export function Main() {
       <div class="mx-auto mt-4 flex flex-col gap-2">
         <div class="flex justify-center gap-2 text-center text-5xl/[1]">
           <button
-            class="relative rounded border border-red-500 bg-red-200 p-1 text-red-800 ring ring-red-100 transition dark:border-red-700 dark:bg-red-900 dark:text-red-200 dark:ring-red-950 [&:not(:hover)]:border-transparent [&:not(:hover)]:ring-transparent"
+            class="relative rounded border border-red-500 bg-red-200 p-1 text-red-800 ring ring-red-100 transition focus-visible:outline-none dark:border-red-700 dark:bg-red-900 dark:text-red-200 dark:ring-red-950 [&:not(:hover):not(:focus-visible)]:border-transparent [&:not(:hover):not(:focus-visible)]:ring-transparent"
             onClick={() => answer(1)}
           >
             ala
@@ -250,7 +280,7 @@ export function Main() {
           </button>
 
           <button
-            class="relative rounded border border-orange-500 bg-orange-200 p-1 text-orange-800 ring ring-orange-100 transition dark:border-orange-700 dark:bg-orange-900 dark:text-orange-200 dark:ring-orange-950 [&:not(:hover)]:border-transparent [&:not(:hover)]:ring-transparent"
+            class="relative rounded border border-orange-500 bg-orange-200 p-1 text-orange-800 ring ring-orange-100 transition focus-visible:outline-none dark:border-orange-700 dark:bg-orange-900 dark:text-orange-200 dark:ring-orange-950 [&:not(:hover):not(:focus-visible)]:border-transparent [&:not(:hover):not(:focus-visible)]:ring-transparent"
             onClick={() => answer(2)}
           >
             lili
@@ -260,7 +290,7 @@ export function Main() {
           </button>
 
           <button
-            class="relative rounded border border-blue-500 bg-blue-200 p-1 text-blue-800 ring ring-blue-100 transition dark:border-blue-700 dark:bg-blue-900 dark:text-blue-200 dark:ring-blue-950 [&:not(:hover)]:border-transparent [&:not(:hover)]:ring-transparent"
+            class="relative rounded border border-blue-500 bg-blue-200 p-1 text-blue-800 ring ring-blue-100 transition focus-visible:outline-none dark:border-blue-700 dark:bg-blue-900 dark:text-blue-200 dark:ring-blue-950 [&:not(:hover):not(:focus-visible)]:border-transparent [&:not(:hover):not(:focus-visible)]:ring-transparent"
             onClick={() => answer(3)}
           >
             mute
@@ -271,7 +301,7 @@ export function Main() {
         </div>
 
         <button
-          class="relative w-full rounded border border-slate-500 bg-z-body-selected p-1 px-2 py-1 text-center text-base/[1] text-z ring ring-slate-100 transition dark:border-slate-700 dark:ring-slate-950 [&:not(:hover)]:border-transparent [&:not(:hover)]:ring-transparent"
+          class="relative w-full rounded border border-slate-500 bg-z-body-selected p-1 px-2 py-1 text-center text-base/[1] text-z ring ring-slate-100 transition focus-visible:outline-none dark:border-slate-700 dark:ring-slate-950 [&:not(:hover):not(:focus-visible)]:border-transparent [&:not(:hover):not(:focus-visible)]:ring-transparent"
           onClick={() => answer(4)}
         >
           mi sona ala e nimi ni
@@ -279,68 +309,93 @@ export function Main() {
             4
           </span>
         </button>
+
+        <button
+          class="relative mt-6 w-full rounded border border-slate-500 bg-z-body-selected p-1 px-2 py-1 text-center text-base/[1] text-z ring ring-slate-100 transition focus-visible:outline-none dark:border-slate-700 dark:ring-slate-950 [&:not(:hover):not(:focus-visible)]:border-transparent [&:not(:hover):not(:focus-visible)]:ring-transparent"
+          onClick={() => setHideGuide((x) => !x)}
+        >
+          {hideGuide() ? "o open e lipu sona" : "o pini e lipu anpa"}
+        </button>
       </div>
 
-      <div class="mt-16 flex flex-col gap-3 text-center">
-        <p>
-          nimi ni li sama ala sama <Label>lukin en jelo</Label> anu{" "}
-          <Label>waso en ike</Label> la o toki e <Label>ala</Label>
-        </p>
+      <Show when={!hideGuide()}>
+        <div class="mt-1 flex flex-col text-center [line-height:1.5]">
+          <p>
+            nimi ni li sama ala sama <Label>lukin en jelo</Label> anu{" "}
+            <Label>waso en ike</Label> la o toki e <Label>ala</Label>
+          </p>
 
-        <p>
-          nimi ni li sama lili sama <Label>ala en weka</Label> anu{" "}
-          <Label>waso en ilo</Label> la o toki e <Label>lili</Label>
-        </p>
+          <p>
+            nimi ni li sama lili sama <Label>ala en weka</Label> anu{" "}
+            <Label>waso en ilo</Label> la o toki e <Label>lili</Label>
+          </p>
 
-        <p>
-          nimi ni li sama mute sama <Label>mute en suli</Label> anu{" "}
-          <Label>kepeken en ilo</Label> la o toki e <Label>mute</Label>
-        </p>
+          <p>
+            nimi ni li sama mute sama <Label>mute en suli</Label> anu{" "}
+            <Label>kepeken en ilo</Label> la o toki e <Label>mute</Label>
+          </p>
 
-        <p>
-          sina sona ala e nimi la o toki e <Label>mi sona ala e nimi ni</Label>
-        </p>
+          <p>
+            sina sona ala e nimi la o toki e{" "}
+            <Label>mi sona ala e nimi ni</Label>
+          </p>
 
-        <p>sina toki e sona la nimi sin li kama la o sike toki a</p>
+          <p>sina toki e sona la nimi sin li kama la o sike toki a</p>
 
-        <p>
-          nimi li tan kulupu <Label>suli nanpa tu</Label> lon ilo [linja..ku.]
-        </p>
+          <p>
+            nimi li tan kulupu <Label>suli nanpa tu</Label> lon ilo [linja..ku.]
+          </p>
 
-        <p>
-          sina pana e sona la sona li tawa anpa li kule{" "}
-          <IconLabel icon={faSpinner} title="spinner" />
-        </p>
+          <p>
+            sina pana e sona la sona li tawa anpa li kule{" "}
+            <IconLabel icon={faSpinner} title="spinner" />
+          </p>
 
-        <p>
-          mi pana pona e sona tawa kulupu la kule li kama{" "}
-          <IconLabel icon={faCheck} title="check" />
-        </p>
+          <p>
+            mi pana pona e sona tawa kulupu la kule li kama{" "}
+            <IconLabel icon={faCheck} title="check" />
+          </p>
 
-        <p>
-          ijo ante li pana la sona ona li tawa anpa li kule{" "}
-          <IconLabel icon={faCloud} title="cloud" />
-        </p>
-      </div>
+          <p>
+            ijo ante li pana la sona ona li tawa anpa li kule{" "}
+            <IconLabel icon={faCloud} title="cloud" />
+          </p>
+        </div>
+      </Show>
 
-      <div class="mt-16 grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-1 text-base/[1]">
+      <div class="mt-8 grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-1 text-base/[1]">
         <div class="flex rounded border border-z px-2 py-1">
           <div class="mx-auto flex items-center">
             <span class="text-xs/[1]">sona</span>
             <span class="-my-0.5 mx-1 rounded bg-z-body-selected px-2 py-0.5 font-sans font-semibold">
               {log().length}
             </span>
-            <span class="text-xs/[1]">li lon</span>
+            <span class="text-xs/[1]">li tan ale</span>
+          </div>
+        </div>
+
+        <div class="flex rounded border border-z px-2 py-1">
+          <div class="mx-auto flex items-center">
+            <span class="text-xs/[1]">sona</span>
+            <span class="-my-0.5 mx-1 rounded bg-z-body-selected px-2 py-0.5 font-sans font-semibold">
+              {((log, creator) =>
+                log.filter((x) => x.creator == creator).length)(
+                log(),
+                getCreator(),
+              )}
+            </span>
+            <span class="text-xs/[1]">li tan sina</span>
           </div>
         </div>
 
         <For each={log()}>
           {(entry) => (
             <div
-              class="flex rounded border border-transparent px-2 py-1"
+              class="flex rounded border border-transparent px-2 py-1 transition"
               classList={{
                 "bg-z-body-selected": entry.status != "cloud",
                 "border-z": entry.status == "cloud",
+                "opacity-30": entry.status == "sending",
               }}
             >
               <Fa
@@ -365,7 +420,7 @@ export function Main() {
                 <Show
                   fallback={
                     <>
-                      <span>{entry.word1}</span>
+                      <SmallLabel>{entry.word1}</SmallLabel>
                       <span class="text-xs/[1]">
                         sama{" "}
                         {entry.similarity == 3
@@ -374,15 +429,15 @@ export function Main() {
                           ? "lili"
                           : "ala"}
                       </span>
-                      <span>{entry.word2}</span>
+                      <SmallLabel>{entry.word2}</SmallLabel>
                     </>
                   }
                   when={entry.similarity == 4}
                 >
                   <span class="text-xs/[1]">mi sona ala e</span>
-                  <span>{entry.word1}</span>
+                  <SmallLabel>{entry.word1}</SmallLabel>
                   <span class="text-xs/[1]">e</span>
-                  <span>{entry.word2}</span>
+                  <SmallLabel>{entry.word2}</SmallLabel>
                 </Show>
               </div>
             </div>
