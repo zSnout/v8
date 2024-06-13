@@ -2360,6 +2360,12 @@ const kotobasirumahena: Record<string, RawWordData> = {
     fal: "tingko",
     falnen: "fraut",
   },
+  nirot: {
+    emoji: "🚲",
+    fal: "tingko",
+    falnen: "(sjiranai)",
+    kakutro: ["nikrajs", "bolka"],
+  },
   njudur: {
     anki: true,
     emoji: "🐶🐱🐘🐯🦓",
