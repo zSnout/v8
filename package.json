@@ -24,7 +24,7 @@
     "@types/color-diff": "^1.2.5",
     "@types/moo": "^0.5.9",
     "@types/nearley": "^2.11.5",
-    "@zsnout/ithkuil": "^0.1.96",
+    "@zsnout/ithkuil": "^0.1.97",
     "@zsnout/tailwind": "^0.1.6",
     "astro": "^2.5.5",
     "color-diff": "^1.4.0",
