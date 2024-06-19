@@ -43,6 +43,7 @@ class Tree<T> {
   enabled: Accessor<TreeOf<boolean>>
   setEnabled: Setter<TreeOf<boolean>>
 
+  // the "" key is used in these trees to mark whether a group is expanded
   expanded: Accessor<TreeOf<boolean>>
   setExpanded: Setter<TreeOf<boolean>>
 
@@ -50,6 +51,14 @@ class Tree<T> {
     ;[this.enabled, this.setEnabled] = createSignal(Object.create(null))
     ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
   }
+
+  toggleEnabled(path: readonly string[], enabled: boolean) {}
+
+  toggleExpanded(path: readonly string[], enabled: boolean) {}
+
+  isEnabled(path: readonly string[]) {}
+
+  isExpanded(path: readonly string[]) {}
 
   importV1(data: JsonObject) {
     function checkIsBoolTree(tree: Json): tree is TreeOf<boolean> {
@@ -117,9 +126,12 @@ class Tree<T> {
 
 function CheckboxNode<T>(props: {
   key: string
+  path: readonly string[]
   isLeaf: (value: TreeOf<T> | T) => value is T
   node: TreeOf<T> | T
   tree: Tree<T>
+  // enabled: () => TreeOf<boolean> | boolean | undefined
+  // expanded: () => TreeOf<boolean> | boolean | undefined
 }) {
   // TODO: interactivity
   if (props.isLeaf(props.node)) {
@@ -134,6 +146,23 @@ function CheckboxNode<T>(props: {
               isLeaf={props.isLeaf}
               node={node}
               tree={props.tree}
+              // enabled={() => {
+              //   const val = props.enabled()
+              //   if (typeof val == "boolean") {
+              //     return undefined
+              //   } else {
+              //     return val?.[key]
+              //   }
+              // }}
+              // expanded={() => {
+              //   const val = props.expanded()
+              //   if (typeof val == "boolean") {
+              //     return undefined
+              //   } else {
+              //     return val?.[key]
+              //   }
+              // }}
+              path={[...props.path, key]}
             />
           )}
         </For>
@@ -154,6 +183,9 @@ function CheckboxTree<T>(props: {
           isLeaf={props.isLeaf}
           node={node}
           tree={props.tree}
+          // enabled={() => props.tree.enabled()[key]}
+          // expanded={() => props.tree.expanded()[key]}
+          path={[key]}
         />
       )}
     </For>
