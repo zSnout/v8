@@ -1,20 +1,24 @@
-import { CheckboxTree, Tree } from "@/components/fields/CheckboxGroup"
+import { CheckboxTree, Tree, TreeOf } from "@/components/fields/CheckboxGroup"
 import { JSX, Show, createSignal } from "solid-js"
 
-interface PartialCard {
-  readonly front: JSX.Element
-  readonly back: JSX.Element
-  readonly id: string
-}
+type RawTree = TreeOf<PartialCard | Generator>
 
-export class Card {
+export class PartialCard {
+  private declare __brand
+
   constructor(
     readonly front: JSX.Element,
     readonly back: JSX.Element,
-    readonly group: readonly string[],
     readonly id: string,
-    readonly answerShown: boolean,
   ) {}
+}
+
+export interface Card {
+  readonly front: JSX.Element
+  readonly back: JSX.Element
+  readonly group: readonly string[]
+  readonly id: string
+  readonly answerShown: boolean
 }
 
 type Generator = (id?: string | undefined) => PartialCard
@@ -27,11 +31,20 @@ function random<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)]!
 }
 
-const tree = new Tree<Card | Generator>({
+function kanaTree(kana: { [romaji: string]: string }): RawTree {
+  return Object.fromEntries(
+    Object.entries(kana).map(([romaji, kana]) => [
+      romaji,
+      new PartialCard(romaji, kana, ""),
+    ]),
+  )
+}
+
+const tree = new Tree({
   Japanese: {
     Hiragana: {
-      Basic(id) {
-        const chars: Record<string, string> = {
+      Basic: {
+        ...kanaTree({
           a: "あ",
           i: "い",
           u: "う",
@@ -76,91 +89,11 @@ const tree = new Tree<Card | Generator>({
           re: "れ",
           ro: "ろ",
           wa: "わ",
-          // wi: "ゐ",
-          // we: "ゑ",
+          wi: "ゐ",
+          we: "ゑ",
           wo: "を",
           n: "ん",
-        }
-
-        id = id ?? random(Object.keys(chars))
-
-        if (id in chars) {
-          return {
-            front: id,
-            back: chars[id]!,
-            id,
-          }
-        }
-
-        throw new RangeError(`Card "${id}" does not exist.`)
-      },
-    },
-  },
-  JP2: {
-    Katakana: {
-      Basic(id) {
-        const chars: Record<string, string> = {
-          a: "あ",
-          i: "い",
-          u: "う",
-          e: "え",
-          o: "お",
-          ka: "か",
-          ki: "き",
-          ku: "く",
-          ke: "け",
-          ko: "こ",
-          sa: "さ",
-          shi: "し",
-          su: "す",
-          se: "せ",
-          so: "そ",
-          ta: "た",
-          chi: "ち",
-          tsu: "つ",
-          te: "て",
-          to: "と",
-          na: "な",
-          ni: "に",
-          nu: "ぬ",
-          ne: "ね",
-          no: "の",
-          ha: "は",
-          hi: "ひ",
-          fu: "ふ",
-          he: "へ",
-          ho: "ほ",
-          ma: "ま",
-          mi: "み",
-          mu: "む",
-          me: "め",
-          mo: "も",
-          ya: "や",
-          yu: "ゆ",
-          yo: "よ",
-          ra: "ら",
-          ri: "り",
-          ru: "る",
-          re: "れ",
-          ro: "ろ",
-          wa: "わ",
-          // wi: "ゐ",
-          // we: "ゑ",
-          wo: "を",
-          n: "ん",
-        }
-
-        id = id ?? random(Object.keys(chars))
-
-        if (id in chars) {
-          return {
-            front: id,
-            back: chars[id]!,
-            id,
-          }
-        }
-
-        throw new RangeError(`Card "${id}" does not exist.`)
+        }),
       },
     },
   },
@@ -224,23 +157,17 @@ export function Main() {
       </div>
 
       <div class="hidden w-48 sm:flex md:w-72">
-        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-2 md:w-[19.5rem]">
+        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 md:w-[19.5rem]" />
+
+        <div class="fixed bottom-0 right-0 top-12 flex w-[13.5rem] flex-col overflow-y-auto border-l border-transparent px-4 py-10 md:w-[19.5rem]">
           <ul class="flex flex-col gap-1">
             <CheckboxTree
-              isLeaf={(value): value is Card | Generator =>
-                value instanceof Card || typeof value == "function"
+              isLeaf={(value): value is PartialCard | Generator =>
+                value instanceof PartialCard || typeof value == "function"
               }
               tree={tree}
             />
           </ul>
-
-          <pre class="text-xs">
-            {JSON.stringify(tree.enabled(), undefined, 2)}
-          </pre>
-
-          <pre class="text-xs">
-            {JSON.stringify(tree.expanded(), undefined, 2)}
-          </pre>
         </div>
       </div>
     </div>

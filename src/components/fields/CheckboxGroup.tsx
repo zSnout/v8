@@ -110,8 +110,8 @@ export function CheckboxGroup(props: {
       <div
         class="overflow-clip transition-[max-height]"
         classList={{
-          "max-h-[--height]": props.expanded,
-          "[&:has(.z-expanding)]:max-h-none": props.expanded,
+          "max-h-[--max-height]": props.expanded,
+          "[&:has(.z-expanding)]:max-h-auto": props.expanded,
           "max-h-0": !props.expanded,
         }}
         onTransitionStart={() => setExpanding(true)}
@@ -124,7 +124,7 @@ export function CheckboxGroup(props: {
           ref={(el) => {
             const observer = new ResizeObserver(([entry]) => {
               const { height } = entry!.contentRect || entry!.contentBoxSize
-              el.parentElement?.style.setProperty("--height", height + "px")
+              el.parentElement?.style.setProperty("--max-height", height + "px")
             })
             observer.observe(el, { box: "content-box" })
 
