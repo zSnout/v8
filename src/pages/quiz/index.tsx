@@ -1,33 +1,189 @@
-import { Fa } from "@/components/Fa"
-import {
-  faCheck,
-  faChevronRight,
-  faMinus,
-} from "@fortawesome/free-solid-svg-icons"
-import { JSX, Show, createEffect, createSignal } from "solid-js"
+import { CheckboxGroup, CheckboxItem } from "@/components/fields/CheckboxGroup"
+import { JSX, Show, createSignal } from "solid-js"
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | readonly Json[]
-  | { readonly [x: string]: Json }
+type Json = string | number | boolean | null | readonly Json[] | JsonObject
 
-export interface Card {
-  front: JSX.Element
-  back: JSX.Element
-  group: string
-  id: Json
-  answerShown: boolean
+type JsonObject = { readonly [x: string]: Json }
+
+interface PartialCard {
+  readonly front: JSX.Element
+  readonly back: JSX.Element
+  readonly id: string
 }
+
+interface Card {
+  readonly front: JSX.Element
+  readonly back: JSX.Element
+  readonly group: readonly string[]
+  readonly id: string
+  readonly answerShown: boolean
+}
+
+type Generator = (id?: string | undefined) => PartialCard
+
+type TreeOf<T> = { readonly [name: string]: TreeOf<T> | T }
+
+type DataV1 = {
+  version: 1
+  enabled: TreeOf<boolean>
+  expanded: TreeOf<boolean>
+}
+
+class Tree {
+  enabled: TreeOf<boolean> = Object.create(null)
+  expanded: TreeOf<boolean> = Object.create(null)
+
+  constructor(readonly tree: TreeOf<Generator>) {}
+
+  importV1(data: JsonObject) {
+    function checkIsBoolTree(tree: Json): tree is TreeOf<boolean> {
+      if (
+        typeof tree != "object" ||
+        tree == null ||
+        // instanceof satisfies TypeScript, Array.isArray satisfies the browser
+        tree instanceof Array ||
+        Array.isArray(tree)
+      ) {
+        return false
+      }
+
+      for (const key in tree) {
+        const val = tree[key]
+
+        if (
+          typeof val == "object"
+            ? !checkIsBoolTree(val)
+            : typeof val != "boolean"
+        ) {
+          return false
+        }
+      }
+
+      return true
+    }
+
+    if ("enabled" in data && checkIsBoolTree(data.enabled)) {
+      this.enabled = data.enabled
+    }
+
+    if ("expanded" in data && checkIsBoolTree(data.expanded)) {
+      this.expanded = data.expanded
+    }
+  }
+
+  importJSON(data: Json) {
+    if (
+      typeof data != "object" ||
+      data == null ||
+      !("version" in data) ||
+      typeof data.version != "number"
+    ) {
+      throw new Error("Expected an object with a `version` property.")
+    }
+
+    if (data.version == 1) {
+      return this.importV1(data)
+    }
+
+    throw new Error(
+      "Unknown data storage version. Reload the page and try again.",
+    )
+  }
+
+  toJSON(): DataV1 {
+    return {
+      version: 1,
+      enabled: this.enabled,
+      expanded: this.expanded,
+    }
+  }
+}
+
+function random<T>(array: readonly T[]): T {
+  if (array.length == 0) {
+    throw new RangeError("No items in array.")
+  }
+
+  return array[Math.floor(Math.random() * array.length)]!
+}
+
+const tree = new Tree({
+  Japanese: {
+    Hiragana: {
+      Basic(id) {
+        const chars: Record<string, string> = {
+          a: "あ",
+          i: "い",
+          u: "う",
+          e: "え",
+          o: "お",
+          ka: "か",
+          ki: "き",
+          ku: "く",
+          ke: "け",
+          ko: "こ",
+          sa: "さ",
+          shi: "し",
+          su: "す",
+          se: "せ",
+          so: "そ",
+          ta: "た",
+          chi: "ち",
+          tsu: "つ",
+          te: "て",
+          to: "と",
+          na: "な",
+          ni: "に",
+          nu: "ぬ",
+          ne: "ね",
+          no: "の",
+          ha: "は",
+          hi: "ひ",
+          fu: "ふ",
+          he: "へ",
+          ho: "ほ",
+          ma: "ま",
+          mi: "み",
+          mu: "む",
+          me: "め",
+          mo: "も",
+          ya: "や",
+          yu: "ゆ",
+          yo: "よ",
+          ra: "ら",
+          ri: "り",
+          ru: "る",
+          re: "れ",
+          ro: "ろ",
+          wa: "わ",
+          // wi: "ゐ",
+          // we: "ゑ",
+          wo: "を",
+          n: "ん",
+        }
+
+        id = id ?? random(Object.keys(chars))
+
+        if (id in chars) {
+          return {
+            front: id,
+            back: chars[id]!,
+            id,
+          }
+        }
+
+        throw new RangeError(`Card "${id}" does not exist.`)
+      },
+    },
+  },
+})
 
 export function Main() {
   const [card, setCard] = createSignal<Card>({
     front: "7:00",
     back: "しちじ",
-    group: "jp::time::oclock",
-    id: 7,
+    group: ["Japanese", "Hiragana", "Basic"],
+    id: "7",
     answerShown: true,
   })
 
@@ -121,168 +277,5 @@ export function Main() {
         </div>
       </div>
     </div>
-  )
-}
-
-function Checkbox(props: {
-  onInput?(value: boolean): void
-  marksGroup?: boolean
-  checked?: boolean
-  disabled?: boolean
-  indeterminate?: boolean
-}) {
-  // TODO: hover and focus styles
-  return (
-    <>
-      <input
-        class="sr-only"
-        classList={{ "z-group-checkbox": props.marksGroup }}
-        type="checkbox"
-        onInput={(event) => props.onInput?.(event.currentTarget.checked)}
-        checked={props.checked}
-        ref={(el) => {
-          createEffect(() => (el.indeterminate = !!props.indeterminate))
-        }}
-        disabled={props.disabled}
-      />
-
-      <div
-        class="group-checkbox flex h-6 cursor-pointer select-none items-center justify-center"
-        role="button"
-      >
-        <div class="flex h-5 w-5 items-center justify-center rounded [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]">
-          <div class="h-full w-full rounded border border-z [:checked+.group-checkbox_&]:hidden [:indeterminate+.group-checkbox_&]:hidden"></div>
-
-          <Fa
-            class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:checked:not(:indeterminate)+.group-checkbox_&]:block"
-            icon={faCheck}
-            title="expand section"
-          />
-
-          <Fa
-            class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:indeterminate+.group-checkbox_&]:block"
-            icon={faMinus}
-            title="expand section"
-          />
-        </div>
-      </div>
-    </>
-  )
-}
-
-function CheckboxGroup(props: {
-  label: string
-  onExpanded?(value: boolean): void
-  children?: JSX.Element
-  expanded?: boolean
-}) {
-  const [expanding, setExpanding] = createSignal(false)
-  const [checked, setChecked] = createSignal(false)
-  const [indeterminate, setIndeterminate] = createSignal(false)
-  const [disabled, setDisabled] = createSignal(false)
-  let getInputs: () => HTMLCollectionOf<HTMLInputElement>
-
-  return (
-    <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
-      <div class="flex w-full gap-2">
-        <button onClick={() => props.onExpanded?.(!props.expanded)}>
-          <Fa
-            class={"h-3 w-3 transition" + (props.expanded ? " rotate-90" : "")}
-            icon={faChevronRight}
-            title="expand section"
-          />
-        </button>
-
-        <label class="flex w-full gap-2">
-          <Checkbox
-            checked={checked()}
-            indeterminate={indeterminate()}
-            disabled={disabled()}
-            marksGroup
-            onInput={(checked) => {
-              const cbs = Array.from(getInputs()).filter(
-                (el) =>
-                  el.type == "checkbox" &&
-                  !el.classList.contains("z-group-checkbox"),
-              )
-
-              cbs.forEach((x) => {
-                x.checked = checked
-                x.dispatchEvent(new InputEvent("input", { bubbles: true }))
-              })
-            }}
-          />
-
-          <span>{props.label}</span>
-        </label>
-      </div>
-
-      <div
-        class="overflow-clip transition-[max-height]"
-        classList={{
-          "max-h-[--height]": props.expanded,
-          "[&:has(.z-expanding)]:max-h-none": props.expanded,
-          "max-h-0": !props.expanded,
-        }}
-        onTransitionStart={() => setExpanding(true)}
-        onTransitionEnd={() => setExpanding(false)}
-      >
-        <ul
-          class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
-          ref={(el) => {
-            const observer = new ResizeObserver(([entry]) => {
-              const { height } = entry!.contentRect || entry!.contentBoxSize
-              el.parentElement?.style.setProperty("--height", height + "px")
-            })
-            observer.observe(el, { box: "content-box" })
-
-            const checkboxes = el.getElementsByTagName("input")
-            function updateSelf() {
-              const cbs = Array.from(checkboxes).filter(
-                (el) =>
-                  el.type == "checkbox" &&
-                  !el.classList.contains("z-group-checkbox"),
-              )
-
-              const hasUnchecked = cbs.some((x) => !x.checked)
-              const hasChecked = cbs.some((x) => x.checked)
-
-              setIndeterminate(hasUnchecked && hasChecked)
-              setChecked(!hasUnchecked)
-              setDisabled(!hasUnchecked && !hasChecked)
-            }
-
-            updateSelf()
-            el.addEventListener("input", updateSelf)
-
-            getInputs = () => checkboxes
-          }}
-        >
-          {props.children}
-        </ul>
-      </div>
-    </li>
-  )
-}
-
-function CheckboxItem(props: {
-  label: string
-  onInput?(value: boolean): void
-  children?: JSX.Element
-}) {
-  return (
-    <li class="flex flex-col">
-      <label class="flex w-full gap-2 pl-5">
-        <Checkbox onInput={props.onInput} />
-
-        <span>{props.label}</span>
-      </label>
-
-      <div class="relative" inert>
-        <ul class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1">
-          {props.children}
-        </ul>
-      </div>
-    </li>
   )
 }
