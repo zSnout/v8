@@ -108,6 +108,8 @@ export function CheckboxGroup(props: {
         }}
         onTransitionStart={() => setExpanding(true)}
         onTransitionEnd={() => setExpanding(false)}
+        inert={!props.expanded}
+        aria-hidden={!props.expanded}
       >
         <ul
           class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
@@ -150,7 +152,6 @@ export function CheckboxGroup(props: {
 export function CheckboxItem(props: {
   label: string
   onInput?(value: boolean): void
-  children?: JSX.Element
 }) {
   return (
     <li class="flex flex-col">
@@ -159,12 +160,6 @@ export function CheckboxItem(props: {
 
         <span>{props.label}</span>
       </label>
-
-      <div class="relative" inert>
-        <ul class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1">
-          {props.children}
-        </ul>
-      </div>
     </li>
   )
 }
