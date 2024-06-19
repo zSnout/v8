@@ -71,6 +71,22 @@ export function CheckboxGroup(props: {
   const [indeterminate, setIndeterminate] = createSignal(false)
   const [disabled, setDisabled] = createSignal(false)
   let getInputs: () => HTMLCollectionOf<HTMLInputElement>
+  let inner: HTMLDivElement | undefined
+
+  let last = untrack(() => props.expanded)
+  createEffect(() => {
+    if (last == props.expanded) {
+      return
+    }
+
+    setExpanding(true)
+
+    if (!inner) {
+      return
+    }
+
+    inner.classList.remove("hidden")
+  })
 
   return (
     <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
@@ -112,10 +128,15 @@ export function CheckboxGroup(props: {
         classList={{
           "max-h-[--max-height]": props.expanded,
           "[&:has(.z-expanding)]:max-h-auto": props.expanded,
+          "[&:has(.z-expanding)]:transition-none": props.expanded,
           "max-h-0": !props.expanded,
         }}
-        onTransitionStart={() => setExpanding(true)}
-        onTransitionEnd={() => setExpanding(false)}
+        ref={(el) => (inner = el)}
+        onTransitionEnd={(event) => {
+          if (event.currentTarget != event.target) return
+          if (!props.expanded) event.currentTarget.classList.add("hidden")
+          setExpanding(false)
+        }}
         inert={!props.expanded}
         aria-hidden={!props.expanded}
       >
