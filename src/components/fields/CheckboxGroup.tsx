@@ -391,24 +391,28 @@ export class Tree<T> {
   }
 
   choose(weight: (leaf: T) => number = () => 1) {
-    const nodes: [T, number][] = []
+    const nodes: [T, number, string[]][] = []
 
-    const getEnabledNodes = (tree: TreeOf<T>, enabled: TreeOf<boolean>) => {
+    const getEnabledNodes = (
+      tree: TreeOf<T>,
+      enabled: TreeOf<boolean>,
+      path: string[],
+    ) => {
       for (const key in tree) {
         const value = tree[key]!
         const e = enabled[key]
 
         if (this.isLeaf(value)) {
           if (e === true) {
-            nodes.push([value, weight(value)])
+            nodes.push([value, weight(value), [...path, key]])
           }
         } else {
-          getEnabledNodes(value, typeof e == "object" ? e : {})
+          getEnabledNodes(value, typeof e == "object" ? e : {}, [...path, key])
         }
       }
     }
 
-    getEnabledNodes(this.tree, untrack(this.enabled))
+    getEnabledNodes(this.tree, untrack(this.enabled), [])
 
     let total = 0
 
@@ -418,9 +422,9 @@ export class Tree<T> {
 
     let index = Math.random() * total
 
-    for (const [node, value] of nodes) {
+    for (const [node, value, path] of nodes) {
       if (index < value) {
-        return node
+        return { node, path }
       } else {
         index -= value
       }

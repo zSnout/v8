@@ -1,8 +1,8 @@
 import { CheckboxTree, Tree, TreeOf } from "@/components/fields/CheckboxGroup"
 import { createStorage } from "@/stores/local-storage-store"
-import { JSX, Show, createEffect, createSignal } from "solid-js"
+import { JSX, Show, createEffect, createSignal, onMount } from "solid-js"
 
-type RawTree = TreeOf<PartialCard | Generator>
+type RawTree = TreeOf<DirectTreeCard | Generator>
 
 export class PartialCard {
   private declare __brand
@@ -12,6 +12,36 @@ export class PartialCard {
     readonly back: JSX.Element,
     readonly id: string,
   ) {}
+
+  toCard(path: string[]): Card {
+    return { ...this, group: path, answerShown: false }
+  }
+}
+
+export class DirectTreeCard {
+  private declare __brand2
+
+  constructor(
+    readonly front: JSX.Element,
+    readonly back: JSX.Element,
+    readonly weight: number,
+  ) {}
+
+  toPartial(): PartialCard {
+    return new PartialCard(this.front, this.back, "")
+  }
+}
+
+export class Generator {
+  private declare __brand3
+  readonly weight: number
+
+  constructor(
+    readonly generate: (id?: string | undefined) => PartialCard,
+    readonly cardCount: number,
+  ) {
+    this.weight = 1 / cardCount
+  }
 }
 
 export interface Card {
@@ -22,18 +52,16 @@ export interface Card {
   readonly answerShown: boolean
 }
 
-type Generator = (id?: string | undefined) => PartialCard
-
 function kanaTree(kana: { [romaji: string]: string }): RawTree {
   return Object.fromEntries(
     Object.entries(kana).map(([romaji, kana]) => [
       romaji,
-      new PartialCard(romaji, kana, ""),
+      new DirectTreeCard(romaji, kana, 1 / 30),
     ]),
   )
 }
 
-const tree = new Tree(
+const tree = new Tree<DirectTreeCard | Generator>(
   {
     Japanese: {
       Hiragana: {
@@ -96,11 +124,22 @@ const tree = new Tree(
       },
     },
   },
-  (value): value is PartialCard | Generator =>
-    value instanceof PartialCard || typeof value == "function",
+  (value): value is DirectTreeCard | Generator =>
+    value instanceof DirectTreeCard || value instanceof Generator,
 )
 
 export function Main() {
+  const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
+
+  createEffect(() => {
+    try {
+      const val = JSON.parse(storageTree())
+      tree.importJSON(val)
+    } catch {}
+  })
+
+  createEffect(() => setStorageTree(JSON.stringify(tree.toJSON())))
+
   const [card, setCard] = createSignal<Card>({
     front: "7:00",
     back: "しちじ",
@@ -109,19 +148,31 @@ export function Main() {
     answerShown: true,
   })
 
-  const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
+  function nextCard() {
+    const next = tree.choose((leaf) => leaf.weight)
 
-  createEffect(() => {
+    if (next == null) {
+      // TODO: no things selected
+      return
+    }
+
+    const { node, path } = next
+
+    if (node instanceof DirectTreeCard) {
+      setCard(node.toPartial().toCard(path))
+    } else if (node instanceof Generator) {
+      setCard(node.generate().toCard(path))
+    }
+  }
+
+  onMount(() => {
     try {
       const val = JSON.parse(storageTree())
-      console.log(val)
       tree.importJSON(val)
-    } catch (e) {
-      console.error(e)
-    }
-  })
+    } catch {}
 
-  createEffect(() => setStorageTree(JSON.stringify(tree.toJSON())))
+    nextCard()
+  })
 
   return (
     <div class="flex flex-1 items-start gap-6">
@@ -147,7 +198,7 @@ export function Main() {
             <Show
               fallback={
                 <button
-                  class="rounded bg-z-body-selected py-2"
+                  class="w-full rounded bg-z-body-selected py-2"
                   onClick={() => setCard((c) => ({ ...c, answerShown: true }))}
                 >
                   Show Answer
@@ -155,7 +206,7 @@ export function Main() {
               }
               when={card().answerShown}
             >
-              <div class="grid grid-cols-3 gap-1 text-base/[1.25] md:gap-2">
+              <div class="grid grid-cols-3 gap-1 md:gap-2">
                 <button class="rounded bg-red-300 py-2 text-red-900">
                   Again
                 </button>
