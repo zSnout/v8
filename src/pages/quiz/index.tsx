@@ -1,5 +1,5 @@
 import { CheckboxGroup, CheckboxItem } from "@/components/fields/CheckboxGroup"
-import { JSX, Show, createSignal } from "solid-js"
+import { Accessor, JSX, Setter, Show, Signal, createSignal } from "solid-js"
 
 type Json = string | number | boolean | null | readonly Json[] | JsonObject
 
@@ -30,10 +30,16 @@ type DataV1 = {
 }
 
 class Tree {
-  enabled: TreeOf<boolean> = Object.create(null)
-  expanded: TreeOf<boolean> = Object.create(null)
+  enabled: Accessor<TreeOf<boolean>>
+  setEnabled: Setter<TreeOf<boolean>>
 
-  constructor(readonly tree: TreeOf<Generator>) {}
+  expanded: Accessor<TreeOf<boolean>>
+  setExpanded: Setter<TreeOf<boolean>>
+
+  constructor(readonly tree: TreeOf<Generator>) {
+    ;[this.enabled, this.setEnabled] = createSignal(Object.create(null))
+    ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
+  }
 
   importV1(data: JsonObject) {
     function checkIsBoolTree(tree: Json): tree is TreeOf<boolean> {
@@ -63,11 +69,11 @@ class Tree {
     }
 
     if ("enabled" in data && checkIsBoolTree(data.enabled)) {
-      this.enabled = data.enabled
+      this.setEnabled(data.enabled)
     }
 
     if ("expanded" in data && checkIsBoolTree(data.expanded)) {
-      this.expanded = data.expanded
+      this.setExpanded(data.expanded)
     }
   }
 
