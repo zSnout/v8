@@ -1,5 +1,13 @@
 import { CheckboxGroup, CheckboxItem } from "@/components/fields/CheckboxGroup"
-import { Accessor, JSX, Setter, Show, Signal, createSignal } from "solid-js"
+import {
+  Accessor,
+  For,
+  JSX,
+  Setter,
+  Show,
+  createSignal,
+  untrack,
+} from "solid-js"
 
 type Json = string | number | boolean | null | readonly Json[] | JsonObject
 
@@ -11,12 +19,14 @@ interface PartialCard {
   readonly id: string
 }
 
-interface Card {
-  readonly front: JSX.Element
-  readonly back: JSX.Element
-  readonly group: readonly string[]
-  readonly id: string
-  readonly answerShown: boolean
+export class Card {
+  constructor(
+    readonly front: JSX.Element,
+    readonly back: JSX.Element,
+    readonly group: readonly string[],
+    readonly id: string,
+    readonly answerShown: boolean,
+  ) {}
 }
 
 type Generator = (id?: string | undefined) => PartialCard
@@ -29,14 +39,14 @@ type DataV1 = {
   expanded: TreeOf<boolean>
 }
 
-class Tree {
+class Tree<T> {
   enabled: Accessor<TreeOf<boolean>>
   setEnabled: Setter<TreeOf<boolean>>
 
   expanded: Accessor<TreeOf<boolean>>
   setExpanded: Setter<TreeOf<boolean>>
 
-  constructor(readonly tree: TreeOf<Generator>) {
+  constructor(readonly tree: TreeOf<T>) {
     ;[this.enabled, this.setEnabled] = createSignal(Object.create(null))
     ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
   }
@@ -99,10 +109,55 @@ class Tree {
   toJSON(): DataV1 {
     return {
       version: 1,
-      enabled: this.enabled,
-      expanded: this.expanded,
+      enabled: untrack(this.enabled),
+      expanded: untrack(this.expanded),
     }
   }
+}
+
+function CheckboxNode<T>(props: {
+  key: string
+  isLeaf: (value: TreeOf<T> | T) => value is T
+  node: TreeOf<T> | T
+  tree: Tree<T>
+}) {
+  // TODO: interactivity
+  if (props.isLeaf(props.node)) {
+    return <CheckboxItem label={props.key} />
+  } else {
+    return (
+      <CheckboxGroup label={props.key}>
+        <For each={Object.entries(props.node)}>
+          {([key, node]) => (
+            <CheckboxNode
+              key={key}
+              isLeaf={props.isLeaf}
+              node={node}
+              tree={props.tree}
+            />
+          )}
+        </For>
+      </CheckboxGroup>
+    )
+  }
+}
+
+function CheckboxTree<T>(props: {
+  isLeaf: (value: TreeOf<T> | T) => value is T
+  tree: Tree<T>
+}) {
+  return (
+    <For each={Object.entries(props.tree.tree)}>
+      {([key, node]) => (
+        <CheckboxNode
+          key={key}
+          isLeaf={props.isLeaf}
+          node={node}
+          tree={props.tree}
+        />
+      )}
+    </For>
+  )
 }
 
 function random<T>(array: readonly T[]): T {
@@ -113,7 +168,7 @@ function random<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)]!
 }
 
-const tree = new Tree({
+const tree = new Tree<Card | Generator>({
   Japanese: {
     Hiragana: {
       Basic(id) {
@@ -247,37 +302,11 @@ export function Main() {
       <div class="hidden w-48 sm:flex md:w-72">
         <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-2 md:w-[19.5rem]">
           <ul class="flex flex-col gap-1">
-            <CheckboxGroup
-              label="Hiragana"
-              expanded={expanded()}
-              onExpanded={setExpanded}
-            >
-              <CheckboxItem label="Basic" />
-
-              <CheckboxItem label="Dakuten" />
-
-              <CheckboxItem label="Combinations" />
-
-              <CheckboxGroup
-                label="Obscure"
-                expanded={expanded2()}
-                onExpanded={setExpanded2}
-              >
-                <CheckboxItem label="wi we" />
-                <CheckboxItem label="yi ye wu" />
-              </CheckboxGroup>
-            </CheckboxGroup>
-
-            <CheckboxGroup
-              label="Katakana"
-              expanded={expanded()}
-              onExpanded={setExpanded}
-            />
-
-            <CheckboxGroup
-              label="Numbers"
-              expanded={expanded()}
-              onExpanded={setExpanded}
+            <CheckboxTree
+              isLeaf={(value): value is Card | Generator =>
+                value instanceof Card || typeof value == "function"
+              }
+              tree={tree}
             />
           </ul>
         </div>
