@@ -22,7 +22,6 @@ export function Checkbox(props: {
   disabled?: boolean
   indeterminate?: boolean
 }) {
-  // TODO: hover and focus styles
   return (
     <>
       <input
@@ -490,12 +489,4 @@ export function CheckboxTree<T>(props: { tree: Tree<T> }) {
       )}
     </For>
   )
-}
-
-function random<T>(array: readonly T[]): T {
-  if (array.length == 0) {
-    throw new RangeError("No items in array.")
-  }
-
-  return array[Math.floor(Math.random() * array.length)]!
 }
