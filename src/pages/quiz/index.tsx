@@ -83,10 +83,14 @@ const tree = new Tree(
             re: "れ",
             ro: "ろ",
             wa: "わ",
-            wi: "ゐ",
-            we: "ゑ",
             wo: "を",
             n: "ん",
+          }),
+        },
+        Obscure: {
+          ...kanaTree({
+            wi: "ゐ",
+            we: "ゑ",
           }),
         },
       },

@@ -162,6 +162,7 @@ export function CheckboxGroup(props: {
           ref={(el) => {
             const observer = new ResizeObserver(([entry]) => {
               const { height } = entry!.contentRect || entry!.contentBoxSize
+              // if (height == 0) return
               el.parentElement?.style.setProperty("--max-height", height + "px")
             })
             observer.observe(el, { box: "content-box" })
@@ -388,8 +389,6 @@ export class Tree<T> {
       expanded: this.expanded(),
     }
   }
-
-  // TODO: hidden isnt working on initial load
 
   choose(weight: (leaf: T) => number = () => 1) {
     const nodes: [T, number][] = []
