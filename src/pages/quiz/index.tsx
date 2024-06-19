@@ -1,5 +1,6 @@
-import { CA } from "@zsnout/ithkuil/generate"
-import { JSX, Show, createSignal } from "solid-js"
+import { Fa } from "@/components/Fa"
+import { faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import { JSX, Show, createEffect, createSignal } from "solid-js"
 
 export type Json =
   | string
@@ -25,6 +26,9 @@ export function Main() {
     id: 7,
     answerShown: true,
   })
+
+  const [expanded, setExpanded] = createSignal(false)
+  const [expanded2, setExpanded2] = createSignal(false)
 
   return (
     <div class="flex flex-1 items-start gap-6">
@@ -75,8 +79,148 @@ export function Main() {
       </div>
 
       <div class="hidden w-48 sm:flex md:w-72">
-        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-3 py-2 md:w-[19.5rem]"></div>
+        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-2 md:w-[19.5rem]">
+          <ul class="flex flex-col gap-1">
+            <CheckboxGroup
+              label="Hiragana"
+              expanded={expanded()}
+              onExpanded={setExpanded}
+            >
+              <CheckboxItem label="Basic" />
+
+              <CheckboxItem label="Dakuten" />
+
+              <CheckboxItem label="Combinations" />
+
+              <CheckboxGroup
+                label="Obscure"
+                expanded={expanded2()}
+                onExpanded={setExpanded2}
+              >
+                <CheckboxItem label="wi we" />
+                <CheckboxItem label="yi ye wu" />
+              </CheckboxGroup>
+            </CheckboxGroup>
+
+            <CheckboxGroup
+              label="Katakana"
+              expanded={expanded()}
+              onExpanded={setExpanded}
+            />
+
+            <CheckboxGroup
+              label="Numbers"
+              expanded={expanded()}
+              onExpanded={setExpanded}
+            />
+          </ul>
+        </div>
       </div>
     </div>
+  )
+}
+
+function Checkbox(props: { onInput?(value: boolean): void }) {
+  // TODO: hover and focus styles
+  return (
+    <>
+      <input
+        class="sr-only"
+        type="checkbox"
+        onInput={(event) => props.onInput?.(event.currentTarget.checked)}
+      />
+
+      <div
+        class="group-checkbox flex h-6 cursor-pointer select-none items-center justify-center"
+        role="button"
+      >
+        <div class="flex h-5 w-5 items-center justify-center rounded [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]">
+          <div class="h-full w-full rounded border border-z [:checked+.group-checkbox_&]:hidden [:indeterminate+.group-checkbox_&]:hidden"></div>
+
+          <Fa
+            class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:checked+.group-checkbox_&]:block [:indeterminate+.group-checkbox_&]:block"
+            icon={faCheck}
+            title="expand section"
+          />
+        </div>
+      </div>
+    </>
+  )
+}
+
+function CheckboxGroup(props: {
+  label: string
+  onInput?(value: boolean): void
+  onExpanded?(value: boolean): void
+  children?: JSX.Element
+  expanded?: boolean
+}) {
+  const [expanding, setExpanding] = createSignal(false)
+
+  return (
+    <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
+      <div class="flex w-full gap-2">
+        <button onClick={() => props.onExpanded?.(!props.expanded)}>
+          <Fa
+            class={"h-3 w-3 transition" + (props.expanded ? " rotate-90" : "")}
+            icon={faChevronRight}
+            title="expand section"
+          />
+        </button>
+
+        <label class="flex w-full gap-2">
+          <Checkbox onInput={props.onInput} />
+
+          <span>{props.label}</span>
+        </label>
+      </div>
+
+      <div
+        class="overflow-clip transition-[max-height]"
+        classList={{
+          "max-h-[--height]": props.expanded,
+          "[&:has(.z-expanding)]:max-h-none": props.expanded,
+          "max-h-0": !props.expanded,
+        }}
+        onTransitionStart={() => setExpanding(true)}
+        onTransitionEnd={() => setExpanding(false)}
+      >
+        <ul
+          class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
+          ref={(el) => {
+            const observer = new ResizeObserver(([entry]) => {
+              const { height } = entry!.contentRect || entry!.contentBoxSize
+              el.parentElement?.style.setProperty("--height", height + "px")
+            })
+
+            observer.observe(el, { box: "content-box" })
+          }}
+        >
+          {props.children}
+        </ul>
+      </div>
+    </li>
+  )
+}
+
+function CheckboxItem(props: {
+  label: string
+  onInput?(value: boolean): void
+  children?: JSX.Element
+}) {
+  return (
+    <li class="flex flex-col">
+      <label class="flex w-full gap-2 pl-5">
+        <Checkbox onInput={props.onInput} />
+
+        <span>{props.label}</span>
+      </label>
+
+      <div class="relative" inert>
+        <ul class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1">
+          {props.children}
+        </ul>
+      </div>
+    </li>
   )
 }
