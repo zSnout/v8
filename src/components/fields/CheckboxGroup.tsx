@@ -10,6 +10,7 @@ import {
   Setter,
   createEffect,
   createSignal,
+  onMount,
   untrack,
 } from "solid-js"
 import { Fa } from "../Fa"
@@ -50,8 +51,8 @@ export function Checkbox(props: {
         class="group-checkbox flex h-6 cursor-pointer select-none items-center justify-center"
         role="button"
       >
-        <div class="flex h-5 w-5 items-center justify-center rounded [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]">
-          <div class="h-full w-full rounded border border-z [:checked+.group-checkbox_&]:hidden [:indeterminate+.group-checkbox_&]:hidden"></div>
+        <div class="relative flex h-5 w-5 items-center justify-center rounded border border-transparent ring ring-transparent transition-[box-shadow,border-color] [:active+*>&]:border-z-focus [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:focus-visible+*>&]:border-z-focus [:focus-visible+*>&]:ring-z-focus [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]">
+          <div class="absolute -m-px size-[calc(100%_+_2px)] rounded border border-z [:active+*>*>&]:border-z-focus [:checked+.group-checkbox_&]:hidden [:focus-visible+*>*>&]:border-z-focus [:indeterminate+.group-checkbox_&]:hidden" />
 
           <Fa
             class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:checked:not(:indeterminate)+.group-checkbox_&]:block"
@@ -84,11 +85,17 @@ export function CheckboxGroup(props: {
   let inner: HTMLDivElement | undefined
 
   let last = untrack(() => props.expanded)
+  onMount(() => {
+    if (!props.expanded) {
+      inner?.classList.add("hidden")
+    }
+  })
   createEffect(() => {
     if (last == props.expanded) {
       return
     }
 
+    last = props.expanded
     setExpanding(true)
 
     if (!inner) {
@@ -225,7 +232,10 @@ export class Tree<T> {
   expanded: Accessor<TreeOf<boolean>>
   setExpanded: Setter<TreeOf<boolean>>
 
-  constructor(readonly tree: TreeOf<T>) {
+  constructor(
+    readonly tree: TreeOf<T>,
+    readonly isLeaf: (value: TreeOf<T> | T) => value is T,
+  ) {
     ;[this.enabled, this.setEnabled] = createSignal(Object.create(null))
     ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
   }
@@ -378,6 +388,47 @@ export class Tree<T> {
       expanded: this.expanded(),
     }
   }
+
+  // TODO: hidden isnt working on initial load
+
+  choose(weight: (leaf: T) => number = () => 1) {
+    const nodes: [T, number][] = []
+
+    const getEnabledNodes = (tree: TreeOf<T>, enabled: TreeOf<boolean>) => {
+      for (const key in tree) {
+        const value = tree[key]!
+        const e = enabled[key]
+
+        if (this.isLeaf(value)) {
+          if (e === true) {
+            nodes.push([value, weight(value)])
+          }
+        } else {
+          getEnabledNodes(value, typeof e == "object" ? e : {})
+        }
+      }
+    }
+
+    getEnabledNodes(this.tree, untrack(this.enabled))
+
+    let total = 0
+
+    for (const [, value] of nodes) {
+      total += value
+    }
+
+    let index = Math.random() * total
+
+    for (const [node, value] of nodes) {
+      if (index < value) {
+        return node
+      } else {
+        index -= value
+      }
+    }
+
+    return undefined
+  }
 }
 
 export function CheckboxNode<T>(props: {
@@ -422,16 +473,13 @@ export function CheckboxNode<T>(props: {
   }
 }
 
-export function CheckboxTree<T>(props: {
-  isLeaf: (value: TreeOf<T> | T) => value is T
-  tree: Tree<T>
-}) {
+export function CheckboxTree<T>(props: { tree: Tree<T> }) {
   return (
     <For each={Object.entries(props.tree.tree)}>
       {([key, node]) => (
         <CheckboxNode<T>
           key={key}
-          isLeaf={props.isLeaf}
+          isLeaf={props.tree.isLeaf}
           node={node}
           tree={props.tree}
           parent={[]}
@@ -439,4 +487,12 @@ export function CheckboxTree<T>(props: {
       )}
     </For>
   )
+}
+
+function random<T>(array: readonly T[]): T {
+  if (array.length == 0) {
+    throw new RangeError("No items in array.")
+  }
+
+  return array[Math.floor(Math.random() * array.length)]!
 }

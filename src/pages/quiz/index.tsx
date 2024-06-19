@@ -24,14 +24,6 @@ export interface Card {
 
 type Generator = (id?: string | undefined) => PartialCard
 
-function random<T>(array: readonly T[]): T {
-  if (array.length == 0) {
-    throw new RangeError("No items in array.")
-  }
-
-  return array[Math.floor(Math.random() * array.length)]!
-}
-
 function kanaTree(kana: { [romaji: string]: string }): RawTree {
   return Object.fromEntries(
     Object.entries(kana).map(([romaji, kana]) => [
@@ -41,64 +33,68 @@ function kanaTree(kana: { [romaji: string]: string }): RawTree {
   )
 }
 
-const tree = new Tree({
-  Japanese: {
-    Hiragana: {
-      Basic: {
-        ...kanaTree({
-          a: "あ",
-          i: "い",
-          u: "う",
-          e: "え",
-          o: "お",
-          ka: "か",
-          ki: "き",
-          ku: "く",
-          ke: "け",
-          ko: "こ",
-          sa: "さ",
-          shi: "し",
-          su: "す",
-          se: "せ",
-          so: "そ",
-          ta: "た",
-          chi: "ち",
-          tsu: "つ",
-          te: "て",
-          to: "と",
-          na: "な",
-          ni: "に",
-          nu: "ぬ",
-          ne: "ね",
-          no: "の",
-          ha: "は",
-          hi: "ひ",
-          fu: "ふ",
-          he: "へ",
-          ho: "ほ",
-          ma: "ま",
-          mi: "み",
-          mu: "む",
-          me: "め",
-          mo: "も",
-          ya: "や",
-          yu: "ゆ",
-          yo: "よ",
-          ra: "ら",
-          ri: "り",
-          ru: "る",
-          re: "れ",
-          ro: "ろ",
-          wa: "わ",
-          wi: "ゐ",
-          we: "ゑ",
-          wo: "を",
-          n: "ん",
-        }),
+const tree = new Tree(
+  {
+    Japanese: {
+      Hiragana: {
+        Basic: {
+          ...kanaTree({
+            a: "あ",
+            i: "い",
+            u: "う",
+            e: "え",
+            o: "お",
+            ka: "か",
+            ki: "き",
+            ku: "く",
+            ke: "け",
+            ko: "こ",
+            sa: "さ",
+            shi: "し",
+            su: "す",
+            se: "せ",
+            so: "そ",
+            ta: "た",
+            chi: "ち",
+            tsu: "つ",
+            te: "て",
+            to: "と",
+            na: "な",
+            ni: "に",
+            nu: "ぬ",
+            ne: "ね",
+            no: "の",
+            ha: "は",
+            hi: "ひ",
+            fu: "ふ",
+            he: "へ",
+            ho: "ほ",
+            ma: "ま",
+            mi: "み",
+            mu: "む",
+            me: "め",
+            mo: "も",
+            ya: "や",
+            yu: "ゆ",
+            yo: "よ",
+            ra: "ら",
+            ri: "り",
+            ru: "る",
+            re: "れ",
+            ro: "ろ",
+            wa: "わ",
+            wi: "ゐ",
+            we: "ゑ",
+            wo: "を",
+            n: "ん",
+          }),
+        },
       },
     },
   },
-})
+  (value): value is PartialCard | Generator =>
+    value instanceof PartialCard || typeof value == "function",
+)
 
 export function Main() {
   const [card, setCard] = createSignal<Card>({
@@ -176,12 +172,7 @@ export function Main() {
 
         <div class="fixed bottom-0 right-0 top-12 flex w-[13.5rem] flex-col overflow-y-auto border-l border-transparent px-4 py-10 md:w-[19.5rem]">
           <ul class="flex flex-col gap-1">
-            <CheckboxTree
-              isLeaf={(value): value is PartialCard | Generator =>
-                value instanceof PartialCard || typeof value == "function"
-              }
-              tree={tree}
-            />
+            <CheckboxTree tree={tree} />
           </ul>
         </div>
       </div>
