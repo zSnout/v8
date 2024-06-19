@@ -28,10 +28,20 @@ export function Checkbox(props: {
         class="sr-only"
         classList={{ "z-group-checkbox": props.marksGroup }}
         type="checkbox"
-        onInput={(event) => props.onInput?.(event.currentTarget.checked)}
         checked={props.checked}
+        onInput={(event) => props.onInput?.(event.currentTarget.checked)}
         ref={(el) => {
-          createEffect(() => (el.indeterminate = !!props.indeterminate))
+          createEffect(() => {
+            el.checked = !!props.checked
+            el.indeterminate = !!props.indeterminate
+            setTimeout(() =>
+              el.dispatchEvent(
+                new CustomEvent("reevaluate-group-checkboxes", {
+                  bubbles: true,
+                }),
+              ),
+            )
+          })
         }}
         disabled={props.disabled}
       />
@@ -167,6 +177,7 @@ export function CheckboxGroup(props: {
 
             updateSelf()
             el.addEventListener("input", updateSelf)
+            el.addEventListener("reevaluate-group-checkboxes", updateSelf)
 
             getInputs = () => checkboxes
           }}
@@ -186,7 +197,7 @@ export function CheckboxItem(props: {
   return (
     <li class="flex flex-col">
       <label class="flex w-full gap-2 pl-5">
-        <Checkbox onInput={props.onInput} />
+        <Checkbox onInput={props.onInput} checked={props.checked} />
 
         <span>{props.label}</span>
       </label>
@@ -363,8 +374,8 @@ export class Tree<T> {
   toJSON(): DataV1 & Json {
     return {
       version: 1,
-      enabled: untrack(this.enabled),
-      expanded: untrack(this.expanded),
+      enabled: this.enabled(),
+      expanded: this.expanded(),
     }
   }
 }

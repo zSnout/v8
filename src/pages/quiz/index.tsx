@@ -1,5 +1,6 @@
 import { CheckboxTree, Tree, TreeOf } from "@/components/fields/CheckboxGroup"
-import { JSX, Show, createSignal } from "solid-js"
+import { createStorage } from "@/stores/local-storage-store"
+import { JSX, Show, createEffect, createSignal } from "solid-js"
 
 type RawTree = TreeOf<PartialCard | Generator>
 
@@ -107,6 +108,20 @@ export function Main() {
     id: "7",
     answerShown: true,
   })
+
+  const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
+
+  createEffect(() => {
+    try {
+      const val = JSON.parse(storageTree())
+      console.log(val)
+      tree.importJSON(val)
+    } catch (e) {
+      console.error(e)
+    }
+  })
+
+  createEffect(() => setStorageTree(JSON.stringify(tree.toJSON())))
 
   return (
     <div class="flex flex-1 items-start gap-6">
