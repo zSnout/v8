@@ -20,9 +20,7 @@ export interface Card {
 export function Main() {
   const [card, setCard] = createSignal<Card>({
     front: "7:00",
-    back: "しちじ しちじ しちじ しちじ しちじ しちじ しちじ しちじ しちじ しちじ しちじ しちじ しちじ しちじ ".repeat(
-      100,
-    ),
+    back: "しちじ",
     group: "jp::time::oclock",
     id: 7,
     answerShown: true,
@@ -30,8 +28,8 @@ export function Main() {
 
   return (
     <div class="flex flex-1 items-start gap-6">
-      <div class="flex h-full flex-1 flex-col items-start gap-4">
-        <div class="flex flex-1 flex-col gap-4">
+      <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
+        <div class="flex w-full flex-1 flex-col gap-4">
           <div class="text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
             {card().front}
           </div>
