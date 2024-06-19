@@ -75,9 +75,7 @@ export function Main() {
       </div>
 
       <div class="hidden w-48 sm:flex md:w-72">
-        <div class="fixed bottom-0 right-0 top-12 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-3 py-2 md:w-[19.5rem]">
-          <div class="flex-1 bg-blue-100"></div>
-        </div>
+        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-3 py-2 md:w-[19.5rem]"></div>
       </div>
     </div>
   )
