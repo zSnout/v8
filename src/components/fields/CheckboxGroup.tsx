@@ -3,7 +3,15 @@ import {
   faChevronRight,
   faMinus,
 } from "@fortawesome/free-solid-svg-icons"
-import { JSX, createEffect, createSignal } from "solid-js"
+import {
+  Accessor,
+  For,
+  JSX,
+  Setter,
+  createEffect,
+  createSignal,
+  untrack,
+} from "solid-js"
 import { Fa } from "../Fa"
 
 export function Checkbox(props: {
@@ -152,6 +160,7 @@ export function CheckboxGroup(props: {
 export function CheckboxItem(props: {
   label: string
   onInput?(value: boolean): void
+  checked?: boolean
 }) {
   return (
     <li class="flex flex-col">
@@ -161,5 +170,241 @@ export function CheckboxItem(props: {
         <span>{props.label}</span>
       </label>
     </li>
+  )
+}
+
+type Json = string | number | boolean | null | readonly Json[] | JsonObject
+
+type JsonObject = { readonly [x: string]: Json }
+
+export type TreeOf<T> = { [name: string]: TreeOf<T> | T }
+
+export type DataV1 = {
+  version: 1
+  enabled: TreeOf<boolean>
+  expanded: TreeOf<boolean>
+}
+
+export class Tree<T> {
+  enabled: Accessor<TreeOf<boolean>>
+  setEnabled: Setter<TreeOf<boolean>>
+
+  // the "" key is used in these trees to mark whether a group is expanded
+  expanded: Accessor<TreeOf<boolean>>
+  setExpanded: Setter<TreeOf<boolean>>
+
+  constructor(readonly tree: TreeOf<T>) {
+    ;[this.enabled, this.setEnabled] = createSignal(Object.create(null))
+    ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
+  }
+
+  toggleEnabled(parent: readonly string[], key: string, enabled: boolean) {
+    const full = structuredClone(this.enabled())
+    let obj = full
+
+    for (const k of parent) {
+      const next = obj[k]
+
+      if (typeof next == "object") {
+        obj = next
+      } else {
+        obj = obj[k] = {}
+      }
+    }
+
+    obj[key] = enabled
+
+    this.setEnabled(full)
+  }
+
+  toggleExpanded(parent: readonly string[], key: string, expanded: boolean) {
+    const full = structuredClone(this.expanded())
+    let obj = full
+
+    for (const k of [...parent, key]) {
+      const next = obj[k]
+
+      if (typeof next == "object") {
+        obj = next
+      } else {
+        obj = obj[k] = {}
+      }
+    }
+
+    obj[""] = expanded
+
+    this.setExpanded(full)
+  }
+
+  isEnabled(parent: readonly string[], key: string) {
+    let obj = this.enabled()
+
+    for (const k of parent) {
+      const next = obj[k]
+
+      if (typeof next == "object") {
+        obj = next
+      } else {
+        return false
+      }
+    }
+
+    const next = obj[key]
+
+    if (typeof next == "boolean") {
+      return next
+    }
+
+    return false
+  }
+
+  isExpanded(parent: readonly string[], key: string) {
+    let obj = this.expanded()
+
+    for (const k of parent) {
+      const next = obj[k]
+
+      if (typeof next == "object") {
+        obj = next
+      } else {
+        return false
+      }
+    }
+
+    const next = obj[key]
+
+    if (typeof next == "object") {
+      const final = next[""]
+
+      if (typeof final == "boolean") {
+        return final
+      }
+    }
+
+    return false
+  }
+
+  importV1(data: object) {
+    function checkIsBoolTree(tree: unknown): tree is TreeOf<boolean> {
+      if (
+        typeof tree != "object" ||
+        tree == null ||
+        // instanceof satisfies TypeScript, Array.isArray satisfies the browser
+        tree instanceof Array ||
+        Array.isArray(tree)
+      ) {
+        return false
+      }
+
+      for (const key in tree) {
+        const val = (tree as Record<string, unknown>)[key]
+
+        if (
+          typeof val == "object"
+            ? !checkIsBoolTree(val)
+            : typeof val != "boolean"
+        ) {
+          return false
+        }
+      }
+
+      return true
+    }
+
+    if ("enabled" in data && checkIsBoolTree(data.enabled)) {
+      this.setEnabled(data.enabled)
+    }
+
+    if ("expanded" in data && checkIsBoolTree(data.expanded)) {
+      this.setExpanded(data.expanded)
+    }
+  }
+
+  importJSON(data: unknown) {
+    if (
+      typeof data != "object" ||
+      data == null ||
+      !("version" in data) ||
+      typeof data.version != "number"
+    ) {
+      throw new Error("Expected an object with a `version` property.")
+    }
+
+    if (data.version == 1) {
+      return this.importV1(data)
+    }
+
+    throw new Error(
+      "Unknown data storage version. Reload the page and try again.",
+    )
+  }
+
+  toJSON(): DataV1 & Json {
+    return {
+      version: 1,
+      enabled: untrack(this.enabled),
+      expanded: untrack(this.expanded),
+    }
+  }
+}
+
+export function CheckboxNode<T>(props: {
+  key: string
+  parent: readonly string[]
+  isLeaf: (value: TreeOf<T> | T) => value is T
+  node: TreeOf<T> | T
+  tree: Tree<T>
+}) {
+  if (props.isLeaf(props.node)) {
+    return (
+      <CheckboxItem
+        label={props.key}
+        checked={props.tree.isEnabled(props.parent, props.key)}
+        onInput={(enabled) =>
+          props.tree.toggleEnabled(props.parent, props.key, enabled)
+        }
+      />
+    )
+  } else {
+    return (
+      <CheckboxGroup
+        label={props.key}
+        expanded={props.tree.isExpanded(props.parent, props.key)}
+        onExpanded={(enabled) =>
+          props.tree.toggleExpanded(props.parent, props.key, enabled)
+        }
+      >
+        <For each={Object.entries(props.node)}>
+          {([key, node]) => (
+            <CheckboxNode<T>
+              key={key}
+              isLeaf={props.isLeaf}
+              node={node}
+              tree={props.tree}
+              parent={props.parent.concat(props.key)}
+            />
+          )}
+        </For>
+      </CheckboxGroup>
+    )
+  }
+}
+
+export function CheckboxTree<T>(props: {
+  isLeaf: (value: TreeOf<T> | T) => value is T
+  tree: Tree<T>
+}) {
+  return (
+    <For each={Object.entries(props.tree.tree)}>
+      {([key, node]) => (
+        <CheckboxNode<T>
+          key={key}
+          isLeaf={props.isLeaf}
+          node={node}
+          tree={props.tree}
+          parent={[]}
+        />
+      )}
+    </For>
   )
 }

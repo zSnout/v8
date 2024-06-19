@@ -1,17 +1,5 @@
-import { CheckboxGroup, CheckboxItem } from "@/components/fields/CheckboxGroup"
-import {
-  Accessor,
-  For,
-  JSX,
-  Setter,
-  Show,
-  createSignal,
-  untrack,
-} from "solid-js"
-
-type Json = string | number | boolean | null | readonly Json[] | JsonObject
-
-type JsonObject = { readonly [x: string]: Json }
+import { CheckboxTree, Tree } from "@/components/fields/CheckboxGroup"
+import { JSX, Show, createSignal } from "solid-js"
 
 interface PartialCard {
   readonly front: JSX.Element
@@ -30,167 +18,6 @@ export class Card {
 }
 
 type Generator = (id?: string | undefined) => PartialCard
-
-type TreeOf<T> = { readonly [name: string]: TreeOf<T> | T }
-
-type DataV1 = {
-  version: 1
-  enabled: TreeOf<boolean>
-  expanded: TreeOf<boolean>
-}
-
-class Tree<T> {
-  enabled: Accessor<TreeOf<boolean>>
-  setEnabled: Setter<TreeOf<boolean>>
-
-  // the "" key is used in these trees to mark whether a group is expanded
-  expanded: Accessor<TreeOf<boolean>>
-  setExpanded: Setter<TreeOf<boolean>>
-
-  constructor(readonly tree: TreeOf<T>) {
-    ;[this.enabled, this.setEnabled] = createSignal(Object.create(null))
-    ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
-  }
-
-  toggleEnabled(path: readonly string[], enabled: boolean) {}
-
-  toggleExpanded(path: readonly string[], enabled: boolean) {}
-
-  isEnabled(path: readonly string[]) {}
-
-  isExpanded(path: readonly string[]) {}
-
-  importV1(data: JsonObject) {
-    function checkIsBoolTree(tree: Json): tree is TreeOf<boolean> {
-      if (
-        typeof tree != "object" ||
-        tree == null ||
-        // instanceof satisfies TypeScript, Array.isArray satisfies the browser
-        tree instanceof Array ||
-        Array.isArray(tree)
-      ) {
-        return false
-      }
-
-      for (const key in tree) {
-        const val = tree[key]
-
-        if (
-          typeof val == "object"
-            ? !checkIsBoolTree(val)
-            : typeof val != "boolean"
-        ) {
-          return false
-        }
-      }
-
-      return true
-    }
-
-    if ("enabled" in data && checkIsBoolTree(data.enabled)) {
-      this.setEnabled(data.enabled)
-    }
-
-    if ("expanded" in data && checkIsBoolTree(data.expanded)) {
-      this.setExpanded(data.expanded)
-    }
-  }
-
-  importJSON(data: Json) {
-    if (
-      typeof data != "object" ||
-      data == null ||
-      !("version" in data) ||
-      typeof data.version != "number"
-    ) {
-      throw new Error("Expected an object with a `version` property.")
-    }
-
-    if (data.version == 1) {
-      return this.importV1(data)
-    }
-
-    throw new Error(
-      "Unknown data storage version. Reload the page and try again.",
-    )
-  }
-
-  toJSON(): DataV1 {
-    return {
-      version: 1,
-      enabled: untrack(this.enabled),
-      expanded: untrack(this.expanded),
-    }
-  }
-}
-
-function CheckboxNode<T>(props: {
-  key: string
-  path: readonly string[]
-  isLeaf: (value: TreeOf<T> | T) => value is T
-  node: TreeOf<T> | T
-  tree: Tree<T>
-  // enabled: () => TreeOf<boolean> | boolean | undefined
-  // expanded: () => TreeOf<boolean> | boolean | undefined
-}) {
-  // TODO: interactivity
-  if (props.isLeaf(props.node)) {
-    return <CheckboxItem label={props.key} />
-  } else {
-    return (
-      <CheckboxGroup label={props.key}>
-        <For each={Object.entries(props.node)}>
-          {([key, node]) => (
-            <CheckboxNode
-              key={key}
-              isLeaf={props.isLeaf}
-              node={node}
-              tree={props.tree}
-              // enabled={() => {
-              //   const val = props.enabled()
-              //   if (typeof val == "boolean") {
-              //     return undefined
-              //   } else {
-              //     return val?.[key]
-              //   }
-              // }}
-              // expanded={() => {
-              //   const val = props.expanded()
-              //   if (typeof val == "boolean") {
-              //     return undefined
-              //   } else {
-              //     return val?.[key]
-              //   }
-              // }}
-              path={[...props.path, key]}
-            />
-          )}
-        </For>
-      </CheckboxGroup>
-    )
-  }
-}
-
-function CheckboxTree<T>(props: {
-  isLeaf: (value: TreeOf<T> | T) => value is T
-  tree: Tree<T>
-}) {
-  return (
-    <For each={Object.entries(props.tree.tree)}>
-      {([key, node]) => (
-        <CheckboxNode
-          key={key}
-          isLeaf={props.isLeaf}
-          node={node}
-          tree={props.tree}
-          // enabled={() => props.tree.enabled()[key]}
-          // expanded={() => props.tree.expanded()[key]}
-          path={[key]}
-        />
-      )}
-    </For>
-  )
-}
 
 function random<T>(array: readonly T[]): T {
   if (array.length == 0) {
@@ -269,6 +96,74 @@ const tree = new Tree<Card | Generator>({
       },
     },
   },
+  JP2: {
+    Katakana: {
+      Basic(id) {
+        const chars: Record<string, string> = {
+          a: "あ",
+          i: "い",
+          u: "う",
+          e: "え",
+          o: "お",
+          ka: "か",
+          ki: "き",
+          ku: "く",
+          ke: "け",
+          ko: "こ",
+          sa: "さ",
+          shi: "し",
+          su: "す",
+          se: "せ",
+          so: "そ",
+          ta: "た",
+          chi: "ち",
+          tsu: "つ",
+          te: "て",
+          to: "と",
+          na: "な",
+          ni: "に",
+          nu: "ぬ",
+          ne: "ね",
+          no: "の",
+          ha: "は",
+          hi: "ひ",
+          fu: "ふ",
+          he: "へ",
+          ho: "ほ",
+          ma: "ま",
+          mi: "み",
+          mu: "む",
+          me: "め",
+          mo: "も",
+          ya: "や",
+          yu: "ゆ",
+          yo: "よ",
+          ra: "ら",
+          ri: "り",
+          ru: "る",
+          re: "れ",
+          ro: "ろ",
+          wa: "わ",
+          // wi: "ゐ",
+          // we: "ゑ",
+          wo: "を",
+          n: "ん",
+        }
+
+        id = id ?? random(Object.keys(chars))
+
+        if (id in chars) {
+          return {
+            front: id,
+            back: chars[id]!,
+            id,
+          }
+        }
+
+        throw new RangeError(`Card "${id}" does not exist.`)
+      },
+    },
+  },
 })
 
 export function Main() {
@@ -279,9 +174,6 @@ export function Main() {
     id: "7",
     answerShown: true,
   })
-
-  const [expanded, setExpanded] = createSignal(false)
-  const [expanded2, setExpanded2] = createSignal(false)
 
   return (
     <div class="flex flex-1 items-start gap-6">
@@ -341,6 +233,14 @@ export function Main() {
               tree={tree}
             />
           </ul>
+
+          <pre class="text-xs">
+            {JSON.stringify(tree.enabled(), undefined, 2)}
+          </pre>
+
+          <pre class="text-xs">
+            {JSON.stringify(tree.expanded(), undefined, 2)}
+          </pre>
         </div>
       </div>
     </div>
