@@ -1,5 +1,9 @@
 import { Fa } from "@/components/Fa"
-import { faCheck, faChevronRight } from "@fortawesome/free-solid-svg-icons"
+import {
+  faCheck,
+  faChevronRight,
+  faMinus,
+} from "@fortawesome/free-solid-svg-icons"
 import { JSX, Show, createEffect, createSignal } from "solid-js"
 
 export type Json =
@@ -120,14 +124,26 @@ export function Main() {
   )
 }
 
-function Checkbox(props: { onInput?(value: boolean): void }) {
+function Checkbox(props: {
+  onInput?(value: boolean): void
+  marksGroup?: boolean
+  checked?: boolean
+  disabled?: boolean
+  indeterminate?: boolean
+}) {
   // TODO: hover and focus styles
   return (
     <>
       <input
         class="sr-only"
+        classList={{ "z-group-checkbox": props.marksGroup }}
         type="checkbox"
         onInput={(event) => props.onInput?.(event.currentTarget.checked)}
+        checked={props.checked}
+        ref={(el) => {
+          createEffect(() => (el.indeterminate = !!props.indeterminate))
+        }}
+        disabled={props.disabled}
       />
 
       <div
@@ -138,8 +154,14 @@ function Checkbox(props: { onInput?(value: boolean): void }) {
           <div class="h-full w-full rounded border border-z [:checked+.group-checkbox_&]:hidden [:indeterminate+.group-checkbox_&]:hidden"></div>
 
           <Fa
-            class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:checked+.group-checkbox_&]:block [:indeterminate+.group-checkbox_&]:block"
+            class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:checked:not(:indeterminate)+.group-checkbox_&]:block"
             icon={faCheck}
+            title="expand section"
+          />
+
+          <Fa
+            class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:indeterminate+.group-checkbox_&]:block"
+            icon={faMinus}
             title="expand section"
           />
         </div>
@@ -150,12 +172,15 @@ function Checkbox(props: { onInput?(value: boolean): void }) {
 
 function CheckboxGroup(props: {
   label: string
-  onInput?(value: boolean): void
   onExpanded?(value: boolean): void
   children?: JSX.Element
   expanded?: boolean
 }) {
   const [expanding, setExpanding] = createSignal(false)
+  const [checked, setChecked] = createSignal(false)
+  const [indeterminate, setIndeterminate] = createSignal(false)
+  const [disabled, setDisabled] = createSignal(false)
+  let getInputs: () => HTMLCollectionOf<HTMLInputElement>
 
   return (
     <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
@@ -169,7 +194,24 @@ function CheckboxGroup(props: {
         </button>
 
         <label class="flex w-full gap-2">
-          <Checkbox onInput={props.onInput} />
+          <Checkbox
+            checked={checked()}
+            indeterminate={indeterminate()}
+            disabled={disabled()}
+            marksGroup
+            onInput={(checked) => {
+              const cbs = Array.from(getInputs()).filter(
+                (el) =>
+                  el.type == "checkbox" &&
+                  !el.classList.contains("z-group-checkbox"),
+              )
+
+              cbs.forEach((x) => {
+                x.checked = checked
+                x.dispatchEvent(new InputEvent("input", { bubbles: true }))
+              })
+            }}
+          />
 
           <span>{props.label}</span>
         </label>
@@ -192,8 +234,28 @@ function CheckboxGroup(props: {
               const { height } = entry!.contentRect || entry!.contentBoxSize
               el.parentElement?.style.setProperty("--height", height + "px")
             })
-
             observer.observe(el, { box: "content-box" })
+
+            const checkboxes = el.getElementsByTagName("input")
+            function updateSelf() {
+              const cbs = Array.from(checkboxes).filter(
+                (el) =>
+                  el.type == "checkbox" &&
+                  !el.classList.contains("z-group-checkbox"),
+              )
+
+              const hasUnchecked = cbs.some((x) => !x.checked)
+              const hasChecked = cbs.some((x) => x.checked)
+
+              setIndeterminate(hasUnchecked && hasChecked)
+              setChecked(!hasUnchecked)
+              setDisabled(!hasUnchecked && !hasChecked)
+            }
+
+            updateSelf()
+            el.addEventListener("input", updateSelf)
+
+            getInputs = () => checkboxes
           }}
         >
           {props.children}
