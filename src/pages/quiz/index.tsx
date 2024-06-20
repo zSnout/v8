@@ -8,9 +8,11 @@ import {
 import { createStorage } from "@/stores/local-storage-store"
 import {
   faClose,
+  faDownload,
   faExclamationTriangle,
   faNavicon,
   faTrash,
+  faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import {
   For,
@@ -805,48 +807,71 @@ export function Main() {
     "0",
   )
 
+  function queueFromJson(value: Json) {
+    if (!(value instanceof Array)) {
+      throw new Error("Review queue data is invalid.")
+    }
+    if (
+      !value.every(
+        (x): x is typeof x & QueuedCard =>
+          typeof x == "object" &&
+          x != null &&
+          "short" in x &&
+          typeof x.short == "string" &&
+          "path" in x &&
+          x.path instanceof Array &&
+          x.path.every((x): x is string => typeof x == "string") &&
+          "id" in x &&
+          typeof x.id == "string" &&
+          "interval" in x &&
+          typeof x.interval == "number" &&
+          "availableAt" in x &&
+          typeof x.availableAt == "number",
+      )
+    ) {
+      throw new Error("Review queue data is invalid.")
+    }
+    return value
+  }
+
+  function queueFromString(str: string) {
+    try {
+      const value = JSON.parse(str) as Json
+      if (!(value instanceof Array)) {
+        return []
+      }
+      if (
+        !value.every(
+          (x): x is typeof x & QueuedCard =>
+            typeof x == "object" &&
+            x != null &&
+            "short" in x &&
+            typeof x.short == "string" &&
+            "path" in x &&
+            x.path instanceof Array &&
+            x.path.every((x): x is string => typeof x == "string") &&
+            "id" in x &&
+            typeof x.id == "string" &&
+            "interval" in x &&
+            typeof x.interval == "number" &&
+            "availableAt" in x &&
+            typeof x.availableAt == "number",
+        )
+      ) {
+        return []
+      }
+      return value
+    } catch {
+      return []
+    }
+  }
+
   const [queue, setQueue] = (() => {
     const [raw, setRaw] = createStorage("quiz::queue", "[]", "directmount")
 
-    function toString(deck: readonly QueuedCard[]) {
-      return JSON.stringify(deck)
-    }
-
-    function fromString(str: string) {
-      try {
-        const value = JSON.parse(str) as Json
-        if (!(value instanceof Array)) {
-          return []
-        }
-        if (
-          !value.every(
-            (x): x is typeof x & QueuedCard =>
-              typeof x == "object" &&
-              x != null &&
-              "short" in x &&
-              typeof x.short == "string" &&
-              "path" in x &&
-              x.path instanceof Array &&
-              x.path.every((x): x is string => typeof x == "string") &&
-              "id" in x &&
-              typeof x.id == "string" &&
-              "interval" in x &&
-              typeof x.interval == "number" &&
-              "availableAt" in x &&
-              typeof x.availableAt == "number",
-          )
-        ) {
-          return []
-        }
-        return value
-      } catch {
-        return []
-      }
-    }
-
     return [
-      createMemo((): readonly QueuedCard[] => fromString(raw())),
-      (queue: QueuedCard[]) => setRaw(toString(queue)),
+      createMemo((): readonly QueuedCard[] => queueFromString(raw())),
+      (queue: readonly QueuedCard[]) => setRaw(JSON.stringify(queue)),
     ]
   })()
 
@@ -870,6 +895,64 @@ export function Main() {
   })
 
   const [state, setState] = createSignal<State>("noscript")
+
+  function exportState(): string {
+    return JSON.stringify({
+      version: 1,
+      tree: tree.toJSON(),
+      reviewsWithoutNew: reviewsWithoutNew(),
+      queue: queue(),
+    })
+  }
+
+  function importState(x: string) {
+    try {
+      const y: Json = JSON.parse(x)
+
+      if (
+        typeof y != "object" ||
+        y == null ||
+        !("version" in y) ||
+        y.version != 1 ||
+        !("tree" in y) ||
+        !("reviewsWithoutNew" in y) ||
+        typeof y.reviewsWithoutNew != "string" ||
+        !("queue" in y)
+      ) {
+        throw new TypeError("Malformed data file.")
+      }
+
+      setReviewsWithoutNew(y.reviewsWithoutNew)
+      let queueFailed = false
+      let treeFailed = false
+      try {
+        setQueue(queueFromJson(y.queue))
+      } catch {
+        queueFailed = true
+      }
+      try {
+        tree.importJSON(y.tree)
+      } catch {
+        treeFailed = false
+      }
+
+      if (queueFailed && treeFailed) {
+        alert(
+          "Review queue and checkbox tree data were both malformed. Their data in the application has not changed.",
+        )
+      } else if (queueFailed) {
+        alert(
+          "Review queue data was malformed. Its application data was not changed.",
+        )
+      } else if (treeFailed) {
+        alert(
+          "Checkbox tree data was malformed. Its application data was not changed.",
+        )
+      }
+    } catch {
+      alert("Data file cannot be read. No application data was changed.")
+    }
+  }
 
   function unsafeDoNotUseNextRandomCard() {
     const next = tree.choose((leaf) => leaf.weight)
@@ -1194,32 +1277,102 @@ export function Main() {
         </div>
       </div>
 
-      <button
-        class="z-field fixed right-4 top-16 z-[100] overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
-        onClick={() => setSidebarOpen((x) => !x)}
-      >
-        <div class="relative h-6 w-6">
-          <div
-            class="absolute left-0 top-0 transition"
-            classList={{
-              "translate-x-[125%]": !sidebarOpen(),
-              "translate-x-0": sidebarOpen(),
-            }}
-          >
-            <Fa class="h-6 w-6" icon={faClose} title="close sidebar" />
-          </div>
+      <div class="fixed right-4 top-16 z-10 flex flex-col gap-2">
+        <button
+          class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+          onClick={() => setSidebarOpen((x) => !x)}
+        >
+          <div class="relative h-6 w-6">
+            <div
+              class="absolute left-0 top-0 transition"
+              classList={{
+                "translate-x-[125%]": !sidebarOpen(),
+                "translate-x-0": sidebarOpen(),
+              }}
+            >
+              <Fa class="h-6 w-6" icon={faClose} title="close sidebar" />
+            </div>
 
-          <div
-            class="absolute left-0 top-0 transition"
-            classList={{
-              "translate-x-0": !sidebarOpen(),
-              "-translate-x-[125%]": sidebarOpen(),
+            <div
+              class="absolute left-0 top-0 transition"
+              classList={{
+                "translate-x-0": !sidebarOpen(),
+                "-translate-x-[125%]": sidebarOpen(),
+              }}
+            >
+              <Fa class="h-6 w-6" icon={faNavicon} title="open sidebar" />
+            </div>
+          </div>
+        </button>
+
+        <div
+          class="flex flex-col gap-2 transition"
+          classList={{ "translate-x-14": !sidebarOpen() }}
+          aria-hidden={!sidebarOpen()}
+          inert={!sidebarOpen()}
+        >
+          <button
+            class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+            onClick={() => {
+              const file = new File(
+                [exportState()],
+                "zsnout-quiz-" + new Date().toISOString() + ".json",
+                { type: "application/json" },
+              )
+
+              const url = URL.createObjectURL(file)
+
+              const a = document.createElement("a")
+              a.href = url
+              a.download = file.name
+              a.click()
             }}
           >
-            <Fa class="h-6 w-6" icon={faNavicon} title="open sidebar" />
-          </div>
+            <div class="flex h-6 w-6 items-center justify-center">
+              <Fa
+                class="h-5 w-5"
+                icon={faDownload}
+                title="download application data"
+              />
+            </div>
+          </button>
+
+          <input
+            class="sr-only"
+            type="file"
+            accept="application/json"
+            onInput={async (event) => {
+              const f = event.currentTarget.files?.[0]
+              if (!f) {
+                return
+              }
+              event.currentTarget.value = ""
+              const text = await f.text()
+              importState(text)
+            }}
+          />
+
+          <button
+            class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+            onClick={(event) => {
+              const i = event.currentTarget.previousElementSibling
+              if (!(i instanceof HTMLInputElement)) {
+                return
+              }
+              i.value = ""
+              i.click()
+            }}
+          >
+            <div class="flex h-6 w-6 items-center justify-center">
+              <Fa
+                class="h-5 w-5"
+                icon={faUpload}
+                title="upload application data"
+              />
+            </div>
+          </button>
         </div>
-      </button>
+      </div>
 
       <div
         class="fixed left-0 top-0 h-full w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_4rem)] sm:w-72 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
@@ -1237,6 +1390,8 @@ export function Main() {
             setSidebarOpen(false)
           }
         }}
+        aria-hidden={!sidebarOpen()}
+        inert={!sidebarOpen()}
       >
         <div
           class="fixed bottom-0 right-0 top-8 flex w-[19.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0"
