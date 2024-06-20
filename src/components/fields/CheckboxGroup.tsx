@@ -212,9 +212,15 @@ export function CheckboxItem(props: {
   )
 }
 
-type Json = string | number | boolean | null | readonly Json[] | JsonObject
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | readonly Json[]
+  | JsonObject
 
-type JsonObject = { readonly [x: string]: Json }
+export type JsonObject = { readonly [x: string]: Json }
 
 export type TreeOf<T> = { [name: string]: TreeOf<T> | T }
 
