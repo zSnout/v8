@@ -3,7 +3,7 @@ import { createSignal, untrack, type Signal, onMount } from "solid-js"
 export function createStorage(
   key: string,
   defaultValue: string,
-  delay?: boolean,
+  delay?: boolean | "directmount",
 ): Signal<string> {
   const realKey = `z8:${key}`
 
@@ -13,7 +13,11 @@ export function createStorage(
       : defaultValue,
   )
 
-  if (delay) {
+  if (delay == "directmount") {
+    onMount(() => {
+      set(localStorage.getItem(realKey) ?? defaultValue)
+    })
+  } else if (delay) {
     onMount(() => {
       setTimeout(() => {
         set(localStorage.getItem(realKey) ?? defaultValue)

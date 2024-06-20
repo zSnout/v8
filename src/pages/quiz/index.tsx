@@ -24,6 +24,16 @@ type RawTree = TreeOf<DirectTreeCard | Generator>
 type State = "noscript" | "nocards" | "ok"
 
 class PartialCard {
+  static of(base: DirectTreeCard | Generator) {
+    if (base instanceof DirectTreeCard) {
+      return base.toPartial()
+    } else if (base instanceof Generator) {
+      return base.generate()
+    } else {
+      throw new TypeError("Invalid card generator.")
+    }
+  }
+
   private declare __brand
 
   constructor(
@@ -34,7 +44,7 @@ class PartialCard {
     readonly id: string,
   ) {}
 
-  toCard(path: string[]): Card {
+  toCard(path: readonly string[]): Card {
     return { ...this, path: path, answerShown: false }
   }
 }
@@ -208,7 +218,7 @@ export function Main() {
   const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
 
   const [queue, setQueue] = (() => {
-    const [raw, setRaw] = createStorage("quiz::queue", "[]", true)
+    const [raw, setRaw] = createStorage("quiz::queue", "[]", "directmount")
     // const [queue, setQueue] = createSignal<readonly QueuedCard[]>(
     //   fromString(raw()),
     // )
@@ -296,16 +306,7 @@ export function Main() {
     }
 
     const { node, path } = next
-
-    if (node instanceof DirectTreeCard) {
-      setCard(node.toPartial().toCard(path))
-    } else if (node instanceof Generator) {
-      setCard(node.generate().toCard(path))
-    } else {
-      setState("nocards")
-      return
-    }
-
+    setCard(PartialCard.of(node).toCard(path))
     setState("ok")
   }
 
@@ -318,6 +319,60 @@ export function Main() {
       a.id == b.id &&
       a.path.every((x, i) => x == b.path[i])
     )
+  }
+
+  function random<T>(x: readonly T[]): T {
+    if (x.length == 0) {
+      throw new RangeError("Array must not be empty.")
+    }
+
+    return x[Math.floor(x.length * Math.random())]!
+  }
+
+  function randomFromQueue(q: readonly QueuedCard[]): QueuedCard | undefined {
+    const n = now()
+
+    for (const t of [
+      0,
+      1000 * 60,
+      1000 * 60 * 5,
+      1000 * 60 * 10,
+      1000 * 60 * 20,
+    ]) {
+      const c = q.filter((x) => x.availableAt < n - t)
+      console.log("from queue", c, t)
+      if (c.length) {
+        return random(c)
+      }
+    }
+
+    return
+  }
+
+  function restoreQueuedCard(q: QueuedCard): PartialCard | undefined {
+    let obj = tree.tree
+    let result
+    for (let index = 0; index < q.path.length; index++) {
+      const segment = q.path[index]!
+      const next = obj[segment]
+      if (next == null) {
+        return
+      }
+      if (tree.isLeaf(next)) {
+        if (index == q.path.length - 1) {
+          result = next
+          break
+        }
+        return
+      }
+      obj = next
+    }
+
+    if (!result) {
+      return
+    }
+
+    return PartialCard.of(result)
   }
 
   function nextCard() {
@@ -337,21 +392,40 @@ export function Main() {
         !queued.some((q) => areCardsSame(q, next)) &&
         !areCardsSame(current, next)
       ) {
+        console.log("Ok", { i, queued })
+        setState("ok")
         return
       }
 
       unsafeDoNotUseNextRandomCard()
     }
 
-    // 50 attempts of generating a fresh card failed
-    // TODO: get us a new card
+    const q = randomFromQueue(queued)
+    if (q) {
+      console.log("will restore", q)
+      const c = restoreQueuedCard(q)
+      if (c) {
+        console.log("partial is", c)
+        setCard(c.toCard(q.path))
+        setState("ok")
+        return
+      }
+    }
+
+    setState("nocards")
+    return
   }
 
   function answer(response: "again" | "hard" | "good") {
     console.log(response)
 
     if (response == "good") {
-      nextCard()
+      const c = card()
+      setQueue(
+        queue()
+          .filter((x) => !areCardsSame(x, c))
+          .sort(({ availableAt: a }, { availableAt: b }) => a - b),
+      )
       return
     }
 
