@@ -33,11 +33,11 @@ type Node = RawTree | Leaf
 type State = "noscript" | "nodecks" | "noneleft" | "ok" | "guide"
 
 class PartialCard {
-  static of(base: Leaf) {
+  static of(base: Leaf, id: string | undefined): PartialCard {
     if (base instanceof DirectTreeCard) {
       return base.toPartial()
     } else if (base instanceof Generator) {
-      return base.generate()
+      return base.generate(id)
     } else {
       throw new TypeError("Invalid card generator.")
     }
@@ -786,7 +786,7 @@ function restoreQueuedCard(q: QueuedCard): PartialCard | undefined {
     return
   }
 
-  return PartialCard.of(result)
+  return PartialCard.of(result, q.id)
 }
 
 function QueueEntry(props: { short: JSX.Element; availableAt: string }) {
@@ -1063,7 +1063,7 @@ export function Main() {
     }
 
     const { node, path } = next
-    setCard(PartialCard.of(node).toCard(path, undefined))
+    setCard(PartialCard.of(node, undefined).toCard(path, undefined))
     setState("ok")
   }
 
