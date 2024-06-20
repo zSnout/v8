@@ -155,8 +155,7 @@ function kanaTree(
   const { ki, shi, chi, ni, hi, mi, ri } = base
   const { gi, ji, bi, pi } = dakuten
   return {
-    Basic: kanaList(type, base),
-    Obscure: kanaList(type, wiwe),
+    Basic: kanaList(type, { ...base, ...wiwe }),
     Dakuten: kanaList(type, dakuten),
     Combination: kanaList(type, {
       kya: ki + xya,
