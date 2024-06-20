@@ -217,6 +217,8 @@ function NoCards() {
 export function Main() {
   const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
 
+  const [sidebarOpen, setSidebarOpen] = createSignal(true)
+
   const [queue, setQueue] = (() => {
     const [raw, setRaw] = createStorage("quiz::queue", "[]", "directmount")
 
@@ -609,10 +611,32 @@ export function Main() {
         </div>
       </div>
 
-      <div class="hidden w-48 sm:flex md:w-72">
-        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 md:w-[19.5rem]" />
+      <div
+        class="fixed left-0 top-0 h-full w-full transition sm:pointer-events-auto sm:static sm:flex sm:h-auto sm:w-48 sm:bg-transparent sm:backdrop-filter-none md:w-72"
+        classList={{
+          "backdrop-blur-sm": sidebarOpen(),
+          "backdrop-blur-0": !sidebarOpen(),
+          "bg-z-body-partial": sidebarOpen(),
+          "pointer-events-none": !sidebarOpen(),
+          // TODO: sidebar can open and close
+        }}
+      >
+        {/* <button
+          class="fixed left-1/2 top-20 z-[100] bg-green-500 p-4"
+          onClick={() => setSidebarOpen((x) => !x)}
+        >
+          {sidebarOpen() ? "now open" : "now close"}
+        </button> */}
 
-        <div class="fixed bottom-0 right-0 top-12 flex w-[13.5rem] flex-col items-start overflow-y-auto border-l border-transparent px-4 pt-8 md:w-[19.5rem]">
+        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]" />
+
+        <div
+          class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:w-[13.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]"
+          classList={{
+            "translate-x-0": sidebarOpen(),
+            "translate-x-full": !sidebarOpen(),
+          }}
+        >
           <ul class="flex w-full flex-1 flex-col gap-1">
             <CheckboxTree tree={tree} />
           </ul>
