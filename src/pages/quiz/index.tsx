@@ -966,7 +966,7 @@ export function Main() {
         }}
       >
         <div
-          class="fixed bottom-0 right-0 top-8 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0 md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]"
+          class="fixed bottom-0 right-0 top-8 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0 md:w-[19.5rem]"
           classList={{
             "translate-x-0": sidebarOpen(),
             "translate-x-full": !sidebarOpen(),
@@ -974,7 +974,7 @@ export function Main() {
         />
 
         <div
-          class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[13.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]"
+          class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[13.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none md:w-[19.5rem]"
           classList={{
             "translate-x-0": sidebarOpen(),
             "translate-x-full": !sidebarOpen(),
