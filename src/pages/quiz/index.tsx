@@ -1141,13 +1141,11 @@ export function Main() {
                       Reload Page
                     </a>
                   }
-                  when={state() == "nodecks"}
+                  when={state() == "nodecks" || state() == "noneleft"}
                 >
                   <button
                     class="w-full rounded bg-z-body-selected py-2"
-                    onClick={() =>
-                      setCard((c) => ({ ...c, answerShown: true }))
-                    }
+                    onClick={() => nextCard()}
                   >
                     Next Card
                   </button>
