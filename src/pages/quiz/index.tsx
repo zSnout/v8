@@ -458,8 +458,9 @@ export function Main() {
       1000 * 60 * 5,
       1000 * 60 * 10,
       1000 * 60 * 20,
+      1000 * 60 * 30,
     ]) {
-      const c = q.filter((x) => x.availableAt < n - t)
+      const c = q.filter((x) => x.availableAt < n + t)
       if (c.length) {
         return random(c)
       }
