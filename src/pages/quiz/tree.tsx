@@ -128,6 +128,7 @@ function kanaRead(
   }
 
   return {
+    "Random Character": count(1),
     "2 Characters": count(2),
     "3 Characters": count(3),
     "5 Characters": count(5),

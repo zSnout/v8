@@ -134,7 +134,7 @@ function QueueEntry(props: { short: JSX.Element; availableAt: string }) {
 function Shortcut(props: { key: string }) {
   return (
     <kbd
-      class="absolute bottom-0 right-1 text-sm"
+      class="absolute bottom-0 right-1 hidden text-sm md:block"
       title={`Shortcut: key ${props.key}`}
     >
       {props.key}
