@@ -616,15 +616,15 @@ export function Main() {
       </div>
 
       <button
-        class="z-field fixed right-4 top-16 z-[100] p-1"
+        class="z-field fixed right-4 top-16 z-[100] overflow-clip p-1 active:translate-y-0"
         onClick={() => setSidebarOpen((x) => !x)}
       >
         <div class="relative h-6 w-6">
           <div
             class="absolute left-0 top-0 transition"
             classList={{
-              "opacity-0": !sidebarOpen(),
-              "pointer-events-none": !sidebarOpen(),
+              "translate-x-[125%]": !sidebarOpen(),
+              "translate-x-0": sidebarOpen(),
             }}
           >
             <Fa class="h-6 w-6" icon={faClose} title="close sidebar" />
@@ -633,8 +633,8 @@ export function Main() {
           <div
             class="absolute left-0 top-0 transition"
             classList={{
-              "opacity-0": sidebarOpen(),
-              "pointer-events-none": sidebarOpen(),
+              "translate-x-0": !sidebarOpen(),
+              "-translate-x-[125%]": sidebarOpen(),
             }}
           >
             <Fa class="h-6 w-6" icon={faNavicon} title="open sidebar" />
