@@ -643,13 +643,15 @@ export function Main() {
       </button>
 
       <div
-        class="fixed left-0 top-0 h-full w-full translate-x-0 transition sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_2rem)] sm:w-48 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none md:w-72"
+        class="fixed left-0 top-0 h-full w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_2rem)] sm:w-48 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none md:w-72"
         classList={{
           "backdrop-blur-sm": sidebarOpen(),
           "backdrop-blur-0": !sidebarOpen(),
           "bg-z-body-partial": sidebarOpen(),
           "pointer-events-none": !sidebarOpen(),
-          // "sm:!translate-x-48": !sidebarOpen(),
+          "sm:!w-0": !sidebarOpen(),
+          "sm:!translate-x-[15rem]": !sidebarOpen(),
+          "md:!translate-x-[21rem]": !sidebarOpen(),
           // "sm:!opacity-0": !sidebarOpen(),
           // TODO: sidebar can open and close
         }}
