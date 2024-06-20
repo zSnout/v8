@@ -797,6 +797,17 @@ function QueueEntry(props: { short: JSX.Element; availableAt: string }) {
   )
 }
 
+function Shortcut(props: { key: string }) {
+  return (
+    <kbd
+      class="absolute bottom-0 right-1 text-sm"
+      title={`Shortcut: key ${props.key}`}
+    >
+      {props.key}
+    </kbd>
+  )
+}
+
 export function Main() {
   const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
 
@@ -1048,8 +1059,8 @@ export function Main() {
     return
   }
 
-  function answer(response: "again" | "hard" | "good") {
-    if (response == "good") {
+  function answer(response: "again" | "hard" | "good" | "easy") {
+    if (response == "easy") {
       const c = card()
       setQueue(
         queue()
@@ -1061,7 +1072,7 @@ export function Main() {
     }
 
     const c = card()
-    const interval = response == "again" ? 1 : 10
+    const interval = response == "again" ? 1 : response == "hard" ? 10 : 30
     const q = queue()
     const matchingCardIndex = q.findIndex((a) => areCardsSame(a, c))
     const availableAt = Date.now() + 1000 * 60 * interval
@@ -1165,6 +1176,33 @@ export function Main() {
     return dist + "yr"
   }
 
+  onMount(() => {
+    document.body.addEventListener("keydown", (event) => {
+      if (event.ctrlKey || event.altKey || event.metaKey) {
+        return
+      }
+
+      if (event.key == "0" || event.key == " ") {
+        if (state() == "ok") {
+          if (!card().answerShown) {
+            setCard((c) => ({ ...c, answerShown: true }))
+          }
+        } else {
+          nextCard()
+        }
+      } else if (
+        event.key == "1" ||
+        event.key == "2" ||
+        event.key == "3" ||
+        event.key == "4"
+      ) {
+        if (state() == "ok" && card().answerShown) {
+          answer(([, "again", "hard", "good", "easy"] as const)[event.key])
+        }
+      }
+    })
+  })
+
   return (
     <div class="flex flex-1 items-start gap-6">
       <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
@@ -1218,7 +1256,7 @@ export function Main() {
                 <Show
                   fallback={
                     <a
-                      class="block w-full rounded bg-z-body-selected py-2"
+                      class="flex h-12 w-full items-center justify-center rounded bg-z-body-selected py-2"
                       href=""
                     >
                       Reload Page
@@ -1227,10 +1265,11 @@ export function Main() {
                   when={state() == "nodecks" || state() == "noneleft"}
                 >
                   <button
-                    class="w-full rounded bg-z-body-selected py-2"
+                    class="relative h-12 w-full rounded bg-z-body-selected py-2"
                     onClick={() => nextCard()}
                   >
                     Next Card
+                    <Shortcut key="Space" />
                   </button>
                 </Show>
               }
@@ -1239,36 +1278,56 @@ export function Main() {
               <Show
                 fallback={
                   <button
-                    class="w-full rounded bg-z-body-selected py-2"
+                    class="relative h-12 w-full rounded bg-z-body-selected py-2"
                     onClick={() =>
                       setCard((c) => ({ ...c, answerShown: true }))
                     }
                   >
                     Reveal Answer
+                    <Shortcut key="Space" />
                   </button>
                 }
                 when={card().answerShown}
               >
-                <div class="grid grid-cols-3 gap-1 md:gap-2">
+                <div class="grid grid-cols-4 gap-1 text-base/[1.25] md:gap-2">
                   <button
-                    class="rounded bg-red-300 py-2 text-red-900"
+                    class="relative rounded bg-red-300 py-1 text-red-900"
                     onClick={() => answer("again")}
                   >
                     Again
+                    <br />
+                    1m
+                    <Shortcut key="1" />
                   </button>
 
                   <button
-                    class="rounded bg-[#ffcc91] py-2 text-yellow-900"
+                    class="relative rounded bg-[#ffcc91] py-1 text-yellow-900"
                     onClick={() => answer("hard")}
                   >
                     Hard
+                    <br />
+                    10m
+                    <Shortcut key="2" />
                   </button>
 
                   <button
-                    class="rounded bg-green-300 py-2 text-green-900"
+                    class="relative rounded bg-green-300 py-1 text-green-900"
                     onClick={() => answer("good")}
                   >
                     Good
+                    <br />
+                    30m
+                    <Shortcut key="3" />
+                  </button>
+
+                  <button
+                    class="relative rounded bg-blue-300 py-1 text-green-900"
+                    onClick={() => answer("easy")}
+                  >
+                    Easy
+                    <br />
+                    (end)
+                    <Shortcut key="4" />
                   </button>
                 </div>
               </Show>
