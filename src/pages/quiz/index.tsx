@@ -10,6 +10,7 @@ import {
   faClose,
   faDownload,
   faExclamationTriangle,
+  faInfoCircle,
   faNavicon,
   faTrash,
   faUpload,
@@ -30,7 +31,7 @@ type RawTree = TreeOf<Leaf>
 
 type Node = RawTree | Leaf
 
-type State = "noscript" | "nodecks" | "noneleft" | "ok"
+type State = "noscript" | "nodecks" | "noneleft" | "ok" | "guide"
 
 class PartialCard {
   static of(base: Leaf) {
@@ -53,8 +54,8 @@ class PartialCard {
     readonly id: string,
   ) {}
 
-  toCard(path: readonly string[]): Card {
-    return { ...this, path: path, answerShown: false }
+  toCard(path: readonly string[], lastInterval: number | undefined): Card {
+    return { ...this, path: path, answerShown: false, lastInterval }
   }
 }
 
@@ -94,6 +95,7 @@ interface Card {
   readonly answerShown: boolean
   readonly source: readonly string[]
   readonly short: string
+  readonly lastInterval: number | undefined
 }
 
 interface QueuedCard {
@@ -808,6 +810,97 @@ function Shortcut(props: { key: string }) {
   )
 }
 
+// TODO: sidebar offscreen means page is scrollable
+// TODO: too much content makes sidebar very large
+// TODO: sidebar border extends too far down
+
+function Guide() {
+  return (
+    <div class="flex w-full flex-1 flex-col items-center justify-center gap-4">
+      <h1 class="text-2xl font-semibold text-z-heading">How does this work?</h1>
+
+      <p class="max-w-96">
+        Select some decks from the sidebar. A random card will be drawn, and you
+        should try to think of the answer in your head. Once you have a
+        response, click "Reveal Answer" to show the correct answer.
+      </p>
+
+      <p class="max-w-96">
+        If you didn't know it, click "Again". If you knew the answer but it took
+        a lot of mental effort, click "Hard". Otherwise, click "Good".
+      </p>
+
+      <p class="max-w-96">
+        When you mark a card "Again" or "Hard", it will be queued to be reviewed
+        after a certain delay. This helps form longer-lasting connections in
+        your mind.
+      </p>
+
+      <p class="max-w-96">
+        This application saves your data even across reloads, so you can safely
+        learn some cards, close this tab, and finish reviews later.
+      </p>
+
+      <p class="max-w-96">
+        It is highly recommended that you periodically download your data by
+        using the{" "}
+        <span class="z-field -my-4 inline-flex overflow-clip p-1 align-middle">
+          <span class="flex h-5 w-5 items-center justify-center">
+            <Fa class="h-4 w-4" title="download" icon={faDownload} />
+          </span>
+        </span>{" "}
+        button in the sidebar. This ensures your review queue and selected deck
+        data aren't lost by accident.
+      </p>
+
+      <p class="max-w-96">
+        Press "Next Card" or the spacebar on your keyboard to start.
+      </p>
+    </div>
+  )
+}
+
+// receives a value in seconds
+function timestampDist(dist: number) {
+  dist = Math.floor(dist / 5) * 5
+
+  if (dist < 5) {
+    return "now"
+  }
+
+  if (dist < 60) {
+    return dist + "s"
+  }
+
+  dist = Math.floor(dist / 60)
+
+  if (dist < 60) {
+    return dist + "m"
+  }
+
+  dist = Math.floor(dist / 24)
+
+  if (dist < 24) {
+    return dist + "hr"
+  }
+
+  dist = Math.floor(dist / 30)
+
+  if (dist < 30) {
+    return dist + "d"
+  }
+
+  dist = Math.floor(dist * 10) / 10
+
+  if (dist < 12) {
+    return dist + "mo"
+  }
+
+  dist = Math.floor(Math.floor(dist / 12) * 10) / 10
+
+  return dist + "yr"
+}
+
 export function Main() {
   const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
 
@@ -903,6 +996,7 @@ export function Main() {
     answerShown: false,
     source: [],
     short: "",
+    lastInterval: 0,
   })
 
   const [state, setState] = createSignal<State>("noscript")
@@ -974,7 +1068,7 @@ export function Main() {
     }
 
     const { node, path } = next
-    setCard(PartialCard.of(node).toCard(path))
+    setCard(PartialCard.of(node).toCard(path, undefined))
     setState("ok")
   }
 
@@ -1025,7 +1119,7 @@ export function Main() {
     if (q) {
       const c = restoreQueuedCard(q)
       if (c) {
-        setCard(c.toCard(q.path))
+        setCard(c.toCard(q.path, q.interval))
         setState("ok")
         return
       }
@@ -1047,7 +1141,7 @@ export function Main() {
         const qc = random(needReview)
         const qd = restoreQueuedCard(qc)
         if (qd) {
-          const card = qd.toCard(qc.path)
+          const card = qd.toCard(qc.path, qc.interval)
           setCard(card)
           setState("ok")
           return
@@ -1059,8 +1153,55 @@ export function Main() {
     return
   }
 
-  function answer(response: "again" | "hard" | "good" | "easy") {
-    if (response == "easy") {
+  function intervals(_lastInterval: number | undefined) {
+    // if (lastInterval == undefined) {
+    return {
+      again: 1,
+      hard: 10,
+      good: undefined,
+    }
+    // }
+
+    // if (lastInterval <= 10) {
+    //   return {
+    //     again: 1,
+    //     hard: 10,
+    //     good: undefined,
+    //   }
+    // }
+
+    // if (lastInterval <= 15) {
+    //   return {
+    //     again: 1,
+    //     hard: 6,
+    //     good: 10,
+    //   }
+    // }
+
+    // if (lastInterval <= 60) {
+    //   return {
+    //     again: 10,
+    //     hard: 15,
+    //     good: undefined,
+    //   }
+    // }
+  }
+
+  function intervalLabel(
+    lastInterval: number | undefined,
+    type: "again" | "hard" | "good",
+  ) {
+    const i = intervals(lastInterval)[type]
+    if (i == null) {
+      return "(end)"
+    }
+    return timestampDist(i * 60)
+  }
+
+  function answer(response: "again" | "hard" | "good") {
+    const c = card()
+    const interval = intervals(c.lastInterval)[response]
+    if (interval == null) {
       const c = card()
       setQueue(
         queue()
@@ -1070,9 +1211,6 @@ export function Main() {
       nextCard()
       return
     }
-
-    const c = card()
-    const interval = response == "again" ? 1 : response == "hard" ? 10 : 30
     const q = queue()
     const matchingCardIndex = q.findIndex((a) => areCardsSame(a, c))
     const availableAt = Date.now() + 1000 * 60 * interval
@@ -1125,7 +1263,8 @@ export function Main() {
       tree.importJSON(val)
     } catch {}
 
-    nextCard()
+    setState("guide")
+    // nextCard()
   })
 
   const [now, setNow] = createSignal(Date.now())
@@ -1135,45 +1274,8 @@ export function Main() {
   }, 5000)
 
   function timestamp(ms: number) {
-    let dist = Math.floor((ms - now()) / 1000)
-
-    dist = Math.floor(dist / 5) * 5
-
-    if (dist < 5) {
-      return "now"
-    }
-
-    if (dist < 60) {
-      return dist + "s"
-    }
-
-    dist = Math.floor(dist / 60)
-
-    if (dist < 60) {
-      return dist + "m"
-    }
-
-    dist = Math.floor(dist / 24)
-
-    if (dist < 24) {
-      return dist + "hr"
-    }
-
-    dist = Math.floor(dist / 30)
-
-    if (dist < 30) {
-      return dist + "d"
-    }
-
-    dist = Math.floor(dist * 10) / 10
-
-    if (dist < 12) {
-      return dist + "mo"
-    }
-
-    dist = Math.floor(Math.floor(dist / 12) * 10) / 10
-
-    return dist + "yr"
+    const dist = Math.floor((ms - now()) / 1000)
+    return timestampDist(dist)
   }
 
   onMount(() => {
@@ -1190,251 +1292,18 @@ export function Main() {
         } else {
           nextCard()
         }
-      } else if (
-        event.key == "1" ||
-        event.key == "2" ||
-        event.key == "3" ||
-        event.key == "4"
-      ) {
+      } else if (event.key == "1" || event.key == "2" || event.key == "3") {
         if (state() == "ok" && card().answerShown) {
-          answer(([, "again", "hard", "good", "easy"] as const)[event.key])
+          answer(([, "again", "hard", "good"] as const)[event.key])
         }
       }
     })
   })
 
-  return (
-    <div class="flex flex-1 items-start gap-6">
-      <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
-        <Show
-          fallback={
-            <Show
-              fallback={
-                <Show fallback={<NoCards />} when={state() == "noneleft"}>
-                  <NoneLeft />
-                </Show>
-              }
-              when={state() == "noscript"}
-            >
-              <NoScript />
-            </Show>
-          }
-          when={state() == "ok"}
-        >
-          <div class="flex w-full max-w-full flex-1 flex-col gap-4">
-            <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
-              <For each={card().source}>
-                {(item, index) => (
-                  <Show fallback={item} when={index() != 0}>
-                    {" "}
-                    / {item}
-                  </Show>
-                )}
-              </For>
-            </div>
-
-            <div class="max-w-full hyphens-auto text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
-              {card().front}
-            </div>
-
-            <Show when={card().answerShown}>
-              <hr class="border-z" />
-
-              <div class="max-w-full hyphens-auto text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
-                {card().back}
-              </div>
-            </Show>
-          </div>
-        </Show>
-
-        <div class="sticky bottom-0 -mb-8 flex w-full flex-col pb-8">
-          <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
-
-          <div class="-mb-8 w-full bg-z-body pb-8 text-center">
-            <Show
-              fallback={
-                <Show
-                  fallback={
-                    <a
-                      class="flex h-12 w-full items-center justify-center rounded bg-z-body-selected py-2"
-                      href=""
-                    >
-                      Reload Page
-                    </a>
-                  }
-                  when={state() == "nodecks" || state() == "noneleft"}
-                >
-                  <button
-                    class="relative h-12 w-full rounded bg-z-body-selected py-2"
-                    onClick={() => nextCard()}
-                  >
-                    Next Card
-                    <Shortcut key="Space" />
-                  </button>
-                </Show>
-              }
-              when={state() == "ok"}
-            >
-              <Show
-                fallback={
-                  <button
-                    class="relative h-12 w-full rounded bg-z-body-selected py-2"
-                    onClick={() =>
-                      setCard((c) => ({ ...c, answerShown: true }))
-                    }
-                  >
-                    Reveal Answer
-                    <Shortcut key="Space" />
-                  </button>
-                }
-                when={card().answerShown}
-              >
-                <div class="grid grid-cols-4 gap-1 text-base/[1.25] md:gap-2">
-                  <button
-                    class="relative rounded bg-red-300 py-1 text-red-900"
-                    onClick={() => answer("again")}
-                  >
-                    Again
-                    <br />
-                    1m
-                    <Shortcut key="1" />
-                  </button>
-
-                  <button
-                    class="relative rounded bg-[#ffcc91] py-1 text-yellow-900"
-                    onClick={() => answer("hard")}
-                  >
-                    Hard
-                    <br />
-                    10m
-                    <Shortcut key="2" />
-                  </button>
-
-                  <button
-                    class="relative rounded bg-green-300 py-1 text-green-900"
-                    onClick={() => answer("good")}
-                  >
-                    Good
-                    <br />
-                    30m
-                    <Shortcut key="3" />
-                  </button>
-
-                  <button
-                    class="relative rounded bg-blue-300 py-1 text-green-900"
-                    onClick={() => answer("easy")}
-                  >
-                    Easy
-                    <br />
-                    (end)
-                    <Shortcut key="4" />
-                  </button>
-                </div>
-              </Show>
-            </Show>
-          </div>
-        </div>
-      </div>
-
-      <div class="fixed right-4 top-16 z-10 flex flex-col gap-2">
-        <button
-          class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
-          onClick={() => setSidebarOpen((x) => !x)}
-        >
-          <div class="relative h-6 w-6">
-            <div
-              class="absolute left-0 top-0 transition"
-              classList={{
-                "translate-x-[125%]": !sidebarOpen(),
-                "translate-x-0": sidebarOpen(),
-              }}
-            >
-              <Fa class="h-6 w-6" icon={faClose} title="close sidebar" />
-            </div>
-
-            <div
-              class="absolute left-0 top-0 transition"
-              classList={{
-                "translate-x-0": !sidebarOpen(),
-                "-translate-x-[125%]": sidebarOpen(),
-              }}
-            >
-              <Fa class="h-6 w-6" icon={faNavicon} title="open sidebar" />
-            </div>
-          </div>
-        </button>
-
-        <div
-          class="flex flex-col gap-2 transition"
-          classList={{ "translate-x-14": !sidebarOpen() }}
-          aria-hidden={!sidebarOpen()}
-          inert={!sidebarOpen()}
-        >
-          <button
-            class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
-            onClick={() => {
-              const file = new File(
-                [exportState()],
-                "zsnout-quiz-" + new Date().toISOString() + ".json",
-                { type: "application/json" },
-              )
-
-              const url = URL.createObjectURL(file)
-
-              const a = document.createElement("a")
-              a.href = url
-              a.download = file.name
-              a.click()
-            }}
-          >
-            <div class="flex h-6 w-6 items-center justify-center">
-              <Fa
-                class="h-5 w-5"
-                icon={faDownload}
-                title="download application data"
-              />
-            </div>
-          </button>
-
-          <input
-            class="sr-only"
-            type="file"
-            accept="application/json"
-            onInput={async (event) => {
-              const f = event.currentTarget.files?.[0]
-              if (!f) {
-                return
-              }
-              event.currentTarget.value = ""
-              const text = await f.text()
-              importState(text)
-            }}
-          />
-
-          <button
-            class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
-            onClick={(event) => {
-              const i = event.currentTarget.previousElementSibling
-              if (!(i instanceof HTMLInputElement)) {
-                return
-              }
-              i.value = ""
-              i.click()
-            }}
-          >
-            <div class="flex h-6 w-6 items-center justify-center">
-              <Fa
-                class="h-5 w-5"
-                icon={faUpload}
-                title="upload application data"
-              />
-            </div>
-          </button>
-        </div>
-      </div>
-
+  function Sidebar() {
+    return (
       <div
-        class="fixed left-0 top-0 h-full w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_4rem)] sm:w-72 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
+        class="fixed left-0 top-0 h-full max-h-[calc(100dvh_-_3rem)] w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_4rem)] sm:w-72 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
         classList={{
           "backdrop-blur-sm": sidebarOpen(),
           "backdrop-blur-0": !sidebarOpen(),
@@ -1453,7 +1322,7 @@ export function Main() {
         inert={!sidebarOpen()}
       >
         <div
-          class="fixed bottom-0 right-0 top-8 flex w-[19.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0"
+          class="fixed bottom-8 right-0 top-8 flex w-[19.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0"
           classList={{
             "translate-x-0": sidebarOpen(),
             "translate-x-full": !sidebarOpen(),
@@ -1518,6 +1387,243 @@ export function Main() {
           </div>
         </div>
       </div>
-    </div>
+    )
+  }
+
+  return (
+    <>
+      <div class="relative z-10 flex flex-1 items-start gap-6">
+        <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
+          <Show
+            fallback={
+              <Show
+                fallback={
+                  <Show
+                    fallback={
+                      <Show fallback={<NoCards />} when={state() == "guide"}>
+                        <Guide />
+                      </Show>
+                    }
+                    when={state() == "noneleft"}
+                  >
+                    <NoneLeft />
+                  </Show>
+                }
+                when={state() == "noscript"}
+              >
+                <NoScript />
+              </Show>
+            }
+            when={state() == "ok"}
+          >
+            <div class="flex w-full max-w-full flex-1 flex-col gap-4">
+              <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
+                <For each={card().source}>
+                  {(item, index) => (
+                    <Show fallback={item} when={index() != 0}>
+                      {" "}
+                      / {item}
+                    </Show>
+                  )}
+                </For>
+              </div>
+
+              <div class="max-w-full hyphens-auto text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
+                {card().front}
+              </div>
+
+              <Show when={card().answerShown}>
+                <hr class="border-z" />
+
+                <div class="max-w-full hyphens-auto text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+                  {card().back}
+                </div>
+              </Show>
+            </div>
+          </Show>
+
+          <div class="sticky bottom-0 -mb-8 flex w-full flex-col pb-8">
+            <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
+
+            <div class="-mb-8 w-full bg-z-body pb-8 text-center">
+              <Show
+                fallback={
+                  <Show
+                    fallback={
+                      <a
+                        class="flex h-12 w-full items-center justify-center rounded bg-z-body-selected py-2"
+                        href=""
+                      >
+                        Reload Page
+                      </a>
+                    }
+                    when={
+                      state() == "nodecks" ||
+                      state() == "noneleft" ||
+                      state() == "guide"
+                    }
+                  >
+                    <button
+                      class="relative h-12 w-full rounded bg-z-body-selected py-2"
+                      onClick={() => nextCard()}
+                    >
+                      Next Card
+                      <Shortcut key="Space" />
+                    </button>
+                  </Show>
+                }
+                when={state() == "ok"}
+              >
+                <Show
+                  fallback={
+                    <button
+                      class="relative h-12 w-full rounded bg-z-body-selected py-2"
+                      onClick={() =>
+                        setCard((c) => ({ ...c, answerShown: true }))
+                      }
+                    >
+                      Reveal Answer
+                      <Shortcut key="Space" />
+                    </button>
+                  }
+                  when={card().answerShown}
+                >
+                  <div class="grid grid-cols-3 gap-1 text-base/[1.25] md:gap-2">
+                    <button
+                      class="relative rounded bg-red-300 py-1 text-red-900"
+                      onClick={() => answer("again")}
+                    >
+                      Again
+                      <br />
+                      {intervalLabel(card().lastInterval, "again")}
+                      <Shortcut key="1" />
+                    </button>
+
+                    <button
+                      class="relative rounded bg-[#ffcc91] py-1 text-yellow-900"
+                      onClick={() => answer("hard")}
+                    >
+                      Hard
+                      <br />
+                      {intervalLabel(card().lastInterval, "hard")}
+                      <Shortcut key="2" />
+                    </button>
+
+                    <button
+                      class="relative rounded bg-green-300 py-1 text-green-900"
+                      onClick={() => answer("good")}
+                    >
+                      Good
+                      <br />
+                      {intervalLabel(card().lastInterval, "good")}
+                      <Shortcut key="3" />
+                    </button>
+                  </div>
+                </Show>
+              </Show>
+            </div>
+          </div>
+        </div>
+
+        <div class="fixed right-4 top-16 z-10 flex flex-col gap-2">
+          <button
+            class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+            onClick={() => setSidebarOpen((x) => !x)}
+          >
+            <div class="relative h-6 w-6">
+              <div
+                class="absolute left-0 top-0 transition"
+                classList={{
+                  "translate-x-[125%]": !sidebarOpen(),
+                  "translate-x-0": sidebarOpen(),
+                }}
+              >
+                <Fa class="h-6 w-6" icon={faClose} title="close sidebar" />
+              </div>
+
+              <div
+                class="absolute left-0 top-0 transition"
+                classList={{
+                  "translate-x-0": !sidebarOpen(),
+                  "-translate-x-[125%]": sidebarOpen(),
+                }}
+              >
+                <Fa class="h-6 w-6" icon={faNavicon} title="open sidebar" />
+              </div>
+            </div>
+          </button>
+
+          <div
+            class="flex flex-col gap-2 transition"
+            classList={{ "translate-x-14": !sidebarOpen() }}
+            aria-hidden={!sidebarOpen()}
+            inert={!sidebarOpen()}
+          >
+            <button
+              class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+              onClick={() => {
+                const file = new File(
+                  [exportState()],
+                  "zsnout-quiz-" + new Date().toISOString() + ".json",
+                  { type: "application/json" },
+                )
+
+                const url = URL.createObjectURL(file)
+
+                const a = document.createElement("a")
+                a.href = url
+                a.download = file.name
+                a.click()
+              }}
+            >
+              <div class="flex h-6 w-6 items-center justify-center">
+                <Fa
+                  class="h-5 w-5"
+                  icon={faDownload}
+                  title="download application data"
+                />
+              </div>
+            </button>
+
+            <input
+              class="sr-only"
+              type="file"
+              accept="application/json"
+              onInput={async (event) => {
+                const f = event.currentTarget.files?.[0]
+                if (!f) {
+                  return
+                }
+                event.currentTarget.value = ""
+                const text = await f.text()
+                importState(text)
+              }}
+            />
+
+            <button
+              class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+              onClick={(event) => {
+                const i = event.currentTarget.previousElementSibling
+                if (!(i instanceof HTMLInputElement)) {
+                  return
+                }
+                i.value = ""
+                i.click()
+              }}
+            >
+              <div class="flex h-6 w-6 items-center justify-center">
+                <Fa
+                  class="h-5 w-5"
+                  icon={faUpload}
+                  title="upload application data"
+                />
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <Sidebar />
+      </div>
+    </>
   )
 }
