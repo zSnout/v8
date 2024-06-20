@@ -1,6 +1,14 @@
+import { Fa } from "@/components/Fa"
 import { CheckboxTree, Tree, TreeOf } from "@/components/fields/CheckboxGroup"
 import { createStorage } from "@/stores/local-storage-store"
-import { JSX, Show, createEffect, createSignal, onMount } from "solid-js"
+import {
+  faArrowRight,
+  faBackspace,
+  faChevronRight,
+  faLocationPinLock,
+  faSlash,
+} from "@fortawesome/free-solid-svg-icons"
+import { For, JSX, Show, createEffect, createSignal, onMount } from "solid-js"
 
 type RawTree = TreeOf<DirectTreeCard | Generator>
 
@@ -8,8 +16,10 @@ export class PartialCard {
   private declare __brand
 
   constructor(
+    readonly short: JSX.Element,
     readonly front: JSX.Element,
     readonly back: JSX.Element,
+    readonly source: readonly string[],
     readonly id: string,
   ) {}
 
@@ -22,13 +32,15 @@ export class DirectTreeCard {
   private declare __brand2
 
   constructor(
+    readonly short: JSX.Element,
     readonly front: JSX.Element,
     readonly back: JSX.Element,
+    readonly source: readonly string[],
     readonly weight: number,
   ) {}
 
   toPartial(): PartialCard {
-    return new PartialCard(this.front, this.back, "")
+    return new PartialCard(this.short, this.front, this.back, this.source, "")
   }
 }
 
@@ -50,13 +62,17 @@ export interface Card {
   readonly group: readonly string[]
   readonly id: string
   readonly answerShown: boolean
+  readonly source: readonly string[]
 }
 
-function kanaTree(kana: { [romaji: string]: string }): RawTree {
+function kanaTree(
+  type: "Hiragana" | "Katakana",
+  kana: { [romaji: string]: string },
+): RawTree {
   return Object.fromEntries(
     Object.entries(kana).map(([romaji, kana]) => [
       romaji,
-      new DirectTreeCard(romaji, kana, 1 / 30),
+      new DirectTreeCard(romaji, romaji, kana, ["Japanese", type], 1 / 30),
     ]),
   )
 }
@@ -66,7 +82,7 @@ const tree = new Tree<DirectTreeCard | Generator>(
     Japanese: {
       Hiragana: {
         Basic: {
-          ...kanaTree({
+          ...kanaTree("Hiragana", {
             a: "あ",
             i: "い",
             u: "う",
@@ -116,7 +132,7 @@ const tree = new Tree<DirectTreeCard | Generator>(
           }),
         },
         Obscure: {
-          ...kanaTree({
+          ...kanaTree("Hiragana", {
             wi: "ゐ",
             we: "ゑ",
           }),
@@ -146,6 +162,7 @@ export function Main() {
     group: ["Japanese", "Hiragana", "Basic"],
     id: "7",
     answerShown: true,
+    source: ["Japanese", "Time"],
   })
 
   function nextCard() {
@@ -171,13 +188,24 @@ export function Main() {
       tree.importJSON(val)
     } catch {}
 
-    nextCard()
+    // nextCard()
   })
 
   return (
     <div class="flex flex-1 items-start gap-6">
       <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
         <div class="flex w-full flex-1 flex-col gap-4">
+          <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
+            <For each={card().source}>
+              {(item, index) => (
+                <Show fallback={item} when={index() != 0}>
+                  {" "}
+                  / {item}
+                </Show>
+              )}
+            </For>
+          </div>
+
           <div class="text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
             {card().front}
           </div>
@@ -225,12 +253,39 @@ export function Main() {
       <div class="hidden w-48 sm:flex md:w-72">
         <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 md:w-[19.5rem]" />
 
-        <div class="fixed bottom-0 right-0 top-12 flex w-[13.5rem] flex-col overflow-y-auto border-l border-transparent px-4 py-10 md:w-[19.5rem]">
-          <ul class="flex flex-col gap-1">
+        <div class="fixed bottom-0 right-0 top-12 flex w-[13.5rem] flex-col items-start overflow-y-auto border-l border-transparent px-4 pt-8 md:w-[19.5rem]">
+          <ul class="flex w-full flex-1 flex-col gap-1">
             <CheckboxTree tree={tree} />
           </ul>
+
+          <div class="sticky bottom-0 w-full">
+            <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
+
+            <div class="h-2 w-full bg-z-body" />
+
+            <div class="relative border-t border-z bg-z-body pb-8 pt-2">
+              <div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-z-body px-2 text-sm/[1]">
+                Relearn Queue
+              </div>
+
+              <div class="grid grid-cols-[auto,1fr] items-baseline gap-x-4">
+                <QueueEntry front="ju" pushed="8:35" />
+                <QueueEntry front="kya" pushed="8:32" />
+                <QueueEntry front="hi" pushed="8:30" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function QueueEntry(props: { front: JSX.Element; pushed: string }) {
+  return (
+    <>
+      <p class="text-xs text-z-subtitle">{props.pushed}</p>
+      <p class="text-sm">{props.front}</p>
+    </>
   )
 }
