@@ -949,7 +949,7 @@ export function Main() {
       </button>
 
       <div
-        class="fixed left-0 top-0 h-full w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_2rem)] sm:w-48 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none md:w-72"
+        class="fixed left-0 top-0 h-full w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_2rem)] sm:w-72 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
         classList={{
           "backdrop-blur-sm": sidebarOpen(),
           "backdrop-blur-0": !sidebarOpen(),
@@ -966,7 +966,7 @@ export function Main() {
         }}
       >
         <div
-          class="fixed bottom-0 right-0 top-8 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0 md:w-[19.5rem]"
+          class="fixed bottom-0 right-0 top-8 flex w-[19.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0"
           classList={{
             "translate-x-0": sidebarOpen(),
             "translate-x-full": !sidebarOpen(),
@@ -974,7 +974,7 @@ export function Main() {
         />
 
         <div
-          class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[13.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none md:w-[19.5rem]"
+          class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[19.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none"
           classList={{
             "translate-x-0": sidebarOpen(),
             "translate-x-full": !sidebarOpen(),
