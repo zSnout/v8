@@ -85,11 +85,6 @@ export function CheckboxGroup(props: {
   let inner: HTMLDivElement | undefined
 
   let last = untrack(() => props.expanded)
-  onMount(() => {
-    if (!props.expanded) {
-      inner?.classList.add("hidden")
-    }
-  })
   createEffect(() => {
     if (last == props.expanded) {
       return
@@ -103,6 +98,12 @@ export function CheckboxGroup(props: {
     }
 
     inner.classList.remove("hidden")
+  })
+  onMount(() => {
+    if (!props.expanded) {
+      inner?.classList.add("hidden")
+    }
+    setExpanding(false)
   })
 
   return (
@@ -184,6 +185,7 @@ export function CheckboxGroup(props: {
           "[&:has(.z-expanding)]:max-h-auto": props.expanded,
           "[&:has(.z-expanding)]:transition-none": props.expanded,
           "max-h-0": !props.expanded,
+          "[.z-expanding_&]:transition-none": !expanding(),
         }}
         ref={(el) => (inner = el)}
         onTransitionEnd={(event) => {
