@@ -1038,12 +1038,14 @@ export function Main() {
 
   setInterval(() => {
     setNow(Date.now())
-  }, 1000)
+  }, 5000)
 
   function timestamp(ms: number) {
     let dist = Math.floor((ms - now()) / 1000)
 
-    if (dist <= 0) {
+    dist = Math.floor(dist / 5) * 5
+
+    if (dist < 5) {
       return "now"
     }
 
@@ -1222,7 +1224,7 @@ export function Main() {
       </button>
 
       <div
-        class="fixed left-0 top-0 h-full w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_2rem)] sm:w-72 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
+        class="fixed left-0 top-0 h-full w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_4rem)] sm:w-72 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
         classList={{
           "backdrop-blur-sm": sidebarOpen(),
           "backdrop-blur-0": !sidebarOpen(),
@@ -1257,12 +1259,12 @@ export function Main() {
             <CheckboxTree tree={tree} />
           </ul>
 
-          <div class="sticky bottom-0 w-full">
+          <div class="sticky bottom-0 max-h-[min(24rem,50%)] w-full">
             <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
 
             <div class="h-2 w-full bg-z-body" />
 
-            <div class="relative border-t border-z bg-z-body pb-8 pt-[0.546875rem] sm:pb-0">
+            <div class="relative border-t border-z bg-z-body pt-[0.546875rem] sm:pb-0">
               <div class="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 flex-row items-center whitespace-nowrap bg-z-body px-2 text-sm/[1]">
                 Review Queue
                 <button
@@ -1285,7 +1287,7 @@ export function Main() {
                 </button>
               </div>
 
-              <div class="grid grid-cols-[auto,1fr] items-baseline gap-x-4">
+              <div class="grid grid-cols-[auto,1fr] items-baseline gap-x-4 pb-8">
                 <For
                   fallback={
                     <div class="col-span-2 text-sm">No reviews queued.</div>
