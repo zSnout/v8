@@ -198,24 +198,37 @@ function kanaTree(
   }
 }
 
-function kanaRead(kana: { [romaji: string]: string }): Node {
+function kanaRead(
+  kana: { [romaji: string]: string } & ({ ン: string } | { ん: string }),
+): Node {
+  const nn = "ん" in kana ? "ん" : "ン"
+  const { ん, ン, ...rest } = kana
+
   function count(n: number): Node {
-    return new Generator(
-      (
-        id = Array.from({ length: n }, () => random(Object.keys(kana))).join(
-          "",
-        ),
-      ) => {
-        return new PartialCard(
-          id,
-          id,
-          (id.match(/.[ゃゅょャュョ]?/g) || []).map((c) => kana[c]).join(""),
-          ["Japanese", "Kana"],
-          id,
-        )
-      },
-      10,
-    )
+    return new Generator((id = "") => {
+      if (!id) {
+        for (let i = 0; i < n; i++) {
+          id += random(Object.keys(rest))
+          if (
+            !(id.endsWith("ん") || id.endsWith("ン")) &&
+            Math.random() < 0.25
+          ) {
+            i++
+            if (i < n) {
+              id += nn
+            }
+          }
+        }
+      }
+
+      return new PartialCard(
+        id,
+        id,
+        (id.match(/.[ゃゅょャュョ]?/g) || []).map((c) => kana[c]).join(""),
+        ["Japanese", "Kana"],
+        id,
+      )
+    }, 10)
   }
 
   return {
