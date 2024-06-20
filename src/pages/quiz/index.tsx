@@ -21,6 +21,10 @@ import {
 import { Card, PartialCard } from "./shared"
 import { leaves, tree } from "./tree"
 
+// TODO: move to homepage
+// TODO: add seo items
+// TODO: sitelensitelen sitelentelo sitelenpona tokipona
+
 type State = "noscript" | "nodecks" | "noneleft" | "ok" | "guide"
 
 interface QueuedCard {
