@@ -8,6 +8,7 @@ import {
   For,
   JSX,
   Setter,
+  batch,
   createEffect,
   createSignal,
   onMount,
@@ -128,9 +129,11 @@ export function CheckboxGroup(props: {
                   !el.classList.contains("z-group-checkbox"),
               )
 
-              cbs.forEach((x) => {
-                x.checked = checked
-                x.dispatchEvent(new InputEvent("input", { bubbles: true }))
+              batch(() => {
+                cbs.forEach((x) => {
+                  x.checked = checked
+                  x.dispatchEvent(new InputEvent("input", { bubbles: true }))
+                })
               })
             }}
           />

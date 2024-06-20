@@ -26,7 +26,9 @@ type Leaf = DirectTreeCard | Generator
 
 type RawTree = TreeOf<Leaf>
 
-type State = "noscript" | "nocards" | "ok"
+type Node = RawTree | Leaf
+
+type State = "noscript" | "nodecks" | "noneleft" | "ok"
 
 class PartialCard {
   static of(base: Leaf) {
@@ -192,6 +194,14 @@ function kanaTree(
       ryo: ri + xyo,
     }),
   }
+}
+
+function each<T>(
+  names: T[],
+  card: (value: T) => Node,
+  name: (x: T) => string = String,
+): RawTree {
+  return Object.fromEntries(names.map((x) => [name(x), card(x)]))
 }
 
 const tree = new Tree<Leaf>(
@@ -396,6 +406,27 @@ const tree = new Tree<Leaf>(
         }),
       },
     },
+    Mathematics: {
+      Squares: each(
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        (b) =>
+          each(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            (y) => {
+              const x = 10 * b + y
+              return new DirectTreeCard(
+                x + "²",
+                x + "²",
+                x * x + "",
+                ["Mathematics", "Squares"],
+                1 / 20,
+              )
+            },
+            (y) => 10 * b + y + "",
+          ),
+        (b) => `${10 * b + 1}~${10 * b + 10}`,
+      ),
+    },
   },
   (value): value is Leaf =>
     value instanceof DirectTreeCard || value instanceof Generator,
@@ -424,6 +455,24 @@ function NoCards() {
         You have no decks selected.
         <br />
         Select some from the sidebar to continue.
+      </p>
+    </div>
+  )
+}
+
+function NoneLeft() {
+  return (
+    <div class="flex w-full flex-1 flex-col items-center justify-center gap-4">
+      <Fa class="size-12" icon={faExclamationTriangle} title="error" />
+
+      <p class="text-center">
+        You have no cards left to pick.
+        <br />
+        Select more decks from the sidebar to continue.
+        <br />
+        Alternatively, wait until your reviews are ready.
+        <br />
+        Alternatively, clear your reviews.
       </p>
     </div>
   )
@@ -554,7 +603,7 @@ export function Main() {
     const next = tree.choose((leaf) => leaf.weight)
 
     if (next == null) {
-      setState("nocards")
+      setState("nodecks")
       return
     }
 
@@ -588,7 +637,7 @@ export function Main() {
 
     unsafeDoNotUseNextRandomCard()
 
-    if (state() == "nocards") {
+    if (state() == "nodecks") {
       return
     }
 
@@ -616,7 +665,7 @@ export function Main() {
       }
     }
 
-    setState("nocards")
+    setState("noneleft")
     return
   }
 
@@ -764,7 +813,14 @@ export function Main() {
       <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
         <Show
           fallback={
-            <Show fallback={<NoCards />} when={state() == "noscript"}>
+            <Show
+              fallback={
+                <Show fallback={<NoCards />} when={state() == "noneleft"}>
+                  <NoneLeft />
+                </Show>
+              }
+              when={state() == "noscript"}
+            >
               <NoScript />
             </Show>
           }
@@ -811,7 +867,7 @@ export function Main() {
                       Reload Page
                     </a>
                   }
-                  when={state() == "nocards"}
+                  when={state() == "nodecks"}
                 >
                   <button
                     class="w-full rounded bg-z-body-selected py-2"
