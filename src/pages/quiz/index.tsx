@@ -922,7 +922,7 @@ export function Main() {
       </div>
 
       <button
-        class="z-field fixed right-4 top-16 z-[100] overflow-clip p-1 active:translate-y-0"
+        class="z-field fixed right-4 top-16 z-[100] overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
         onClick={() => setSidebarOpen((x) => !x)}
       >
         <div class="relative h-6 w-6">
