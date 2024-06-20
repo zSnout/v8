@@ -206,9 +206,7 @@ function kanaRead(kana: { [romaji: string]: string }): Node {
         return new PartialCard(
           id,
           id,
-          Array.from(id)
-            .map((c) => kana[c])
-            .join(""),
+          (id.match(/.[ゃゅょャュョ]?/g) || []).map((c) => kana[c]).join(""),
           ["Japanese", "Kana"],
           id,
         )
