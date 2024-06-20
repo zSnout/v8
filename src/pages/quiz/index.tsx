@@ -786,6 +786,15 @@ function restoreQueuedCard(q: QueuedCard): PartialCard | undefined {
   return PartialCard.of(result)
 }
 
+function QueueEntry(props: { short: JSX.Element; availableAt: string }) {
+  return (
+    <>
+      <p class="text-xs text-z-subtitle">{props.availableAt}</p>
+      <p class="text-sm">{props.short}</p>
+    </>
+  )
+}
+
 export function Main() {
   const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
 
@@ -1089,7 +1098,7 @@ export function Main() {
           }
           when={state() == "ok"}
         >
-          <div class="flex w-full flex-1 flex-col gap-4">
+          <div class="flex w-full max-w-full flex-1 flex-col gap-4">
             <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
               <For each={card().source}>
                 {(item, index) => (
@@ -1101,14 +1110,14 @@ export function Main() {
               </For>
             </div>
 
-            <div class="text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
+            <div class="max-w-full hyphens-auto text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
               {card().front}
             </div>
 
             <Show when={card().answerShown}>
               <hr class="border-z" />
 
-              <div class="flex items-baseline justify-center gap-2 text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+              <div class="max-w-full hyphens-auto text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
                 {card().back}
               </div>
             </Show>
@@ -1298,14 +1307,3 @@ export function Main() {
     </div>
   )
 }
-
-function QueueEntry(props: { short: JSX.Element; availableAt: string }) {
-  return (
-    <>
-      <p class="text-xs text-z-subtitle">{props.availableAt}</p>
-      <p class="text-sm">{props.short}</p>
-    </>
-  )
-}
-
-Object.assign(globalThis, tree)
