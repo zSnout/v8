@@ -1,4 +1,5 @@
 import { Tree, type TreeOf } from "@/components/fields/CheckboxGroup"
+import type { JSX } from "solid-js"
 import { DirectTreeCard, Generator, Leaf, PartialCard } from "./shared"
 
 // prettier-ignore
@@ -750,6 +751,8 @@ const ssLetters: [string, string][] = [
 
 type RawTree = TreeOf<Leaf>
 
+// TODO: improve node finding algorithm
+
 type Node = RawTree | Leaf
 
 function random<T>(x: readonly T[]): T {
@@ -791,8 +794,58 @@ const nums = [
   { n: 12, jp: "じゅうに", time: "じゅうに" },
 ]
 
+function randint(includedMin: number, excludedMax: number): number {
+  return Math.floor(Math.random() * (excludedMax - includedMin)) + includedMin
+}
+
+function color(
+  source: readonly string[],
+  makeId: () => string,
+  idToColor = (x: string) => x,
+  idToAnswer: (x: string) => JSX.Element = (x: string) => x,
+) {
+  return new Generator((id = makeId()) => {
+    return new PartialCard(
+      "<color>",
+      (
+        <div
+          class="h-96 w-full rounded"
+          style={{ "background-color": idToColor(id) }}
+        />
+      ),
+      idToAnswer(id),
+      ["Color", ...source],
+      id,
+    )
+  }, 20)
+}
+
 export const tree = new Tree<Leaf>(
   {
+    Color: {
+      "RGB Hex Code": color(
+        ["RGB", "Hex Code"],
+        () =>
+          "#" +
+          randint(0, 16 ** 6)
+            .toString(16)
+            .padStart(6, "0"),
+      ),
+      "RGB Decimal Values": color(
+        ["RGB", "Decimal Value"],
+        () => `rgb(${randint(0, 256)} ${randint(0, 256)} ${randint(0, 256)})`,
+      ),
+      HSL: color(
+        ["HSL"],
+        () =>
+          `hsl(${randint(0, 360)}deg ${randint(0, 101)}% ${randint(0, 101)}%)`,
+      ),
+      HWB: color(
+        ["HWB"],
+        () =>
+          `hwb(${randint(0, 360)}deg ${randint(0, 101)}% ${randint(0, 101)}%)`,
+      ),
+    },
     Japanese: {
       Hiragana: {
         ...kanaTree(

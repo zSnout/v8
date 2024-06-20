@@ -52,7 +52,7 @@ export class Generator {
     readonly generate: (id?: string | undefined) => PartialCard,
     readonly cardCount: number,
   ) {
-    this.weight = 1 / cardCount
+    this.weight = 1
   }
 }
 

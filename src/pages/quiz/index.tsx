@@ -725,7 +725,7 @@ export function Main() {
   return (
     <>
       <div class="relative z-10 flex flex-1 items-start">
-        <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
+        <div class="flex h-full w-full flex-1 flex-col items-start">
           <Show
             fallback={
               <Show
