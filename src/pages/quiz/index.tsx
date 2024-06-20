@@ -1,13 +1,5 @@
-import { Fa } from "@/components/Fa"
 import { CheckboxTree, Tree, TreeOf } from "@/components/fields/CheckboxGroup"
 import { createStorage } from "@/stores/local-storage-store"
-import {
-  faArrowRight,
-  faBackspace,
-  faChevronRight,
-  faLocationPinLock,
-  faSlash,
-} from "@fortawesome/free-solid-svg-icons"
 import { For, JSX, Show, createEffect, createSignal, onMount } from "solid-js"
 
 type RawTree = TreeOf<DirectTreeCard | Generator>
@@ -72,7 +64,19 @@ function kanaTree(
   return Object.fromEntries(
     Object.entries(kana).map(([romaji, kana]) => [
       romaji,
-      new DirectTreeCard(romaji, romaji, kana, ["Japanese", type], 1 / 30),
+      new DirectTreeCard(
+        romaji,
+        romaji,
+        (
+          <>
+            <span class="font-sans">{kana}</span>
+            <span class="font-serif">{kana}</span>
+            <span class="font-mono">{kana}</span>
+          </>
+        ),
+        ["Japanese", type],
+        1 / 30,
+      ),
     ]),
   )
 }
@@ -213,7 +217,7 @@ export function Main() {
           <Show when={card().answerShown}>
             <hr class="border-z" />
 
-            <div class="text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+            <div class="flex items-baseline justify-center gap-2 text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
               {card().back}
             </div>
           </Show>
