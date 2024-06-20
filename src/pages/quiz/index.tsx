@@ -10,7 +10,6 @@ import {
   faClose,
   faDownload,
   faExclamationTriangle,
-  faInfoCircle,
   faNavicon,
   faTrash,
   faUpload,
@@ -809,10 +808,6 @@ function Shortcut(props: { key: string }) {
     </kbd>
   )
 }
-
-// TODO: sidebar offscreen means page is scrollable
-// TODO: too much content makes sidebar very large
-// TODO: sidebar border extends too far down
 
 function Guide() {
   return (
