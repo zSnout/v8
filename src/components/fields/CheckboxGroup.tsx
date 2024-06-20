@@ -284,6 +284,27 @@ export class Tree<T> {
     ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
   }
 
+  count(weight: (leaf: T) => number = () => 1) {
+    let leaves = 0
+    let groups = 0
+
+    const count = (tree: TreeOf<T>) => {
+      for (const key in tree) {
+        const value = tree[key]!
+        if (this.isLeaf(value)) {
+          leaves += weight(value)
+        } else {
+          groups++
+          count(value)
+        }
+      }
+    }
+
+    count(this.tree)
+
+    return { leaves, groups }
+  }
+
   toggleEnabled(parent: readonly string[], key: string, enabled: boolean) {
     const full = structuredClone(this.enabled())
     let obj = full

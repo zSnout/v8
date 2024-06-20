@@ -19,7 +19,7 @@ import {
   onMount,
 } from "solid-js"
 import { Card, PartialCard } from "./shared"
-import { tree } from "./tree"
+import { leaves, tree } from "./tree"
 
 type State = "noscript" | "nodecks" | "noneleft" | "ok" | "guide"
 
@@ -661,6 +661,8 @@ export function Main() {
             "translate-x-full": !sidebarOpen(),
           }}
         >
+          <p class="mb-1">~{leaves} cards available.</p>
+
           <ul class="flex w-full flex-1 flex-col gap-1">
             <CheckboxTree tree={tree} />
           </ul>

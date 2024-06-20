@@ -139,9 +139,12 @@ function kanaRead(
 function each<T>(
   names: T[],
   card: (value: T) => Node,
-  name: (x: T) => string = String,
+  ...name: T extends string
+    ? [name?: (x: T) => PropertyKey]
+    : [name: (x: T) => PropertyKey]
 ): RawTree {
-  return Object.fromEntries(names.map((x) => [name(x), card(x)]))
+  const n = name[0] || String
+  return Object.fromEntries(names.map((x) => [n(x), card(x)]))
 }
 
 type RawTree = TreeOf<Leaf>
@@ -155,6 +158,22 @@ function random<T>(x: readonly T[]): T {
 
   return x[Math.floor(x.length * Math.random())]!
 }
+
+const nums = [
+  { n: 0, jp: "TODO", time: "TODO" },
+  { n: 1, jp: "いち", time: "いち" },
+  { n: 2, jp: "に", time: "に" },
+  { n: 3, jp: "さん", time: "さん" },
+  { n: 4, jp: "し、よん", time: "し" },
+  { n: 5, jp: "ご", time: "ご" },
+  { n: 6, jp: "ろく", time: "ろく" },
+  { n: 7, jp: "しち、なな", time: "しち" },
+  { n: 8, jp: "はち", time: "はち" },
+  { n: 9, jp: "く、きゅう", time: "く" },
+  { n: 10, jp: "じゅう", time: "じゅう" },
+  { n: 11, jp: "じゅういち", time: "じゅういち" },
+  { n: 12, jp: "じゅうに", time: "じゅうに" },
+]
 
 export const tree = new Tree<Leaf>(
   {
@@ -592,6 +611,88 @@ export const tree = new Tree<Leaf>(
           ディ: "dhi",
         }),
       },
+      Numbers: {
+        "1~10": each(
+          nums.slice(1, 11),
+          ({ n, jp }) => {
+            return new DirectTreeCard(
+              n + "",
+              n,
+              jp,
+              ["Japanese", "Numbers"],
+              1 / 20,
+            )
+          },
+          (n) => n.n,
+        ),
+        "11~19": each(
+          nums.slice(1, 10),
+          ({ n, jp }) => {
+            return new DirectTreeCard(
+              n + "",
+              n,
+              jp
+                .split("、")
+                .map((x) => "じゅう" + x)
+                .join("、"),
+              ["Japanese", "Numbers"],
+              1 / 20,
+            )
+          },
+          (n) => n.n,
+        ),
+        "20~100": each(
+          [2, 3, 4, 5, 6, 7, 8, 9, 10],
+          (n) => {
+            return new DirectTreeCard(
+              10 * n + "",
+              10 * n,
+              [
+                ,
+                ,
+                "にじゅう",
+                "さんじゅう",
+                "よんじゅう",
+                "ごじゅう",
+                "ろくじゅう",
+                "ななじゅう",
+                "はちじゅう",
+                "きゅうじゅう",
+                "ひゃく",
+              ][n],
+              ["Japanese", "Numbers"],
+              1 / 20,
+            )
+          },
+          (n) => "" + 10 * n,
+        ),
+      },
+      Time: {
+        "O'Clock": each(
+          nums.slice(1, 13),
+          ({ n, time }) =>
+            new DirectTreeCard(
+              n + ":00",
+              n + ":00",
+              time + "じ",
+              ["Japanese", "Time"],
+              1 / 20,
+            ),
+          (n) => n.n + ":00",
+        ),
+        "Half Hour": each(
+          nums.slice(1, 13),
+          ({ n, time }) =>
+            new DirectTreeCard(
+              n + ":30",
+              n + ":30",
+              time + "じはん",
+              ["Japanese", "Time"],
+              1 / 20,
+            ),
+          (n) => n.n + ":30",
+        ),
+      },
     },
     Mathematics: {
       Squares: each(
@@ -618,3 +719,11 @@ export const tree = new Tree<Leaf>(
   (value): value is Leaf =>
     value instanceof DirectTreeCard || value instanceof Generator,
 )
+
+export const { leaves, groups } = tree.count((leaf) => {
+  if (leaf instanceof Generator) {
+    return leaf.cardCount
+  } else {
+    return 1
+  }
+})
