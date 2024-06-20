@@ -51,8 +51,8 @@ export function Checkbox(props: {
         class="group-checkbox flex h-6 cursor-pointer select-none items-center justify-center"
         role="button"
       >
-        <div class="relative flex h-5 w-5 items-center justify-center rounded border border-transparent ring ring-transparent transition-[box-shadow,border-color] [:active+*>&]:border-z-focus [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:focus-visible+*>&]:border-z-focus [:focus-visible+*>&]:ring-z-focus [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]">
-          <div class="absolute -m-px size-[calc(100%_+_2px)] rounded border border-z [:active+*>*>&]:border-z-focus [:checked+.group-checkbox_&]:hidden [:focus-visible+*>*>&]:border-z-focus [:indeterminate+.group-checkbox_&]:hidden" />
+        <div class="relative flex h-5 w-5 items-center justify-center rounded border border-transparent ring ring-transparent transition-[box-shadow,border-color] [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:focus-visible+*>&]:border-z-focus [:focus-visible+*>&]:ring-z-focus [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]">
+          <div class="absolute -m-px size-[calc(100%_+_2px)] rounded border border-z [:checked+.group-checkbox_&]:hidden [:focus-visible+*>*>&]:border-z-focus [:indeterminate+.group-checkbox_&]:hidden" />
 
           <Fa
             class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:checked:not(:indeterminate)+.group-checkbox_&]:block"
