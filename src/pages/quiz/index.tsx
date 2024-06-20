@@ -157,12 +157,12 @@ export function Main() {
   createEffect(() => setStorageTree(JSON.stringify(tree.toJSON())))
 
   const [card, setCard] = createSignal<Card>({
-    front: "7:00",
-    back: "しちじ",
-    group: ["Japanese", "Hiragana", "Basic"],
-    id: "7",
-    answerShown: true,
-    source: ["Japanese", "Time"],
+    front: "",
+    back: "",
+    group: [],
+    id: "",
+    answerShown: false,
+    source: [],
   })
 
   function nextCard() {
@@ -188,7 +188,7 @@ export function Main() {
       tree.importJSON(val)
     } catch {}
 
-    // nextCard()
+    nextCard()
   })
 
   return (
