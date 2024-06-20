@@ -7,7 +7,10 @@ interface Props {
   maxWidth: `max-w-${string}`
   options?: any
   theme?: "light" | "dark"
+  shortLine?: boolean
 }
+
+// TODO: make sure this doesn't disturb fractal explorer settings
 ---
 
 {/* This blocks content under the address bar in Safari. */}
@@ -22,9 +25,19 @@ interface Props {
   class={"pointer-events-none fixed top-0 z-30 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden " +
     (Astro.props.floating
       ? "border-b-transparent"
+      : Astro.props.shortLine
+      ? "backdrop-blur-sm bg-z-body-partial border-b-transparent"
       : "backdrop-blur-sm bg-z-body-partial border-b-z")}
 >
-  <div class={`flex h-full w-full flex-1 items-center ${Astro.props.maxWidth}`}>
+  <div
+    class={`relative flex h-full w-full flex-1 items-center ${Astro.props.maxWidth}`}
+  >
+    {
+      Astro.props.shortLine && (
+        <div class="absolute -bottom-1.5 left-0 h-px w-full translate-y-px bg-z-border" />
+      )
+    }
+
     <a
       class={"pointer-events-auto mr-auto font-extralight text-2xl underline decoration-transparent decoration-1 underline-offset-2 transition hover:decoration-current text-z-heading z-20 relative border border-transparent focus-visible:border-z-focus ring-z-focus focus-visible:ring focus-visible:outline-none rounded-lg left-[calc(-0.5rem_-_1px)] px-2 py-0.5 " +
         (Astro.props.floating ? "backdrop-blur-sm bg-z-body-partial" : "")}

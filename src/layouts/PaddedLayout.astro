@@ -6,17 +6,26 @@ export interface Props extends LayoutProps {
   maxWidth: `max-w-${string}`
   pt?: `pt-${number}`
   pb?: `pb-${number}`
+  shortLine?: boolean
 }
 ---
 
 <Layout {...Astro.props}>
   {
     Astro.slots.options ? (
-      <Navigation floating={false} maxWidth={Astro.props.maxWidth}>
+      <Navigation
+        floating={false}
+        maxWidth={Astro.props.maxWidth}
+        shortLine={Astro.props.shortLine}
+      >
         <slot name="options" slot="options" />
       </Navigation>
     ) : (
-      <Navigation floating={false} maxWidth={Astro.props.maxWidth} />
+      <Navigation
+        floating={false}
+        maxWidth={Astro.props.maxWidth}
+        shortLine={Astro.props.shortLine}
+      />
     )
   }
 
