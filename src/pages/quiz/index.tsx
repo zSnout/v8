@@ -1303,15 +1303,15 @@ export function Main() {
   function Sidebar() {
     return (
       <div
-        class="fixed left-0 top-0 h-full max-h-[calc(100dvh_-_3rem)] w-full translate-x-0 transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_4rem)] sm:w-72 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
+        class="fixed left-0 top-0 h-full w-full translate-x-0 overflow-clip transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:sticky sm:top-20 sm:-mb-16 sm:flex sm:h-[calc(100%_+_4rem)] sm:max-h-[calc(100dvh_-_3rem)] sm:w-[19.5rem] sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
         classList={{
           "backdrop-blur-sm": sidebarOpen(),
           "backdrop-blur-0": !sidebarOpen(),
           "bg-z-body-partial": sidebarOpen(),
           "pointer-events-none": !sidebarOpen(),
           "sm:!w-0": !sidebarOpen(),
-          "sm:!translate-x-[15rem]": !sidebarOpen(),
-          "md:!translate-x-[21rem]": !sidebarOpen(),
+          // "sm:!max-w-[19.5rem]": sidebarOpen(),
+          "sm:!translate-x-[21rem]": !sidebarOpen(),
         }}
         onClick={(event) => {
           if (event.currentTarget == event.target && event.offsetY > 48) {
@@ -1392,7 +1392,7 @@ export function Main() {
 
   return (
     <>
-      <div class="relative z-10 flex flex-1 items-start gap-6">
+      <div class="relative z-10 flex flex-1 items-start">
         <div class="flex h-full w-full flex-1 flex-col items-start gap-4">
           <Show
             fallback={
