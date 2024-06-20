@@ -10,6 +10,7 @@ import {
   faClose,
   faExclamationTriangle,
   faNavicon,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons"
 import {
   For,
@@ -21,14 +22,14 @@ import {
   onMount,
 } from "solid-js"
 
-// TODO: sidebar should be visible on mobile
+type Leaf = DirectTreeCard | Generator
 
-type RawTree = TreeOf<DirectTreeCard | Generator>
+type RawTree = TreeOf<Leaf>
 
 type State = "noscript" | "nocards" | "ok"
 
 class PartialCard {
-  static of(base: DirectTreeCard | Generator) {
+  static of(base: Leaf) {
     if (base instanceof DirectTreeCard) {
       return base.toPartial()
     } else if (base instanceof Generator) {
@@ -99,7 +100,25 @@ interface QueuedCard {
   readonly availableAt: number
 }
 
-function kanaTree(
+// prettier-ignore
+type BaseKanaNames =
+  | "a" | "i" | "u" | "e" | "o" | "ka" | "ki" | "ku" | "ke" | "ko" | "sa"
+  | "shi" | "su" | "se" | "so" | "ta" | "chi" | "tsu" | "te" | "to" | "na"
+  | "ni" | "nu" | "ne" | "no" | "ha" | "hi" | "fu" | "he" | "ho" | "ma" | "mi"
+  | "mu" | "me" | "mo" | "ya" | "yu" | "yo" | "ra" | "ri" | "ru" | "re" | "ro"
+  | "wa" | "wo" | "n"
+
+type WiWeKanaNames = "wi" | "we"
+
+// prettier-ignore
+type DakutenKanaNames =
+  | "ga" | "gi" | "gu" | "ge" | "go" | "za" | "ji" | "zu" | "ze" | "zo" | "da"
+  | "ji2" | "zu2" | "de" | "do" | "ba" | "bi" | "bu" | "be" | "bo" | "pa" | "pi"
+  | "pu" | "pe" | "po"
+
+type LittleKanaNames = "xya" | "xyu" | "xyo"
+
+function kanaList(
   type: "Hiragana" | "Katakana",
   kana: { [romaji: string]: string },
 ): RawTree {
@@ -123,70 +142,262 @@ function kanaTree(
   )
 }
 
-const tree = new Tree<DirectTreeCard | Generator>(
+function kanaTree(
+  type: "Hiragana" | "Katakana",
+  base: Record<BaseKanaNames, string>,
+  wiwe: Record<WiWeKanaNames, string>,
+  dakuten: Record<DakutenKanaNames, string>,
+  little: Record<LittleKanaNames, string>,
+): RawTree {
+  const { xya, xyo, xyu } = little
+  const { ki, shi, chi, ni, hi, mi, ri } = base
+  const { gi, ji, bi, pi } = dakuten
+  return {
+    Basic: kanaList(type, base),
+    Obscure: kanaList(type, wiwe),
+    Dakuten: kanaList(type, dakuten),
+    Combination: kanaList(type, {
+      kya: ki + xya,
+      kyu: ki + xyu,
+      kyo: ki + xyo,
+      gya: gi + xya,
+      gyu: gi + xyu,
+      gyo: gi + xyo,
+      sha: shi + xya,
+      shu: shi + xyu,
+      sho: shi + xyo,
+      ja: ji + xya,
+      ju: ji + xyu,
+      jo: ji + xyo,
+      cha: chi + xya,
+      chu: chi + xyu,
+      cho: chi + xyo,
+      nya: ni + xya,
+      nyu: ni + xyu,
+      nyo: ni + xyo,
+      hya: hi + xya,
+      hyu: hi + xyu,
+      hyo: hi + xyo,
+      bya: bi + xya,
+      byu: bi + xyu,
+      byo: bi + xyo,
+      pya: pi + xya,
+      pyu: pi + xyu,
+      pyo: pi + xyo,
+      mya: mi + xya,
+      myu: mi + xyu,
+      myo: mi + xyo,
+      rya: ri + xya,
+      ryu: ri + xyu,
+      ryo: ri + xyo,
+    }),
+  }
+}
+
+const tree = new Tree<Leaf>(
   {
     Japanese: {
-      Hiragana: {
-        Basic: {
-          ...kanaTree("Hiragana", {
-            a: "あ",
-            i: "い",
-            u: "う",
-            e: "え",
-            o: "お",
-            ka: "か",
-            ki: "き",
-            ku: "く",
-            ke: "け",
-            ko: "こ",
-            sa: "さ",
-            shi: "し",
-            su: "す",
-            se: "せ",
-            so: "そ",
-            ta: "た",
-            chi: "ち",
-            tsu: "つ",
-            te: "て",
-            to: "と",
-            na: "な",
-            ni: "に",
-            nu: "ぬ",
-            ne: "ね",
-            no: "の",
-            ha: "は",
-            hi: "ひ",
-            fu: "ふ",
-            he: "へ",
-            ho: "ほ",
-            ma: "ま",
-            mi: "み",
-            mu: "む",
-            me: "め",
-            mo: "も",
-            ya: "や",
-            yu: "ゆ",
-            yo: "よ",
-            ra: "ら",
-            ri: "り",
-            ru: "る",
-            re: "れ",
-            ro: "ろ",
-            wa: "わ",
-            wo: "を",
-            n: "ん",
-          }),
+      Hiragana: kanaTree(
+        "Hiragana",
+        {
+          a: "あ",
+          i: "い",
+          u: "う",
+          e: "え",
+          o: "お",
+          ka: "か",
+          ki: "き",
+          ku: "く",
+          ke: "け",
+          ko: "こ",
+          sa: "さ",
+          shi: "し",
+          su: "す",
+          se: "せ",
+          so: "そ",
+          ta: "た",
+          chi: "ち",
+          tsu: "つ",
+          te: "て",
+          to: "と",
+          na: "な",
+          ni: "に",
+          nu: "ぬ",
+          ne: "ね",
+          no: "の",
+          ha: "は",
+          hi: "ひ",
+          fu: "ふ",
+          he: "へ",
+          ho: "ほ",
+          ma: "ま",
+          mi: "み",
+          mu: "む",
+          me: "め",
+          mo: "も",
+          ya: "や",
+          yu: "ゆ",
+          yo: "よ",
+          ra: "ら",
+          ri: "り",
+          ru: "る",
+          re: "れ",
+          ro: "ろ",
+          wa: "わ",
+          wo: "を",
+          n: "ん",
         },
-        Obscure: {
-          ...kanaTree("Hiragana", {
-            wi: "ゐ",
-            we: "ゑ",
-          }),
+        {
+          wi: "ゐ",
+          we: "ゑ",
         },
+        {
+          ga: "が",
+          gi: "ぎ",
+          gu: "ぐ",
+          ge: "げ",
+          go: "ご",
+          za: "ざ",
+          ji: "じ",
+          zu: "ず",
+          ze: "ぜ",
+          zo: "ぞ",
+          da: "だ",
+          ji2: "ぢ",
+          zu2: "づ",
+          de: "で",
+          do: "ど",
+          ba: "ば",
+          bi: "び",
+          bu: "ぶ",
+          be: "べ",
+          bo: "ぼ",
+          pa: "ぱ",
+          pi: "ぴ",
+          pu: "ぷ",
+          pe: "ぺ",
+          po: "ぽ",
+        },
+        {
+          xya: "ゃ",
+          xyu: "ゅ",
+          xyo: "ょ",
+        },
+      ),
+      Katakana: {
+        ...kanaTree(
+          "Katakana",
+          {
+            a: "ア",
+            i: "イ",
+            u: "ウ",
+            e: "エ",
+            o: "オ",
+            ka: "カ",
+            ki: "キ",
+            ku: "ク",
+            ke: "ケ",
+            ko: "コ",
+            sa: "サ",
+            shi: "シ",
+            su: "ス",
+            se: "セ",
+            so: "ソ",
+            ta: "タ",
+            chi: "チ",
+            tsu: "ツ",
+            te: "テ",
+            to: "ト",
+            na: "ナ",
+            ni: "ニ",
+            nu: "ヌ",
+            ne: "ネ",
+            no: "ノ",
+            ha: "ハ",
+            hi: "ヒ",
+            fu: "フ",
+            he: "ヘ",
+            ho: "ホ",
+            ma: "マ",
+            mi: "ミ",
+            mu: "ム",
+            me: "メ",
+            mo: "モ",
+            ya: "ヤ",
+            yu: "ユ",
+            yo: "ヨ",
+            ra: "ラ",
+            ri: "リ",
+            ru: "ル",
+            re: "レ",
+            ro: "ロ",
+            wa: "ワ",
+            wo: "ヲ",
+            n: "ン",
+          },
+          {
+            wi: "ヰ",
+            we: "ヱ",
+          },
+          {
+            ga: "ガ",
+            gi: "ギ",
+            gu: "グ",
+            ge: "げ",
+            go: "ゴ",
+            za: "ザ",
+            ji: "ジ",
+            zu: "ズ",
+            ze: "ゼ",
+            zo: "ゾ",
+            da: "ダ",
+            ji2: "ヂ",
+            zu2: "ヅ",
+            de: "デ",
+            do: "ド",
+            ba: "バ",
+            bi: "ビ",
+            bu: "ブ",
+            be: "ベ",
+            bo: "ボ",
+            pa: "パ",
+            pi: "ピ",
+            pu: "プ",
+            pe: "ペ",
+            po: "ポ",
+          },
+          {
+            xya: "ャ",
+            xyu: "ュ",
+            xyo: "ョ",
+          },
+        ),
+        "More Combos": kanaList("Katakana", {
+          va: "ヴァ",
+          vi: "ヴィ",
+          vu: "ヴ",
+          ve: "ヴェ",
+          vo: "ヴォ",
+          fa: "ファ",
+          fi: "フィ",
+          fe: "フェ",
+          fo: "フォ",
+          wi: "ウィ",
+          we: "ウェ",
+          wo: "ウォ",
+          tsa: "ツァ",
+          tsi: "ツィ",
+          tse: "ツェ",
+          tso: "ツォ",
+          twu: "トゥ",
+          dwu: "ドゥ",
+          thi: "ティ",
+          dhi: "ディ",
+        }),
       },
     },
   },
-  (value): value is DirectTreeCard | Generator =>
+  (value): value is Leaf =>
     value instanceof DirectTreeCard || value instanceof Generator,
 )
 
@@ -218,10 +429,60 @@ function NoCards() {
   )
 }
 
+function areCardsSame(
+  a: { readonly path: readonly string[]; readonly id: string },
+  b: { readonly path: readonly string[]; readonly id: string },
+) {
+  return (
+    a.path.length == b.path.length &&
+    a.id == b.id &&
+    a.path.every((x, i) => x == b.path[i])
+  )
+}
+
+function random<T>(x: readonly T[]): T {
+  if (x.length == 0) {
+    throw new RangeError("Array must not be empty.")
+  }
+
+  return x[Math.floor(x.length * Math.random())]!
+}
+
+function restoreQueuedCard(q: QueuedCard): PartialCard | undefined {
+  let obj = tree.tree
+  let result
+  for (let index = 0; index < q.path.length; index++) {
+    const segment = q.path[index]!
+    const next = obj[segment]
+    if (next == null) {
+      return
+    }
+    if (tree.isLeaf(next)) {
+      if (index == q.path.length - 1) {
+        result = next
+        break
+      }
+      return
+    }
+    obj = next
+  }
+
+  if (!result) {
+    return
+  }
+
+  return PartialCard.of(result)
+}
+
 export function Main() {
   const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
 
   const [sidebarOpen, setSidebarOpen] = createSignal(true)
+
+  const [reviewsWithoutNew, setReviewsWithoutNew] = createStorage(
+    "quiz::reviews_without_new",
+    "0",
+  )
 
   const [queue, setQueue] = (() => {
     const [raw, setRaw] = createStorage("quiz::queue", "[]", "directmount")
@@ -302,25 +563,6 @@ export function Main() {
     setState("ok")
   }
 
-  function areCardsSame(
-    a: { readonly path: readonly string[]; readonly id: string },
-    b: { readonly path: readonly string[]; readonly id: string },
-  ) {
-    return (
-      a.path.length == b.path.length &&
-      a.id == b.id &&
-      a.path.every((x, i) => x == b.path[i])
-    )
-  }
-
-  function random<T>(x: readonly T[]): T {
-    if (x.length == 0) {
-      throw new RangeError("Array must not be empty.")
-    }
-
-    return x[Math.floor(x.length * Math.random())]!
-  }
-
   function randomFromQueue(q: readonly QueuedCard[]): QueuedCard | undefined {
     const n = now()
 
@@ -340,33 +582,7 @@ export function Main() {
     return
   }
 
-  function restoreQueuedCard(q: QueuedCard): PartialCard | undefined {
-    let obj = tree.tree
-    let result
-    for (let index = 0; index < q.path.length; index++) {
-      const segment = q.path[index]!
-      const next = obj[segment]
-      if (next == null) {
-        return
-      }
-      if (tree.isLeaf(next)) {
-        if (index == q.path.length - 1) {
-          result = next
-          break
-        }
-        return
-      }
-      obj = next
-    }
-
-    if (!result) {
-      return
-    }
-
-    return PartialCard.of(result)
-  }
-
-  function nextCard() {
+  function unsafeDoNotUseNextCard() {
     const queued = queue()
     const current = card()
 
@@ -404,6 +620,30 @@ export function Main() {
     return
   }
 
+  function nextCard() {
+    if (+reviewsWithoutNew() >= 8) {
+      setReviewsWithoutNew("0")
+      unsafeDoNotUseNextCard()
+      return
+    } else {
+      const n = now()
+      const needReview = queue().filter((x) => x.availableAt < n)
+      if (needReview.length) {
+        const qc = random(needReview)
+        const qd = restoreQueuedCard(qc)
+        if (qd) {
+          const card = qd.toCard(qc.path)
+          setCard(card)
+          setState("ok")
+          return
+        }
+      }
+    }
+
+    unsafeDoNotUseNextCard()
+    return
+  }
+
   function answer(response: "again" | "hard" | "good") {
     if (response == "good") {
       const c = card()
@@ -412,6 +652,7 @@ export function Main() {
           .filter((x) => !areCardsSame(x, c))
           .sort(({ availableAt: a }, { availableAt: b }) => a - b),
       )
+      nextCard()
       return
     }
 
@@ -421,6 +662,16 @@ export function Main() {
     const matchingCardIndex = q.findIndex((a) => areCardsSame(a, c))
     const availableAt = Date.now() + 1000 * 60 * interval
     if (matchingCardIndex != -1) {
+      // this was a review, count it as such
+      setReviewsWithoutNew((x) => {
+        const y = +x
+        if (Number.isSafeInteger(y)) {
+          return y + 1 + ""
+        } else {
+          return "1"
+        }
+      })
+
       setQueue(
         q
           .map((x, i) =>
@@ -652,8 +903,6 @@ export function Main() {
           "sm:!w-0": !sidebarOpen(),
           "sm:!translate-x-[15rem]": !sidebarOpen(),
           "md:!translate-x-[21rem]": !sidebarOpen(),
-          // "sm:!opacity-0": !sidebarOpen(),
-          // TODO: sidebar can open and close
         }}
         onClick={(event) => {
           if (event.currentTarget == event.target && event.offsetY > 48) {
@@ -686,8 +935,26 @@ export function Main() {
             <div class="h-2 w-full bg-z-body" />
 
             <div class="relative border-t border-z bg-z-body pb-8 pt-[0.546875rem] sm:pb-0">
-              <div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-z-body px-2 text-sm/[1]">
+              <div class="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 flex-row items-center whitespace-nowrap bg-z-body px-2 text-sm/[1]">
                 Review Queue
+                <button
+                  class="ml-2 inline-flex h-4 w-4 items-center justify-center rounded bg-red-500"
+                  onClick={() => {
+                    if (
+                      confirm(
+                        "Are you sure you want to delete all saved reviews?",
+                      )
+                    ) {
+                      setQueue([])
+                    }
+                  }}
+                >
+                  <Fa
+                    class="h-3 w-3 icon-white"
+                    icon={faTrash}
+                    title="delete reviews"
+                  />
+                </button>
               </div>
 
               <div class="grid grid-cols-[auto,1fr] items-baseline gap-x-4">
