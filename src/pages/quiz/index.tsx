@@ -219,10 +219,6 @@ export function Main() {
 
   const [queue, setQueue] = (() => {
     const [raw, setRaw] = createStorage("quiz::queue", "[]", "directmount")
-    // const [queue, setQueue] = createSignal<readonly QueuedCard[]>(
-    //   fromString(raw()),
-    // )
-    // TODO: remove comments here
 
     function toString(deck: readonly QueuedCard[]) {
       return JSON.stringify(deck)
@@ -259,16 +255,6 @@ export function Main() {
         return []
       }
     }
-
-    // createEffect(() => {
-    //   console.log("setting queue from storage")
-    //   setQueue(fromString(raw()))
-    // })
-
-    // createEffect(() => {
-    //   console.log("setting storage from queue")
-    //   setRaw(toString(queue()))
-    // })
 
     return [
       createMemo((): readonly QueuedCard[] => fromString(raw())),
@@ -340,7 +326,6 @@ export function Main() {
       1000 * 60 * 20,
     ]) {
       const c = q.filter((x) => x.availableAt < n - t)
-      console.log("from queue", c, t)
       if (c.length) {
         return random(c)
       }
@@ -392,7 +377,6 @@ export function Main() {
         !queued.some((q) => areCardsSame(q, next)) &&
         !areCardsSame(current, next)
       ) {
-        console.log("Ok", { i, queued })
         setState("ok")
         return
       }
@@ -402,10 +386,8 @@ export function Main() {
 
     const q = randomFromQueue(queued)
     if (q) {
-      console.log("will restore", q)
       const c = restoreQueuedCard(q)
       if (c) {
-        console.log("partial is", c)
         setCard(c.toCard(q.path))
         setState("ok")
         return
@@ -417,8 +399,6 @@ export function Main() {
   }
 
   function answer(response: "again" | "hard" | "good") {
-    console.log(response)
-
     if (response == "good") {
       const c = card()
       setQueue(
