@@ -108,7 +108,42 @@ export function CheckboxGroup(props: {
   return (
     <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
       <div class="flex w-full gap-2">
-        <button onClick={() => props.onExpanded?.(!props.expanded)}>
+        <button
+          class="z-expand-checkbox-group"
+          classList={{ "z-expanded-now": props.expanded }}
+          // @ts-ignore solid is fine with this
+          onforceopen={() => props.onExpanded?.(true)}
+          // @ts-ignore solid is fine with this
+          onforceclose={() => props.onExpanded?.(false)}
+          onClick={() => props.onExpanded?.(!props.expanded)}
+          onContextMenu={(event) => {
+            if (!inner) {
+              return
+            }
+
+            event.preventDefault()
+
+            const dropdowns = Array.from(
+              inner.getElementsByClassName("z-expand-checkbox-group"),
+            )
+
+            batch(() => {
+              if (
+                dropdowns.every((x) => x.classList.contains("z-expanded-now"))
+              ) {
+                for (const d of dropdowns) {
+                  d.dispatchEvent(new CustomEvent("forceclose"))
+                  props.onExpanded?.(false)
+                }
+              } else {
+                for (const d of dropdowns) {
+                  d.dispatchEvent(new CustomEvent("forceopen"))
+                  props.onExpanded?.(true)
+                }
+              }
+            })
+          }}
+        >
           <Fa
             class={"h-3 w-3 transition" + (props.expanded ? " rotate-90" : "")}
             icon={faChevronRight}
