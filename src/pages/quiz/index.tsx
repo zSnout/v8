@@ -6,7 +6,11 @@ import {
   TreeOf,
 } from "@/components/fields/CheckboxGroup"
 import { createStorage } from "@/stores/local-storage-store"
-import { faExclamationTriangle } from "@fortawesome/free-solid-svg-icons"
+import {
+  faClose,
+  faExclamationTriangle,
+  faNavicon,
+} from "@fortawesome/free-solid-svg-icons"
 import {
   For,
   JSX,
@@ -578,7 +582,7 @@ export function Main() {
                       setCard((c) => ({ ...c, answerShown: true }))
                     }
                   >
-                    Show Answer
+                    Reveal Answer
                   </button>
                 }
                 when={card().answerShown}
@@ -611,27 +615,60 @@ export function Main() {
         </div>
       </div>
 
+      <button
+        class="z-field fixed right-4 top-16 z-[100] p-1"
+        onClick={() => setSidebarOpen((x) => !x)}
+      >
+        <div class="relative h-6 w-6">
+          <div
+            class="absolute left-0 top-0 transition"
+            classList={{
+              "opacity-0": !sidebarOpen(),
+              "pointer-events-none": !sidebarOpen(),
+            }}
+          >
+            <Fa class="h-6 w-6" icon={faClose} title="close sidebar" />
+          </div>
+
+          <div
+            class="absolute left-0 top-0 transition"
+            classList={{
+              "opacity-0": sidebarOpen(),
+              "pointer-events-none": sidebarOpen(),
+            }}
+          >
+            <Fa class="h-6 w-6" icon={faNavicon} title="open sidebar" />
+          </div>
+        </div>
+      </button>
+
       <div
-        class="fixed left-0 top-0 h-full w-full transition sm:pointer-events-auto sm:static sm:flex sm:h-auto sm:w-48 sm:bg-transparent sm:backdrop-filter-none md:w-72"
+        class="fixed left-0 top-0 h-full w-full translate-x-0 transition sm:pointer-events-auto sm:static sm:flex sm:h-[calc(100%_+_2rem)] sm:w-48 sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none md:w-72"
         classList={{
           "backdrop-blur-sm": sidebarOpen(),
           "backdrop-blur-0": !sidebarOpen(),
           "bg-z-body-partial": sidebarOpen(),
           "pointer-events-none": !sidebarOpen(),
+          // "sm:!translate-x-48": !sidebarOpen(),
+          // "sm:!opacity-0": !sidebarOpen(),
           // TODO: sidebar can open and close
         }}
+        onClick={(event) => {
+          if (event.currentTarget == event.target && event.offsetY > 48) {
+            setSidebarOpen(false)
+          }
+        }}
       >
-        {/* <button
-          class="fixed left-1/2 top-20 z-[100] bg-green-500 p-4"
-          onClick={() => setSidebarOpen((x) => !x)}
-        >
-          {sidebarOpen() ? "now open" : "now close"}
-        </button> */}
-
-        <div class="fixed bottom-8 right-0 top-20 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]" />
+        <div
+          class="fixed bottom-0 right-0 top-8 flex w-[13.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0 md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]"
+          classList={{
+            "translate-x-0": sidebarOpen(),
+            "translate-x-full": !sidebarOpen(),
+          }}
+        />
 
         <div
-          class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:w-[13.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]"
+          class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[13.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none md:w-[19.5rem] md:translate-x-[min(0px,-50vw_+_512px_+_1.5rem)]"
           classList={{
             "translate-x-0": sidebarOpen(),
             "translate-x-full": !sidebarOpen(),
@@ -646,7 +683,7 @@ export function Main() {
 
             <div class="h-2 w-full bg-z-body" />
 
-            <div class="relative border-t border-z bg-z-body pb-8 pt-[0.546875rem]">
+            <div class="relative border-t border-z bg-z-body pb-8 pt-[0.546875rem] sm:pb-0">
               <div class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-z-body px-2 text-sm/[1]">
                 Review Queue
               </div>
