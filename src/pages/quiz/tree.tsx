@@ -1298,8 +1298,8 @@ export const tree = new Tree<Leaf>(
           nums.slice(1, 10),
           ({ n, jp }) => {
             return new DirectTreeCard(
-              n + "",
-              n,
+              10 + n + "",
+              10 + n,
               jp
                 .split("、")
                 .map((x) => "じゅう" + x)
@@ -1308,7 +1308,7 @@ export const tree = new Tree<Leaf>(
               1 / 20,
             )
           },
-          (n) => n.n,
+          (n) => 10 + n.n,
         ),
         "20~100": each(
           [2, 3, 4, 5, 6, 7, 8, 9, 10],
