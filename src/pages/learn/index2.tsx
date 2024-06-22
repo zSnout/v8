@@ -9,6 +9,7 @@ import {
   createEffect,
   createMemo,
   createSignal,
+  untrack,
 } from "solid-js"
 import {
   Rating,
@@ -42,6 +43,46 @@ export interface Card extends Readonly<Omit<BaseCard, "due" | "last_review">> {
 const enum NextCardErrors {
   NoCardsLeft,
   WaitingForReviews,
+}
+
+function Frame(props: { srcdoc: string }) {
+  const [showB, setShowB] = createSignal(false)
+  let a: HTMLIFrameElement | undefined
+  let b: HTMLIFrameElement | undefined
+
+  createEffect(() => {
+    const srcdoc = props.srcdoc
+    const isBActive = untrack(showB)
+    const frame = isBActive ? a : b
+    if (!frame) {
+      return
+    }
+    frame.srcdoc = srcdoc
+    frame.height = "0"
+    frame.height = frame.contentDocument!.body.scrollHeight + "px"
+    setShowB(!isBActive)
+  })
+
+  return (
+    <Show
+      when={showB()}
+      fallback={
+        <iframe
+          class="min-h-full w-full"
+          src="about:blank"
+          sandbox="allow-same-origin"
+          ref={(el) => (a = el)}
+        />
+      }
+    >
+      <iframe
+        class="min-h-full w-full"
+        src="about:blank"
+        sandbox="allow-same-origin"
+        ref={(el) => (b = el)}
+      />
+    </Show>
+  )
 }
 
 export function Main() {
@@ -146,34 +187,34 @@ export function Main() {
     return ok({ card, log, now, index })
   })
 
-  const frame = (
-    <iframe
-      class="min-h-full w-full"
-      src="about:blank"
-      sandbox="allow-same-origin"
-    />
-  ) as HTMLIFrameElement
+  // const frame = (
+  //   <iframe
+  //     class="min-h-full w-full"
+  //     src="about:blank"
+  //     sandbox="allow-same-origin"
+  //   />
+  // ) as HTMLIFrameElement
 
   const [answerShown, setAnswerShown] = createSignal(false)
 
-  createEffect(() => {
-    if (typeof HTMLIFrameElement != "function") {
-      return
-    }
+  // createEffect(() => {
+  //   if (typeof HTMLIFrameElement != "function") {
+  //     return
+  //   }
 
-    const result = nextCard()
-    if (!result.ok) {
-      return
-    }
+  //   const result = nextCard()
+  //   if (!result.ok) {
+  //     return
+  //   }
 
-    const shown = answerShown()
+  //   const shown = answerShown()
 
-    const { card } = result.value
-    frame.srcdoc = `<style>${escape(css)}</style><style>${escape(
-      card.style,
-    )}</style>${shown ? card.back : card.front}`
-    setFrameSize()
-  })
+  //   const { card } = result.value
+  //   frame.srcdoc = `<style>${escape(css)}</style><style>${escape(
+  //     card.style,
+  //   )}</style>${shown ? card.back : card.front}`
+  //   setFrameSize()
+  // })
 
   function escape(text: string) {
     return text
@@ -184,11 +225,25 @@ export function Main() {
       .replace(/'/g, "&apos;")
   }
 
-  function setFrameSize() {
-    const doc = frame.contentDocument!
-    frame.height = "0"
-    frame.height = doc.body.scrollHeight + "px"
-  }
+  // function setFrameSize() {
+  //   const doc = frame.contentDocument!
+  //   frame.height = "0"
+  //   frame.height = doc.body.scrollHeight + "px"
+  // }
+
+  const srcdoc = createMemo(() => {
+    const result = nextCard()
+    if (!result.ok) {
+      return ""
+    }
+
+    const shown = answerShown()
+
+    const { card } = result.value
+    return `<style>${escape(css)}</style><style>${escape(card.style)}</style>${
+      shown ? card.back : card.front
+    }`
+  })
 
   return (
     <Full
@@ -207,7 +262,13 @@ export function Main() {
           )}
           result={nextCard()}
         >
-          {() => <ContentCard fullFront source={["learn"]} front={frame} />}
+          {() => (
+            <ContentCard
+              fullFront
+              source={[srcdoc()]}
+              front={<Frame srcdoc={srcdoc()} />}
+            />
+          )}
         </MatchResultOf>
       }
       responses={
