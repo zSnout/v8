@@ -26,8 +26,6 @@ export function ContentAction(props: { icon: IconDefinition; title: string }) {
   )
 }
 
-// TODO: sidebar actions on large displays are positioned weirdly when closed
-
 export function ContentGuide(props: {
   title: JSX.Element
   children: JSX.Element
@@ -289,7 +287,7 @@ export function SidebarStickyLabel(props: { children: JSX.Element }) {
 
 export function SidebarSticky(props: { children: JSX.Element }) {
   return (
-    <div class="sticky bottom-0 max-h-[min(24rem,50%)] w-full text-sm">
+    <div class="sticky -bottom-8 -mb-8 max-h-[min(24rem,50%)] w-full text-sm">
       <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
 
       <div class="h-2 w-full bg-z-body" />
@@ -323,7 +321,7 @@ export function Full(props: {
   sidebar: JSX.Element
 
   /** Quick actions such as saving data available in the sidebar. */
-  actions: JSX.Element
+  actions?: JSX.Element
 }) {
   const width = (() => {
     const [width, setWidth] = createSignal(1024)
@@ -460,7 +458,7 @@ export function Full(props: {
           />
 
           <div
-            class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[19.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none"
+            class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 py-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[19.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none"
             classList={{
               "translate-x-0": sidebarOpen(),
               "translate-x-full": !sidebarOpen(),
