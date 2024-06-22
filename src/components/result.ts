@@ -3,14 +3,14 @@ export interface Ok<T> {
   readonly value: T
 }
 
-export interface Error<E = string> {
+export interface Error {
   readonly ok: false
-  readonly reason: E
+  readonly reason: string
 }
 
-export type Result<T, E = string> = Ok<T> | Error<E>
+export type Result<T> = Ok<T> | Error
 
-export function ok<T, E = string>(value: T): Result<T, E> {
+export function ok<T>(value: T): Result<T> {
   return { ok: true, value }
 }
 
@@ -18,13 +18,6 @@ export function error(reason: unknown): Error {
   return {
     ok: false,
     reason: String(reason instanceof Error ? reason.message : reason),
-  }
-}
-
-export function errorOf<E>(reason: E): Error<E> {
-  return {
-    ok: false,
-    reason,
   }
 }
 

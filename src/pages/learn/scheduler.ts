@@ -1,0 +1,241 @@
+import { pray } from "@/components/pray"
+import { Result, error, ok } from "@/components/result"
+import {
+  DateInput,
+  Grade,
+  Grades,
+  fsrs,
+  type Card as BaseCard,
+  type RecordLog as BaseRecordLog,
+  type ReviewLog as BaseReviewLog,
+} from "ts-fsrs"
+import cardStyle from "./card.postcss?inline"
+
+export interface Card<T>
+  extends Readonly<Omit<BaseCard, "due" | "last_review">> {
+  readonly cid: number
+  readonly due: T
+  readonly last_review: T
+  readonly deck: string
+  readonly front: string
+  readonly back: string
+  readonly style: string
+}
+
+export type NewCard = Card<undefined>
+export type ReviewedCard = Card<Date | number>
+export type AnyCard = NewCard | ReviewedCard
+
+export function cardAfterHandler(base: BaseCard): NewCard {
+  return {
+    ...base,
+    due: undefined,
+    last_review: undefined,
+    cid: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+    front: "<div class='front'>wow</div>",
+    back: "<div class='front'>wow</div><hr class='hr'/><div class='back'>no</div>",
+    deck: "hi::world",
+    style: cardStyle,
+  }
+}
+
+export interface RecordLogItem {
+  card: ReviewedCard
+  log: ReviewLog
+}
+
+export interface ReviewLog extends BaseReviewLog {
+  cid: number
+}
+
+export type RecordLog = { [K in Grade]: RecordLogItem }
+
+export function recordAfterHandler(recordLog: BaseRecordLog): RecordLog {
+  const output = {} as RecordLog
+
+  for (const grade of Grades) {
+    const { log, card: baseCard } = recordLog[grade]
+    const card = baseCard as ReviewedCard
+
+    output[grade] = {
+      card,
+      log: { ...log, cid: card.cid },
+    }
+  }
+
+  return output
+}
+
+export class Scheduler {
+  private readonly f = fsrs({
+    w: [
+      0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
+      0.34, 1.26, 0.29, 2.61,
+    ],
+    enable_fuzz: true,
+  })
+
+  repeat(card: AnyCard, now: DateInput): RecordLog {
+    return this.f.repeat(
+      { ...card, due: card.due ?? now },
+      now,
+      recordAfterHandler,
+    )
+  }
+}
+
+export interface Deck {
+  name: string
+  cards: AnyCard[]
+  log: ReviewLog[]
+}
+
+export interface DeckOptions {
+  readonly newCards: {
+    /** This quantity of new cards are added every day. */
+    readonly perDay: number
+
+    /** The order new cards are drawn in. */
+    readonly method: "sequential" | "random"
+  }
+
+  readonly today: {
+    /** The number of new cards that have been seen today. */
+    readonly newCardsSeen: number
+
+    /** The date the last new card was seen on. */
+    readonly date: Date | number
+  }
+
+  readonly reviews: {
+    /**
+     * Reviews sooner than this number of milliseconds from now may be shown
+     * early.
+     */
+    readonly delay: number
+  }
+
+  /**
+   * Number of milliseconds after midnight when a new day starts.
+   * Interpreted to be in the local timezone.
+   */
+  readonly dayStart: number
+}
+
+export function defaultDeckOptions(): DeckOptions {
+  return {
+    newCards: { perDay: 30, method: "sequential" },
+    today: { newCardsSeen: 0, date: 0 },
+    reviews: { delay: 1000 * 60 * 20 },
+    dayStart: 1000 * 60 * 60 * 4,
+  }
+}
+
+export const ERR_NO_NEW_CARDS_AVAILABLE = "No new cards available today."
+export const ERR_WAITING_FOR_REVIEWS = "Waiting for reviews to be due."
+
+export class DeckManager {
+  private readonly scheduler = new Scheduler()
+
+  constructor(
+    private name: string,
+    private cards: AnyCard[],
+    private log: ReviewLog[],
+    private options: DeckOptions,
+  ) {}
+
+  private nextNewCard(
+    possibleIndices: number[],
+  ): Result<{ card: NewCard; index: number }> {
+    if (possibleIndices.length == 0) {
+      return error(ERR_NO_NEW_CARDS_AVAILABLE)
+    }
+
+    const index =
+      possibleIndices[
+        {
+          sequential: 0,
+          random: Math.floor(Math.random() * possibleIndices.length),
+        }[this.options.newCards.method]
+      ]!
+
+    const card = this.cards[index]!
+
+    pray(card.due == null, "Card must be a new card.")
+    card satisfies NewCard
+
+    return ok({ card, index })
+  }
+
+  beginningOfDay(now: number | Date): number {
+    const date = new Date(now)
+    date.setHours(0)
+    date.setMinutes(0)
+    date.setSeconds(0)
+    date.setMilliseconds(this.options.dayStart)
+    let value = date.valueOf()
+    if (value > now.valueOf()) {
+      value -= 1000 * 60 * 60 * 24
+    }
+    return value
+  }
+
+  newCardsLeftToday(now: number): number {
+    const {
+      today: { date, newCardsSeen },
+      newCards: { perDay },
+    } = this.options
+
+    const beginningToday = this.beginningOfDay(now)
+    const beginningThen = this.beginningOfDay(date)
+
+    // rounded a minute just in case decimals are weird
+    const diff = Math.round(((beginningToday - beginningThen) / 1000) * 60)
+
+    if (diff < 0) {
+      return 0
+    } else if (diff > 0) {
+      return perDay
+    } else {
+      return Math.max(perDay - newCardsSeen, 0)
+    }
+  }
+
+  nextCard(now: number): Result<{ card: AnyCard; index: number }> {
+    let output: { card: ReviewedCard; index: number; due: number } | undefined
+    const newCards: number[] = []
+    const earliestAllowedReview = now + this.options.reviews.delay
+
+    for (let index = 0; index < this.cards.length; index++) {
+      const card = this.cards[index]!
+      const { due } = card
+
+      if (due == null) {
+        newCards.push(index)
+        continue
+      }
+
+      if (due.valueOf() > earliestAllowedReview) {
+        continue
+      }
+
+      if (!output || due.valueOf() < output.due) {
+        output = { card, index, due: due.valueOf() }
+        continue
+      }
+    }
+
+    if (
+      (!output || (output.due < now && newCards.length)) &&
+      this.newCardsLeftToday(now) > 0
+    ) {
+      return this.nextNewCard(newCards)
+    }
+
+    if (output) {
+      return ok({ card: output.card, index: output.index })
+    }
+
+    return error(ERR_NO_NEW_CARDS_AVAILABLE)
+  }
+}

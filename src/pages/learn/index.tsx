@@ -1,15 +1,7 @@
-import { MatchResultOf } from "@/components/MatchResult"
-import { Result, errorOf, ok } from "@/components/result"
+import { MatchResult } from "@/components/MatchResult"
+import { Result, error, ok } from "@/components/result"
 import css from "@/layouts/index.postcss?inline"
-import {
-  For,
-  Match,
-  Show,
-  Switch,
-  createEffect,
-  createMemo,
-  createSignal,
-} from "solid-js"
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js"
 import {
   Rating,
   RecordLog,
@@ -28,6 +20,10 @@ import {
 } from "../quiz/layout"
 import { timestampDist } from "../quiz/shared"
 import cardStyle from "./card.postcss?inline"
+import {
+  ERR_NO_NEW_CARDS_AVAILABLE,
+  ERR_WAITING_FOR_REVIEWS,
+} from "./scheduler"
 
 export interface Card extends Readonly<Omit<BaseCard, "due" | "last_review">> {
   readonly cid: string
@@ -39,18 +35,13 @@ export interface Card extends Readonly<Omit<BaseCard, "due" | "last_review">> {
   readonly style: string
 }
 
-const enum NextCardErrors {
-  NoCardsLeft,
-  WaitingForReviews,
-}
-
 export function Main() {
   function __nextCardRawDoNotUsedUnsafeDangerouslyInnerHtmlSetReact(
     now = Date.now(),
     c = cards(),
-  ): Result<[Card, number], NextCardErrors> {
+  ): Result<[Card, number]> {
     if (!c.length) {
-      return errorOf(NextCardErrors.NoCardsLeft)
+      return error(ERR_NO_NEW_CARDS_AVAILABLE)
     }
 
     const delay = now + forcedDelay()
@@ -90,7 +81,7 @@ export function Main() {
       return ok([output, index])
     }
 
-    return errorOf(NextCardErrors.WaitingForReviews)
+    return error(ERR_WAITING_FOR_REVIEWS)
   }
 
   interface NextCardData {
@@ -125,7 +116,7 @@ export function Main() {
     ],
   })
 
-  const nextCard = createMemo((): Result<NextCardData, NextCardErrors> => {
+  const nextCard = createMemo((): Result<NextCardData> => {
     const now = Date.now()
 
     const c = __nextCardRawDoNotUsedUnsafeDangerouslyInnerHtmlSetReact(
@@ -193,25 +184,15 @@ export function Main() {
   return (
     <Full
       content={
-        <MatchResultOf
-          fallback={(error) => (
-            <Switch>
-              <Match when={error() == NextCardErrors.NoCardsLeft}>
-                <ContentError>This deck has no cards.</ContentError>
-              </Match>
-
-              <Match when={error() == NextCardErrors.WaitingForReviews}>
-                <ContentError>Waiting for reviews to be due.</ContentError>
-              </Match>
-            </Switch>
-          )}
+        <MatchResult
+          fallback={(error) => <ContentError>{error()}</ContentError>}
           result={nextCard()}
         >
           {() => <ContentCard fullFront source={["learn"]} front={frame} />}
-        </MatchResultOf>
+        </MatchResult>
       }
       responses={
-        <MatchResultOf
+        <MatchResult
           fallback={(error) => (
             <ResponseGray>
               TODO: add onclick
@@ -272,7 +253,7 @@ export function Main() {
               </ResponsesGrid>
             </Show>
           )}
-        </MatchResultOf>
+        </MatchResult>
       }
       sidebar={
         <div class="grid grid-cols-[repeat(3,auto)] gap-x-4">

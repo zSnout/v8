@@ -1,4 +1,4 @@
-import { Match, Show, Switch, type Accessor, type JSX } from "solid-js"
+import { Show, type Accessor, type JSX } from "solid-js"
 import type { Result } from "./result"
 
 export function MatchResult<T>(props: {
@@ -15,23 +15,5 @@ export function MatchResult<T>(props: {
     >
       {(value) => props.children(value)}
     </Show>
-  )
-}
-
-export function MatchResultOf<T, E>(props: {
-  children: (value: Accessor<NonNullable<T>>) => JSX.Element
-  fallback: (value: Accessor<NonNullable<E>>) => JSX.Element
-  result: Result<T, E>
-}) {
-  return (
-    <Switch>
-      <Match when={props.result.ok ? props.result.value : undefined}>
-        {(value) => props.children(value)}
-      </Match>
-
-      <Match when={props.result.ok ? undefined : props.result.reason}>
-        {(value) => props.fallback(value)}
-      </Match>
-    </Switch>
   )
 }
