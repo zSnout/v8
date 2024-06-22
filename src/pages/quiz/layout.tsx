@@ -1,0 +1,475 @@
+import { Fa } from "@/components/Fa"
+import {
+  IconDefinition,
+  faClose,
+  faDownload,
+  faExclamationTriangle,
+  faNavicon,
+  faUpload,
+} from "@fortawesome/free-solid-svg-icons"
+import {
+  For,
+  Show,
+  createMemo,
+  createSignal,
+  onMount,
+  type JSX,
+} from "solid-js"
+
+export function ContentAction(props: { icon: IconDefinition; title: string }) {
+  return (
+    <span class="z-field -my-4 inline-flex overflow-clip p-1 align-middle">
+      <span class="flex h-5 w-5 items-center justify-center">
+        <Fa class="h-4 w-4" icon={props.icon} title={props.title} />
+      </span>
+    </span>
+  )
+}
+
+// TODO: sidebar actions on large displays are positioned weirdly when closed
+
+export function ContentGuide(props: {
+  title: JSX.Element
+  children: JSX.Element
+}) {
+  return (
+    <div class="flex w-full flex-1 flex-col items-center justify-center gap-4">
+      <h1 class="text-2xl font-semibold text-z-heading">{props.title}</h1>
+      <div class="flex w-[30rem] max-w-full flex-col gap-4">
+        {props.children}
+      </div>
+    </div>
+  )
+}
+
+export function ContentError(props: { children: JSX.Element }) {
+  return (
+    <div class="flex w-full flex-1 flex-col items-center justify-center gap-4">
+      <Fa class="size-12" icon={faExclamationTriangle} title="error" />
+
+      <p class="text-center">{props.children}</p>
+    </div>
+  )
+}
+
+export function ContentNoScript() {
+  return (
+    <ContentError>
+      JavaScript is disabled.
+      <br />
+      Please enable it to continue.
+    </ContentError>
+  )
+}
+
+export function ContentNoCards() {
+  return (
+    <ContentError>
+      You have no decks selected.
+      <br />
+      Select some from the sidebar to continue.
+    </ContentError>
+  )
+}
+
+export function ContentNoneLeft() {
+  return (
+    <ContentError>
+      You have no cards left to pick.
+      <br />
+      Select more decks from the sidebar to continue.
+      <br />
+      Alternatively, wait until your reviews are ready.
+    </ContentError>
+  )
+}
+
+export function ContentCard(props: {
+  source: readonly string[]
+  front: JSX.Element
+  back?: JSX.Element
+}) {
+  return (
+    <div class="flex w-full max-w-full flex-1 flex-col gap-4">
+      <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
+        <For each={props.source}>
+          {(item, index) => (
+            <Show fallback={item} when={index() != 0}>
+              {" "}
+              / {item}
+            </Show>
+          )}
+        </For>
+      </div>
+
+      <div class="max-w-full hyphens-auto text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
+        {props.front}
+      </div>
+
+      <Show when={props.back}>
+        <hr class="border-z" />
+
+        <div class="max-w-full hyphens-auto text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+          {props.back}
+        </div>
+      </Show>
+    </div>
+  )
+}
+
+export function ResponsesSingleLink(props: {
+  children: JSX.Element
+  href: string
+}) {
+  return (
+    <a
+      class="flex h-12 w-full items-center justify-center rounded bg-z-body-selected py-2"
+      href={props.href}
+    >
+      {props.children}
+    </a>
+  )
+}
+
+export function ResponseGray(props: {
+  children: JSX.Element
+  onClick?: () => void
+}) {
+  return (
+    <button
+      class="relative h-12 w-full rounded bg-z-body-selected py-2"
+      onClick={() => props.onClick?.()}
+    >
+      {props.children}
+    </button>
+  )
+}
+
+export function Response(props: {
+  class: string
+  children: JSX.Element
+  onClick?: () => void
+}) {
+  return (
+    <button
+      class={"relative rounded py-1 " + props.class}
+      onClick={() => props.onClick?.()}
+    >
+      {props.children}
+    </button>
+  )
+}
+
+export function ResponsesGrid(props: {
+  class: `grid-cols-${1 | 2 | 3 | 4 | 5 | 6}`
+  children: JSX.Element
+}) {
+  return (
+    <div class={"grid gap-1 text-base/[1.25] md:gap-2 " + props.class}>
+      {props.children}
+    </div>
+  )
+}
+
+export function ActionGeneric(props: {
+  onClick?: (
+    event: MouseEvent & {
+      currentTarget: HTMLButtonElement
+      target: Element
+    },
+  ) => void
+  icon: IconDefinition
+  title: string
+}) {
+  return (
+    <>
+      <button
+        class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+        onClick={(event) => props.onClick?.(event)}
+      >
+        <div class="flex h-6 w-6 items-center justify-center">
+          <Fa class="h-5 w-5" icon={props.icon} title={props.title} />
+        </div>
+      </button>
+    </>
+  )
+}
+
+export function ActionExport(props: { file: () => File; title?: string }) {
+  return (
+    <button
+      class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+      onClick={() => {
+        const file = props.file()
+        const url = URL.createObjectURL(file)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = file.name
+        a.click()
+      }}
+      title={props.title || "download application data"}
+    >
+      <div class="flex h-6 w-6 items-center justify-center">
+        <Fa
+          class="h-5 w-5"
+          icon={faDownload}
+          title={props.title || "download application data"}
+        />
+      </div>
+    </button>
+  )
+}
+
+export function ActionImport(props: {
+  receive: (file: File) => void
+  title?: string
+}) {
+  return (
+    <>
+      <input
+        class="sr-only"
+        type="file"
+        accept="application/json"
+        onInput={(event) => {
+          const f = event.currentTarget.files?.[0]
+          if (!f) {
+            return
+          }
+          event.currentTarget.value = ""
+          props.receive(f)
+        }}
+      />
+
+      <button
+        class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+        onClick={(event) => {
+          const i = event.currentTarget.previousElementSibling
+          if (!(i instanceof HTMLInputElement)) {
+            return
+          }
+          i.value = ""
+          i.click()
+        }}
+        title={props.title || "upload application data"}
+      >
+        <div class="flex h-6 w-6 items-center justify-center">
+          <Fa
+            class="h-5 w-5"
+            icon={faUpload}
+            title={props.title || "upload application data"}
+          />
+        </div>
+      </button>
+    </>
+  )
+}
+
+export function SidebarStickyLabelAction(props: {
+  icon: IconDefinition
+  onClick?: () => void
+  title: string
+}) {
+  return (
+    <button
+      class="ml-2 inline-flex h-4 w-4 items-center justify-center rounded bg-red-500"
+      onClick={() => props.onClick?.()}
+    >
+      <Fa class="h-3 w-3 icon-white" icon={props.icon} title={props.title} />
+    </button>
+  )
+}
+
+export function SidebarStickyLabel(props: { children: JSX.Element }) {
+  return (
+    <div class="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 flex-row items-center whitespace-nowrap bg-z-body px-2 text-sm/[1]">
+      {props.children}
+    </div>
+  )
+}
+
+export function SidebarSticky(props: { children: JSX.Element }) {
+  return (
+    <div class="sticky bottom-0 max-h-[min(24rem,50%)] w-full text-sm">
+      <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
+
+      <div class="h-2 w-full bg-z-body" />
+
+      <div class="relative border-t border-z bg-z-body pt-[0.546875rem] sm:pb-0">
+        {props.children}
+      </div>
+    </div>
+  )
+}
+
+export function Shortcut(props: { key: string }) {
+  return (
+    <kbd
+      class="absolute bottom-0 right-1 hidden text-sm md:block"
+      title={`Shortcut: key ${props.key}`}
+    >
+      {props.key}
+    </kbd>
+  )
+}
+
+export function Full(props: {
+  /** The main content, such as a quiz question. */
+  content: JSX.Element
+
+  /** The responses given by a user. */
+  responses: JSX.Element
+
+  /** The content of the sidebar. */
+  sidebar: JSX.Element
+
+  /** Quick actions such as saving data available in the sidebar. */
+  actions: JSX.Element
+}) {
+  const width = (() => {
+    const [width, setWidth] = createSignal(1024)
+    onMount(() => {
+      addEventListener("resize", () => {
+        setWidth(innerWidth)
+      })
+      setWidth(innerWidth)
+    })
+    return width
+  })()
+
+  type SidebarState = "auto" | "open" | "closed"
+
+  const [sidebarState, setSidebarState] = createSignal<SidebarState>("auto")
+
+  const sidebarOpen = createMemo(() => {
+    if (width() < 640) {
+      return sidebarState() == "open"
+    } else {
+      return sidebarState() != "closed"
+    }
+  })
+
+  function toggleSidebar() {
+    const open = sidebarOpen()
+    const small = width() < 640
+
+    if (small) {
+      if (open) {
+        setSidebarState("auto")
+      } else {
+        setSidebarState("open")
+      }
+    } else {
+      if (open) {
+        setSidebarState("closed")
+      } else {
+        setSidebarState("auto")
+      }
+    }
+  }
+
+  function hideSidebar() {
+    const small = width() < 640
+
+    if (small) {
+      setSidebarState("auto")
+    } else {
+      setSidebarState("closed")
+    }
+  }
+
+  return (
+    <>
+      <div class="relative z-10 flex flex-1 items-start">
+        <div class="flex h-full w-full flex-1 flex-col items-start">
+          {props.content}
+
+          <div class="sticky bottom-0 -mb-8 flex w-full flex-col pb-8">
+            <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
+
+            <div class="-mb-8 w-full bg-z-body pb-8 text-center">
+              {props.responses}
+            </div>
+          </div>
+        </div>
+
+        <div class="fixed right-4 top-16 z-10 flex flex-col gap-2">
+          <button
+            class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
+            onClick={toggleSidebar}
+          >
+            <div class="relative h-6 w-6">
+              <div
+                class="absolute left-0 top-0 transition"
+                classList={{
+                  "translate-x-[125%]": !sidebarOpen(),
+                  "translate-x-0": sidebarOpen(),
+                }}
+              >
+                <Fa class="h-6 w-6" icon={faClose} title="close sidebar" />
+              </div>
+
+              <div
+                class="absolute left-0 top-0 transition"
+                classList={{
+                  "translate-x-0": !sidebarOpen(),
+                  "-translate-x-[125%]": sidebarOpen(),
+                }}
+              >
+                <Fa class="h-6 w-6" icon={faNavicon} title="open sidebar" />
+              </div>
+            </div>
+          </button>
+
+          <div
+            class="flex flex-col gap-2 transition"
+            classList={{
+              "translate-x-14": !sidebarOpen(),
+              "opacity-0": !sidebarOpen(),
+            }}
+            aria-hidden={!sidebarOpen()}
+            inert={!sidebarOpen()}
+          >
+            {props.actions}
+          </div>
+        </div>
+
+        <div
+          class="fixed left-0 top-0 h-full w-full translate-x-0 overflow-clip transition-[transform,width,backdrop-filter,background-color] sm:pointer-events-auto sm:sticky sm:top-20 sm:-mb-16 sm:flex sm:h-[calc(100%_+_4rem)] sm:max-h-[calc(100dvh_-_3rem)] sm:w-[19.5rem] sm:-translate-y-8 sm:translate-x-6 sm:bg-transparent sm:backdrop-filter-none"
+          classList={{
+            "backdrop-blur-sm": sidebarOpen(),
+            "backdrop-blur-0": !sidebarOpen(),
+            "bg-z-body-partial": sidebarOpen(),
+            "pointer-events-none": !sidebarOpen(),
+            "sm:!w-0": !sidebarOpen(),
+            "sm:!translate-x-[21rem]": !sidebarOpen(),
+          }}
+          onClick={(event) => {
+            if (event.currentTarget == event.target && event.offsetY > 48) {
+              hideSidebar()
+            }
+          }}
+          aria-hidden={!sidebarOpen()}
+          inert={!sidebarOpen()}
+        >
+          <div
+            class="fixed bottom-8 right-0 top-8 flex w-[19.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0"
+            classList={{
+              "translate-x-0": sidebarOpen(),
+              "translate-x-full": !sidebarOpen(),
+            }}
+          />
+
+          <div
+            class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 pt-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[19.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none"
+            classList={{
+              "translate-x-0": sidebarOpen(),
+              "translate-x-full": !sidebarOpen(),
+            }}
+          >
+            {props.sidebar}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
