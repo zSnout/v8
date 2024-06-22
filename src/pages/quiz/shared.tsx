@@ -66,3 +66,44 @@ export interface Card {
   readonly short: string
   readonly lastInterval: number | undefined
 }
+
+// receives a number in seconds
+export function timestampDist(dist: number) {
+  dist = Math.round(dist / 5) * 5
+
+  if (dist < 5) {
+    return "now"
+  }
+
+  if (dist < 60) {
+    return dist + "s"
+  }
+
+  dist = Math.round(dist / 60)
+
+  if (dist < 60) {
+    return dist + "m"
+  }
+
+  dist = Math.round(dist / 60)
+
+  if (dist < 24) {
+    return dist + "hr"
+  }
+
+  dist = Math.round(dist / 24)
+
+  if (dist < 30) {
+    return dist + "d"
+  }
+
+  dist = Math.round((dist / 30) * 10) / 10
+
+  if (dist < 12) {
+    return dist + "mo"
+  }
+
+  dist = Math.round(((dist * 30) / 365) * 10) / 10
+
+  return dist + "yr"
+}

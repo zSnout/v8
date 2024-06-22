@@ -29,7 +29,7 @@ import {
   SidebarStickyLabel,
   SidebarStickyLabelAction,
 } from "./layout"
-import { Card, PartialCard } from "./shared"
+import { Card, PartialCard, timestampDist } from "./shared"
 import { leaves, tree } from "./tree"
 
 // TODO: move to homepage
@@ -135,47 +135,6 @@ function Guide() {
       <p>Press "Next Card" or the spacebar on your keyboard to start.</p>
     </ContentGuide>
   )
-}
-
-// receives a value in seconds
-function timestampDist(dist: number) {
-  dist = Math.floor(dist / 5) * 5
-
-  if (dist < 5) {
-    return "now"
-  }
-
-  if (dist < 60) {
-    return dist + "s"
-  }
-
-  dist = Math.floor(dist / 60)
-
-  if (dist < 60) {
-    return dist + "m"
-  }
-
-  dist = Math.floor(dist / 24)
-
-  if (dist < 24) {
-    return dist + "hr"
-  }
-
-  dist = Math.floor(dist / 30)
-
-  if (dist < 30) {
-    return dist + "d"
-  }
-
-  dist = Math.floor(dist * 10) / 10
-
-  if (dist < 12) {
-    return dist + "mo"
-  }
-
-  dist = Math.floor(Math.floor(dist / 12) * 10) / 10
-
-  return dist + "yr"
 }
 
 function queueFromJson(value: Json) {

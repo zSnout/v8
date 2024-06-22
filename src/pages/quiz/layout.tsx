@@ -33,7 +33,7 @@ export function ContentGuide(props: {
   return (
     <div class="flex w-full flex-1 flex-col items-center justify-center gap-4">
       <h1 class="text-2xl font-semibold text-z-heading">{props.title}</h1>
-      <div class="flex w-[30rem] max-w-full flex-col gap-4">
+      <div class="flex w-full max-w-[30rem] flex-col gap-4">
         {props.children}
       </div>
     </div>
@@ -86,9 +86,10 @@ export function ContentCard(props: {
   source: readonly string[]
   front: JSX.Element
   back?: JSX.Element
+  fullFront?: boolean
 }) {
   return (
-    <div class="flex w-full max-w-full flex-1 flex-col gap-4">
+    <div class="flex w-full max-w-full flex-1 flex-col gap-4 @container">
       <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
         <For each={props.source}>
           {(item, index) => (
@@ -100,14 +101,17 @@ export function ContentCard(props: {
         </For>
       </div>
 
-      <div class="max-w-full hyphens-auto text-center text-6xl font-semibold text-z-heading sm:text-7xl md:text-8xl lg:text-9xl">
+      <div
+        class="max-w-full flex-col hyphens-auto text-center text-6xl font-semibold text-z-heading @sm:text-7xl @md:text-8xl @lg:text-9xl"
+        classList={{ "flex-1": props.fullFront, flex: props.fullFront }}
+      >
         {props.front}
       </div>
 
       <Show when={props.back}>
         <hr class="border-z" />
 
-        <div class="max-w-full hyphens-auto text-center text-3xl sm:text-4xl md:text-5xl lg:text-6xl">
+        <div class="max-w-full hyphens-auto text-center text-3xl @sm:text-4xl @md:text-5xl @lg:text-6xl">
           {props.back}
         </div>
       </Show>
@@ -135,7 +139,7 @@ export function ResponseGray(props: {
 }) {
   return (
     <button
-      class="relative h-12 w-full rounded bg-z-body-selected py-2"
+      class="relative h-12 w-full rounded bg-z-body-selected py-1"
       onClick={() => props.onClick?.()}
     >
       {props.children}
