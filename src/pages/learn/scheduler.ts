@@ -1,14 +1,18 @@
+import type { Json } from "@/components/fields/CheckboxGroup"
 import { pray } from "@/components/pray"
 import { Result, error, ok } from "@/components/result"
 import {
   DateInput,
   Grade,
   Grades,
+  Rating,
+  State,
   fsrs,
   type Card as BaseCard,
   type RecordLog as BaseRecordLog,
   type ReviewLog as BaseReviewLog,
 } from "ts-fsrs"
+import * as z from "zod"
 import cardStyle from "./card.postcss?inline"
 
 export interface Card<T>
@@ -44,8 +48,10 @@ export interface RecordLogItem {
   log: ReviewLog
 }
 
-export interface ReviewLog extends BaseReviewLog {
+export interface ReviewLog extends Omit<BaseReviewLog, "due" | "review"> {
   cid: number
+  due: Date | number
+  review: Date | number
 }
 
 export type RecordLog = { [K in Grade]: RecordLogItem }
@@ -91,35 +97,35 @@ export interface Deck {
 }
 
 export interface DeckOptions {
-  readonly newCards: {
+  newCards: {
     /** This quantity of new cards are added every day. */
-    readonly perDay: number
+    perDay: number
 
     /** The order new cards are drawn in. */
-    readonly method: "sequential" | "random"
+    method: "sequential" | "random"
   }
 
-  readonly today: {
+  today: {
     /** The number of new cards that have been seen today. */
-    readonly newCardsSeen: number
+    newCardsSeen: number
 
     /** The date the last new card was seen on. */
-    readonly date: Date | number
+    date: Date | number
   }
 
-  readonly reviews: {
+  reviews: {
     /**
      * Reviews sooner than this number of milliseconds from now may be shown
      * early.
      */
-    readonly delay: number
+    delay: number
   }
 
   /**
    * Number of milliseconds after midnight when a new day starts.
    * Interpreted to be in the local timezone.
    */
-  readonly dayStart: number
+  dayStart: number
 }
 
 export function defaultDeckOptions(): DeckOptions {
@@ -180,6 +186,24 @@ export class DeckManager {
     return value
   }
 
+  newCardsSeenToday(now: number): number {
+    const {
+      today: { date, newCardsSeen },
+    } = this.options
+
+    const beginningToday = this.beginningOfDay(now)
+    const beginningThen = this.beginningOfDay(date)
+
+    // rounded a minute just in case decimals are weird
+    const diff = Math.round(((beginningToday - beginningThen) / 1000) * 60)
+
+    if (diff == 0) {
+      return newCardsSeen
+    } else {
+      return 0
+    }
+  }
+
   newCardsLeftToday(now: number): number {
     const {
       today: { date, newCardsSeen },
@@ -238,4 +262,101 @@ export class DeckManager {
 
     return error(ERR_NO_NEW_CARDS_AVAILABLE)
   }
+
+  saveReview(card: AnyCard, index: number, rating: Grade, now: number) {
+    pray(this.cards[index]?.cid == card.cid, "index matches card")
+    const log = this.scheduler.repeat(card, now)[rating]
+    this.cards[index] = log.card
+    this.log.push(log.log)
+    if (card.due == null) {
+      this.options.today = {
+        date: now,
+        newCardsSeen: this.newCardsSeenToday(now) + 1,
+      }
+    }
+  }
+
+  toJSON() {
+    const { name, cards, log, options } = this
+    return { name, cards, log, options }
+  }
+
+  static fromJSON(json: Json) {
+    const value = deckManagerData.safeParse(json)
+
+    if (value.success) {
+      const { name, cards, log, options } = value.data
+      return ok(new DeckManager(name, cards, log, options))
+    } else {
+      return error(value.error)
+    }
+  }
 }
+
+const deckManagerData = z.object({
+  name: z.string(),
+  cards: z
+    .object({
+      stability: z.number(),
+      difficulty: z.number(),
+      elapsed_days: z.number(),
+      scheduled_days: z.number(),
+      reps: z.number(),
+      lapses: z.number(),
+      state: z.nativeEnum(State),
+      cid: z.number(),
+      due: z.undefined().optional(),
+      last_review: z.undefined().optional(),
+      deck: z.string(),
+      front: z.string(),
+      back: z.string(),
+      style: z.string(),
+    })
+    .or(
+      z.object({
+        stability: z.number(),
+        difficulty: z.number(),
+        elapsed_days: z.number(),
+        scheduled_days: z.number(),
+        reps: z.number(),
+        lapses: z.number(),
+        state: z.nativeEnum(State),
+        cid: z.number(),
+        due: z.number().or(z.date()),
+        last_review: z.number().or(z.date()),
+        deck: z.string(),
+        front: z.string(),
+        back: z.string(),
+        style: z.string(),
+      }),
+    )
+    .array(),
+  log: z
+    .object({
+      rating: z.nativeEnum(Rating),
+      state: z.nativeEnum(State),
+      due: z.date().or(z.number()),
+      stability: z.number(),
+      difficulty: z.number(),
+      elapsed_days: z.number(),
+      last_elapsed_days: z.number(),
+      scheduled_days: z.number(),
+      review: z.date().or(z.number()),
+      cid: z.number(),
+    })
+    .array(),
+  options: z.object({
+    newCards: z.object({
+      perDay: z.number(),
+      method: z.enum(["sequential", "random"]),
+    }),
+    today: z.object({
+      newCardsSeen: z.number(),
+      date: z.number().or(z.date()),
+    }),
+    reviews: z.object({
+      delay: z.number(),
+    }),
+    dayStart: z.number(),
+  }),
+})
