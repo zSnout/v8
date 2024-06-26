@@ -1,4 +1,4 @@
-import { Tree, type TreeOf } from "@/components/tree"
+import { BasicTree, type BasicTreeOf } from "@/components/basic-tree"
 import type { JSX } from "solid-js"
 import { DirectTreeCard, Generator, Leaf, PartialCard } from "./shared"
 
@@ -749,7 +749,7 @@ const ssLetters: [string, string][] = [
   ],
 ]
 
-type RawTree = TreeOf<Leaf>
+type RawTree = BasicTreeOf<Leaf>
 
 // TODO: improve node finding algorithm
 
@@ -820,7 +820,7 @@ function color(
   }, 20)
 }
 
-export const tree = new Tree<Leaf>(
+export const tree = new BasicTree<Leaf>(
   {
     Color: {
       "RGB Hex Code": color(

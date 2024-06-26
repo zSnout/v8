@@ -10,25 +10,25 @@ export type Json =
 
 export type JsonObject = { readonly [x: string]: Json }
 
-export type TreeOf<T> = { [name: string]: TreeOf<T> | T }
+export type BasicTreeOf<T> = { [name: string]: BasicTreeOf<T> | T }
 
 export type DataV1 = {
   version: 1
-  enabled: TreeOf<boolean>
-  expanded: TreeOf<boolean>
+  enabled: BasicTreeOf<boolean>
+  expanded: BasicTreeOf<boolean>
 }
 
-export class Tree<T> {
-  enabled: Accessor<TreeOf<boolean>>
-  setEnabled: Setter<TreeOf<boolean>>
+export class BasicTree<T> {
+  enabled: Accessor<BasicTreeOf<boolean>>
+  setEnabled: Setter<BasicTreeOf<boolean>>
 
   // the "" key is used in these trees to mark whether a group is expanded
-  expanded: Accessor<TreeOf<boolean>>
-  setExpanded: Setter<TreeOf<boolean>>
+  expanded: Accessor<BasicTreeOf<boolean>>
+  setExpanded: Setter<BasicTreeOf<boolean>>
 
   constructor(
-    readonly tree: TreeOf<T>,
-    readonly isLeaf: (value: TreeOf<T> | T) => value is T,
+    readonly tree: BasicTreeOf<T>,
+    readonly isLeaf: (value: BasicTreeOf<T> | T) => value is T,
   ) {
     ;[this.enabled, this.setEnabled] = createSignal(Object.create(null))
     ;[this.expanded, this.setExpanded] = createSignal(Object.create(null))
@@ -38,7 +38,7 @@ export class Tree<T> {
     let leaves = 0
     let groups = 0
 
-    const count = (tree: TreeOf<T>) => {
+    const count = (tree: BasicTreeOf<T>) => {
       for (const key in tree) {
         const value = tree[key]!
         if (this.isLeaf(value)) {
@@ -142,7 +142,7 @@ export class Tree<T> {
   }
 
   importV1(data: object) {
-    function checkIsBoolTree(tree: unknown): tree is TreeOf<boolean> {
+    function checkIsBoolTree(tree: unknown): tree is BasicTreeOf<boolean> {
       if (
         typeof tree != "object" ||
         tree == null ||
@@ -208,8 +208,8 @@ export class Tree<T> {
     const nodes: [T, number, string[]][] = []
 
     const getEnabledNodes = (
-      tree: TreeOf<T>,
-      enabled: TreeOf<boolean>,
+      tree: BasicTreeOf<T>,
+      enabled: BasicTreeOf<boolean>,
       path: string[],
     ) => {
       for (const key in tree) {

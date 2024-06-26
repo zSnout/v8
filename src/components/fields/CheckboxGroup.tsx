@@ -15,7 +15,7 @@ import {
   untrack,
 } from "solid-js"
 import { Fa } from "../Fa"
-import type { TreeOf, Tree } from "../tree"
+import type { BasicTreeOf, BasicTree } from "../basic-tree"
 
 export function Checkbox(props: {
   onInput?(value: boolean): void
@@ -256,9 +256,9 @@ export function CheckboxItem(props: {
 export function CheckboxNode<T>(props: {
   key: string
   parent: readonly string[]
-  isLeaf: (value: TreeOf<T> | T) => value is T
-  node: TreeOf<T> | T
-  tree: Tree<T>
+  isLeaf: (value: BasicTreeOf<T> | T) => value is T
+  node: BasicTreeOf<T> | T
+  tree: BasicTree<T>
 }) {
   if (props.isLeaf(props.node)) {
     return (
@@ -295,7 +295,7 @@ export function CheckboxNode<T>(props: {
   }
 }
 
-export function CheckboxTree<T>(props: { tree: Tree<T> }) {
+export function CheckboxTree<T>(props: { tree: BasicTree<T> }) {
   return (
     <For each={Object.entries(props.tree.tree)}>
       {([key, node]) => (

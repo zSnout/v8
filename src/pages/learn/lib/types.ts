@@ -40,16 +40,16 @@ export function makeCard<
   })
 }
 
-export type NewCard = v.InferOutput<typeof NewCard>
+export interface NewCard extends v.InferOutput<typeof NewCard> {}
 export const NewCard = makeCard(v.undefined())
 
-export type ReviewedCard = v.InferOutput<typeof ReviewedCard>
+export interface ReviewedCard extends v.InferOutput<typeof ReviewedCard> {}
 export const ReviewedCard = makeCard(v.number())
 
-export type AnyCard = v.InferOutput<typeof AnyCard>
+export interface AnyCard extends v.InferOutput<typeof AnyCard> {}
 export const AnyCard = makeCard(v.optional(v.number()))
 
-export type Grave = v.InferOutput<typeof Grave>
+export interface Grave extends v.InferOutput<typeof Grave> {}
 export const Grave = v.object({
   /** The original id of the item to delete */
   oid: Id,
@@ -58,7 +58,7 @@ export const Grave = v.object({
   type: v.picklist([0, 1, 2]),
 })
 
-export type Note = v.InferOutput<typeof Note>
+export interface Note extends v.InferOutput<typeof Note> {}
 export const Note = v.object({
   /** Note id */
   nid: Id,
@@ -85,7 +85,7 @@ export const Note = v.object({
   csum: v.number(),
 })
 
-export type RevLog = v.InferOutput<typeof RevLog>
+export interface RevLog extends v.InferOutput<typeof RevLog> {}
 export const RevLog = v.object({
   /** Timestamp of when review was done */
   id: Id,
@@ -110,7 +110,7 @@ export const RevLog = v.object({
   review: v.number(),
 })
 
-export type ModelField = v.InferOutput<typeof ModelField>
+export interface ModelField extends v.InferOutput<typeof ModelField> {}
 export const ModelField = v.object({
   /** Font family displayed in the entry window */
   font: v.optional(v.string()),
@@ -128,7 +128,7 @@ export const ModelField = v.object({
   sticky: v.optional(v.string()),
 })
 
-export type MathjaxOptions = v.InferOutput<typeof MathjaxOptions>
+export interface MathjaxOptions extends v.InferOutput<typeof MathjaxOptions> {}
 export const MathjaxOptions = v.object({
   /** Inserted at the beginning of any latex text */
   pre: v.string(),
@@ -137,7 +137,7 @@ export const MathjaxOptions = v.object({
   post: v.string(),
 })
 
-export type ModelTemplate = v.InferOutput<typeof ModelTemplate>
+export interface ModelTemplate extends v.InferOutput<typeof ModelTemplate> {}
 export const ModelTemplate = v.object({
   /** Format string for the question */
   qfmt: v.string(),
@@ -149,7 +149,7 @@ export const ModelTemplate = v.object({
   name: v.string(),
 })
 
-export type Model = v.InferOutput<typeof Model>
+export interface Model extends v.InferOutput<typeof Model> {}
 export const Model = v.object({
   /** Model id */
   id: Id,
@@ -180,10 +180,10 @@ export const Model = v.object({
   // type: "Integer specifying what type of model. 0 for standard, 1 for cloze",
 })
 
-export type Deck = v.InferOutput<typeof Deck>
+export interface Deck extends v.InferOutput<typeof Deck> {}
 export const Deck = v.object({
   /** Deck id */
-  did: Id,
+  id: Id,
 
   /** Name of deck */
   name: v.string(),
@@ -213,7 +213,7 @@ export const Deck = v.object({
   //       Its absent in filtered deck",
 })
 
-export type DeckConf = v.InferOutput<typeof DeckConf>
+export interface DeckConf extends v.InferOutput<typeof DeckConf> {}
 export const DeckConf = v.object({
   /** Deck conf id */
   id: Id,
@@ -321,7 +321,7 @@ export const SortableBrowserColumn = v.picklist([
   "Note",
 ])
 
-export type GlobalConf = v.InferOutput<typeof GlobalConf>
+export interface GlobalConf extends v.InferOutput<typeof GlobalConf> {}
 export const GlobalConf = v.object({
   /** Current deck id */
   current_deck: v.optional(Id),
@@ -366,7 +366,7 @@ export const GlobalConf = v.object({
   }),
 })
 
-export type Core = v.InferOutput<typeof Core>
+export interface Core extends v.InferOutput<typeof Core> {}
 export const Core = v.object({
   /** Collection id */
   id: Id,
@@ -392,10 +392,10 @@ export const Core = v.object({
   tags: v.string(),
 })
 
-export type Decks = v.InferOutput<typeof Decks>
+export interface Decks extends v.InferOutput<typeof Decks> {}
 export const Decks = v.record(IdKey, Deck)
 
-export type Collection = v.InferOutput<typeof Collection>
+export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
   /** The special `version` tag is updated whenever the data format changes */
   version: v.literal(1),

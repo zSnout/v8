@@ -1,14 +1,14 @@
-import { randomId, type Id } from "./id"
-import type { Collection, Core, DeckConf, GlobalConf } from "./types"
+import { Id, idOf, randomId } from "./id"
+import type { Collection, Core, Deck, DeckConf, GlobalConf } from "./types"
 
-const ID_DECK_DEFAULT = 1 as Id
-const ID_DECKCONF_DEFAULT = 1 as Id
-const ID_MODEL_BASIC = 1 as Id
-const ID_MODEL_BASIC_AND_REVERSED = 2 as Id
-// const ID_MODEL_BASIC_OPTIONAL_REVERSED = 3 as Id
-// const ID_MODEL_BASIC_TYPE_ANSWER = 4 as Id
-// const ID_MODEL_BASIC_CLOZE = 5 as Id
-// const ID_MODEL_BASIC_IMAGE_OCCLUSION = 5 as Id
+const ID_DECK_DEFAULT = idOf(1)
+const ID_DECKCONF_DEFAULT = idOf(1)
+const ID_MODEL_BASIC = idOf(1)
+const ID_MODEL_BASIC_AND_REVERSED = idOf(2)
+// const ID_MODEL_BASIC_OPTIONAL_REVERSED = idOf(3)
+// const ID_MODEL_BASIC_TYPE_ANSWER = idOf(4)
+// const ID_MODEL_BASIC_CLOZE = idOf(5)
+// const ID_MODEL_BASIC_IMAGE_OCCLUSION = idOf(5)
 
 export function createCore(now: number): Core {
   return {
@@ -60,6 +60,18 @@ export function createDeckConf(now: number): DeckConf {
     },
     show_global_timer: false,
     timer_per_card: undefined,
+  }
+}
+
+export function createDeck(now: number, name: string, id: Id): Deck {
+  return {
+    id,
+    collapsed: true,
+    desc: "",
+    is_filtered: false,
+    last_edited: now,
+    name,
+    new_today: 0,
   }
 }
 
@@ -141,17 +153,7 @@ export function createCollection(now: number): Collection {
     rev_log: {},
 
     core: createCore(now),
-    decks: {
-      [ID_DECK_DEFAULT]: {
-        collapsed: false,
-        desc: "",
-        did: ID_DECK_DEFAULT,
-        is_filtered: false,
-        last_edited: now,
-        name: "Default",
-        new_today: 0,
-      },
-    },
+    decks: { [ID_DECK_DEFAULT]: createDeck(now, "Default", ID_DECK_DEFAULT) },
     deck_confs: { [ID_DECKCONF_DEFAULT]: createDeckConf(now) },
     global_conf: createGlobalConf(),
     models: createModels(),

@@ -1,5 +1,5 @@
 import { CheckboxTree } from "@/components/fields/CheckboxGroup"
-import type { Json } from "@/components/tree"
+import type { Json } from "@/components/basic-tree"
 import { createStorage } from "@/stores/local-storage-store"
 import { faDownload, faTrash } from "@fortawesome/free-solid-svg-icons"
 import {

@@ -1,11 +1,14 @@
-import type { Tree } from "@/components/fields/CheckboxGroup"
+import { Tree } from "@/components/tree"
 import { fsrs } from "ts-fsrs"
-import type { Collection, Decks } from "./types"
+import { createDeck } from "./defaults"
+import { randomId } from "./id"
+import { Collection, Deck, Decks } from "./types"
 
 // TODO: filter blank cards like anki does
 // TODO: add cloze support
 // TODO: add image occlusion support
 // TODO: report global errors as small popups at bottom of screen
+// TODO: put an ErrorBoundary around the entire application
 
 // export function recordAfterHandler(recordLog: BaseRecordLog): RecordLog {
 //   const output = {} as RecordLog
@@ -50,5 +53,35 @@ export class Application {
 export class ApplicationDecks {
   constructor(private d: Decks) {}
 
-  tree(): Tree<> {}
+  byNameOrCreate(name: string, now: number): Deck {
+    const existing = Object.values(this.d).find((x) => x.name == name)
+
+    if (existing) {
+      return existing
+    }
+
+    const id = randomId()
+    const deck = createDeck(now, name, id)
+    this.d[id] = deck
+    return deck
+  }
+
+  tree(now: number): Tree<Deck, Deck> {
+    const tree = new Tree<Deck, Deck>()
+
+    for (const id in this.d) {
+      const deck = this.d[id as any]!
+
+      tree.set(
+        deck.name.split("::"),
+        deck,
+        (x) => x,
+        (path) => this.byNameOrCreate(path.join("::"), now),
+        () => deck,
+        () => deck,
+      )
+    }
+
+    return tree
+  }
 }

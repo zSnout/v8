@@ -8,12 +8,17 @@ export function timestampId(now: number | Date): Id {
   return now.valueOf() satisfies number as Id
 }
 
-export const IdKey = v.pipe(
-  v.string(),
-  v.check((x) => Number.isSafeInteger(+x)),
-  v.transform((x) => +x),
-  v.brand("id"),
-)
+export function idOf(id: string | number | bigint | Date): Id {
+  id = Number(id)
+
+  if (Number.isSafeInteger(id)) {
+    return id as Id
+  } else {
+    throw new Error("Invalid id '" + id + "'")
+  }
+}
+
+export const IdKey = v.string()
 
 export const Id = v.pipe(
   v.number(),
