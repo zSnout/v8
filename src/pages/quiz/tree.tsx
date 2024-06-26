@@ -1,4 +1,4 @@
-import { Tree, type TreeOf } from "@/components/fields/CheckboxGroup"
+import { Tree, type TreeOf } from "@/components/tree"
 import type { JSX } from "solid-js"
 import { DirectTreeCard, Generator, Leaf, PartialCard } from "./shared"
 

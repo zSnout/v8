@@ -392,6 +392,9 @@ export const Core = v.object({
   tags: v.string(),
 })
 
+export type Decks = v.InferOutput<typeof Decks>
+export const Decks = v.record(IdKey, Deck)
+
 export type Collection = v.InferOutput<typeof Collection>
 export const Collection = v.object({
   /** The special `version` tag is updated whenever the data format changes */
@@ -406,7 +409,7 @@ export const Collection = v.object({
   // All things below are part of `collection` in Anki
   core: Core,
   models: v.record(IdKey, Model),
-  decks: v.record(IdKey, Deck),
+  decks: Decks,
   deck_confs: v.record(IdKey, DeckConf),
   global_conf: GlobalConf,
 })
