@@ -45,46 +45,6 @@ export const ReviewedCard = makeCard(v.number())
 export type AnyCard = v.InferOutput<typeof AnyCard>
 export const AnyCard = makeCard(v.optional(v.number()))
 
-export type Collection = v.InferOutput<typeof Collection>
-export const Collection = v.object({
-  /** Collection id */
-  id: v.number(),
-
-  /** Creation timestamp of the collection */
-  creation: v.number(),
-
-  /** Last time anything was modified */
-  last_edited: v.number(),
-
-  /**
-   * Last time note types or fields were edited.
-   *
-   * If later than the server, a force push is required. If earlier than the
-   * server, a force pull is required.
-   */
-  last_schema_edit: v.number(),
-
-  /** Last sync time */
-  last_sync: v.number(),
-
-  // conf            text not null,
-  //   -- json object containing configuration options that are synced. Described below in "configuration JSONObjects"
-  // models          text not null,
-  //   -- json object of json object(s) representing the models (aka Note types)
-  //   -- keys of this object are strings containing integers: "creation time in epoch milliseconds" of the models
-  //   -- values of this object are other json objects of the form described below in "Models JSONObjects"
-  // decks           text not null,
-  //   -- json object of json object(s) representing the deck(s)
-  //   -- keys of this object are strings containing integers: "deck creation time in epoch milliseconds" for most decks, "1" for the default deck
-  //   -- values of this object are other json objects of the form described below in "Decks JSONObjects"
-  // dconf           text not null,
-  //   -- json object of json object(s) representing the options group(s) for decks
-  //   -- keys of this object are strings containing integers: "options group creation time in epoch milliseconds" for most groups, "1" for the default option group
-  //   -- values of this object are other json objects of the form described below in "DConf JSONObjects"
-  // tags            text not null
-  //   -- a cache of tags used in the collection (This list is displayed in the browser. Potentially at other place)
-})
-
 export type Grave = v.InferOutput<typeof Grave>
 export const Grave = v.object({
   /** The original id of the item to delete */
@@ -129,23 +89,21 @@ export const RevLog = v.object({
   /** Card id */
   cid: v.number(),
 
-  /** What the card was rated as */
-  rating: v.enum(Rating),
-
-  /** The interval between this review and this next one */
-  interval: v.number(),
-
-  /** The previous interval */
-  last_interval: v.number(),
-
-  /** Factor */
-  factor: v.number(),
-
   /** The number of milliseconds taken in this review (max 60000) */
   time: v.number(),
 
   /** 0=learn, 1=review, 2=relearn, 3=filtered, 4=manual */
   type: v.picklist([0, 1, 2, 3, 4]),
+
+  rating: v.enum(Rating),
+  state: v.enum(State),
+  due: v.number(),
+  stability: v.number(),
+  difficulty: v.number(),
+  elapsed_days: v.number(),
+  last_elapsed_days: v.number(),
+  scheduled_days: v.number(),
+  review: v.number(),
 })
 
 export type ModelField = v.InferOutput<typeof ModelField>
@@ -323,8 +281,8 @@ export const DeckConf = v.object({
   // }
 })
 
-export type BaseConf = v.InferOutput<typeof BaseConf>
-export const BaseConf = v.object({
+export type GlobalConf = v.InferOutput<typeof GlobalConf>
+export const GlobalConf = v.object({
   /** Current deck id */
   current_deck: v.optional(v.number()),
 
@@ -384,3 +342,58 @@ export const BaseConf = v.object({
     sort_backwards: v.boolean(),
   }),
 })
+
+export type Core = v.InferOutput<typeof Core>
+export const Core = v.object({
+  /** Collection id */
+  id: v.number(),
+
+  /** Creation timestamp of the collection */
+  creation: v.number(),
+
+  /** Last time anything was modified */
+  last_edited: v.number(),
+
+  /**
+   * Last time note types or fields were edited.
+   *
+   * If later than the server, a force push is required. If earlier than the
+   * server, a force pull is required.
+   */
+  last_schema_edit: v.number(),
+
+  /** Last sync time */
+  last_sync: v.number(),
+
+  /** Space-separated list of tags used in this collection */
+  tags: v.string(),
+})
+
+export type Collection = v.InferOutput<typeof Collection>
+export const Collection = v.object({
+  cards: v.array(AnyCard),
+  graves: v.array(Grave),
+  notes: v.array(Note),
+  rev_log: v.array(RevLog),
+
+  // All things below are part of `collection` in Anki
+  core: Core,
+  models: v.array(Model),
+  decks: v.array(Deck),
+  deck_confs: v.array(DeckConf),
+  global_conf: GlobalConf,
+})
+
+// export function createCollection(): Collection {
+//   return {
+//     cards: [],
+//     core: {},
+//     deck_confs: [],
+//     decks: [],
+//     global_conf: {},
+//     graves: [],
+//     models: [],
+//     notes: [],
+//     rev_log: [],
+//   }
+// }
