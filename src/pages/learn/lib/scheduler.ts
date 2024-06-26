@@ -10,25 +10,10 @@ import {
   fsrs,
   type Card as BaseCard,
   type RecordLog as BaseRecordLog,
-  type ReviewLog as BaseReviewLog,
 } from "ts-fsrs"
 import * as z from "zod"
 import cardStyle from "./card.postcss?inline"
-
-export interface Card<T>
-  extends Readonly<Omit<BaseCard, "due" | "last_review">> {
-  readonly cid: number
-  readonly due: T
-  readonly last_review: T
-  readonly deck: string
-  readonly front: string
-  readonly back: string
-  readonly style: string
-}
-
-export type NewCard = Card<undefined>
-export type ReviewedCard = Card<Date | number>
-export type AnyCard = NewCard | ReviewedCard
+import type { AnyCard, DeckOptions, NewCard, ReviewedCard } from "./types"
 
 export function cardAfterHandler(base: BaseCard): NewCard {
   return {
@@ -42,19 +27,6 @@ export function cardAfterHandler(base: BaseCard): NewCard {
     style: cardStyle,
   }
 }
-
-export interface RecordLogItem {
-  card: ReviewedCard
-  log: ReviewLog
-}
-
-export interface ReviewLog extends Omit<BaseReviewLog, "due" | "review"> {
-  cid: number
-  due: Date | number
-  review: Date | number
-}
-
-export type RecordLog = { [K in Grade]: RecordLogItem }
 
 export function recordAfterHandler(recordLog: BaseRecordLog): RecordLog {
   const output = {} as RecordLog
@@ -74,10 +46,10 @@ export function recordAfterHandler(recordLog: BaseRecordLog): RecordLog {
 
 export class Scheduler {
   private readonly f = fsrs({
-    w: [
-      0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
-      0.34, 1.26, 0.29, 2.61,
-    ],
+    // w: [
+    //   0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
+    //   0.34, 1.26, 0.29, 2.61,
+    // ],
     enable_fuzz: true,
   })
 
@@ -88,44 +60,6 @@ export class Scheduler {
       recordAfterHandler,
     )
   }
-}
-
-export interface Deck {
-  name: string
-  cards: AnyCard[]
-  log: ReviewLog[]
-}
-
-export interface DeckOptions {
-  newCards: {
-    /** This quantity of new cards are added every day. */
-    perDay: number
-
-    /** The order new cards are drawn in. */
-    method: "sequential" | "random"
-  }
-
-  today: {
-    /** The number of new cards that have been seen today. */
-    newCardsSeen: number
-
-    /** The date the last new card was seen on. */
-    date: Date | number
-  }
-
-  reviews: {
-    /**
-     * Reviews sooner than this number of milliseconds from now may be shown
-     * early.
-     */
-    delay: number
-  }
-
-  /**
-   * Number of milliseconds after midnight when a new day starts.
-   * Interpreted to be in the local timezone.
-   */
-  dayStart: number
 }
 
 export function defaultDeckOptions(): DeckOptions {
