@@ -1,27 +1,31 @@
 import { Rating, State } from "ts-fsrs"
 import * as v from "valibot"
+import { Id, IdKey } from "./id"
 
 export function makeCard<
   T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
 >(last_review: T) {
   return v.object({
     /** Note id (links to a corresponding note) */
-    nid: v.number(),
+    nid: Id,
 
     /** Template id (which template to use for a given note) */
-    tid: v.number(),
+    tid: Id,
 
     /** Card id (unique to this card) */
-    cid: v.number(),
+    cid: Id,
 
     /** Deck id (links to a corresponding deck) */
-    did: v.number(),
+    did: Id,
 
     /** Original deck id (used when this card is part of a filtered deck) */
-    odid: v.optional(v.number()),
+    odid: v.optional(Id),
 
     /** Timestamp of last edit */
     last_edit: v.number(),
+
+    /** 0 = normal, 1 = buried, 2 = suspended */
+    queue: v.picklist([0, 1, 2]),
 
     /** For reviewed cards, when they're due. For new cards, their due order */
     due: v.number(),
@@ -48,7 +52,7 @@ export const AnyCard = makeCard(v.optional(v.number()))
 export type Grave = v.InferOutput<typeof Grave>
 export const Grave = v.object({
   /** The original id of the item to delete */
-  oid: v.number(),
+  oid: Id,
 
   /** The type of item to delete: 0 for card, 1 for note, and 2 for deck */
   type: v.picklist([0, 1, 2]),
@@ -57,13 +61,13 @@ export const Grave = v.object({
 export type Note = v.InferOutput<typeof Note>
 export const Note = v.object({
   /** Note id */
-  nid: v.number(),
+  nid: Id,
 
   /** Creation timestamp */
   creation: v.number(),
 
   /** Model id */
-  mid: v.number(),
+  mid: Id,
 
   /** Last edited timestamp */
   last_edited: v.number(),
@@ -84,10 +88,10 @@ export const Note = v.object({
 export type RevLog = v.InferOutput<typeof RevLog>
 export const RevLog = v.object({
   /** Timestamp of when review was done */
-  id: v.number(),
+  id: Id,
 
   /** Card id */
-  cid: v.number(),
+  cid: Id,
 
   /** The number of milliseconds taken in this review (max 60000) */
   time: v.number(),
@@ -135,8 +139,10 @@ export const MathjaxOptions = v.object({
 
 export type ModelTemplate = v.InferOutput<typeof ModelTemplate>
 export const ModelTemplate = v.object({
+  /** Format string for the question */
   qfmt: v.string(),
 
+  /** Format string for the answer */
   afmt: v.string(),
 
   /** Name of the template */
@@ -146,13 +152,13 @@ export const ModelTemplate = v.object({
 export type Model = v.InferOutput<typeof Model>
 export const Model = v.object({
   /** Model id */
-  id: v.number(),
+  id: Id,
 
   /** CSS of this template */
   css: v.string(),
 
-  /** Deck id that cards of this type go into by default */
-  did: v.number(),
+  // /** Deck id that cards of this type go into by default */
+  // did: v.optional(Id),
 
   /** Fields in this model */
   fields: v.array(ModelField),
@@ -177,7 +183,7 @@ export const Model = v.object({
 export type Deck = v.InferOutput<typeof Deck>
 export const Deck = v.object({
   /** Deck id */
-  did: v.number(),
+  did: Id,
 
   /** Name of deck */
   name: v.string(),
@@ -209,11 +215,11 @@ export const Deck = v.object({
 
 export type DeckConf = v.InferOutput<typeof DeckConf>
 export const DeckConf = v.object({
+  /** Deck conf id */
+  id: Id,
+
   /** Whether to autoplay audio */
   autoplay_audio: v.boolean(),
-
-  /** Configuration id */
-  id: v.number(),
 
   /** Last time this configuration was edited */
   last_edited: v.number(),
@@ -281,16 +287,50 @@ export const DeckConf = v.object({
   // }
 })
 
+export type BrowserColumn = v.InferOutput<typeof BrowserColumn>
+export const BrowserColumn = v.picklist([
+  "Question",
+  "Answer",
+  "Card",
+  "Deck",
+  "Sort Field",
+  "Created",
+  "Edited",
+  "Due",
+  "Interval",
+  "Ease",
+  "Reviews",
+  "Lapses",
+  "Tags",
+  "Note",
+])
+
+export type SortableBrowserColumn = v.InferOutput<typeof SortableBrowserColumn>
+export const SortableBrowserColumn = v.picklist([
+  "Card",
+  "Deck",
+  "Sort Field",
+  "Created",
+  "Edited",
+  "Due",
+  "Interval",
+  "Ease",
+  "Reviews",
+  "Lapses",
+  "Tags",
+  "Note",
+])
+
 export type GlobalConf = v.InferOutput<typeof GlobalConf>
 export const GlobalConf = v.object({
   /** Current deck id */
-  current_deck: v.optional(v.number()),
+  current_deck: v.optional(Id),
 
   /** Last model used */
-  last_model_used: v.optional(v.number()),
+  last_model_used: v.optional(Id),
 
   /** Active decks */
-  active_decks: v.array(v.number()),
+  active_decks: v.array(Id),
 
   /** 0 = mix new and review, 1 = new after review, 2 = new before review */
   new_spread: v.picklist([0, 1, 2]),
@@ -316,27 +356,10 @@ export const GlobalConf = v.object({
   /** Configuration relating to the browser */
   browser: v.object({
     /** Active columns in the browser */
-    active_cols: v.array(
-      v.picklist([
-        "Question",
-        "Answer",
-        "Card",
-        "Deck",
-        "Sort Field",
-        "Created",
-        "Edited",
-        "Due",
-        "Interval",
-        "Ease",
-        "Reviews",
-        "Lapses",
-        "Tags",
-        "Note",
-      ]),
-    ),
+    active_cols: v.array(BrowserColumn),
 
     /** The field to sort by in the browser */
-    sort_field: v.string(),
+    sort_field: SortableBrowserColumn,
 
     /** Whether to sort backwards */
     sort_backwards: v.boolean(),
@@ -346,7 +369,7 @@ export const GlobalConf = v.object({
 export type Core = v.InferOutput<typeof Core>
 export const Core = v.object({
   /** Collection id */
-  id: v.number(),
+  id: Id,
 
   /** Creation timestamp of the collection */
   creation: v.number(),
@@ -371,29 +394,19 @@ export const Core = v.object({
 
 export type Collection = v.InferOutput<typeof Collection>
 export const Collection = v.object({
-  cards: v.array(AnyCard),
+  /** The special `version` tag is updated whenever the data format changes */
+  version: v.literal(1),
+
+  /** A record from card ids to their corresponding cards */
+  cards: v.record(IdKey, AnyCard),
   graves: v.array(Grave),
-  notes: v.array(Note),
-  rev_log: v.array(RevLog),
+  notes: v.record(IdKey, Note),
+  rev_log: v.record(IdKey, v.array(RevLog)),
 
   // All things below are part of `collection` in Anki
   core: Core,
-  models: v.array(Model),
-  decks: v.array(Deck),
-  deck_confs: v.array(DeckConf),
+  models: v.record(IdKey, Model),
+  decks: v.record(IdKey, Deck),
+  deck_confs: v.record(IdKey, DeckConf),
   global_conf: GlobalConf,
 })
-
-// export function createCollection(): Collection {
-//   return {
-//     cards: [],
-//     core: {},
-//     deck_confs: [],
-//     decks: [],
-//     global_conf: {},
-//     graves: [],
-//     models: [],
-//     notes: [],
-//     rev_log: [],
-//   }
-// }
