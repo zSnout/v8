@@ -1,10 +1,11 @@
-import { Rating, State } from "ts-fsrs"
+import { type Grade, Rating, State } from "ts-fsrs"
 import * as v from "valibot"
 import { Id, IdKey } from "./id"
 
 export function makeCard<
   T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
->(last_review: T) {
+  U extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
+>(last_review: T, state: U) {
   return v.object({
     /** Note id (links to a corresponding note) */
     nid: Id,
@@ -29,25 +30,47 @@ export function makeCard<
 
     /** For reviewed cards, when they're due. For new cards, their due order */
     due: v.number(),
+
+    /** Date of the last review (possibly optional) */
     last_review,
+
+    /** Stability */
     stability: v.number(),
+
+    /** Difficulty level */
     difficulty: v.number(),
+
+    /** Number of days elapsed */
     elapsed_days: v.number(),
+
+    /** Number of days scheduled */
     scheduled_days: v.number(),
+
+    /** Repetition count */
     reps: v.number(),
+
+    /** Number of lapses or mistakes */
     lapses: v.number(),
-    state: v.enum(State),
+
+    /** Card state */
+    state,
   })
 }
 
 export interface NewCard extends v.InferOutput<typeof NewCard> {}
-export const NewCard = makeCard(v.undefined())
+export const NewCard = makeCard(v.undefined(), v.literal(State.New))
+
+export enum NonNewState {
+  Learning = 1,
+  Review = 2,
+  Relearning = 3,
+}
 
 export interface ReviewedCard extends v.InferOutput<typeof ReviewedCard> {}
-export const ReviewedCard = makeCard(v.number())
+export const ReviewedCard = makeCard(v.number(), v.enum(NonNewState))
 
 export interface AnyCard extends v.InferOutput<typeof AnyCard> {}
-export const AnyCard = makeCard(v.optional(v.number()))
+export const AnyCard = makeCard(v.optional(v.number()), v.enum(State))
 
 export interface Grave extends v.InferOutput<typeof Grave> {}
 export const Grave = v.object({
@@ -99,14 +122,31 @@ export const RevLog = v.object({
   /** 0=learn, 1=review, 2=relearn, 3=filtered, 4=manual */
   type: v.picklist([0, 1, 2, 3, 4]),
 
+  /** Rating of the review */
   rating: v.enum(Rating),
-  state: v.enum(State),
+
+  /** State of the review */
+  state: v.enum(NonNewState),
+
+  /** Date of the last scheduling */
   due: v.number(),
+
+  /** Memory stability during the review */
   stability: v.number(),
+
+  /** Difficulty of the card during the review */
   difficulty: v.number(),
+
+  /** Number of days elapsed since the last review */
   elapsed_days: v.number(),
+
+  /** Number of dats between the last two reviews */
   last_elapsed_days: v.number(),
+
+  /** Number of days until the next review */
   scheduled_days: v.number(),
+
+  /** Date of the review */
   review: v.number(),
 })
 
@@ -237,6 +277,9 @@ export const Conf = v.object({
 
     /** The number of new cards available each day */
     per_day: v.number(),
+
+    /** Learning steps (in seconds) */
+    learning_steps: v.array(v.number()),
   }),
 
   /** Whether to replay audio that's used in the question once answer is shown */
@@ -252,6 +295,9 @@ export const Conf = v.object({
 
     /** The number of review cards per day */
     per_day: v.optional(v.number()),
+
+    /** Relearning steps (in seconds) */
+    relearning_steps: v.array(v.number()),
   }),
 
   /** Whether to show the global timer */
@@ -353,6 +399,9 @@ export const Prefs = v.object({
   /** The last time any card was unburied. If not today, then buried notes need to be unburied */
   last_unburied: v.optional(v.number()),
 
+  /** When the day is considered to start, in milliseconds after midnight */
+  day_start: v.number(),
+
   /** Configuration relating to the browser */
   browser: v.object({
     /** Active columns in the browser */
@@ -416,3 +465,6 @@ export const Collection = v.object({
   confs: Confs,
   prefs: Prefs,
 })
+
+export type RepeatItem = { card: ReviewedCard; log: RevLog }
+export type RepeatResult = Record<Grade, RepeatItem>

@@ -4,7 +4,7 @@ import { Tree } from "@/components/tree"
 import { fsrs } from "ts-fsrs"
 import { createConf, createDeck } from "./defaults"
 import { Id, randomId } from "./id"
-import { Collection, Conf, Confs, Deck, Decks } from "./types"
+import { Collection, Conf, Confs, Deck, Decks, Prefs } from "./types"
 
 // FIXME: filter blank cards like anki does
 // FIXME: add cloze support
@@ -33,7 +33,7 @@ import { Collection, Conf, Confs, Deck, Decks } from "./types"
 //   return output
 // }
 
-export class Application {
+export class App {
   private f = fsrs({
     // w: [
     //   0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
@@ -42,12 +42,14 @@ export class Application {
     enable_fuzz: true,
   })
 
-  readonly decks: ApplicationDecks
-  readonly confs: ApplicationConfs
+  readonly decks: AppDecks
+  readonly confs: AppConfs
+  readonly prefs: AppPrefs
 
   constructor(private c: Readonly<Collection>) {
-    this.confs = new ApplicationConfs(c.confs)
-    this.decks = new ApplicationDecks(c.decks, this.confs)
+    this.confs = new AppConfs(c.confs)
+    this.decks = new AppDecks(c.decks, this.confs)
+    this.prefs = new AppPrefs(c.prefs)
   }
 
   // repeat(card: AnyCard, now: DateInput): RecordLog {
@@ -63,7 +65,7 @@ export class Application {
   }
 }
 
-export class ApplicationConfs {
+export class AppConfs {
   /** Record from conf names to confs */
   private n: Record<string, Conf> = Object.create(null)
 
@@ -124,14 +126,14 @@ export class ApplicationConfs {
   }
 }
 
-export class ApplicationDecks {
+export class AppDecks {
   /** Record from deck names to decks */
   private n: Record<string, Deck> = Object.create(null)
 
   /** Record from deck ids to decks */
   private d: Record<string, Deck> = Object.create(null)
 
-  constructor(decks: Decks, private c: ApplicationConfs) {
+  constructor(decks: Decks, private c: AppConfs) {
     this.d = decks
     for (const key in decks) {
       const deck = decks[key]!
@@ -200,17 +202,44 @@ export class ApplicationDecks {
         () => deck,
         () => deck,
       )
-
-      // tree.set(
-      //   [deck.name],
-      //   deck,
-      //   (x) => x,
-      //   (path) => this.byNameOrCreate(path.join("::"), now),
-      //   () => deck,
-      //   () => deck,
-      // )
     }
 
     return tree
+  }
+}
+
+export class AppPrefs {
+  constructor(readonly p: Prefs) {}
+
+  /** Returns milliseconds between start of local day and Unix epoch */
+  startOfDay(now: number | Date): number {
+    const date = new Date(now)
+    date.setHours(0)
+    date.setMinutes(0)
+    date.setSeconds(0)
+    date.setMilliseconds(this.p.day_start)
+    let value = date.valueOf()
+    if (value > now.valueOf()) {
+      value -= 1000 * 60 * 60 * 24
+    }
+    return value
+  }
+
+  /**
+   * Computes the number of days between two dates, taking local timezone and
+   * `prefs.day_start` into account
+   */
+  daysBetween(
+    start: number | Date | undefined,
+    end: number | Date | undefined,
+  ) {
+    if (start == null || end == null) {
+      return 0
+    }
+
+    start = this.startOfDay(start)
+    end = this.startOfDay(end)
+
+    return Math.round((end - start) / (1000 * 60 * 60 * 24))
   }
 }

@@ -1,5 +1,5 @@
 import { Id, idOf, randomId } from "./id"
-import type { Collection, Core, Deck, Conf, Prefs } from "./types"
+import type { Collection, Conf, Core, Deck, Prefs } from "./types"
 
 const ID_DECK_DEFAULT = idOf(1)
 const ID_CONF_DEFAULT = idOf(1)
@@ -33,6 +33,7 @@ export function createPrefs(): Prefs {
     show_remaining_due_counts: true,
     next_new_card_position: 0,
     last_unburied: 0,
+    day_start: 1000 * 60 * 60 * 4,
     browser: {
       active_cols: ["Sort Field", "Due", "Card", "Tags", "Deck"],
       sort_field: "Sort Field",
@@ -51,12 +52,14 @@ export function createConf(now: number): Conf {
       bury_related: false,
       pick_at_random: false,
       per_day: 20,
+      learning_steps: [60, 10 * 60],
     },
     replay_question_audio: false,
     review: {
       bury_related: false,
       max_review_interval: 36500,
       per_day: Infinity,
+      relearning_steps: [10 * 60],
     },
     show_global_timer: false,
     timer_per_card: undefined,

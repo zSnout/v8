@@ -25,8 +25,6 @@ export class Tree<T, U> {
     for (let index = 0; index < path.length - 1; index++) {
       const part = path[index]!
       const next = tree[part]
-      console.log({ part, next })
-      debugger
 
       if (next == null) {
         const subtree = Object.create(null)

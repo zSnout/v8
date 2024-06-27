@@ -9,7 +9,7 @@ import {
   untrack,
 } from "solid-js"
 import { Fa } from "./Fa"
-import { NodeProps, TreeOf } from "./tree"
+import { NodeOf, NodeProps, TreeOf } from "./tree"
 
 export type SubtreeProps<T, U> = {
   data: T
@@ -25,118 +25,12 @@ export type LeafProps<_T, U> = {
   subtree: undefined
 }
 
-// export type NodeProps<T, U> = {
-//   data: T | U
-//   parent: string[]
-//   key: string
-//   subtree?: TreeOf<T, U> | undefined
-//   item: Item<T, U>
-//   group: Group<T, U>
-//   setExpanded: (parent: string[], key: string, expanded: boolean) => void
-//   isExpanded: (parent: string[], key: string) => boolean
-// }
-
-// export type Item<T, U> = (props: ItemProps<T, U>) => JSX.Element
-// export type Group<T, U> = (props: GroupProps<T, U>) => JSX.Element
-
-// function Item<T, U>(props: ItemProps<T, U>) {
-//   return (
-//     <li class="flex w-full pl-6">
-//       <Expandable label={props.item(props)} />
-//     </li>
-//   )
-// }
-
-// function Group<T, U>(props: GroupProps<T, U>) {
-//   return (
-//     <Expandable
-//       label={props.group(props)}
-//       expanded={props.isExpanded(props.parent, props.name)}
-//     >
-//       <For each={Object.entries(props.subtree)}>{([key, node]) => 0}</For>
-//     </Expandable>
-//   )
-// }
-
-// function Node<T, U>(props: NodeProps<T, U>) {
-//   if (props.subtree) {
-//     return Group<T, U>(props as GroupProps<T, U>)
-//   } else {
-//     return Item<T, U>(props as ItemProps<T, U>)
-//   }
-// }
-
-// // export function ExpandableNode<T>(props: {
-// //   key: string
-// //   parent: readonly string[]
-// //   isLeaf: (value: BasicTreeOf<T> | T) => value is T
-// //   node: BasicTreeOf<T> | T
-// //   tree: BasicTree<T>
-// // }) {
-// //   if (props.isLeaf(props.node)) {
-// //     return (
-// //       <ExpandableItem
-// //         label={props.key}
-// //         checked={props.tree.isEnabled(props.parent, props.key)}
-// //         onInput={(enabled) =>
-// //           props.tree.toggleEnabled(props.parent, props.key, enabled)
-// //         }
-// //       />
-// //     )
-// //   } else {
-// //     return (
-// //       <ExpandableGroup
-// //         label={props.key}
-// //         expanded={props.tree.isExpanded(props.parent, props.key)}
-// //         onExpanded={(enabled) =>
-// //           props.tree.toggleExpanded(props.parent, props.key, enabled)
-// //         }
-// //       >
-// //         <For each={Object.entries(props.node)}>
-// //           {([key, node]) => (
-// //             <ExpandableNode<T>
-// //               key={key}
-// //               isLeaf={props.isLeaf}
-// //               node={node}
-// //               tree={props.tree}
-// //               parent={props.parent.concat(props.key)}
-// //             />
-// //           )}
-// //         </For>
-// //       </ExpandableGroup>
-// //     )
-// //   }
-// // }
-
-// // export function ExpandableTree<T>(props: { tree: BasicTree<T> }) {
-// //   return (
-// //     <For each={Object.entries(props.tree.tree)}>
-// //       {([key, node]) => (
-// //         <ExpandableNode<T>
-// //           key={key}
-// //           isLeaf={props.tree.isLeaf}
-// //           node={node}
-// //           tree={props.tree}
-// //           parent={[]}
-// //         />
-// //       )}
-// //     </For>
-// //   )
-// // }
-
-// // export function ExpandableTree<T, U>(props: { indent: `pl-${PaddingSize}` }) {}
-
-// // // prettier-ignore
-// // type PaddingSize =
-// //   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 14 | 16 | 20 | 24 | 28 | 32
-// //   | 36 | 40 | 44 | 48 | 52 | 56 | 60 | 64 | 72 | 80 | 96 | "px" | 0.5 | 1.5
-// //   | 2.5 | 3.5 | 4.5
-
 export function Expandable(props: {
   children?: JSX.Element
   label: JSX.Element
   expanded?: boolean
   setExpanded?(value: boolean): void
+  z?: number
 }) {
   const [expanding, setExpanding] = createSignal(false)
   let inner: HTMLDivElement | undefined
@@ -168,7 +62,11 @@ export function Expandable(props: {
       <div class="flex w-full">
         <button
           class="z-expand-checkbox-group pr-3"
-          classList={{ "z-expanded-now": props.expanded }}
+          classList={{
+            "z-expanded-now": props.expanded,
+            relative: props.z != null,
+          }}
+          style={{ "z-index": props.z }}
           // @ts-ignore solid is fine with this
           onforceopen={() => props.setExpanded?.(true)}
           // @ts-ignore solid is fine with this
@@ -231,7 +129,7 @@ export function Expandable(props: {
         aria-hidden={!props.expanded}
       >
         <ul
-          class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
+          class="flex flex-col gap-1 pl-6"
           ref={(el) => {
             const observer = new ResizeObserver(([entry]) => {
               const { height } = entry!.contentRect || entry!.contentBoxSize
@@ -241,6 +139,8 @@ export function Expandable(props: {
             observer.observe(el, { box: "content-box" })
           }}
         >
+          {/* this element provides appropriate spacing */}
+          <div class="first:last:hidden" />
           {props.children}
         </ul>
       </div>
@@ -263,23 +163,36 @@ export function ExpandableTree<T, U>(props: {
 
   /** set expanded */
   setExpanded: (props: SubtreeProps<T, U>, expanded: boolean) => void
+
+  /** sort */
+  sort?: (a: [string, NodeOf<T, U>], b: [string, NodeOf<T, U>]) => number
+
+  /** z-index of dropdowns */
+  z?: number
 }) {
   const {
-    subtree: subtree,
-    leaf: leaf,
-    isExpanded: ie,
-    setExpanded: se,
+    subtree,
+    leaf,
+    isExpanded,
+    setExpanded: rootSetExpanded,
+    sort: __coreUnsafeSort,
+    z,
   } = props
+
+  const sort = __coreUnsafeSort
+    ? (entries: [string, NodeOf<T, U>][]): [string, NodeOf<T, U>][] =>
+        entries.sort(__coreUnsafeSort)
+    : (entries: [string, NodeOf<T, U>][]) => entries
 
   function SubtreeInner(props: {
     subtree: TreeOf<T, U>
     parent: string[]
   }): JSX.Element {
     return (
-      <For each={Object.entries(props.subtree)}>
+      <For each={sort(Object.entries(props.subtree))}>
         {([key, value]) => (
           <Node
-            parent={[...props.parent, key]}
+            parent={props.parent}
             key={key}
             data={value.data as any}
             subtree={value.subtree as any}
@@ -295,15 +208,16 @@ export function ExpandableTree<T, U>(props: {
     parent: string[]
     key: string
   }): JSX.Element {
-    const [expanded, setExpanded] = createSignal(ie(props))
+    const [expanded, setExpanded] = createSignal(isExpanded(props))
     return (
       <Expandable
         label={subtree(props)}
         expanded={expanded()}
         setExpanded={(value) => {
-          se(props, value)
-          setExpanded(ie(props))
+          rootSetExpanded(props, value)
+          setExpanded(isExpanded(props))
         }}
+        z={z}
       >
         <SubtreeInner
           subtree={props.subtree}
@@ -353,6 +267,12 @@ export function MonotypeExpandableTree<T, U>(props: {
 
   /** set expanded */
   setExpanded: (props: SubtreeProps<T, U>, expanded: boolean) => void
+
+  /** sort */
+  sort?: (a: [string, NodeOf<T, U>], b: [string, NodeOf<T, U>]) => number
+
+  /** z-index of dropdowns */
+  z?: number
 }) {
   return (
     <ExpandableTree
@@ -361,6 +281,8 @@ export function MonotypeExpandableTree<T, U>(props: {
       setExpanded={props.setExpanded}
       tree={props.tree}
       subtree={props.node}
+      sort={props.sort}
+      z={props.z}
     />
   )
 }

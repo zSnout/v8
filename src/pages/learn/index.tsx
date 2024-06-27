@@ -1,19 +1,32 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
+import { unwrap } from "@/components/result"
 import { createCollection } from "./lib/defaults"
-import { Application } from "./lib/state"
+import { createExpr } from "./lib/expr"
+import { App } from "./lib/state"
 
-const app = new Application(createCollection(Date.now()))
-
-// TODO: use same expandable behavior as checkbox tree
+const app = new App(createCollection(Date.now()))
+unwrap(app.decks.push(app.decks.create(Date.now(), "Default::nope")))
+unwrap(app.decks.push(app.decks.create(Date.now(), "Default::nuh uh")))
+unwrap(app.decks.push(app.decks.create(Date.now(), "Default::nuh uh::72")))
+unwrap(app.decks.push(app.decks.create(Date.now(), "Wow::23")))
+unwrap(app.decks.push(app.decks.create(Date.now(), "45")))
 
 export function Main() {
+  const [tree] = createExpr(() => app.decks.tree(Date.now()).tree)
+
   return (
-    <div class="flex flex-col gap-1">
+    <div class="relative flex flex-col gap-1">
       <MonotypeExpandableTree
-        tree={app.decks.tree(Date.now()).tree}
+        z={10}
+        tree={tree()}
         isExpanded={({ data }) => !data.collapsed}
         setExpanded={({ data }, expanded) => (data.collapsed = !expanded)}
-        node={({ data }) => <p>{data.name.split("::").at(-1)}</p>}
+        node={({ data }) => (
+          <>
+            <p class="bg-z-body-selected">{data.name.split("::").at(-1)}</p>
+          </>
+        )}
+        sort={([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)}
       />
     </div>
   )
