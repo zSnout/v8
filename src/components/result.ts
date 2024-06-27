@@ -10,8 +10,10 @@ export interface Error {
 
 export type Result<T> = Ok<T> | Error
 
-export function ok<T>(value: T): Result<T> {
-  return { ok: true, value }
+export function ok(): Result<undefined>
+export function ok<T>(value: T): Result<T>
+export function ok<T>(value?: T): Result<T> {
+  return { ok: true, value: value! }
 }
 
 export function error(reason: unknown): Error {

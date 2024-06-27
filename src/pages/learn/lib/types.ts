@@ -209,13 +209,13 @@ export const Deck = v.object({
   /** Description of deck */
   desc: v.string(),
 
-  // conf: "id of option group from dconf in `col` table. Or absent if the deck is dynamic.
-  //       Its absent in filtered deck",
+  /** Conf id */
+  conf: Id,
 })
 
-export interface DeckConf extends v.InferOutput<typeof DeckConf> {}
-export const DeckConf = v.object({
-  /** Deck conf id */
+export interface Conf extends v.InferOutput<typeof Conf> {}
+export const Conf = v.object({
+  /** Conf id */
   id: Id,
 
   /** Whether to autoplay audio */
@@ -321,8 +321,8 @@ export const SortableBrowserColumn = v.picklist([
   "Note",
 ])
 
-export interface GlobalConf extends v.InferOutput<typeof GlobalConf> {}
-export const GlobalConf = v.object({
+export interface Prefs extends v.InferOutput<typeof Prefs> {}
+export const Prefs = v.object({
   /** Current deck id */
   current_deck: v.optional(Id),
 
@@ -395,6 +395,9 @@ export const Core = v.object({
 export interface Decks extends v.InferOutput<typeof Decks> {}
 export const Decks = v.record(IdKey, Deck)
 
+export interface Confs extends v.InferOutput<typeof Confs> {}
+export const Confs = v.record(IdKey, Conf)
+
 export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
   /** The special `version` tag is updated whenever the data format changes */
@@ -410,6 +413,6 @@ export const Collection = v.object({
   core: Core,
   models: v.record(IdKey, Model),
   decks: Decks,
-  deck_confs: v.record(IdKey, DeckConf),
-  global_conf: GlobalConf,
+  confs: Confs,
+  prefs: Prefs,
 })

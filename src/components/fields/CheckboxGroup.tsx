@@ -4,10 +4,8 @@ import {
   faMinus,
 } from "@fortawesome/free-solid-svg-icons"
 import {
-  Accessor,
   For,
   JSX,
-  Setter,
   batch,
   createEffect,
   createSignal,
@@ -15,7 +13,7 @@ import {
   untrack,
 } from "solid-js"
 import { Fa } from "../Fa"
-import type { BasicTreeOf, BasicTree } from "../basic-tree"
+import type { BasicTree, BasicTreeOf } from "../basic-tree"
 
 export function Checkbox(props: {
   onInput?(value: boolean): void

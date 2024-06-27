@@ -1,8 +1,8 @@
 import { Id, idOf, randomId } from "./id"
-import type { Collection, Core, Deck, DeckConf, GlobalConf } from "./types"
+import type { Collection, Core, Deck, Conf, Prefs } from "./types"
 
 const ID_DECK_DEFAULT = idOf(1)
-const ID_DECKCONF_DEFAULT = idOf(1)
+const ID_CONF_DEFAULT = idOf(1)
 const ID_MODEL_BASIC = idOf(1)
 const ID_MODEL_BASIC_AND_REVERSED = idOf(2)
 // const ID_MODEL_BASIC_OPTIONAL_REVERSED = idOf(3)
@@ -21,7 +21,7 @@ export function createCore(now: number): Core {
   }
 }
 
-export function createGlobalConf(): GlobalConf {
+export function createPrefs(): Prefs {
   return {
     current_deck: undefined,
     last_model_used: undefined,
@@ -41,9 +41,9 @@ export function createGlobalConf(): GlobalConf {
   }
 }
 
-export function createDeckConf(now: number): DeckConf {
+export function createConf(now: number): Conf {
   return {
-    id: ID_DECKCONF_DEFAULT,
+    id: ID_CONF_DEFAULT,
     autoplay_audio: true,
     last_edited: now,
     name: "Default",
@@ -72,6 +72,7 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     last_edited: now,
     name,
     new_today: 0,
+    conf: ID_CONF_DEFAULT,
   }
 }
 
@@ -154,8 +155,8 @@ export function createCollection(now: number): Collection {
 
     core: createCore(now),
     decks: { [ID_DECK_DEFAULT]: createDeck(now, "Default", ID_DECK_DEFAULT) },
-    deck_confs: { [ID_DECKCONF_DEFAULT]: createDeckConf(now) },
-    global_conf: createGlobalConf(),
+    confs: { [ID_CONF_DEFAULT]: createConf(now) },
+    prefs: createPrefs(),
     models: createModels(),
   }
 }
