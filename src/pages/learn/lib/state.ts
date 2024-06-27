@@ -189,7 +189,8 @@ export class ApplicationDecks {
     const tree = new Tree<Deck, Deck>()
 
     for (const id in this.d) {
-      const deck = this.d[id as any]!
+      const deck = this.d[id]!
+      console.log(deck.name)
 
       tree.set(
         deck.name.split("::"),
@@ -199,6 +200,15 @@ export class ApplicationDecks {
         () => deck,
         () => deck,
       )
+
+      // tree.set(
+      //   [deck.name],
+      //   deck,
+      //   (x) => x,
+      //   (path) => this.byNameOrCreate(path.join("::"), now),
+      //   () => deck,
+      //   () => deck,
+      // )
     }
 
     return tree

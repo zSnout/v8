@@ -22,9 +22,11 @@ export class Tree<T, U> {
     const last = path[path.length - 1]
     pray(last != null, "the path must have at least one segment")
 
-    for (let index = 0; index < path.length - 1; index--) {
+    for (let index = 0; index < path.length - 1; index++) {
       const part = path[index]!
       const next = tree[part]
+      console.log({ part, next })
+      debugger
 
       if (next == null) {
         const subtree = Object.create(null)

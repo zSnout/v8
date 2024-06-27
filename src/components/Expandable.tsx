@@ -9,159 +9,35 @@ import {
   untrack,
 } from "solid-js"
 import { Fa } from "./Fa"
-import { TreeOf } from "./tree"
+import { NodeProps, TreeOf } from "./tree"
 
-// export type ItemProps<T, U> = {
-//   data: U
-//   parent: string[]
-//   name: string
-//   subtree?: undefined
-//   item: Item<T, U>
-//   group: Group<T, U>
-//   setExpanded: (parent: string[], name: string, expanded: boolean) => void
-//   isExpanded: (parent: string[], name: string) => boolean
-// }
+export type SubtreeProps<T, U> = {
+  data: T
+  parent: string[]
+  key: string
+  subtree: TreeOf<T, U>
+}
 
-// export type GroupProps<T, U> = {
-//   data: U
-//   parent: string[]
-//   name: string
-//   subtree: TreeOf<T, U>
-//   item: Item<T, U>
-//   group: Group<T, U>
-//   setExpanded: (parent: string[], name: string, expanded: boolean) => void
-//   isExpanded: (parent: string[], name: string) => boolean
-// }
+export type LeafProps<_T, U> = {
+  data: U
+  parent: string[]
+  key: string
+  subtree: undefined
+}
 
 // export type NodeProps<T, U> = {
 //   data: T | U
 //   parent: string[]
-//   name: string
+//   key: string
 //   subtree?: TreeOf<T, U> | undefined
 //   item: Item<T, U>
 //   group: Group<T, U>
-//   setExpanded: (parent: string[], name: string, expanded: boolean) => void
-//   isExpanded: (parent: string[], name: string) => boolean
+//   setExpanded: (parent: string[], key: string, expanded: boolean) => void
+//   isExpanded: (parent: string[], key: string) => boolean
 // }
 
 // export type Item<T, U> = (props: ItemProps<T, U>) => JSX.Element
 // export type Group<T, U> = (props: GroupProps<T, U>) => JSX.Element
-
-export function Expandable(props: {
-  children?: JSX.Element
-  label: JSX.Element
-  expanded?: boolean
-  setExpanded?(value: boolean): void
-}) {
-  const [expanding, setExpanding] = createSignal(false)
-  let inner: HTMLDivElement | undefined
-
-  let last = untrack(() => props.expanded)
-  createEffect(() => {
-    if (last == props.expanded) {
-      return
-    }
-
-    last = props.expanded
-    setExpanding(true)
-
-    if (!inner) {
-      return
-    }
-
-    inner.classList.remove("hidden")
-  })
-  onMount(() => {
-    if (!props.expanded) {
-      inner?.classList.add("hidden")
-    }
-    setExpanding(false)
-  })
-
-  return (
-    <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
-      <div class="flex w-full gap-2">
-        <button
-          class="z-expand-checkbox-group"
-          classList={{ "z-expanded-now": props.expanded }}
-          // @ts-ignore solid is fine with this
-          onforceopen={() => props.setExpanded?.(true)}
-          // @ts-ignore solid is fine with this
-          onforceclose={() => props.setExpanded?.(false)}
-          onClick={() => props.setExpanded?.(!props.expanded)}
-          onContextMenu={(event) => {
-            if (!inner) {
-              return
-            }
-
-            event.preventDefault()
-
-            const dropdowns = Array.from(
-              inner.getElementsByClassName("z-expand-checkbox-group"),
-            )
-
-            batch(() => {
-              if (
-                dropdowns.every((x) => x.classList.contains("z-expanded-now"))
-              ) {
-                for (const d of dropdowns) {
-                  d.dispatchEvent(new CustomEvent("forceclose"))
-                  props.setExpanded?.(false)
-                }
-              } else {
-                for (const d of dropdowns) {
-                  d.dispatchEvent(new CustomEvent("forceopen"))
-                  props.setExpanded?.(true)
-                }
-              }
-            })
-          }}
-        >
-          <Fa
-            class={"h-3 w-3 transition" + (props.expanded ? " rotate-90" : "")}
-            icon={faChevronRight}
-            title="expand section"
-          />
-        </button>
-
-        {props.label}
-      </div>
-
-      <div
-        class="overflow-clip transition-[max-height]"
-        classList={{
-          "max-h-[--max-height]": props.expanded,
-          "[&:has(.z-expanding)]:max-h-auto": props.expanded,
-          "[&:has(.z-expanding)]:transition-none": props.expanded,
-          "max-h-0": !props.expanded,
-          "[.z-expanding_&]:transition-none": !expanding(),
-        }}
-        ref={(el) => (inner = el)}
-        onTransitionEnd={(event) => {
-          if (event.currentTarget != event.target) return
-          if (!props.expanded) event.currentTarget.classList.add("hidden")
-          setExpanding(false)
-        }}
-        inert={!props.expanded}
-        aria-hidden={!props.expanded}
-      >
-        <ul
-          class="relative flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
-          ref={(el) => {
-            const observer = new ResizeObserver(([entry]) => {
-              const { height } = entry!.contentRect || entry!.contentBoxSize
-              // if (height == 0) return
-              el.parentElement?.style.setProperty("--max-height", height + "px")
-            })
-            observer.observe(el, { box: "content-box" })
-          }}
-        >
-          {props.children}
-        </ul>
-      </div>
-    </li>
-  )
-}
 
 // function Item<T, U>(props: ItemProps<T, U>) {
 //   return (
@@ -255,3 +131,236 @@ export function Expandable(props: {
 // //   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 14 | 16 | 20 | 24 | 28 | 32
 // //   | 36 | 40 | 44 | 48 | 52 | 56 | 60 | 64 | 72 | 80 | 96 | "px" | 0.5 | 1.5
 // //   | 2.5 | 3.5 | 4.5
+
+export function Expandable(props: {
+  children?: JSX.Element
+  label: JSX.Element
+  expanded?: boolean
+  setExpanded?(value: boolean): void
+}) {
+  const [expanding, setExpanding] = createSignal(false)
+  let inner: HTMLDivElement | undefined
+
+  let last = untrack(() => props.expanded)
+  createEffect(() => {
+    if (last == props.expanded) {
+      return
+    }
+
+    last = props.expanded
+    setExpanding(true)
+
+    if (!inner) {
+      return
+    }
+
+    inner.classList.remove("hidden")
+  })
+  onMount(() => {
+    if (!props.expanded) {
+      inner?.classList.add("hidden")
+    }
+    setExpanding(false)
+  })
+
+  return (
+    <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
+      <div class="flex w-full">
+        <button
+          class="z-expand-checkbox-group pr-3"
+          classList={{ "z-expanded-now": props.expanded }}
+          // @ts-ignore solid is fine with this
+          onforceopen={() => props.setExpanded?.(true)}
+          // @ts-ignore solid is fine with this
+          onforceclose={() => props.setExpanded?.(false)}
+          onClick={() => props.setExpanded?.(!props.expanded)}
+          onContextMenu={(event) => {
+            if (!inner) {
+              return
+            }
+
+            event.preventDefault()
+
+            const dropdowns = Array.from(
+              inner.getElementsByClassName("z-expand-checkbox-group"),
+            )
+
+            batch(() => {
+              if (
+                dropdowns.every((x) => x.classList.contains("z-expanded-now"))
+              ) {
+                for (const d of dropdowns) {
+                  d.dispatchEvent(new CustomEvent("forceclose"))
+                  props.setExpanded?.(false)
+                }
+              } else {
+                for (const d of dropdowns) {
+                  d.dispatchEvent(new CustomEvent("forceopen"))
+                  props.setExpanded?.(true)
+                }
+              }
+            })
+          }}
+        >
+          <Fa
+            class={"h-3 w-3 transition" + (props.expanded ? " rotate-90" : "")}
+            icon={faChevronRight}
+            title="expand section"
+          />
+        </button>
+
+        {props.label}
+      </div>
+
+      <div
+        class="overflow-clip transition-[max-height]"
+        classList={{
+          "max-h-[--max-height]": props.expanded,
+          "[&:has(.z-expanding)]:max-h-auto": props.expanded,
+          "[&:has(.z-expanding)]:transition-none": props.expanded,
+          "max-h-0": !props.expanded,
+          "[.z-expanding_&]:transition-none": !expanding(),
+        }}
+        ref={(el) => (inner = el)}
+        onTransitionEnd={(event) => {
+          if (event.currentTarget != event.target) return
+          if (!props.expanded) event.currentTarget.classList.add("hidden")
+          setExpanding(false)
+        }}
+        inert={!props.expanded}
+        aria-hidden={!props.expanded}
+      >
+        <ul
+          class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
+          ref={(el) => {
+            const observer = new ResizeObserver(([entry]) => {
+              const { height } = entry!.contentRect || entry!.contentBoxSize
+              // if (height == 0) return
+              el.parentElement?.style.setProperty("--max-height", height + "px")
+            })
+            observer.observe(el, { box: "content-box" })
+          }}
+        >
+          {props.children}
+        </ul>
+      </div>
+    </li>
+  )
+}
+
+export function ExpandableTree<T, U>(props: {
+  /** main tree */
+  tree: TreeOf<T, U>
+
+  /** render subtree label */
+  subtree: (props: SubtreeProps<T, U>) => JSX.Element
+
+  /** render leaf label */
+  leaf: (props: LeafProps<T, U>) => JSX.Element
+
+  /** is expanded */
+  isExpanded: (props: SubtreeProps<T, U>) => boolean
+
+  /** set expanded */
+  setExpanded: (props: SubtreeProps<T, U>, expanded: boolean) => void
+}) {
+  const {
+    subtree: subtree,
+    leaf: leaf,
+    isExpanded: ie,
+    setExpanded: se,
+  } = props
+
+  function SubtreeInner(props: {
+    subtree: TreeOf<T, U>
+    parent: string[]
+  }): JSX.Element {
+    return (
+      <For each={Object.entries(props.subtree)}>
+        {([key, value]) => (
+          <Node
+            parent={[...props.parent, key]}
+            key={key}
+            data={value.data as any}
+            subtree={value.subtree as any}
+          />
+        )}
+      </For>
+    )
+  }
+
+  function Subtree(props: {
+    subtree: TreeOf<T, U>
+    data: T
+    parent: string[]
+    key: string
+  }): JSX.Element {
+    const [expanded, setExpanded] = createSignal(ie(props))
+    return (
+      <Expandable
+        label={subtree(props)}
+        expanded={expanded()}
+        setExpanded={(value) => {
+          se(props, value)
+          setExpanded(ie(props))
+        }}
+      >
+        <SubtreeInner
+          subtree={props.subtree}
+          parent={props.parent.concat(props.key)}
+        />
+      </Expandable>
+    )
+  }
+
+  function Leaf(props: {
+    subtree: undefined
+    data: U
+    parent: string[]
+    key: string
+  }): JSX.Element {
+    return leaf(props)
+  }
+
+  function Node(
+    props:
+      | { parent: string[]; key: string; subtree: TreeOf<T, U>; data: T }
+      | { parent: string[]; key: string; subtree: undefined; data: U },
+  ): JSX.Element {
+    if (props.subtree) {
+      return Subtree(props)
+    } else {
+      return Leaf(props)
+    }
+  }
+
+  return (
+    <ul class="flex flex-col gap-1">
+      <SubtreeInner subtree={props.tree} parent={[]} />
+    </ul>
+  )
+}
+
+export function MonotypeExpandableTree<T, U>(props: {
+  /** main tree */
+  tree: TreeOf<T, U>
+
+  /** render node label */
+  node: (props: NodeProps<T, U>) => JSX.Element
+
+  /** is expanded */
+  isExpanded: (props: SubtreeProps<T, U>) => boolean
+
+  /** set expanded */
+  setExpanded: (props: SubtreeProps<T, U>, expanded: boolean) => void
+}) {
+  return (
+    <ExpandableTree
+      isExpanded={props.isExpanded}
+      leaf={props.node}
+      setExpanded={props.setExpanded}
+      tree={props.tree}
+      subtree={props.node}
+    />
+  )
+}

@@ -154,7 +154,9 @@ export function createCollection(now: number): Collection {
     rev_log: {},
 
     core: createCore(now),
-    decks: { [ID_DECK_DEFAULT]: createDeck(now, "Default", ID_DECK_DEFAULT) },
+    decks: {
+      [ID_DECK_DEFAULT]: createDeck(now, "Default::wow", ID_DECK_DEFAULT),
+    },
     confs: { [ID_CONF_DEFAULT]: createConf(now) },
     prefs: createPrefs(),
     models: createModels(),
