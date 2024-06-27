@@ -12,8 +12,8 @@ import {
   type RecordLog as BaseRecordLog,
 } from "ts-fsrs"
 import * as z from "zod"
+import type { AnyCard, DeckOptions, NewCard, ReviewedCard } from "../lib/types"
 import cardStyle from "./card.postcss?inline"
-import type { AnyCard, DeckOptions, NewCard, ReviewedCard } from "./types"
 
 export function cardAfterHandler(base: BaseCard): NewCard {
   return {

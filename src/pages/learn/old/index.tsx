@@ -19,11 +19,11 @@ import {
   Shortcut,
 } from "../../quiz/layout"
 import { timestampDist } from "../../quiz/shared"
+import cardStyle from "./card.postcss?inline"
 import {
   ERR_NO_NEW_CARDS_AVAILABLE,
   ERR_WAITING_FOR_REVIEWS,
-} from "../lib/scheduler"
-import cardStyle from "./card.postcss?inline"
+} from "./scheduler"
 
 export interface Card extends Readonly<Omit<BaseCard, "due" | "last_review">> {
   readonly cid: string
