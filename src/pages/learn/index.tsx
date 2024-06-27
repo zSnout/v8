@@ -1,4 +1,4 @@
-import { ExpandableGroup } from "@/components/expandable"
+import { Expandable } from "@/components/expandable"
 import { createSignal } from "solid-js"
 import { createCollection } from "./lib/defaults"
 import { Application } from "./lib/state"
@@ -15,26 +15,22 @@ export function Main() {
 
   return (
     <div class="flex flex-col gap-1">
-      <ExpandableGroup label="hi" expanded={a()} setExpanded={setA}>
+      <Expandable label="hi" expanded={a()} setExpanded={setA}>
         <p>world</p>
-        <ExpandableGroup label="earth" expanded={b()} setExpanded={setB}>
+        <Expandable label="earth" expanded={b()} setExpanded={setB}>
           <p>god</p>
           <p>the divine</p>
-        </ExpandableGroup>
-      </ExpandableGroup>
+        </Expandable>
+      </Expandable>
 
-      <ExpandableGroup
-        label="before the shrine"
-        expanded={c()}
-        setExpanded={setC}
-      >
+      <Expandable label="before the shrine" expanded={c()} setExpanded={setC}>
         <p>prepare to be dazzled</p>
-        <ExpandableGroup label="the shrine" expanded={d()} setExpanded={setD}>
+        <Expandable label="the shrine" expanded={d()} setExpanded={setD}>
           <p>kijetesantakalu</p>
           <p>racoons</p>
-        </ExpandableGroup>
+        </Expandable>
         <p>you have been dazzled</p>
-      </ExpandableGroup>
+      </Expandable>
 
       <p>you may have been dazzled</p>
 

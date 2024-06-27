@@ -1,5 +1,6 @@
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import {
+  For,
   JSX,
   batch,
   createEffect,
@@ -10,22 +11,43 @@ import {
 import { Fa } from "./Fa"
 import { TreeOf } from "./tree"
 
-export type Item<U> = (props: {
-  data: U
-  parent: string[]
-  name: string
-  subtree?: undefined
-  children?: undefined
-}) => JSX.Element
+// export type ItemProps<T, U> = {
+//   data: U
+//   parent: string[]
+//   name: string
+//   subtree?: undefined
+//   item: Item<T, U>
+//   group: Group<T, U>
+//   setExpanded: (parent: string[], name: string, expanded: boolean) => void
+//   isExpanded: (parent: string[], name: string) => boolean
+// }
 
-export type Group<T, U> = (props: {
-  data: T
-  parent: string[]
-  name: string
-  subtree: TreeOf<T, U>
-}) => JSX.Element
+// export type GroupProps<T, U> = {
+//   data: U
+//   parent: string[]
+//   name: string
+//   subtree: TreeOf<T, U>
+//   item: Item<T, U>
+//   group: Group<T, U>
+//   setExpanded: (parent: string[], name: string, expanded: boolean) => void
+//   isExpanded: (parent: string[], name: string) => boolean
+// }
 
-export function ExpandableGroup(props: {
+// export type NodeProps<T, U> = {
+//   data: T | U
+//   parent: string[]
+//   name: string
+//   subtree?: TreeOf<T, U> | undefined
+//   item: Item<T, U>
+//   group: Group<T, U>
+//   setExpanded: (parent: string[], name: string, expanded: boolean) => void
+//   isExpanded: (parent: string[], name: string) => boolean
+// }
+
+// export type Item<T, U> = (props: ItemProps<T, U>) => JSX.Element
+// export type Group<T, U> = (props: GroupProps<T, U>) => JSX.Element
+
+export function Expandable(props: {
   children?: JSX.Element
   label: JSX.Element
   expanded?: boolean
@@ -102,31 +124,6 @@ export function ExpandableGroup(props: {
           />
         </button>
 
-        {/* <label class="flex w-full gap-2">
-          <Expandable
-            checked={checked()}
-            indeterminate={indeterminate()}
-            disabled={disabled()}
-            marksGroup
-            onInput={(checked) => {
-              const cbs = Array.from(getInputs()).filter(
-                (el) =>
-                  el.type == "checkbox" &&
-                  !el.classList.contains("z-group-checkbox"),
-              )
-
-              batch(() => {
-                cbs.forEach((x) => {
-                  x.checked = checked
-                  x.dispatchEvent(new InputEvent("input", { bubbles: true }))
-                })
-              })
-            }}
-          />
-
-          <span>{props.label}</span>
-        </label> */}
-
         {props.label}
       </div>
 
@@ -149,7 +146,7 @@ export function ExpandableGroup(props: {
         aria-hidden={!props.expanded}
       >
         <ul
-          class="flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
+          class="relative flex flex-col gap-1 pl-6 [&>:first-child]:mt-1"
           ref={(el) => {
             const observer = new ResizeObserver(([entry]) => {
               const { height } = entry!.contentRect || entry!.contentBoxSize
@@ -166,86 +163,95 @@ export function ExpandableGroup(props: {
   )
 }
 
-// export function ExpandableItem<T, U>(props: {
-//   label: string
-//   onInput?(value: boolean): void
-//   checked?: boolean
-//   item: Item<U>
-//   group: Group<T, U>
-// }) {
+// function Item<T, U>(props: ItemProps<T, U>) {
 //   return (
-//     <li class="flex flex-col">
-//       <label class="flex w-full gap-2 pl-5">
-//         <Expandable onInput={props.onInput} checked={props.checked} />
-
-//         <span>{props.label}</span>
-//       </label>
+//     <li class="flex w-full pl-6">
+//       <Expandable label={props.item(props)} />
 //     </li>
 //   )
 // }
 
-// export function ExpandableNode<T>(props: {
-//   key: string
-//   parent: readonly string[]
-//   isLeaf: (value: BasicTreeOf<T> | T) => value is T
-//   node: BasicTreeOf<T> | T
-//   tree: BasicTree<T>
-// }) {
-//   if (props.isLeaf(props.node)) {
-//     return (
-//       <ExpandableItem
-//         label={props.key}
-//         checked={props.tree.isEnabled(props.parent, props.key)}
-//         onInput={(enabled) =>
-//           props.tree.toggleEnabled(props.parent, props.key, enabled)
-//         }
-//       />
-//     )
-//   } else {
-//     return (
-//       <ExpandableGroup
-//         label={props.key}
-//         expanded={props.tree.isExpanded(props.parent, props.key)}
-//         onExpanded={(enabled) =>
-//           props.tree.toggleExpanded(props.parent, props.key, enabled)
-//         }
-//       >
-//         <For each={Object.entries(props.node)}>
-//           {([key, node]) => (
-//             <ExpandableNode<T>
-//               key={key}
-//               isLeaf={props.isLeaf}
-//               node={node}
-//               tree={props.tree}
-//               parent={props.parent.concat(props.key)}
-//             />
-//           )}
-//         </For>
-//       </ExpandableGroup>
-//     )
-//   }
-// }
-
-// export function ExpandableTree<T>(props: { tree: BasicTree<T> }) {
+// function Group<T, U>(props: GroupProps<T, U>) {
 //   return (
-//     <For each={Object.entries(props.tree.tree)}>
-//       {([key, node]) => (
-//         <ExpandableNode<T>
-//           key={key}
-//           isLeaf={props.tree.isLeaf}
-//           node={node}
-//           tree={props.tree}
-//           parent={[]}
-//         />
-//       )}
-//     </For>
+//     <Expandable
+//       label={props.group(props)}
+//       expanded={props.isExpanded(props.parent, props.name)}
+//     >
+//       <For each={Object.entries(props.subtree)}>{([key, node]) => 0}</For>
+//     </Expandable>
 //   )
 // }
 
-// prettier-ignore
-export type PaddingSize =
-  | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 14 | 16 | 20 | 24 | 28 | 32
-  | 36 | 40 | 44 | 48 | 52 | 56 | 60 | 64 | 72 | 80 | 96 | "px" | 0.5 | 1.5
-  | 2.5 | 3.5 | 4.5
+// function Node<T, U>(props: NodeProps<T, U>) {
+//   if (props.subtree) {
+//     return Group<T, U>(props as GroupProps<T, U>)
+//   } else {
+//     return Item<T, U>(props as ItemProps<T, U>)
+//   }
+// }
 
-// export function ExpandableTree<T, U>(props: { indent: `pl-${PaddingSize}` }) {}
+// // export function ExpandableNode<T>(props: {
+// //   key: string
+// //   parent: readonly string[]
+// //   isLeaf: (value: BasicTreeOf<T> | T) => value is T
+// //   node: BasicTreeOf<T> | T
+// //   tree: BasicTree<T>
+// // }) {
+// //   if (props.isLeaf(props.node)) {
+// //     return (
+// //       <ExpandableItem
+// //         label={props.key}
+// //         checked={props.tree.isEnabled(props.parent, props.key)}
+// //         onInput={(enabled) =>
+// //           props.tree.toggleEnabled(props.parent, props.key, enabled)
+// //         }
+// //       />
+// //     )
+// //   } else {
+// //     return (
+// //       <ExpandableGroup
+// //         label={props.key}
+// //         expanded={props.tree.isExpanded(props.parent, props.key)}
+// //         onExpanded={(enabled) =>
+// //           props.tree.toggleExpanded(props.parent, props.key, enabled)
+// //         }
+// //       >
+// //         <For each={Object.entries(props.node)}>
+// //           {([key, node]) => (
+// //             <ExpandableNode<T>
+// //               key={key}
+// //               isLeaf={props.isLeaf}
+// //               node={node}
+// //               tree={props.tree}
+// //               parent={props.parent.concat(props.key)}
+// //             />
+// //           )}
+// //         </For>
+// //       </ExpandableGroup>
+// //     )
+// //   }
+// // }
+
+// // export function ExpandableTree<T>(props: { tree: BasicTree<T> }) {
+// //   return (
+// //     <For each={Object.entries(props.tree.tree)}>
+// //       {([key, node]) => (
+// //         <ExpandableNode<T>
+// //           key={key}
+// //           isLeaf={props.tree.isLeaf}
+// //           node={node}
+// //           tree={props.tree}
+// //           parent={[]}
+// //         />
+// //       )}
+// //     </For>
+// //   )
+// // }
+
+// // export function ExpandableTree<T, U>(props: { indent: `pl-${PaddingSize}` }) {}
+
+// // // prettier-ignore
+// // type PaddingSize =
+// //   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 12 | 14 | 16 | 20 | 24 | 28 | 32
+// //   | 36 | 40 | 44 | 48 | 52 | 56 | 60 | 64 | 72 | 80 | 96 | "px" | 0.5 | 1.5
+// //   | 2.5 | 3.5 | 4.5
