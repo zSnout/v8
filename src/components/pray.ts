@@ -1,13 +1,34 @@
-export function pray(x: boolean, reason: string): asserts x {
+type Reason<R extends string> = R extends ""
+  ? never
+  : string extends R
+  ? never
+  : R
+
+export function pray<R extends string>(
+  x: boolean,
+  reason: Reason<R>,
+): asserts x {
   if (!x) {
-    throw new Error(reason)
+    throw new Error(reason, { cause: "prayer failed" })
   }
 }
 
-export function notNull<T>(x: T, reason: string): T & {} {
-  if (x == null) {
-    throw new Error(reason)
+export function prayTruthy<R extends string>(
+  x: unknown,
+  reason: Reason<R>,
+): asserts x {
+  if (!x) {
+    throw new Error(reason, { cause: "prayer failed" })
+  }
+}
+
+export function notNull<T, R extends string>(
+  value: T,
+  reason: Reason<R>,
+): T & {} {
+  if (value == null) {
+    throw new Error(reason, { cause: "prayer failed" })
   }
 
-  return x
+  return value
 }

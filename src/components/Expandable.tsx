@@ -25,6 +25,8 @@ export type LeafProps<_T, U> = {
   subtree: undefined
 }
 
+// TODO: handle dropdowns with no dropdown children better
+
 export function Expandable(props: {
   children?: JSX.Element
   label: JSX.Element
@@ -81,7 +83,7 @@ export function Expandable(props: {
 
             const dropdowns = Array.from(
               inner.getElementsByClassName("z-expand-checkbox-group"),
-            )
+            ).concat(event.currentTarget)
 
             batch(() => {
               if (

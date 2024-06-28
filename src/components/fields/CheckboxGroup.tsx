@@ -125,7 +125,7 @@ export function CheckboxGroup(props: {
 
             const dropdowns = Array.from(
               inner.getElementsByClassName("z-expand-checkbox-group"),
-            )
+            ).concat(event.currentTarget)
 
             batch(() => {
               if (
