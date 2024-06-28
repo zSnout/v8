@@ -121,7 +121,7 @@ export function createModels(): Collection["models"] {
         { name: "Front", rtl: false },
         { name: "Back", rtl: false },
       ],
-      name: "Basic",
+      name: "Basic and reversed",
       sort_field: 0,
       tmpls: [
         {

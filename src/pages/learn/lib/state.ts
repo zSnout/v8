@@ -1,10 +1,23 @@
-import { pray } from "@/components/pray"
+import { notNull, pray, prayTruthy } from "@/components/pray"
 import { error, ok, Result } from "@/components/result"
 import { Tree } from "@/components/tree"
-import { fsrs } from "ts-fsrs"
+import { FSRS } from "ts-fsrs"
 import { createConf, createDeck } from "./defaults"
 import { Id, randomId } from "./id"
-import { Collection, Conf, Confs, Deck, Decks, Prefs } from "./types"
+import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "./repeat"
+import {
+  AnyCard,
+  Cards,
+  Collection,
+  Conf,
+  Confs,
+  Deck,
+  Decks,
+  Models,
+  Notes,
+  Prefs,
+  RepeatInfo,
+} from "./types"
 
 // FIXME: filter blank cards like anki does
 // FIXME: add cloze support
@@ -34,31 +47,28 @@ import { Collection, Conf, Confs, Deck, Decks, Prefs } from "./types"
 // }
 
 export class App {
-  private f = fsrs({
-    // w: [
-    //   0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
-    //   0.34, 1.26, 0.29, 2.61,
-    // ],
-    enable_fuzz: true,
-  })
-
-  readonly decks: AppDecks
+  readonly cards: AppCards
   readonly confs: AppConfs
+  readonly decks: AppDecks
+  readonly models: AppModels
+  readonly notes: AppNotes
   readonly prefs: AppPrefs
 
   constructor(private c: Readonly<Collection>) {
     this.confs = new AppConfs(c.confs)
     this.decks = new AppDecks(c.decks, this.confs)
     this.prefs = new AppPrefs(c.prefs)
+    this.models = new AppModels(c.models)
+    this.notes = new AppNotes(c.notes)
+    this.cards = new AppCards(
+      c.cards,
+      this.notes,
+      this.decks,
+      this.confs,
+      this.prefs,
+      this.models,
+    )
   }
-
-  // repeat(card: AnyCard, now: DateInput): RecordLog {
-  //   return this.f.repeat(
-  //     { ...card, due: card.due ?? now },
-  //     now,
-  //     recordAfterHandler,
-  //   )
-  // }
 
   toJSON(): Collection {
     return this.c
@@ -67,16 +77,16 @@ export class App {
 
 export class AppConfs {
   /** Record from conf names to confs */
-  private n: Record<string, Conf> = Object.create(null)
+  private names: Record<string, Conf> = Object.create(null)
 
   /** Record from conf ids to confs */
-  private d: Record<string, Conf> = Object.create(null)
+  private ids: Record<string, Conf> = Object.create(null)
 
   constructor(confs: Confs) {
-    this.d = confs
+    this.ids = confs
     for (const key in confs) {
       const conf = confs[key]!
-      this.n[conf.name] = conf
+      this.names[conf.name] = conf
     }
   }
 
@@ -88,33 +98,37 @@ export class AppConfs {
   }
 
   push(conf: Conf): Result<void> {
-    if (conf.name in this.n) {
+    if (conf.name in this.names) {
       return error("A deck with that name already exists.")
     }
 
-    if (conf.id in this.d) {
+    if (conf.id in this.ids) {
       return error("A deck with that id already exists.")
     }
 
-    this.d[conf.id] = this.n[conf.name] = conf
+    this.ids[conf.id] = this.names[conf.name] = conf
 
     return ok()
   }
 
+  byId(id: Id): Conf | undefined {
+    return this.ids[id]
+  }
+
   getDefault(now: number): Conf {
-    const byName = this.n["Default"]
+    const byName = this.names["Default"]
     if (byName) {
       return byName
     }
 
-    const byId = this.d[1]
+    const byId = this.ids[1]
     if (byId) {
       return byId
     }
 
-    const firstKey = Object.keys(this.d)[0]
+    const firstKey = Object.keys(this.ids)[0]
     if (firstKey) {
-      const first = this.d[firstKey]
+      const first = this.ids[firstKey]
       if (first) {
         return first
       }
@@ -131,10 +145,10 @@ export class AppDecks {
   private n: Record<string, Deck> = Object.create(null)
 
   /** Record from deck ids to decks */
-  private d: Record<string, Deck> = Object.create(null)
+  readonly byId: Record<string, Deck> = Object.create(null)
 
   constructor(decks: Decks, private c: AppConfs) {
-    this.d = decks
+    this.byId = decks
     for (const key in decks) {
       const deck = decks[key]!
       this.n[deck.name] = deck
@@ -160,19 +174,19 @@ export class AppDecks {
       return error("A deck with that name already exists.")
     }
 
-    if (deck.id in this.d) {
+    if (deck.id in this.byId) {
       return error("A deck with that id already exists.")
     }
 
-    this.d[deck.id] = this.n[deck.name] = deck
+    this.byId[deck.id] = this.n[deck.name] = deck
 
     return ok()
   }
 
   private pushForce(deck: Deck) {
     pray(!(deck.name in this.n), "A deck with that name already exists.")
-    pray(!(deck.id in this.d), "A deck with that id already exists.")
-    this.d[deck.id] = this.n[deck.name] = deck
+    pray(!(deck.id in this.byId), "A deck with that id already exists.")
+    this.byId[deck.id] = this.n[deck.name] = deck
   }
 
   byNameOrCreate(name: string, now: number): Deck {
@@ -190,8 +204,8 @@ export class AppDecks {
   tree(now: number): Tree<Deck, Deck> {
     const tree = new Tree<Deck, Deck>()
 
-    for (const id in this.d) {
-      const deck = this.d[id]!
+    for (const id in this.byId) {
+      const deck = this.byId[id]!
       console.log(deck.name)
 
       tree.set(
@@ -209,7 +223,7 @@ export class AppDecks {
 }
 
 export class AppPrefs {
-  constructor(readonly p: Prefs) {}
+  constructor(private p: Prefs) {}
 
   /** Returns milliseconds between start of local day and Unix epoch */
   startOfDay(now: number | Date): number {
@@ -242,4 +256,65 @@ export class AppPrefs {
 
     return Math.round((end - start) / (1000 * 60 * 60 * 24))
   }
+}
+
+export class AppCards {
+  constructor(
+    private c: Cards,
+    private notes: AppNotes,
+    private decks: AppDecks,
+    private confs: AppConfs,
+    private prefs: AppPrefs,
+    private models: AppModels,
+  ) {}
+
+  repeat(card: AnyCard, now: number, reviewTime: number): RepeatInfo {
+    const deck = notNull(
+      this.decks.byId[card.did],
+      "This card is linked to a nonexistent deck.",
+    )
+
+    const conf = notNull(
+      this.confs.byId(deck.conf),
+      "This card's deck is linked to a nonexistent configuration.",
+    )
+
+    return __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
+      card,
+      conf,
+      this.prefs,
+      new FSRS({
+        enable_fuzz: true,
+        maximum_interval: conf.review.max_review_interval,
+      }),
+      now,
+      reviewTime,
+    )
+  }
+
+  set(card: AnyCard) {
+    const deck = this.decks.byId[card.did]
+    prayTruthy(deck, "Card must be associated with a deck which exists.")
+
+    const note = this.notes.byId[card.nid]
+    prayTruthy(note, "Card must be associated with a note which exists.")
+
+    const model = this.models.byId[note.mid]
+    prayTruthy(model, "Card's must be associated with a model which exists.")
+
+    const tmpl = model.tmpls[card.tid]
+    prayTruthy(tmpl, "Card must be associated with a template which exists.")
+
+    this.c[card.id] = card
+  }
+
+  // no `create` method since cards can only be created by corresponding notes
+}
+
+export class AppModels {
+  constructor(readonly byId: Models) {}
+}
+
+export class AppNotes {
+  constructor(readonly byId: Notes) {}
 }
