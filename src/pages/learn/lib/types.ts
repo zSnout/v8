@@ -7,14 +7,17 @@ export function makeCard<
   U extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
 >(last_review: T, state: U) {
   return v.object({
+    /** Card id (unique to this card) */
+    id: Id,
+
     /** Note id (links to a corresponding note) */
     nid: Id,
 
-    /** Template id (which template to use for a given note) */
-    tid: Id,
-
-    /** Card id (unique to this card) */
-    cid: Id,
+    /**
+     * Template index (which template to use for a given note).
+     * This is not an id.
+     */
+    tid: v.number(),
 
     /** Deck id (links to a corresponding deck) */
     did: Id,
@@ -98,8 +101,8 @@ export const Note = v.object({
   /** Space-separated list of tags */
   tags: v.string(),
 
-  /** Fields separated by `0x1f` */
-  fields: v.string(),
+  /** List of fields */
+  fields: v.array(v.string()),
 
   /** Value of sort field */
   sort_field: v.string(),
@@ -108,8 +111,8 @@ export const Note = v.object({
   csum: v.number(),
 })
 
-export interface RevLog extends v.InferOutput<typeof RevLog> {}
-export const RevLog = v.object({
+export interface Review extends v.InferOutput<typeof Review> {}
+export const Review = v.object({
   /** Timestamp of when review was done */
   id: Id,
 
@@ -447,16 +450,34 @@ export const Decks = v.record(IdKey, Deck)
 export interface Confs extends v.InferOutput<typeof Confs> {}
 export const Confs = v.record(IdKey, Conf)
 
+export interface Cards extends v.InferOutput<typeof Cards> {}
+export const Cards = v.record(IdKey, AnyCard)
+
+export interface Notes extends v.InferOutput<typeof Notes> {}
+export const Notes = v.record(IdKey, Note)
+
+export interface RevLog extends v.InferOutput<typeof RevLog> {}
+export const RevLog = v.record(IdKey, v.array(Review))
+
+export interface Models extends v.InferOutput<typeof Models> {}
+export const Models = v.record(IdKey, Model)
+
 export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
   /** The special `version` tag is updated whenever the data format changes */
   version: v.literal(1),
 
   /** A record from card ids to their corresponding cards */
-  cards: v.record(IdKey, AnyCard),
+  cards: Cards,
+
+  /** An array of graves */
   graves: v.array(Grave),
-  notes: v.record(IdKey, Note),
-  rev_log: v.record(IdKey, v.array(RevLog)),
+
+  /** A record from note ids to their corresponding notes */
+  notes: Notes,
+
+  /** A record from card ids to their corresponding reviews */
+  rev_log: RevLog,
 
   // All things below are part of `collection` in Anki
   core: Core,
@@ -466,5 +487,5 @@ export const Collection = v.object({
   prefs: Prefs,
 })
 
-export type RepeatItem = { card: ReviewedCard; log: RevLog }
-export type RepeatResult = Record<Grade, RepeatItem>
+export type RepeatItem = { card: ReviewedCard; log: Review }
+export type RepeatInfo = Record<Grade, RepeatItem>

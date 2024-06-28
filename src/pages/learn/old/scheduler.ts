@@ -20,7 +20,7 @@ export function cardAfterHandler(base: BaseCard): NewCard {
     ...base,
     due: undefined,
     last_review: undefined,
-    cid: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
+    id: Math.floor(Math.random() * Number.MAX_SAFE_INTEGER),
     front: "<div class='front'>wow</div>",
     back: "<div class='front'>wow</div><hr class='hr'/><div class='back'>no</div>",
     deck: "hi::world",
@@ -37,7 +37,7 @@ export function recordAfterHandler(recordLog: BaseRecordLog): RecordLog {
 
     output[grade] = {
       card,
-      log: { ...log, cid: card.cid },
+      log: { ...log, cid: card.id },
     }
   }
 
@@ -198,7 +198,7 @@ export class DeckManager {
   }
 
   saveReview(card: AnyCard, index: number, rating: Grade, now: number) {
-    pray(this.cards[index]?.cid == card.cid, "index matches card")
+    pray(this.cards[index]?.id == card.id, "index matches card")
     const log = this.scheduler.repeat(card, now)[rating]
     this.cards[index] = log.card
     this.log.push(log.log)

@@ -7,7 +7,7 @@ import {
   Conf,
   NonNewState,
   RepeatItem,
-  RepeatResult,
+  RepeatInfo,
   ReviewedCard,
 } from "./types"
 
@@ -21,7 +21,7 @@ function createRepeatItem(
   return {
     card: next,
     log: {
-      cid: next.cid,
+      cid: next.id,
       difficulty: next.difficulty,
       type: (next.state - 1) as 0 | 1 | 2,
       due: next.due,
@@ -88,7 +88,7 @@ function repeatFsrs(
   f: FSRS,
   now: number,
   time: number,
-): RepeatResult {
+): RepeatInfo {
   card = setDue(card, now)
   const byFsrs = f.repeat(card, now)
 
@@ -113,7 +113,7 @@ function repeatLearning(
   f: FSRS,
   now: number,
   time: number,
-): RepeatResult {
+): RepeatInfo {
   card = setDue(card, now)
   const learningSteps = conf.new.learning_steps
 
@@ -203,7 +203,7 @@ export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepe
   f: FSRS,
   now: number,
   time: number,
-): RepeatResult {
+): RepeatInfo {
   if (
     card.last_review == null ||
     card.state == State.New ||
