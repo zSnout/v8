@@ -11,6 +11,7 @@
 // TODO: clozes
 
 import { error, ok, Result } from "@/components/result"
+import dom from "dompurify"
 import { randomId } from "./id"
 import { ModelField } from "./types"
 
@@ -20,14 +21,14 @@ export type Tag = {
   type: "tag"
   negative: boolean
   name: string
-  contents: Template
+  contents: Compiled
 }
 export type Item = Text | Field | Tag
-export type Template = Item[]
+export type Compiled = Item[]
 
-export function parseTemplate<T extends string>(source: T): Result<Template> {
-  const output: Template = []
-  const inner: Template[] = []
+export function parseTemplate<T extends string>(source: T): Result<Compiled> {
+  const output: Compiled = []
+  const inner: Compiled[] = []
   let current = output
   let index = 0
 
@@ -53,7 +54,7 @@ export function parseTemplate<T extends string>(source: T): Result<Template> {
     index = end + 2
 
     if (expr[0] == "#" || expr[0] == "^") {
-      const contents: Template = []
+      const contents: Compiled = []
       const tag: Tag = {
         type: "tag",
         negative: expr[0] == "^",
@@ -162,7 +163,7 @@ const actions: Record<string, Action> = {
 }
 
 function inner(
-  source: Template,
+  source: Compiled,
   fields: Record<string, string>,
   meta: TemplateMeta,
 ): Result<string> {
@@ -219,7 +220,7 @@ function inner(
 
 /** Checks if at least one field is referenced and is non-empty. */
 export function isFilled(
-  source: Template,
+  source: Compiled,
   fields: Record<string, string>,
 ): boolean {
   for (const item of source) {
@@ -272,9 +273,14 @@ export function isFilled(
   return false
 }
 
+export type Generated = { html: string; meta: TemplateMeta }
+
 // TODO: force function to accept `RequiredFieldName`s
 /** Fills in a compiled template with field values. */
-export function generate(source: Template, fields: Record<string, string>) {
+export function generate(
+  source: Compiled,
+  fields: Record<string, string>,
+): Result<Generated> {
   const meta: TemplateMeta = { tts: [], hints: [] }
   const result = inner(source, fields, meta)
   if (!result.ok) {
@@ -304,8 +310,17 @@ export function fieldRecord(model: readonly ModelField[], fields: string[]) {
   return ok(record)
 }
 
+export function Render(props: { class?: string; data: Generated }) {
+  const html = dom.sanitize(props.data.html, {})
+  return (
+    <div class={props.class} ref={(el) => (el.innerHTML = html)}>
+      {"<loading external html>"}
+    </div>
+  )
+}
+
 export {
   parseTemplate as parse,
   type TemplateMeta as Meta,
-  type Template as Type,
+  type Compiled as Type,
 }

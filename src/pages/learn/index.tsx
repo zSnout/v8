@@ -50,6 +50,7 @@ export function Debug() {
 
   return (
     <div class="flex flex-col gap-8">
+      {/* Decks */}
       <div class="flex flex-col gap-1">
         <MonotypeExpandableTree
           z={10}
@@ -75,6 +76,7 @@ export function Debug() {
         />
       </div>
 
+      {/* Deck confs */}
       <div class="flex flex-col gap-1">
         <For each={Object.values(confs())}>
           {(conf) => (
@@ -105,6 +107,7 @@ export function Debug() {
         </For>
       </div>
 
+      {/* Models */}
       <div class="flex flex-col gap-1">
         <For each={Object.values(models())}>
           {(model) => (
@@ -147,6 +150,7 @@ export function Debug() {
         </For>
       </div>
 
+      {/* Notes */}
       <div class="flex flex-col gap-1">
         <For each={Object.values(notes())}>
           {(note) => (
@@ -169,25 +173,42 @@ export function Debug() {
                     const info = app.cards.repeat(card, Date.now(), 0)
                     return (
                       <div class="flex w-56 flex-col rounded bg-z-body px-2 py-1 text-xs">
-                        <div class="mb-1 border-b border-z pb-1 text-center text-base">
-                          {
-                            unwrap(
-                              Template.generate(
-                                unwrap(
-                                  Template.parse(
-                                    models()[note.mid]!.tmpls[card.tid]!.qfmt,
-                                  ),
-                                ),
-                                unwrap(
-                                  Template.fieldRecord(
-                                    models()[note.mid]!.fields,
-                                    note.fields,
-                                  ),
+                        <Template.Render
+                          class="mb-1 border-b border-z pb-1 text-center text-base"
+                          data={unwrap(
+                            Template.generate(
+                              unwrap(
+                                Template.parse(
+                                  models()[note.mid]!.tmpls[card.tid]!.qfmt,
                                 ),
                               ),
-                            ).html
-                          }
-                        </div>
+                              unwrap(
+                                Template.fieldRecord(
+                                  models()[note.mid]!.fields,
+                                  note.fields,
+                                ),
+                              ),
+                            ),
+                          )}
+                        />
+                        <Template.Render
+                          class="mb-1 border-b border-z pb-1 text-center text-base"
+                          data={unwrap(
+                            Template.generate(
+                              unwrap(
+                                Template.parse(
+                                  models()[note.mid]!.tmpls[card.tid]!.afmt,
+                                ),
+                              ),
+                              unwrap(
+                                Template.fieldRecord(
+                                  models()[note.mid]!.fields,
+                                  note.fields,
+                                ),
+                              ),
+                            ),
+                          )}
+                        />
                         <div>did? {card.did}</div>
                         <div>tid? {card.tid}</div>
                         <div>lapses? {card.lapses}</div>
@@ -197,26 +218,6 @@ export function Debug() {
                         <div>state? {State[card.state]}</div>
                         <div>
                           due? {timestampDist((card.due - Date.now()) / 1000)}
-                        </div>
-                        <div>
-                          back?{" "}
-                          {
-                            unwrap(
-                              Template.generate(
-                                unwrap(
-                                  Template.parse(
-                                    models()[note.mid]!.tmpls[card.tid]!.afmt,
-                                  ),
-                                ),
-                                unwrap(
-                                  Template.fieldRecord(
-                                    models()[note.mid]!.fields,
-                                    note.fields,
-                                  ),
-                                ),
-                              ),
-                            ).html
-                          }
                         </div>
                         <div class="-mx-1 mt-1 grid grid-cols-4 gap-1">
                           <For each={grades}>
