@@ -17,6 +17,7 @@ import { timestampDist } from "../quiz/shared"
 import { createCollection } from "./lib/defaults"
 import { createExpr } from "./lib/expr"
 import { Id } from "./lib/id"
+import { Layers } from "./lib/layerable"
 import { App } from "./lib/state"
 import * as Template from "./lib/template"
 import { AnyCard } from "./lib/types"
@@ -48,13 +49,14 @@ const { note, cards } = unwrap(
 unwrap(app.notes.push(note))
 cards.map((x) => unwrap(app.cards.set(x)))
 
-export function Debug() {
+export function PrevDebug() {
   const [decks] = createExpr(() => app.decks)
   const tree = createMemo(() => decks().tree(Date.now()).tree)
   const [models] = createExpr(() => app.models.byId)
   const [notes, reloadNotes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
   const [confs] = createExpr(() => app.confs.byId)
+  const layers = Layers.get()
 
   function CreateNotePretty() {
     const [deck, setDeck] = createSignal(
@@ -397,12 +399,47 @@ export function Debug() {
     )
   }
 
+  function Inner(pop: () => void) {
+    return (
+      <div>
+        hello world
+        <button onClick={pop}>or close it</button>
+        <button onClick={() => layers.push(Inner)}>or add another</button>
+        {Array(100)
+          .fill(0)
+          .map(() => (
+            <p>hi</p>
+          ))}
+      </div>
+    )
+  }
+
   return (
     <div class="flex flex-col gap-8">
+      <button
+        class="rounded bg-z-body-selected px-2 py-1"
+        onClick={() => layers.push(Inner)}
+      >
+        push a layer
+      </button>
       <CreateNotePretty />
       <CreateNote />
       <RawInformation />
+      <button
+        class="rounded bg-z-body-selected px-2 py-1"
+        onClick={() => layers.push(Inner)}
+      >
+        push a layer
+      </button>
     </div>
+  )
+}
+
+export function Debug() {
+  return (
+    <Layers.Base>
+      <PrevDebug />
+    </Layers.Base>
   )
 }
 
