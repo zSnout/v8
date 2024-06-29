@@ -14,6 +14,7 @@ import {
   Confs,
   Deck,
   Decks,
+  Model,
   Models,
   NewCard,
   Note,
@@ -353,7 +354,16 @@ export class AppCards {
 }
 
 export class AppModels {
-  constructor(readonly byId: Models) {}
+  readonly byName: Record<string, Model>
+
+  constructor(readonly byId: Models) {
+    this.byName = Object.create(null)
+
+    for (const key in byId) {
+      const model = byId[key]!
+      this.byName[model.name] = model
+    }
+  }
 }
 
 export class AppNotes {

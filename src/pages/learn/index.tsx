@@ -67,17 +67,39 @@ export function Debug() {
 
     return (
       <div class="flex flex-col gap-1">
-        <AutocompleteBox
-          options={Object.keys(app.decks.byName).sort()}
-          onChange={(name) => {
-            setDeck(
-              notNull(
-                app.decks.byName[name],
-                "The selected deck does not exist.",
-              ),
-            )
-          }}
-        />
+        <div class="grid grid-cols-2 gap-6">
+          <label>
+            <p class="mb-1 text-sm text-z-subtitle">Deck</p>
+            <AutocompleteBox
+              options={Object.keys(app.decks.byName).sort()}
+              onChange={(name) => {
+                setDeck(
+                  notNull(
+                    app.decks.byName[name],
+                    "The selected deck does not exist.",
+                  ),
+                )
+              }}
+              value={deck().name}
+            />
+          </label>
+
+          <label>
+            <p class="mb-1 text-sm text-z-subtitle">Model</p>
+            <AutocompleteBox
+              options={Object.keys(app.models.byName).sort()}
+              onChange={(name) => {
+                setModel(
+                  notNull(
+                    app.models.byName[name],
+                    "The selected model does not exist.",
+                  ),
+                )
+              }}
+              value={model().name}
+            />
+          </label>
+        </div>
       </div>
     )
   }
@@ -390,7 +412,9 @@ function AutocompleteBox<T extends string>(props: {
   onInput?: (value: string) => void
   onChange?: (value: T) => void
 }): JSX.Element {
-  const [field, setField] = createSignal("")
+  const [field, setField] = createSignal(
+    props.options.includes(props.value as T) ? props.value! : "",
+  )
 
   const matchingRaw = createMemo(() => {
     const f = field().toLowerCase()
@@ -412,7 +436,7 @@ function AutocompleteBox<T extends string>(props: {
 
   const [selected, setSelected] = createSignal(0)
 
-  const [attemptedBlur, setAttemptedBlur] = createSignal<number>()
+  const [attemptedBlur, setAttemptedBlur] = createSignal<1>()
 
   return (
     <div class="h-[calc(2rem_+_2px)]">
@@ -476,7 +500,7 @@ function AutocompleteBox<T extends string>(props: {
               return
             }
 
-            setAttemptedBlur((x) => (x || 0) + 1)
+            setAttemptedBlur(1)
             event.currentTarget.focus()
           }}
           value={field()}
@@ -492,7 +516,7 @@ function AutocompleteBox<T extends string>(props: {
             fallback={
               <div class="px-2 py-0.5 italic">
                 That option does not exist.
-                <Show when={attemptedBlur() != null}>
+                <Show when={attemptedBlur()}>
                   <br />
                   Select an option to continue.
                 </Show>
@@ -501,12 +525,11 @@ function AutocompleteBox<T extends string>(props: {
           >
             {([match, pos], index) => (
               <button
-                class="border-z px-2 py-0.5 text-left"
+                class="border-dashed border-z px-2 py-0.5 text-left"
                 classList={{
                   "bg-z-body-selected": index() == selected(),
                   "border-t": index() != 0 && infIndex() == index(),
-                  "pt-[calc(0.125rem_-_1px)]":
-                    index() != 0 && infIndex() == index(),
+                  "-mt-px": index() != 0 && infIndex() == index(),
                 }}
                 ref={(el) => {
                   createEffect(() => {
