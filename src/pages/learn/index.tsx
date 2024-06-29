@@ -1,6 +1,6 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { unwrap } from "@/components/result"
-import { For } from "solid-js"
+import { batch, createMemo, createSignal, For } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { timestampDist } from "../quiz/shared"
 import { createCollection } from "./lib/defaults"
@@ -42,19 +42,100 @@ unwrap(app.notes.push(note))
 cards.map((x) => unwrap(app.cards.set(x)))
 
 export function Debug() {
-  const [decks] = createExpr(() => app.decks.tree(Date.now()).tree)
+  const [decks] = createExpr(() => app.decks)
+  const tree = createMemo(() => decks().tree(Date.now()).tree)
   const [models] = createExpr(() => app.models.byId)
-  const [notes] = createExpr(() => app.notes.byId)
+  const [notes, reloadNotes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
   const [confs] = createExpr(() => app.confs.byId)
 
+  function CreateNote() {
+    const [deck, setDeck] = createSignal(
+      app.decks.byId[Object.keys(app.decks.byId)[0]!]!,
+    )
+    const [model, setModel] = createSignal(
+      app.models.byId[Object.keys(app.models.byId)[0]!]!,
+    )
+    const [fields, setFields] = createSignal(model().fields.map(() => ""))
+
+    return (
+      <div class="flex flex-col gap-1">
+        <select
+          class="rounded bg-z-body-selected px-2 py-1"
+          onInput={(x) => setDeck(app.decks.byId[x.currentTarget.value]!)}
+        >
+          <For each={Object.entries(decks().byId)}>
+            {(deck) => <option value={deck[0]}>{deck[1].name}</option>}
+          </For>
+        </select>
+
+        <select
+          class="rounded bg-z-body-selected px-2 py-1"
+          onInput={(x) => {
+            const model = setModel(app.models.byId[x.currentTarget.value]!)
+            setFields(model.fields.map(() => ""))
+          }}
+        >
+          <For each={Object.entries(models())}>
+            {(model) => <option value={model[0]}>{model[1].name}</option>}
+          </For>
+        </select>
+
+        <For each={model().fields}>
+          {(field, index) => (
+            <div class="z-field flex flex-col rounded border-transparent bg-z-body-selected p-0 shadow-none">
+              <div class="px-2 pt-1 text-sm text-z-subtitle">{field.name}</div>
+              <div
+                contentEditable
+                class="px-2 py-1 focus:outline-none"
+                onInput={(event) =>
+                  setFields((x) =>
+                    x.with(index(), event.currentTarget.innerHTML),
+                  )
+                }
+              ></div>
+            </div>
+          )}
+        </For>
+
+        <button
+          class="bg-z-body-selected px-2 py-1"
+          onClick={() => {
+            const { note, cards } = unwrap(
+              app.notes.create({
+                now: Date.now(),
+                mid: model().id,
+                fields: fields(),
+                did: deck().id,
+              }),
+            )
+
+            app.notes.push(note)
+            for (const card of cards) {
+              app.cards.set(card)
+            }
+
+            batch(() => {
+              reloadNotes()
+              reloadCards()
+            })
+          }}
+        >
+          add note
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div class="flex flex-col gap-8">
+      <CreateNote />
+
       {/* Decks */}
       <div class="flex flex-col gap-1">
         <MonotypeExpandableTree
           z={10}
-          tree={decks()}
+          tree={tree()}
           isExpanded={({ data }) => !data.collapsed}
           setExpanded={({ data }, expanded) => (data.collapsed = !expanded)}
           node={({ data }) => (
