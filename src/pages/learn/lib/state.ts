@@ -1,10 +1,11 @@
-import { notNull, pray, prayTruthy } from "@/components/pray"
+import { notNull } from "@/components/pray"
 import { error, ok, Result } from "@/components/result"
 import { Tree } from "@/components/tree"
-import { FSRS } from "ts-fsrs"
+import { createEmptyCard, FSRS, State } from "ts-fsrs"
 import { createConf, createDeck } from "./defaults"
 import { Id, randomId } from "./id"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "./repeat"
+import * as Template from "./template"
 import {
   AnyCard,
   Cards,
@@ -14,6 +15,8 @@ import {
   Deck,
   Decks,
   Models,
+  NewCard,
+  Note,
   Notes,
   Prefs,
   RepeatInfo,
@@ -59,7 +62,14 @@ export class App {
     this.decks = new AppDecks(c.decks, this.confs)
     this.prefs = new AppPrefs(c.prefs)
     this.models = new AppModels(c.models)
-    this.notes = new AppNotes(c.notes)
+    this.notes = new AppNotes(
+      c.notes,
+      this.models,
+      // note: this needs to be set manually later
+      0 as any,
+      this.decks,
+      this.prefs,
+    )
     this.cards = new AppCards(
       c.cards,
       this.notes,
@@ -68,6 +78,8 @@ export class App {
       this.prefs,
       this.models,
     )
+    // note: this is later
+    ;(this.notes as any).cards = this.cards
   }
 
   toJSON(): Collection {
@@ -77,16 +89,16 @@ export class App {
 
 export class AppConfs {
   /** Record from conf names to confs */
-  private names: Record<string, Conf> = Object.create(null)
+  readonly byName: Record<string, Conf> = Object.create(null)
 
   /** Record from conf ids to confs */
-  private ids: Record<string, Conf> = Object.create(null)
+  readonly byId: Record<string, Conf> = Object.create(null)
 
   constructor(confs: Confs) {
-    this.ids = confs
+    this.byId = confs
     for (const key in confs) {
       const conf = confs[key]!
-      this.names[conf.name] = conf
+      this.byName[conf.name] = conf
     }
   }
 
@@ -98,37 +110,33 @@ export class AppConfs {
   }
 
   push(conf: Conf): Result<void> {
-    if (conf.name in this.names) {
+    if (conf.name in this.byName) {
       return error("A deck with that name already exists.")
     }
 
-    if (conf.id in this.ids) {
+    if (conf.id in this.byId) {
       return error("A deck with that id already exists.")
     }
 
-    this.ids[conf.id] = this.names[conf.name] = conf
+    this.byId[conf.id] = this.byName[conf.name] = conf
 
     return ok()
   }
 
-  byId(id: Id): Conf | undefined {
-    return this.ids[id]
-  }
-
   getDefault(now: number): Conf {
-    const byName = this.names["Default"]
+    const byName = this.byName["Default"]
     if (byName) {
       return byName
     }
 
-    const byId = this.ids[1]
+    const byId = this.byId[1]
     if (byId) {
       return byId
     }
 
-    const firstKey = Object.keys(this.ids)[0]
+    const firstKey = Object.keys(this.byId)[0]
     if (firstKey) {
-      const first = this.ids[firstKey]
+      const first = this.byId[firstKey]
       if (first) {
         return first
       }
@@ -184,8 +192,8 @@ export class AppDecks {
   }
 
   private pushForce(deck: Deck) {
-    pray(!(deck.name in this.n), "A deck with that name already exists.")
-    pray(!(deck.id in this.byId), "A deck with that id already exists.")
+    // pray(!(deck.name in this.n), "A deck with that name already exists.")
+    // pray(!(deck.id in this.byId), "A deck with that id already exists.")
     this.byId[deck.id] = this.n[deck.name] = deck
   }
 
@@ -259,14 +267,22 @@ export class AppPrefs {
 }
 
 export class AppCards {
+  readonly byNid: Record<string, AnyCard[]>
+
   constructor(
-    private c: Cards,
+    readonly byId: Cards,
     private notes: AppNotes,
     private decks: AppDecks,
     private confs: AppConfs,
     private prefs: AppPrefs,
     private models: AppModels,
-  ) {}
+  ) {
+    this.byNid = Object.create(null)
+    for (const id in byId) {
+      const card = byId[id]!
+      ;(this.byNid[card.nid] ||= []).push(card)
+    }
+  }
 
   repeat(card: AnyCard, now: number, reviewTime: number): RepeatInfo {
     const deck = notNull(
@@ -275,7 +291,7 @@ export class AppCards {
     )
 
     const conf = notNull(
-      this.confs.byId(deck.conf),
+      this.confs.byId[deck.conf],
       "This card's deck is linked to a nonexistent configuration.",
     )
 
@@ -292,20 +308,46 @@ export class AppCards {
     )
   }
 
-  set(card: AnyCard) {
+  private __unsafeForceSet(card: AnyCard) {
+    const old = this.byId[card.id]
+    if (old) {
+      const oldNidGroup = this.byNid[old.nid]
+      if (oldNidGroup) {
+        const oldNidGroupIndex = oldNidGroup.indexOf(old)
+        if (oldNidGroupIndex != -1) {
+          oldNidGroup.splice(oldNidGroupIndex, 1)
+        }
+      }
+    }
+
+    this.byId[card.id] = card
+    ;(this.byNid[card.nid] ||= []).push(card)
+  }
+
+  set(card: AnyCard): Result<void> {
     const deck = this.decks.byId[card.did]
-    prayTruthy(deck, "Card must be associated with a deck which exists.")
+    if (!deck) {
+      return error("Card must be associated with a deck which exists.")
+    }
 
     const note = this.notes.byId[card.nid]
-    prayTruthy(note, "Card must be associated with a note which exists.")
+    if (!note) {
+      return error("Card must be associated with a note which exists.")
+    }
 
     const model = this.models.byId[note.mid]
-    prayTruthy(model, "Card's must be associated with a model which exists.")
+    if (!model) {
+      return error("Note must be associated with a model which exists.")
+    }
 
     const tmpl = model.tmpls[card.tid]
-    prayTruthy(tmpl, "Card must be associated with a template which exists.")
+    if (!tmpl) {
+      return error("Card must be associated with a template which exists.")
+    }
 
-    this.c[card.id] = card
+    // TODO: update new_today in corresponding deck
+    this.__unsafeForceSet(card)
+    return ok()
   }
 
   // no `create` method since cards can only be created by corresponding notes
@@ -316,5 +358,100 @@ export class AppModels {
 }
 
 export class AppNotes {
-  constructor(readonly byId: Notes) {}
+  constructor(
+    readonly byId: Notes,
+    readonly models: AppModels,
+    /**
+     * This is initially null when set by `new Application`, so don't use it in
+     * the constructor. This is because `notes` and `cards` depend on each other
+     * in a circular relationship, so one (`notes`) is not initially
+     * instantiated fully.
+     */
+    readonly cards: AppCards,
+    readonly decks: AppDecks,
+    readonly prefs: AppPrefs,
+  ) {}
+
+  push(note: Note): Result<void> {
+    if (note.id in this.byId) {
+      return error("A note with that id already exists.")
+    }
+
+    this.byId[note.id] = note
+
+    return ok()
+  }
+
+  create(props: {
+    now: number
+    mid: Id
+    fields: string[]
+    tags?: string
+    did: Id
+  }) {
+    const model = this.models.byId[props.mid]
+    if (!model) {
+      return error("A note must be associated with a model which exists.")
+    }
+
+    const fieldRecord = Template.fieldRecord(model.fields, props.fields)
+    if (!fieldRecord.ok) {
+      return fieldRecord
+    }
+
+    const sortField = props.fields[model.sort_field]
+    if (sortField == null) {
+      return error("Model has an invalid sort field position.")
+    }
+
+    const nid = randomId()
+    const tags = props.tags || ""
+    const now = props.now
+    const did = props.did
+
+    const note: Note = {
+      creation: now,
+      fields: props.fields,
+      mid: props.mid,
+      csum: 0, // TODO: make checksums work
+      id: nid,
+      last_edited: now,
+      sort_field: sortField,
+      tags,
+    }
+
+    const cards: NewCard[] = []
+
+    for (let tid = 0; tid < model.tmpls.length; tid++) {
+      const tmpl = model.tmpls[tid]!
+      const base = createEmptyCard(now)
+      const template = Template.parse(tmpl.qfmt)
+      if (!template.ok) {
+        return error("Card template was invalid. " + template.reason)
+      }
+      const isFilled = Template.isFilled(template.value, fieldRecord.value)
+      if (!isFilled) {
+        continue
+      }
+      const card: NewCard = {
+        ...base,
+        did,
+        nid,
+        tid,
+        id: randomId(),
+        due: base.due.getTime(),
+        last_edit: now,
+        last_review: undefined,
+        queue: 0,
+        state: State.New,
+      }
+      cards.push(card)
+    }
+
+    if (cards.length == 0) {
+      return error("Note generated no cards.")
+    }
+
+    return ok({ note, cards })
+  }
 }

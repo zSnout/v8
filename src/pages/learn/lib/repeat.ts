@@ -2,14 +2,7 @@ import { notNull, pray } from "@/components/pray"
 import { FSRS, Rating, RecordLogItem, State } from "ts-fsrs"
 import { randomId } from "./id"
 import { AppPrefs } from "./state"
-import {
-  AnyCard,
-  Conf,
-  NonNewState,
-  RepeatItem,
-  RepeatInfo,
-  ReviewedCard,
-} from "./types"
+import { AnyCard, Conf, RepeatInfo, RepeatItem, ReviewedCard } from "./types"
 
 function createRepeatItem(
   prev: AnyCard,
@@ -38,15 +31,6 @@ function createRepeatItem(
   }
 }
 
-const stateMap = {
-  get [State.New](): never {
-    throw new Error("Card state cannot be `New` immediately after review.")
-  },
-  [State.Learning]: NonNewState.Learning,
-  [State.Review]: NonNewState.Review,
-  [State.Relearning]: NonNewState.Relearning,
-}
-
 function merge(
   prev: AnyCard,
   rating: Rating,
@@ -64,7 +48,7 @@ function merge(
     due: fsrsCard.due.getTime(),
     last_review: lastReview,
     reps: fsrsCard.reps,
-    state: stateMap[fsrsCard.state],
+    state: fsrsCard.state,
     elapsed_days: fsrsCard.elapsed_days,
     scheduled_days: fsrsCard.scheduled_days,
     stability: fsrsCard.stability,
@@ -75,7 +59,7 @@ function merge(
 
 function setDue(card: AnyCard, now: number): AnyCard {
   if (card.state == State.New) {
-    return { ...card, state: State.Learning, due: now }
+    return { ...card, state: State.New, due: now }
   } else {
     return card
   }
@@ -120,8 +104,12 @@ function repeatLearning(
   const againStep = learningSteps[0]
   pray(againStep != null, "must have at least one learning step")
 
-  const lastStep = card.last_review ? card.due - card.last_review : againStep
-  let lastStepIndex = learningSteps.findLastIndex((step) => step <= lastStep)
+  const lastStepInSeconds = card.last_review
+    ? (card.due - card.last_review) / 1000
+    : againStep
+  let lastStepIndex = learningSteps.findLastIndex(
+    (step) => step <= lastStepInSeconds,
+  )
   if (lastStepIndex == -1) {
     lastStepIndex = 0
   }
@@ -133,7 +121,7 @@ function repeatLearning(
   const areLearningStepsLeft = lastStepIndex + 1 < learningSteps.length
 
   const dueGood = areLearningStepsLeft
-    ? now + learningSteps[lastStepIndex + 1]!
+    ? now + learningSteps[lastStepIndex + 1]! * 1000
     : byFsrs[Rating.Good].card.due
 
   const dueHard = areLearningStepsLeft
@@ -151,7 +139,7 @@ function repeatLearning(
       due: dueAgain,
       last_review: now,
       reps: card.reps + 1,
-      state: NonNewState.Learning,
+      state: State.Learning,
       elapsed_days: prefs.daysBetween(card.last_review, now),
       scheduled_days: 0,
       stability: byFsrs[Rating.Again].card.stability,
@@ -164,7 +152,7 @@ function repeatLearning(
       due: dueHard,
       last_review: now,
       reps: card.reps + 1,
-      state: NonNewState.Learning,
+      state: State.Learning,
       elapsed_days: prefs.daysBetween(card.last_review, now),
       scheduled_days: 0,
       stability: byFsrs[Rating.Hard].card.stability,
@@ -178,7 +166,7 @@ function repeatLearning(
           due: dueGood,
           last_review: now,
           reps: card.reps + 1,
-          state: NonNewState.Learning,
+          state: State.Learning,
           elapsed_days: prefs.daysBetween(card.last_review, now),
           scheduled_days: 0,
           stability: byFsrs[Rating.Good].card.stability,
@@ -211,6 +199,8 @@ export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepe
   ) {
     return repeatLearning(card, conf, prefs, f, now, time)
   }
+
+  // TODO: handle relearning
 
   return repeatFsrs(card, conf, prefs, f, now, time)
 }

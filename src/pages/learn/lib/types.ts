@@ -63,14 +63,8 @@ export function makeCard<
 export interface NewCard extends v.InferOutput<typeof NewCard> {}
 export const NewCard = makeCard(v.undefined(), v.literal(State.New))
 
-export enum NonNewState {
-  Learning = 1,
-  Review = 2,
-  Relearning = 3,
-}
-
 export interface ReviewedCard extends v.InferOutput<typeof ReviewedCard> {}
-export const ReviewedCard = makeCard(v.number(), v.enum(NonNewState))
+export const ReviewedCard = makeCard(v.number(), v.enum(State))
 
 export interface AnyCard extends v.InferOutput<typeof AnyCard> {}
 export const AnyCard = makeCard(v.optional(v.number()), v.enum(State))
@@ -87,7 +81,7 @@ export const Grave = v.object({
 export interface Note extends v.InferOutput<typeof Note> {}
 export const Note = v.object({
   /** Note id */
-  nid: Id,
+  id: Id,
 
   /** Creation timestamp */
   creation: v.number(),
@@ -129,7 +123,7 @@ export const Review = v.object({
   rating: v.enum(Rating),
 
   /** State of the review */
-  state: v.enum(NonNewState),
+  state: v.enum(State),
 
   /** Date of the last scheduling */
   due: v.number(),
