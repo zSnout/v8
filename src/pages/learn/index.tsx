@@ -16,8 +16,8 @@ import { Grade, Rating, State } from "ts-fsrs"
 import { timestampDist } from "../quiz/shared"
 import { createCollection } from "./lib/defaults"
 import { createExpr } from "./lib/expr"
-import { Id } from "./lib/id"
-import { Layers } from "./lib/layerable"
+import { Id, randomId } from "./lib/id"
+import { Layers, useLayers, withCurrentOwner } from "./lib/layerable"
 import { App } from "./lib/state"
 import * as Template from "./lib/template"
 import { AnyCard } from "./lib/types"
@@ -56,7 +56,7 @@ export function PrevDebug() {
   const [notes, reloadNotes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
   const [confs] = createExpr(() => app.confs.byId)
-  const layers = Layers.get()
+  const layers = useLayers()
 
   function CreateNotePretty() {
     const [deck, setDeck] = createSignal(
@@ -68,8 +68,8 @@ export function PrevDebug() {
     const [fields, setFields] = createSignal(model().fields.map(() => ""))
 
     return (
-      <div class="flex flex-col gap-1">
-        <div class="grid grid-cols-2 gap-6">
+      <div class="flex flex-col gap-4">
+        <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
           <label>
             <p class="mb-1 text-sm text-z-subtitle">Deck</p>
             <AutocompleteBox
@@ -101,6 +101,41 @@ export function PrevDebug() {
               value={model().name}
             />
           </label>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <For each={model().fields}>
+            {(field, index) => {
+              const id = randomId() + ""
+              return (
+                <label
+                  class="z-field rounded-lg border-transparent bg-z-body-selected p-0 shadow-none"
+                  for={id}
+                >
+                  <p class="mb-1 select-none px-2 pt-1 text-sm text-z-subtitle">
+                    {field.name}
+                  </p>
+                  <div
+                    id={id}
+                    class="-mt-1 px-2 pb-1 focus:outline-none"
+                    contentEditable
+                    style={{
+                      "font-family": field.font,
+                      "font-size": field.size
+                        ? field.size / 16 + "px"
+                        : undefined,
+                    }}
+                    dir={field.rtl ? "rtl" : "ltr"}
+                    onInput={(el) =>
+                      setFields((fields) =>
+                        fields.with(index(), el.currentTarget.innerHTML),
+                      )
+                    }
+                  />
+                </label>
+              )
+            }}
+          </For>
         </div>
       </div>
     )
@@ -399,7 +434,7 @@ export function PrevDebug() {
     )
   }
 
-  function Inner(pop: () => void) {
+  const Inner = withCurrentOwner((pop: () => void) => {
     return (
       <div>
         hello world
@@ -412,34 +447,25 @@ export function PrevDebug() {
           ))}
       </div>
     )
-  }
+  })
 
   return (
     <div class="flex flex-col gap-8">
-      <button
-        class="rounded bg-z-body-selected px-2 py-1"
-        onClick={() => layers.push(Inner)}
-      >
-        push a layer
-      </button>
       <CreateNotePretty />
+      <div />
+      <div />
+      <div />
       <CreateNote />
       <RawInformation />
-      <button
-        class="rounded bg-z-body-selected px-2 py-1"
-        onClick={() => layers.push(Inner)}
-      >
-        push a layer
-      </button>
     </div>
   )
 }
 
 export function Debug() {
   return (
-    <Layers.Base>
+    <Layers.Root>
       <PrevDebug />
-    </Layers.Base>
+    </Layers.Root>
   )
 }
 
@@ -522,11 +548,6 @@ function AutocompleteBox<T extends string>(props: {
             setSelected(0)
           }}
           onBlur={(event) => {
-            if (props.options.includes(field() as T)) {
-              props.onChange?.(field() as T)
-              return
-            }
-
             const choice = matching()[selected()]
             if (choice) {
               setField(() => choice[0])
@@ -534,6 +555,11 @@ function AutocompleteBox<T extends string>(props: {
               props.onInput?.(choice[0])
               props.onChange?.(choice[0])
               setSelected(0)
+              return
+            }
+
+            if (props.options.includes(field() as T)) {
+              props.onChange?.(field() as T)
               return
             }
 
