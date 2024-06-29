@@ -1,6 +1,13 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { unwrap } from "@/components/result"
-import { batch, createMemo, createSignal, For, JSX } from "solid-js"
+import {
+  batch,
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  JSX,
+} from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { timestampDist } from "../quiz/shared"
 import { createCollection } from "./lib/defaults"
@@ -365,21 +372,29 @@ export function Debug() {
 //   )
 // }
 
-function AutocompleteBox(props: { options: readonly string[] }): JSX.Element {
-  const [field, setField] = createSignal("Def")
+function AutocompleteBox<T extends string>(props: {
+  options: readonly T[]
+  value?: string
+  onInput?: (value: string) => void
+  onChange?: (value: T) => void
+}): JSX.Element {
+  const [field, setField] = createSignal("")
 
   const matching = createMemo(() => {
-    return props.options.filter((x) => x.startsWith(field()))
+    return props.options
+      .map((option) => [option, option.indexOf(field())] as const)
+      .filter(([, pos]) => pos != -1)
+      .sort(([, a], [, b]) => a - b)
   })
 
-  const [selected, setSelected] = createSignal(2)
+  const [selected, setSelected] = createSignal(0)
 
   return (
     <div class="h-[calc(2rem_+_2px)]">
-      <div class="z-field relative z-10 overflow-clip p-0 shadow-lg">
+      <div class="z-field relative z-10 overflow-clip p-0 shadow-none focus-within:shadow-lg">
         <input
+          class="peer w-full px-2 py-1 focus:outline-none"
           type="text"
-          class="w-full px-2 py-1 focus:outline-none"
           onKeyDown={(event) => {
             if (event.metaKey || event.ctrlKey || event.altKey) {
               return
@@ -398,9 +413,13 @@ function AutocompleteBox(props: { options: readonly string[] }): JSX.Element {
             if (event.key == "Enter") {
               const choice = matching()[selected()]
               if (choice) {
-                setField(choice)
+                setField(() => choice[0])
+                props.onInput?.(choice[0])
+                props.onChange?.(choice[0])
+                setSelected(0)
               }
               event.preventDefault()
+              event.currentTarget.blur()
               return
             }
           }}
@@ -411,25 +430,57 @@ function AutocompleteBox(props: { options: readonly string[] }): JSX.Element {
             }
 
             setField(event.currentTarget.value)
+            props.onInput?.(event.currentTarget.value)
+            setSelected(0)
+          }}
+          onBlur={(event) => {
+            if (props.options.includes(field() as T)) {
+              return
+            }
+
+            const choice = matching()[selected()]
+            if (choice) {
+              setField(() => choice[0])
+              props.onInput?.(choice[0])
+              props.onChange?.(choice[0])
+              setSelected(0)
+              return
+            }
+            event.currentTarget.focus()
           }}
           value={field()}
         />
 
-        <div class="flex flex-col overflow-clip rounded-b-lg border-t border-z bg-z-body">
+        <div class="hidden flex-col overflow-y-auto rounded-b-lg border-t border-z bg-z-body transition-all peer-focus:flex">
           <For
             each={matching()}
             fallback={
               <div class="px-2 py-0.5 italic">that option does not exist</div>
             }
           >
-            {(match, index) => (
-              <div
-                class="px-2 py-0.5"
+            {([match, pos], index) => (
+              <button
+                class="px-2 py-0.5 text-left"
                 classList={{ "bg-z-body-selected": index() == selected() }}
+                ref={(el) => {
+                  createEffect(() => {
+                    if (index() == selected()) {
+                      el.scrollIntoView({ block: "nearest", inline: "nearest" })
+                    }
+                  })
+                }}
+                onClick={() => {
+                  setSelected(index())
+                }}
+                onMouseOver={() => {
+                  setSelected(index())
+                }}
+                tabIndex={-1}
               >
+                <span>{match.slice(0, pos)}</span>
                 <span class="font-semibold text-z-heading">{field()}</span>
-                <span>{match.slice(field().length)}</span>
-              </div>
+                <span>{match.slice(pos + field().length)}</span>
+              </button>
             )}
           </For>
         </div>
