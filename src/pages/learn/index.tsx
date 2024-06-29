@@ -21,6 +21,7 @@ const app = new App(createCollection(Date.now()))
 unwrap(app.decks.push(app.decks.create(Date.now(), "Default::nope")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "Default::nuh uh")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "Default::nuh uh::72")))
+unwrap(app.decks.push(app.decks.create(Date.now(), "Definitely not real")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "Wow::23")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "45")))
 
@@ -94,7 +95,7 @@ export function Debug() {
         </For>
 
         <button
-          class="bg-z-body-selected px-2 py-1"
+          class="rounded bg-z-body-selected px-2 py-1"
           onClick={() => {
             const { note, cards } = unwrap(
               app.notes.create({
@@ -339,34 +340,96 @@ export function Debug() {
 
   return (
     <div class="flex flex-col gap-8">
-      {/* <AutocompleteBox
-        options={["hi", "world", "good people", "deck::23", "world:;45"]}
-      /> */}
-      <SplitDeckPath path="Default::abc::hello" />
+      <AutocompleteBox options={Object.keys(app.decks.byName).sort()} />
       <CreateNote />
       <RawInformation />
     </div>
   )
 }
 
-function SplitDeckPath(props: { path: string }) {
-  const [first, ...rest] = props.path.split("::")
+// function SplitDeckPath(props: { path: string }) {
+//   const [first, ...rest] = props.path.split("::")
+
+//   return (
+//     <div>
+//       {first}
+//       <For each={rest}>
+//         {(item) => (
+//           <>
+//             <span class="mx-1 opacity-50">::</span>
+//             {item}
+//           </>
+//         )}
+//       </For>
+//     </div>
+//   )
+// }
+
+function AutocompleteBox(props: { options: readonly string[] }): JSX.Element {
+  const [field, setField] = createSignal("Def")
+
+  const matching = createMemo(() => {
+    return props.options.filter((x) => x.startsWith(field()))
+  })
+
+  const [selected, setSelected] = createSignal(2)
 
   return (
-    <div>
-      {first}
-      <For each={rest}>
-        {(item) => (
-          <>
-            <span class="mx-1 opacity-50">::</span>
-            {item}
-          </>
-        )}
-      </For>
+    <div class="z-field relative rounded-b-none p-0 shadow-none">
+      <div
+        class="px-2 py-1 focus:outline-none"
+        contentEditable="plaintext-only"
+        onKeyDown={(event) => {
+          if (event.metaKey || event.ctrlKey || event.altKey) {
+            return
+          }
+
+          if (event.key == "Enter") {
+            event.preventDefault()
+          }
+        }}
+        onInput={(event) => {
+          if (event.currentTarget.textContent?.includes("\n")) {
+            event.currentTarget.textContent =
+              event.currentTarget.textContent.replaceAll("\n", "")
+          }
+        }}
+        onPaste={(event) => {
+          if (!event.clipboardData) {
+            return
+          }
+
+          event.clipboardData.clearData("text/html")
+
+          const data = event.clipboardData.getData("text/plain")
+          if (data.includes("\n") || data.includes("\r")) {
+            try {
+              document.execCommand(
+                "insertText",
+                false,
+                data.replaceAll("\n", ""),
+              )
+            } catch {}
+            event.preventDefault()
+          }
+        }}
+      >
+        {field()}
+      </div>
+
+      <div class="absolute -left-px -right-px flex flex-col rounded-b-lg border border-z bg-z-body shadow-lg">
+        <For each={matching()}>
+          {(match, index) => (
+            <div
+              class="px-2 py-0.5"
+              classList={{ "bg-z-body-selected": index() == selected() }}
+            >
+              <span class="font-semibold text-z-heading">{field()}</span>
+              <span>{match.slice(field().length)}</span>
+            </div>
+          )}
+        </For>
+      </div>
     </div>
   )
-}
-
-function AutocompleteBox(props: { options: {}[] }): JSX.Element {
-  return
 }

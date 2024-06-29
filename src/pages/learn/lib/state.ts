@@ -150,7 +150,7 @@ export class AppConfs {
 
 export class AppDecks {
   /** Record from deck names to decks */
-  private n: Record<string, Deck> = Object.create(null)
+  readonly byName: Record<string, Deck> = Object.create(null)
 
   /** Record from deck ids to decks */
   readonly byId: Record<string, Deck> = Object.create(null)
@@ -159,7 +159,7 @@ export class AppDecks {
     this.byId = decks
     for (const key in decks) {
       const deck = decks[key]!
-      this.n[deck.name] = deck
+      this.byName[deck.name] = deck
     }
   }
 
@@ -178,7 +178,7 @@ export class AppDecks {
   }
 
   push(deck: Deck): Result<void> {
-    if (deck.name in this.n) {
+    if (deck.name in this.byName) {
       return error("A deck with that name already exists.")
     }
 
@@ -186,7 +186,7 @@ export class AppDecks {
       return error("A deck with that id already exists.")
     }
 
-    this.byId[deck.id] = this.n[deck.name] = deck
+    this.byId[deck.id] = this.byName[deck.name] = deck
 
     return ok()
   }
@@ -194,11 +194,11 @@ export class AppDecks {
   private pushForce(deck: Deck) {
     // pray(!(deck.name in this.n), "A deck with that name already exists.")
     // pray(!(deck.id in this.byId), "A deck with that id already exists.")
-    this.byId[deck.id] = this.n[deck.name] = deck
+    this.byId[deck.id] = this.byName[deck.name] = deck
   }
 
   byNameOrCreate(name: string, now: number): Deck {
-    const existing = this.n[name]
+    const existing = this.byName[name]
     if (existing) {
       return existing
     }
