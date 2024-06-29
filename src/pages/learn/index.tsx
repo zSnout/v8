@@ -7,6 +7,7 @@ import {
   createSignal,
   For,
   JSX,
+  Show,
 } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { timestampDist } from "../quiz/shared"
@@ -389,9 +390,11 @@ function AutocompleteBox<T extends string>(props: {
 
   const [selected, setSelected] = createSignal(0)
 
+  const [attemptedBlur, setAttemptedBlur] = createSignal<number>()
+
   return (
     <div class="h-[calc(2rem_+_2px)]">
-      <div class="z-field relative z-10 overflow-clip p-0 shadow-none focus-within:shadow-lg">
+      <div class="z-field relative z-10 overflow-clip p-0 shadow-none">
         <input
           class="peer w-full px-2 py-1 focus:outline-none"
           type="text"
@@ -414,6 +417,7 @@ function AutocompleteBox<T extends string>(props: {
               const choice = matching()[selected()]
               if (choice) {
                 setField(() => choice[0])
+                setAttemptedBlur()
                 props.onInput?.(choice[0])
                 props.onChange?.(choice[0])
                 setSelected(0)
@@ -430,32 +434,43 @@ function AutocompleteBox<T extends string>(props: {
             }
 
             setField(event.currentTarget.value)
+            setAttemptedBlur()
             props.onInput?.(event.currentTarget.value)
             setSelected(0)
           }}
           onBlur={(event) => {
             if (props.options.includes(field() as T)) {
+              props.onChange?.(field() as T)
               return
             }
 
             const choice = matching()[selected()]
             if (choice) {
               setField(() => choice[0])
+              setAttemptedBlur()
               props.onInput?.(choice[0])
               props.onChange?.(choice[0])
               setSelected(0)
               return
             }
+
+            setAttemptedBlur((x) => (x || 0) + 1)
             event.currentTarget.focus()
           }}
           value={field()}
         />
 
-        <div class="hidden flex-col overflow-y-auto rounded-b-lg border-t border-z bg-z-body transition-all peer-focus:flex">
+        <div class="hidden max-h-48 select-none flex-col overflow-y-auto rounded-b-lg border-t border-z bg-z-body transition-all peer-focus:flex">
           <For
             each={matching()}
             fallback={
-              <div class="px-2 py-0.5 italic">that option does not exist</div>
+              <div class="px-2 py-0.5 italic">
+                That option does not exist.
+                <Show when={attemptedBlur() != null}>
+                  <br />
+                  Select an option to continue.
+                </Show>
+              </div>
             }
           >
             {([match, pos], index) => (
@@ -469,8 +484,13 @@ function AutocompleteBox<T extends string>(props: {
                     }
                   })
                 }}
-                onClick={() => {
-                  setSelected(index())
+                onClick={(event) => {
+                  setField(() => match)
+                  setAttemptedBlur()
+                  props.onInput?.(match)
+                  props.onChange?.(match)
+                  setSelected(0)
+                  event.currentTarget.blur()
                 }}
                 onMouseOver={() => {
                   setSelected(index())
