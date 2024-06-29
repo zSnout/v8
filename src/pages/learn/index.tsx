@@ -17,6 +17,8 @@ import { Id } from "./lib/id"
 import { App } from "./lib/state"
 import * as Template from "./lib/template"
 import { AnyCard } from "./lib/types"
+import { Fa } from "@/components/Fa"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
 
 const grades: { grade: Grade; bg: string; text: string }[] = [
   { grade: Rating.Again, bg: "bg-red-300", text: "text-red-900" },
@@ -355,24 +357,6 @@ export function Debug() {
   )
 }
 
-// function SplitDeckPath(props: { path: string }) {
-//   const [first, ...rest] = props.path.split("::")
-
-//   return (
-//     <div>
-//       {first}
-//       <For each={rest}>
-//         {(item) => (
-//           <>
-//             <span class="mx-1 opacity-50">::</span>
-//             {item}
-//           </>
-//         )}
-//       </For>
-//     </div>
-//   )
-// }
-
 function AutocompleteBox<T extends string>(props: {
   options: readonly T[]
   value?: string
@@ -459,6 +443,10 @@ function AutocompleteBox<T extends string>(props: {
           }}
           value={field()}
         />
+
+        <div class="pointer-events-none absolute right-0 top-0 flex h-8 w-8 items-center justify-center">
+          <Fa class="h-4 w-4" icon={faChevronDown} title="show dropdown" />
+        </div>
 
         <div class="hidden max-h-48 select-none flex-col overflow-y-auto rounded-b-lg border-t border-z bg-z-body transition-all peer-focus:flex">
           <For
