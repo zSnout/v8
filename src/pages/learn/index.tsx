@@ -1,5 +1,8 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
+import { Fa } from "@/components/Fa"
+import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
 import {
   batch,
   createEffect,
@@ -17,8 +20,6 @@ import { Id } from "./lib/id"
 import { App } from "./lib/state"
 import * as Template from "./lib/template"
 import { AnyCard } from "./lib/types"
-import { Fa } from "@/components/Fa"
-import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
 
 const grades: { grade: Grade; bg: string; text: string }[] = [
   { grade: Rating.Again, bg: "bg-red-300", text: "text-red-900" },
@@ -54,6 +55,32 @@ export function Debug() {
   const [notes, reloadNotes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
   const [confs] = createExpr(() => app.confs.byId)
+
+  function CreateNotePretty() {
+    const [deck, setDeck] = createSignal(
+      app.decks.byId[Object.keys(app.decks.byId)[0]!]!,
+    )
+    const [model, setModel] = createSignal(
+      app.models.byId[Object.keys(app.models.byId)[0]!]!,
+    )
+    const [fields, setFields] = createSignal(model().fields.map(() => ""))
+
+    return (
+      <div class="flex flex-col gap-1">
+        <AutocompleteBox
+          options={Object.keys(app.decks.byName).sort()}
+          onChange={(name) => {
+            setDeck(
+              notNull(
+                app.decks.byName[name],
+                "The selected deck does not exist.",
+              ),
+            )
+          }}
+        />
+      </div>
+    )
+  }
 
   function CreateNote() {
     const [deck, setDeck] = createSignal(
@@ -350,7 +377,7 @@ export function Debug() {
 
   return (
     <div class="flex flex-col gap-8">
-      <AutocompleteBox options={Object.keys(app.decks.byName).sort()} />
+      <CreateNotePretty />
       <CreateNote />
       <RawInformation />
     </div>
@@ -365,12 +392,23 @@ function AutocompleteBox<T extends string>(props: {
 }): JSX.Element {
   const [field, setField] = createSignal("")
 
-  const matching = createMemo(() => {
-    return props.options
-      .map((option) => [option, option.indexOf(field())] as const)
-      .filter(([, pos]) => pos != -1)
+  const matchingRaw = createMemo(() => {
+    const f = field().toLowerCase()
+
+    const result = props.options
+      .map((option) => {
+        const index = option.toLowerCase().indexOf(f)
+        return [option, index == -1 ? 1 / 0 : index] as const
+      })
       .sort(([, a], [, b]) => a - b)
+
+    const infinity = result.findIndex(([, v]) => v == 1 / 0)
+
+    return { result, infinity }
   })
+
+  const matching = () => matchingRaw().result
+  const infIndex = () => matchingRaw().infinity
 
   const [selected, setSelected] = createSignal(0)
 
@@ -463,8 +501,13 @@ function AutocompleteBox<T extends string>(props: {
           >
             {([match, pos], index) => (
               <button
-                class="px-2 py-0.5 text-left"
-                classList={{ "bg-z-body-selected": index() == selected() }}
+                class="border-z px-2 py-0.5 text-left"
+                classList={{
+                  "bg-z-body-selected": index() == selected(),
+                  "border-t": index() != 0 && infIndex() == index(),
+                  "pt-[calc(0.125rem_-_1px)]":
+                    index() != 0 && infIndex() == index(),
+                }}
                 ref={(el) => {
                   createEffect(() => {
                     if (index() == selected()) {
@@ -486,7 +529,9 @@ function AutocompleteBox<T extends string>(props: {
                 tabIndex={-1}
               >
                 <span>{match.slice(0, pos)}</span>
-                <span class="font-semibold text-z-heading">{field()}</span>
+                <span class="font-semibold text-z-heading">
+                  {match.slice(pos, pos + field().length)}
+                </span>
                 <span>{match.slice(pos + field().length)}</span>
               </button>
             )}
