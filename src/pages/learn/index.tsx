@@ -10,12 +10,6 @@ import { App } from "./lib/state"
 import * as Template from "./lib/template"
 import { AnyCard } from "./lib/types"
 
-const diff = Date.prototype.diff
-Date.prototype.diff = function (a, b) {
-  console.log({ this: this, a, b })
-  return diff.call(this, a, b)
-}
-
 const grades: { grade: Grade; bg: string; text: string }[] = [
   { grade: Rating.Again, bg: "bg-red-300", text: "text-red-900" },
   { grade: Rating.Hard, bg: "bg-[#ffcc91]", text: "text-yellow-900" },

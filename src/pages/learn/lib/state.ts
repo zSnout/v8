@@ -214,7 +214,6 @@ export class AppDecks {
 
     for (const id in this.byId) {
       const deck = this.byId[id]!
-      console.log(deck.name)
 
       tree.set(
         deck.name.split("::"),
