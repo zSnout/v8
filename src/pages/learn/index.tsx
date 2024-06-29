@@ -375,60 +375,64 @@ function AutocompleteBox(props: { options: readonly string[] }): JSX.Element {
   const [selected, setSelected] = createSignal(2)
 
   return (
-    <div class="z-field relative rounded-b-none p-0 shadow-none">
-      <div
-        class="px-2 py-1 focus:outline-none"
-        contentEditable="plaintext-only"
-        onKeyDown={(event) => {
-          if (event.metaKey || event.ctrlKey || event.altKey) {
-            return
-          }
+    <div class="h-[calc(2rem_+_2px)]">
+      <div class="z-field relative z-10 overflow-clip p-0 shadow-lg">
+        <input
+          type="text"
+          class="w-full px-2 py-1 focus:outline-none"
+          onKeyDown={(event) => {
+            if (event.metaKey || event.ctrlKey || event.altKey) {
+              return
+            }
 
-          if (event.key == "Enter") {
-            event.preventDefault()
-          }
-        }}
-        onInput={(event) => {
-          if (event.currentTarget.textContent?.includes("\n")) {
-            event.currentTarget.textContent =
-              event.currentTarget.textContent.replaceAll("\n", "")
-          }
-        }}
-        onPaste={(event) => {
-          if (!event.clipboardData) {
-            return
-          }
+            if (event.key == "ArrowUp" || event.key == "ArrowDown") {
+              const dir = event.key == "ArrowUp" ? -1 : 1
+              setSelected((x) => {
+                const matches = matching().length
+                return (x + dir + matches) % matches
+              })
+              event.preventDefault()
+              return
+            }
 
-          event.clipboardData.clearData("text/html")
+            if (event.key == "Enter") {
+              const choice = matching()[selected()]
+              if (choice) {
+                setField(choice)
+              }
+              event.preventDefault()
+              return
+            }
+          }}
+          onInput={(event) => {
+            if (event.currentTarget.textContent?.includes("\n")) {
+              event.currentTarget.textContent =
+                event.currentTarget.textContent.replaceAll("\n", "")
+            }
 
-          const data = event.clipboardData.getData("text/plain")
-          if (data.includes("\n") || data.includes("\r")) {
-            try {
-              document.execCommand(
-                "insertText",
-                false,
-                data.replaceAll("\n", ""),
-              )
-            } catch {}
-            event.preventDefault()
-          }
-        }}
-      >
-        {field()}
-      </div>
+            setField(event.currentTarget.value)
+          }}
+          value={field()}
+        />
 
-      <div class="absolute -left-px -right-px flex flex-col rounded-b-lg border border-z bg-z-body shadow-lg">
-        <For each={matching()}>
-          {(match, index) => (
-            <div
-              class="px-2 py-0.5"
-              classList={{ "bg-z-body-selected": index() == selected() }}
-            >
-              <span class="font-semibold text-z-heading">{field()}</span>
-              <span>{match.slice(field().length)}</span>
-            </div>
-          )}
-        </For>
+        <div class="flex flex-col overflow-clip rounded-b-lg border-t border-z bg-z-body">
+          <For
+            each={matching()}
+            fallback={
+              <div class="px-2 py-0.5 italic">that option does not exist</div>
+            }
+          >
+            {(match, index) => (
+              <div
+                class="px-2 py-0.5"
+                classList={{ "bg-z-body-selected": index() == selected() }}
+              >
+                <span class="font-semibold text-z-heading">{field()}</span>
+                <span>{match.slice(field().length)}</span>
+              </div>
+            )}
+          </For>
+        </div>
       </div>
     </div>
   )
