@@ -10,9 +10,10 @@
 // TODO: ignore card when front is empty
 // TODO: clozes
 
+// TODO: `learn-tts` and `learn-hint`
+
 import { error, ok, Result } from "@/components/result"
 import dom from "dompurify"
-import { randomId } from "./id"
 import { ModelField } from "./types"
 
 export type Text = { type: "text"; text: string }
@@ -102,25 +103,17 @@ export type RequiredFieldName =
   | "Card"
   | "FrontSide"
 
-export interface TemplateMeta {
-  readonly tts: string[]
-  readonly hints: string[]
-}
-
-type Action = (fieldValue: string, meta: TemplateMeta) => string
+type Action = (fieldValue: string) => string
 
 const actions: Record<string, Action> = {
-  tts(value, meta) {
-    const id = randomId().toString()
-    meta.tts.push(id)
-    return `<span id=${id} style=display:contents>${value}</span>`
+  tts(value) {
+    return `<learn-tts style=display:contents>${value}</learn-tts>`
   },
   text(value) {
     return htmlToText(value)
   },
   hint(value) {
-    const id = randomId().toString()
-    return `<button id=${id} style=text-decoration:underline>&lt;reveal hint&gt;</button><span style=display:none>${value}</span>`
+    return `<learn-hint style=display:contents><button style=text-decoration:underline>&lt;reveal hint&gt;</button><div style=display:none>${value}</div></learn-hint>`
   },
   furigana(value) {
     const regex = /([^[\]]+)\[([^[\]]+)\]|([^[\]]+)/g
@@ -162,11 +155,7 @@ const actions: Record<string, Action> = {
   },
 }
 
-function inner(
-  source: Compiled,
-  fields: Record<string, string>,
-  meta: TemplateMeta,
-): Result<string> {
+function inner(source: Compiled, fields: Fields): Result<string> {
   let output = ""
 
   for (const item of source) {
@@ -177,7 +166,7 @@ function inner(
       }
       const exists = !!value.trim()
       if (exists != item.negative) {
-        const result = inner(item.contents, fields, meta)
+        const result = inner(item.contents, fields)
         if (!result.ok) {
           return result
         }
@@ -212,17 +201,14 @@ function inner(
     if (fieldValue == null) {
       throw new Error("Referenced field does not exist.")
     }
-    output += action(fieldValue, meta)
+    output += action(fieldValue)
   }
 
   return ok(output)
 }
 
 /** Checks if at least one field is referenced and is non-empty. */
-export function isFilled(
-  source: Compiled,
-  fields: Record<string, string>,
-): boolean {
+export function isFilled(source: Compiled, fields: Fields): boolean {
   for (const item of source) {
     if (item.type == "tag") {
       const value = fields[item.name]
@@ -273,20 +259,16 @@ export function isFilled(
   return false
 }
 
-export type Generated = { html: string; meta: TemplateMeta }
+export type Fields = Record<string, string>
 
 // TODO: force function to accept `RequiredFieldName`s
 /** Fills in a compiled template with field values. */
-export function generate(
-  source: Compiled,
-  fields: Record<string, string>,
-): Result<Generated> {
-  const meta: TemplateMeta = { tts: [], hints: [] }
-  const result = inner(source, fields, meta)
+export function generate(source: Compiled, fields: Fields): Result<string> {
+  const result = inner(source, fields)
   if (!result.ok) {
     return result
   }
-  return ok({ html: result.value, meta })
+  return ok(result.value)
 }
 
 /** Creates a record of fields from a model and array of fields. */
@@ -299,7 +281,7 @@ export function fieldRecord(model: readonly ModelField[], fields: string[]) {
     )
   }
 
-  const record: Record<string, string> = Object.create(null)
+  const record: Fields = Object.create(null)
 
   for (let index = 0; index < model.length; index++) {
     const mf = model[index]!
@@ -310,8 +292,8 @@ export function fieldRecord(model: readonly ModelField[], fields: string[]) {
   return ok(record)
 }
 
-export function Render(props: { class?: string; data: Generated }) {
-  const html = dom.sanitize(props.data.html, {})
+export function Render(props: { class?: string; html: string }) {
+  const html = dom.sanitize(props.html, {})
   return (
     <div class={props.class} ref={(el) => (el.innerHTML = html)}>
       {"<loading external html>"}
@@ -319,8 +301,4 @@ export function Render(props: { class?: string; data: Generated }) {
   )
 }
 
-export {
-  parseTemplate as parse,
-  type TemplateMeta as Meta,
-  type Compiled as Type,
-}
+export { parseTemplate as parse, type Compiled as Type }

@@ -8,6 +8,7 @@ import { createExpr } from "./lib/expr"
 import { Id } from "./lib/id"
 import { App } from "./lib/state"
 import * as Template from "./lib/template"
+import { AnyCard } from "./lib/types"
 
 const diff = Date.prototype.diff
 Date.prototype.diff = function (a, b) {
@@ -123,6 +124,64 @@ export function Debug() {
         >
           add note
         </button>
+      </div>
+    )
+  }
+
+  function Card({ card }: { card: AnyCard }) {
+    const info = app.cards.repeat(card, Date.now(), 0)
+    const note = app.notes.byId[card.nid]!
+    const front = unwrap(
+      Template.generate(
+        unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.qfmt)),
+        unwrap(Template.fieldRecord(models()[note.mid]!.fields, note.fields)),
+      ),
+    )
+    const back = unwrap(
+      Template.generate(
+        unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.afmt)),
+        {
+          ...unwrap(
+            Template.fieldRecord(models()[note.mid]!.fields, note.fields),
+          ),
+          FrontSide: front,
+        },
+      ),
+    )
+    return (
+      <div class="flex flex-col rounded bg-z-body px-2 py-1 text-xs">
+        <Template.Render
+          class="mb-1 border-b border-z pb-1 text-center text-base"
+          html={front}
+        />
+        <Template.Render
+          class="mb-1 border-b border-z pb-1 text-center text-base"
+          html={back}
+        />
+        <div>did? {card.did}</div>
+        <div>tid? {card.tid}</div>
+        <div>lapses? {card.lapses}</div>
+        <div>difficulty? {card.difficulty}</div>
+        <div>stability? {card.stability}</div>
+        <div>reps? {card.reps}</div>
+        <div>state? {State[card.state]}</div>
+        <div>due? {timestampDist((card.due - Date.now()) / 1000)}</div>
+        <div class="-mx-1 mt-1 grid grid-cols-4 gap-1">
+          <For each={grades}>
+            {({ grade, bg, text }) => (
+              <button
+                class={`rounded-sm px-1 ${bg} ${text}`}
+                onClick={() => {
+                  const info = app.cards.repeat(card, Date.now(), 0)
+                  app.cards.set(info[grade].card)
+                  reloadCards()
+                }}
+              >
+                {timestampDist((info[grade].card.due - Date.now()) / 1000)}
+              </button>
+            )}
+          </For>
+        </div>
       </div>
     )
   }
@@ -248,87 +307,37 @@ export function Debug() {
               <p>mid? {note.mid}</p>
               <p>sort_field? {note.sort_field}</p>
               <p>tags? {note.tags}</p>
-              <div class="col-span-3 mt-1 flex gap-2 overflow-x-auto border-t border-z pb-1 pt-2 text-base">
-                <For each={cards()[note.id]}>
-                  {(card) => {
-                    const info = app.cards.repeat(card, Date.now(), 0)
-                    return (
-                      <div class="flex w-56 flex-col rounded bg-z-body px-2 py-1 text-xs">
-                        <Template.Render
-                          class="mb-1 border-b border-z pb-1 text-center text-base"
-                          data={unwrap(
-                            Template.generate(
-                              unwrap(
-                                Template.parse(
-                                  models()[note.mid]!.tmpls[card.tid]!.qfmt,
-                                ),
-                              ),
-                              unwrap(
-                                Template.fieldRecord(
-                                  models()[note.mid]!.fields,
-                                  note.fields,
-                                ),
-                              ),
-                            ),
-                          )}
-                        />
-                        <Template.Render
-                          class="mb-1 border-b border-z pb-1 text-center text-base"
-                          data={unwrap(
-                            Template.generate(
-                              unwrap(
-                                Template.parse(
-                                  models()[note.mid]!.tmpls[card.tid]!.afmt,
-                                ),
-                              ),
-                              unwrap(
-                                Template.fieldRecord(
-                                  models()[note.mid]!.fields,
-                                  note.fields,
-                                ),
-                              ),
-                            ),
-                          )}
-                        />
-                        <div>did? {card.did}</div>
-                        <div>tid? {card.tid}</div>
-                        <div>lapses? {card.lapses}</div>
-                        <div>difficulty? {card.difficulty}</div>
-                        <div>stability? {card.stability}</div>
-                        <div>reps? {card.reps}</div>
-                        <div>state? {State[card.state]}</div>
-                        <div>
-                          due? {timestampDist((card.due - Date.now()) / 1000)}
-                        </div>
-                        <div class="-mx-1 mt-1 grid grid-cols-4 gap-1">
-                          <For each={grades}>
-                            {({ grade, bg, text }) => (
-                              <button
-                                class={`rounded-sm px-1 ${bg} ${text}`}
-                                onClick={() => {
-                                  const info = app.cards.repeat(
-                                    card,
-                                    Date.now(),
-                                    0,
-                                  )
-                                  app.cards.set(info[grade].card)
-                                  reloadCards()
-                                }}
-                              >
-                                {timestampDist(
-                                  (info[grade].card.due - Date.now()) / 1000,
-                                )}
-                              </button>
-                            )}
-                          </For>
-                        </div>
-                      </div>
-                    )
-                  }}
+              <div class="col-span-3 mt-1 grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2 overflow-x-auto border-t border-z pb-1 pt-2 text-base">
+                <For each={cards()[note.id]?.toSorted((a, b) => a.id - b.id)}>
+                  {(card) => <Card card={card} />}
                 </For>
               </div>
             </div>
           )}
+        </For>
+      </div>
+
+      {/* Cards by due date */}
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2 rounded-lg bg-z-body-selected p-2">
+        <p class="col-span-full -my-1">Cards by due date</p>
+        <For
+          each={Object.values(cards())
+            .flat()
+            .toSorted((a, b) => a.due - b.due)}
+        >
+          {(card) => <Card card={card} />}
+        </For>
+      </div>
+
+      {/* Cards by id */}
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2 rounded-lg bg-z-body-selected p-2">
+        <p class="col-span-full -my-1">Cards by id</p>
+        <For
+          each={Object.values(cards())
+            .flat()
+            .toSorted((a, b) => a.id - b.id)}
+        >
+          {(card) => <Card card={card} />}
         </For>
       </div>
     </div>
