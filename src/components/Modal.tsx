@@ -14,7 +14,7 @@ export function ModalButton(props: {
     <button
       class={
         "pointer-events-auto w-fit origin-top rounded-lg border border-transparent bg-z-field p-2 shadow-md ring-z-focus transition first:origin-top-left last:origin-top-right focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring group-[.invisible]:scale-0 " +
-        (props.class || "")
+        (props.class ?? "")
       }
       onClick={props.onClick}
     >

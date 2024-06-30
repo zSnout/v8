@@ -167,6 +167,9 @@ export const ModelField = v.object({
 
   /** The value to fill in by default when creating a new card of this model */
   sticky: v.optional(v.string()),
+
+  /** The placeholder to show in the entry window when no value is entered. */
+  desc: v.string(),
 })
 
 export interface ModelFields extends v.InferOutput<typeof ModelFields> {}

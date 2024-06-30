@@ -9,21 +9,29 @@
 // TODO: {{type:fieldname}} (these inherit the font of fields)
 // TODO: ignore card when front is empty
 // TODO: clozes
-
-// TODO: `learn-tts` and `learn-hint`
+// TODO: `learn-tts` and `learn-hint` custom elements
 
 import { error, ok, Result } from "@/components/result"
-import dom from "dompurify"
+import { sanitize } from "./sanitize"
 import { ModelField } from "./types"
 
-export type Text = { type: "text"; text: string }
-export type Field = { type: "field"; field: string }
-export type Tag = {
+export interface Text {
+  type: "text"
+  text: string
+}
+
+export interface Field {
+  type: "field"
+  field: string
+}
+
+export interface Tag {
   type: "tag"
   negative: boolean
   name: string
   contents: Compiled
 }
+
 export type Item = Text | Field | Tag
 export type Compiled = Item[]
 
@@ -54,11 +62,11 @@ export function parseTemplate<T extends string>(source: T): Result<Compiled> {
     const expr = source.slice(index + 2, end).trim()
     index = end + 2
 
-    if (expr[0] == "#" || expr[0] == "^") {
+    if (expr.startsWith("#") || expr.startsWith("^")) {
       const contents: Compiled = []
       const tag: Tag = {
         type: "tag",
-        negative: expr[0] == "^",
+        negative: expr.startsWith("^"),
         name: expr.slice(1),
         contents,
       }
@@ -68,7 +76,7 @@ export function parseTemplate<T extends string>(source: T): Result<Compiled> {
       continue
     }
 
-    if (expr[0] == "^") {
+    if (expr.startsWith("^")) {
       const prev = inner.pop()
       if (prev == null) {
         return error("Unmatched closing conditional `{{/name}}`.")
@@ -91,7 +99,7 @@ export function parseTemplate<T extends string>(source: T): Result<Compiled> {
 export function htmlToText(html: string): string {
   const parser = new DOMParser()
   const doc = parser.parseFromString(html, "text/html")
-  return doc.documentElement.textContent || ""
+  return doc.documentElement.textContent ?? ""
 }
 
 export type RequiredFieldName =
@@ -137,7 +145,8 @@ const actions: Record<string, Action> = {
       if (match[3]) {
         output += match[3]
       } else {
-        output += match[1]
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        output += match[1]!
       }
     }
     return output
@@ -281,10 +290,12 @@ export function fieldRecord(model: readonly ModelField[], fields: string[]) {
     )
   }
 
-  const record: Fields = Object.create(null)
+  const record: Fields = Object.create(null) as Fields
 
   for (let index = 0; index < model.length; index++) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const mf = model[index]!
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const field = fields[index]!
     record[mf.name] = field
   }
@@ -293,9 +304,11 @@ export function fieldRecord(model: readonly ModelField[], fields: string[]) {
 }
 
 export function Render(props: { class?: string; html: string }) {
-  const html = dom.sanitize(props.html, {})
   return (
-    <div class={props.class} ref={(el) => (el.innerHTML = html)}>
+    <div
+      class={props.class}
+      ref={(el) => (el.innerHTML = sanitize(props.html))}
+    >
       {"<loading external html>"}
     </div>
   )

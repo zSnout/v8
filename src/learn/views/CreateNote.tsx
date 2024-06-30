@@ -2,10 +2,10 @@
 import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import { createEffect, createSignal, For, untrack } from "solid-js"
-import { randomId } from "../id"
 import { App } from "../state"
 import { AutocompleteBox } from "./AutocompleteBox"
 import { EditModelFields } from "./EditModelFields"
+import { IntegratedField } from "./IntegratedField"
 import { useLayers } from "./Layers"
 import { TagEditor } from "./TagEditor"
 
@@ -87,50 +87,26 @@ export function CreateNote({ app }: { app: App }) {
 
       <div class="flex flex-col gap-1">
         <For each={model().fields}>
-          {(field, index) => {
-            const id = randomId() + ""
-            let el: HTMLDivElement
-            return (
-              <div class="z-field cursor-text rounded-lg border-transparent bg-z-body-selected p-0 shadow-none">
-                <p
-                  id={id}
-                  class="mb-1 w-full select-none px-2 pt-1 text-sm text-z-subtitle"
-                  onMouseDown={(event) => {
-                    event.preventDefault()
-                    el.focus()
-                  }}
-                  contentEditable={false}
-                >
-                  {field.name}
-                </p>
-
-                <div
-                  ref={(e) => (el = e)}
-                  aria-labelledby={id}
-                  class="-mt-1 px-2 pb-1 focus:outline-none"
-                  contentEditable
-                  tabIndex={0}
-                  style={{
-                    "font-family": field.font,
-                    "font-size": field.size
-                      ? field.size / 16 + "px"
-                      : undefined,
-                  }}
-                  dir={field.rtl ? "rtl" : "ltr"}
-                  onInput={(el) =>
-                    setFields((fields) =>
-                      fields.with(index(), el.currentTarget.innerHTML),
-                    )
-                  }
-                />
-              </div>
-            )
-          }}
+          {(field, index) => (
+            <IntegratedField
+              label={field.name}
+              rtl={field.rtl}
+              font={field.font}
+              sizePx={field.size}
+              type="html"
+              onInput={(value) =>
+                setFields((fields) => fields.with(index(), value))
+              }
+              placeholder={field.desc}
+              value={field.sticky}
+            />
+          )}
         </For>
       </div>
 
       <TagEditor value={tags()} onChange={(tags) => setTags(tags)} />
 
+      {/* TODO: remove the `hi`s */}
       {Array(1000)
         .fill(0)
         .map(() => (

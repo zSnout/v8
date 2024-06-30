@@ -91,8 +91,8 @@ export function createModels(): Collection["models"] {
     background-color: white;
 }`,
       fields: [
-        { id: randomId(), name: "Front", rtl: false },
-        { id: randomId(), name: "Back", rtl: false },
+        { id: randomId(), name: "Front", rtl: false, desc: "" },
+        { id: randomId(), name: "Back", rtl: false, desc: "" },
       ],
       name: "Basic",
       sort_field: 0,
@@ -120,8 +120,8 @@ export function createModels(): Collection["models"] {
     background-color: white;
 }`,
       fields: [
-        { name: "Front", rtl: false },
-        { name: "Back", rtl: false },
+        { id: randomId(), name: "Front", rtl: false, desc: "" },
+        { id: randomId(), name: "Back", rtl: false, desc: "" },
       ],
       name: "Basic and reversed",
       sort_field: 0,
