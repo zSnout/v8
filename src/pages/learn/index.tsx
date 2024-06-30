@@ -76,6 +76,24 @@ function TagEditor() {
             return
           }
 
+          if (event.target instanceof HTMLInputElement) {
+            if (
+              (event.key == "ArrowLeft" || event.key == "Backspace") &&
+              (event.target.selectionStart != event.target.selectionEnd ||
+                event.target.selectionStart != 0)
+            ) {
+              return
+            }
+
+            if (
+              event.key == "Right" &&
+              (event.target.selectionStart != event.target.selectionEnd ||
+                event.target.selectionStart != event.target.value.length)
+            ) {
+              return
+            }
+          }
+
           if (event.key == "ArrowLeft") {
             const tag = event.target.previousElementSibling
             if (tag && tag instanceof HTMLElement) {
@@ -96,7 +114,7 @@ function TagEditor() {
 
           if (event.key == "Backspace") {
             const { target } = event
-            if (target instanceof HTMLDivElement) {
+            if (target instanceof HTMLButtonElement) {
               const next = (target.previousElementSibling ||
                 target.nextElementSibling) as HTMLElement
               setTags((tags) => {
@@ -107,19 +125,27 @@ function TagEditor() {
               next.focus()
               event.preventDefault()
               return
+            } else if (target instanceof HTMLInputElement) {
+              const tag = event.target.previousElementSibling
+              if (tag && tag instanceof HTMLElement) {
+                tag.focus()
+                event.preventDefault()
+                return
+              }
             }
           }
         }}
       >
         <For each={tags()}>
           {(tag, index) => (
-            <div
-              class="flex-1 rounded-lg border border-transparent bg-z-body-selected px-2 py-1 text-center focus:outline-none focus:invert"
+            <button
+              class="flex-1 select-none rounded-lg border border-transparent bg-z-body-selected px-2 py-1 text-center hover:invert focus:outline-none focus:invert"
               tabIndex={-1}
               data-index={index()}
+              onClick={() => setTags((tags) => tags.toSpliced(index(), 1))}
             >
               {tag}
-            </div>
+            </button>
           )}
         </For>
 
