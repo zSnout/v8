@@ -346,7 +346,7 @@ export function PrevDebug() {
       <div>
         hello world
         <button onClick={pop}>or close it</button>
-        <button onClick={() => layers.push(Inner)}>or add another</button>
+        <button onClick={() => layers.pushScreen(Inner)}>or add another</button>
         {Array(100)
           .fill(0)
           .map(() => (

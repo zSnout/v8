@@ -4,6 +4,7 @@ import { randomId } from "../id"
 import { App } from "../state"
 import { AutocompleteBox } from "./AutocompleteBox"
 import { TagEditor } from "./TagEditor"
+import { useLayers } from "./Layers"
 
 export function CreateNote({ app }: { app: App }) {
   const [deck, setDeck] = createSignal(
@@ -21,6 +22,27 @@ export function CreateNote({ app }: { app: App }) {
       setTags(model().tags)
     }
   })
+
+  const layers = useLayers()
+
+  function PushDialog() {}
+
+  function PushScreen() {
+    return (
+      <button
+        class="bg-green-500"
+        onClick={() =>
+          layers.pushScreen((pop) => (
+            <h1 class="bg-red-500">
+              hello<button onClick={pop}>pop</button>
+            </h1>
+          ))
+        }
+      >
+        push dialog
+      </button>
+    )
+  }
 
   return (
     <div class="flex flex-col gap-4">
@@ -57,6 +79,19 @@ export function CreateNote({ app }: { app: App }) {
           />
         </label>
       </div>
+
+      <button
+        class="bg-green-500"
+        onClick={() =>
+          layers.pushDialog((pop) => (
+            <h1 class="bg-red-500">
+              hello<button onClick={pop}>pop</button>
+            </h1>
+          ))
+        }
+      >
+        push dialog
+      </button>
 
       <hr class="border-z" />
 
