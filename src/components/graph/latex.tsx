@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import { For, Show, createSignal } from "solid-js"
 import "./latex.postcss"
 
@@ -2781,25 +2783,4 @@ export function Main() {
       <Field symbols={symbols} setSymbols={setSymbols} />
     </div>
   )
-}
-
-declare module "solid-js" {
-  namespace JSX {
-    interface DOMAttributes<T> {
-      "data-latex"?:
-        | "leaf" // used on numbers, symbol, etc.
-        | "shape" // used on radical signs and brackets
-        | "group" // used on empty spaces which contains other symbols
-
-      "data-latex-ignore"?: boolean // makes children not be considered targets
-    }
-
-    interface CustomEventHandlersCamelCase<T> {
-      onLatexTargetFind?: EventHandlerUnion<T, LatexTargetFindEvent>
-    }
-
-    interface CustomEventHandlersLowerCase<T> {
-      onlatextargetfind?: EventHandlerUnion<T, LatexTargetFindEvent>
-    }
-  }
 }

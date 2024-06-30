@@ -169,6 +169,9 @@ export const ModelField = v.object({
   sticky: v.optional(v.string()),
 })
 
+export interface ModelFields extends v.InferOutput<typeof ModelFields> {}
+export const ModelFields = v.array(ModelField)
+
 export interface MathjaxOptions extends v.InferOutput<typeof MathjaxOptions> {}
 export const MathjaxOptions = v.object({
   /** Inserted at the beginning of any latex text */
@@ -202,7 +205,7 @@ export const Model = v.object({
   // did: v.optional(Id),
 
   /** Fields in this model */
-  fields: v.array(ModelField),
+  fields: ModelFields,
 
   /** If present, Mathjax options. If absent, Mathquill is used */
   latex: v.optional(MathjaxOptions),

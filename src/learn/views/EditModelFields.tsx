@@ -1,5 +1,4 @@
 import { Fa } from "@/components/Fa"
-import { notNull } from "@/components/pray"
 import {
   faGripVertical,
   faPencil,
@@ -8,78 +7,13 @@ import {
   faUpDown,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import {
-  closestCenter,
-  createSortable,
-  DragDropProvider,
-  DragDropSensors,
-  DragOverlay,
-  SortableProvider,
-  useDragDropContext,
-} from "@thisbeyond/solid-dnd"
-import { createSignal, For, JSX } from "solid-js"
-import { Model } from "../types"
+import { DndItem, dndzone } from "solid-dnd-directive"
+import { createSignal, For } from "solid-js"
+import { safeParse } from "valibot"
+import { Model, ModelFields } from "../types"
 
-function Sortable(props: { id: string | number; item: JSX.Element }) {
-  const sortable = createSortable(props.id)
-  const [state] = notNull(
-    useDragDropContext(),
-    "Can only be used in a `DragDropProvider`.",
-  )
-  return (
-    <div
-      use:sortable
-      class="sortable"
-      classList={{
-        "opacity-25": sortable.isActiveDraggable,
-        "transition-transform": !!state.active.draggable,
-      }}
-    >
-      {props.item}
-    </div>
-  )
-}
-
-export const SortableVerticalListExample = () => {
-  const [items, setItems] = createSignal<(string | number)[]>([1, 2, 3])
-  const [activeItem, setActiveItem] = createSignal<string | number>()
-  const ids = () => items()
-
-  return (
-    <DragDropProvider
-      onDragStart={({ draggable }) => setActiveItem(draggable.id)}
-      onDragEnd={({ draggable, droppable }) => {
-        if (droppable) {
-          const currentItems = ids()
-          const fromIndex = currentItems.indexOf(draggable.id)
-          const toIndex = currentItems.indexOf(droppable.id)
-          if (fromIndex !== toIndex) {
-            const updatedItems = currentItems.slice()
-            updatedItems.splice(
-              toIndex,
-              0,
-              ...updatedItems.splice(fromIndex, 1),
-            )
-            setItems(updatedItems)
-          }
-        }
-      }}
-      collisionDetector={closestCenter}
-    >
-      <DragDropSensors />
-      <div class="flex flex-col self-stretch">
-        <SortableProvider ids={ids()}>
-          <For each={items()}>
-            {(item) => <Sortable id={item} item={item} />}
-          </For>
-        </SortableProvider>
-      </div>
-      <DragOverlay>
-        <div class="sortable">{activeItem()}</div>
-      </DragOverlay>
-    </DragDropProvider>
-  )
-}
+// TODO: remove @thisbeyond/solid-dnd
+// TODO: remove tiptap
 
 function Action(props: {
   icon: IconDefinition
@@ -99,54 +33,56 @@ export function EditModelFields(props: {
   close: (model: Model) => void
 }) {
   const [model, setModel] = createSignal(props.model)
-  const [selected, setSelected] = createSignal(0)
+  const [fields, setFields] = createSignal<DndItem[]>(model().fields)
+  const [selected, setSelected] = createSignal(fields()[0]?.id)
 
-  function Inner() {
+  return (
+    <div>
+      <div class="grid gap-6 sm:grid-cols-[auto,16rem]">
+        {FieldList()}
+
+        <div class="grid h-fit grid-cols-2 gap-2 sm:grid-cols-1">
+          <Action icon={faPlus} label="Add" />
+          <Action icon={faTrash} label="Delete" />
+          <Action icon={faPencil} label="Rename" />
+          <Action icon={faUpDown} label="Reposition" />
+        </div>
+      </div>
+    </div>
+  )
+
+  function FieldList() {
     return (
       <div
-        class="flex max-h-72 min-h-48 flex-col overflow-y-scroll rounded-lg border border-z"
-        // ref={() => {
-        //   // new Sortable(el, {
-        //   //   animation: 150,
-        //   //   scroll: true,
-        //   //   ghostClass: "z-dragged",
-        //   //   onChange(event) {
-        //   //     const names = event.items.map((x) =>
-        //   //       notNull(
-        //   //         x.dataset["id"],
-        //   //         "An id must be set on each element.",
-        //   //       ),
-        //   //     )
-        //   //     const current = model().fields[selected()]
-        //   //     batch(() => {
-        //   //       const next = setModel((model) => ({
-        //   //         ...model,
-        //   //         fields: model.fields.toSorted(
-        //   //           (a, b) => names.indexOf(a.name) - names.indexOf(b.name),
-        //   //         ),
-        //   //       }))
-        //   //       const index = next.fields.findIndex(
-        //   //         (value) => value == current,
-        //   //       )
-        //   //       setSelected(index)
-        //   //     })
-        //   //   },
-        //   // })
-        // }}
+        class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z"
+        ref={(el) => {
+          dndzone(el, () => ({
+            items: fields,
+            flipDurationMs: 0,
+            dropTargetClasses: ["!outline-none"],
+          }))
+        }}
+        onconsider={({ detail: { items } }) => setFields(items)}
+        onfinalize={({ detail: { items } }) => {
+          const result = safeParse(ModelFields, items)
+          if (result.success) {
+            setFields(result.output)
+            setModel((model) => ({ ...model, fields: result.output }))
+          } else {
+            throw new Error(
+              "Model fields were in an invalid state after sorting.",
+            )
+          }
+        }}
       >
-        <For each={model().fields}>
+        <For each={fields()}>
           {(field, index) => {
-            const sortable = createSortable(field.name)
             return (
               <div
-                class="-mt-px flex items-center border-y border-z first:border-t-transparent [&.z-dragged]:bg-transparent"
+                class="-mx-px -mt-px flex items-center border border-z [&.z-dragged]:bg-transparent"
                 classList={{
-                  "bg-z-body": index() != selected(),
-                  "bg-z-body-selected": index() == selected(),
-                }}
-                data-id={field.name}
-                ref={(el) => {
-                  sortable.ref(el)
+                  "bg-z-body": field.id != selected(),
+                  "bg-z-body-selected": field.id == selected(),
                 }}
               >
                 <div class="z-handle cursor-move py-1 pl-2 pr-1">
@@ -158,10 +94,13 @@ export function EditModelFields(props: {
                 </div>
                 <button
                   class="flex-1 py-1 pl-1 pr-2 text-left"
-                  onClick={() => setSelected(index())}
+                  onClick={() => setSelected(field.id)}
                 >
-                  {field.name}
+                  {String(field["name"])}
                 </button>
+                <div class="ml-auto pr-2 font-mono text-sm text-z-subtitle">
+                  {index() + 1}
+                </div>
               </div>
             )
           }}
@@ -169,28 +108,4 @@ export function EditModelFields(props: {
       </div>
     )
   }
-
-  return (
-    <div>
-      <div class="grid gap-6 sm:grid-cols-[auto,16rem]">
-        <DragDropProvider
-          collisionDetector={closestCenter}
-          onDragStart={(event) => {}}
-        >
-          <DragDropSensors />
-          <SortableProvider ids={model().fields.map((x) => x.name)}>
-            <Inner />
-          </SortableProvider>
-          <DragOverlay>hello</DragOverlay>
-        </DragDropProvider>
-
-        <div class="grid h-fit grid-cols-2 gap-2 sm:grid-cols-1">
-          <Action icon={faPlus} label="Add" />
-          <Action icon={faTrash} label="Delete" />
-          <Action icon={faPencil} label="Rename" />
-          <Action icon={faUpDown} label="Reposition" />
-        </div>
-      </div>
-    </div>
-  )
 }
