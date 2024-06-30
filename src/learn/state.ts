@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { notNull } from "@/components/pray"
 import { error, ok, Result } from "@/components/result"
 import { Tree } from "@/components/tree"
@@ -22,6 +24,8 @@ import {
   Prefs,
   RepeatInfo,
 } from "./types"
+
+type Record<K extends string | number | symbol, T> = { [X in K]: T | undefined }
 
 // FIXME: filter blank cards like anki does
 // FIXME: add cloze support
@@ -67,7 +71,7 @@ export class App {
       c.notes,
       this.models,
       // note: this needs to be set manually later
-      0 as any,
+      0 as unknown as AppCards,
       this.decks,
       this.prefs,
     )
@@ -80,7 +84,7 @@ export class App {
       this.models,
     )
     // note: this is later
-    ;(this.notes as any).cards = this.cards
+    ;(this.notes as { cards: AppCards }).cards = this.cards
   }
 
   toJSON(): Collection {
@@ -280,7 +284,8 @@ export class AppCards {
     this.byNid = Object.create(null)
     for (const id in byId) {
       const card = byId[id]!
-      ;(this.byNid[card.nid] ||= []).push(card)
+
+      ;(this.byNid[card.nid] ??= []).push(card)
     }
   }
 
@@ -364,6 +369,20 @@ export class AppModels {
       this.byName[model.name] = model
     }
   }
+
+  set(model: Model) {
+    const id = model.id
+    const prevName = this.byId[id]?.name
+    if (prevName != null) {
+      this.byName[prevName] = undefined
+    }
+    if (model.name.trim() == "") {
+      return error("Model name is empty.")
+    }
+    this.byId[model.id] = model
+    this.byName[model.name] = model
+    return ok()
+  }
 }
 
 export class AppNotes {
@@ -414,7 +433,7 @@ export class AppNotes {
     }
 
     const nid = randomId()
-    const tags = props.tags || ""
+    const tags = props.tags ?? ""
     const now = props.now
     const did = props.did
 

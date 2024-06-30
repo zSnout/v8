@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "^2.43.4",
     "@tailwindcss/container-queries": "^0.1.0",
     "@tailwindcss/typography": "^0.5.9",
+    "@thisbeyond/solid-dnd": "^0.7.5",
     "@tiptap/core": "^2.4.0",
     "@tiptap/starter-kit": "^2.4.0",
     "@types/color-diff": "^1.2.5",
@@ -39,7 +40,9 @@
     "pdfjs-dist": "^4.2.67",
     "rehype-katex": "^6.0.2",
     "remark-math": "^5.1.1",
+    "solid-dnd-directive": "^0.2.0",
     "solid-js": "^1.6.12",
+    "sortablejs": "^1.15.2",
     "supabase": "^1.172.2",
     "tailwindcss": "^3.2.7",
     "temporal-polyfill": "^0.2.4",
@@ -51,10 +54,14 @@
     "vite-plugin-glsl": "^1.1.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.6.0",
+    "@types/sortablejs": "^1.15.8",
+    "eslint": "^9.6.0",
     "prettier": "^2.8.4",
     "prettier-plugin-astro": "^0.8.0",
     "prettier-plugin-glsl": "^0.0.9",
-    "prettier-plugin-tailwindcss": "^0.2.4"
+    "prettier-plugin-tailwindcss": "^0.2.4",
+    "typescript-eslint": "^7.14.1"
   },
   "prettier": {
     "semi": false,
@@ -68,5 +75,8 @@
       "."
     ],
     "trailingComma": "all"
+  },
+  "overrides": {
+    "eslint": "^9.6.0"
   }
 }

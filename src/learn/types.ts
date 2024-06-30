@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import { type Grade, Rating, State } from "ts-fsrs"
 import * as v from "valibot"
 import { Id, IdKey } from "./id"
@@ -149,6 +150,9 @@ export const Review = v.object({
 
 export interface ModelField extends v.InferOutput<typeof ModelField> {}
 export const ModelField = v.object({
+  /** Id used when sorting fields */
+  id: Id,
+
   /** Font family displayed in the entry window */
   font: v.optional(v.string()),
 
@@ -485,5 +489,9 @@ export const Collection = v.object({
   prefs: Prefs,
 })
 
-export type RepeatItem = { card: ReviewedCard; log: Review }
+export interface RepeatItem {
+  card: ReviewedCard
+  log: Review
+}
+
 export type RepeatInfo = Record<Grade, RepeatItem>

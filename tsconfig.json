@@ -3,6 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "exactOptionalPropertyTypes": false,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "module": "ESNext",

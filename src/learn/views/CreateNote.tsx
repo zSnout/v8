@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { notNull } from "@/components/pray"
+import { unwrap } from "@/components/result"
 import { createEffect, createSignal, For, untrack } from "solid-js"
 import { randomId } from "../id"
 import { App } from "../state"
@@ -49,7 +51,15 @@ export function CreateNote({ app }: { app: App }) {
           <button
             class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
             onClick={() =>
-              layers.push((pop) => <EditModelFields close={pop} />)
+              layers.push((pop) => (
+                <EditModelFields
+                  model={model()}
+                  close={(model) => {
+                    unwrap(app.models.set(model))
+                    pop()
+                  }}
+                />
+              ))
             }
           >
             Edit fields...
