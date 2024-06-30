@@ -3,8 +3,8 @@ import { createEffect, createSignal, For, untrack } from "solid-js"
 import { randomId } from "../id"
 import { App } from "../state"
 import { AutocompleteBox } from "./AutocompleteBox"
-import { TagEditor } from "./TagEditor"
 import { useLayers } from "./Layers"
+import { TagEditor } from "./TagEditor"
 
 export function CreateNote({ app }: { app: App }) {
   const [deck, setDeck] = createSignal(
@@ -25,22 +25,17 @@ export function CreateNote({ app }: { app: App }) {
 
   const layers = useLayers()
 
-  function PushDialog() {}
-
-  function PushScreen() {
+  function Layer() {
     return (
-      <button
-        class="bg-green-500"
-        onClick={() =>
-          layers.pushScreen((pop) => (
-            <h1 class="bg-red-500">
-              hello<button onClick={pop}>pop</button>
-            </h1>
-          ))
-        }
-      >
-        push dialog
-      </button>
+      <div>
+        <h1>this is a div</h1>
+        <button class="bg-green-500" onClick={() => layers.pushScreen(Layer)}>
+          push screen
+        </button>
+        <button class="bg-green-500" onClick={() => layers.pushDialog(Layer)}>
+          push dialog
+        </button>
+      </div>
     )
   }
 
@@ -80,18 +75,7 @@ export function CreateNote({ app }: { app: App }) {
         </label>
       </div>
 
-      <button
-        class="bg-green-500"
-        onClick={() =>
-          layers.pushDialog((pop) => (
-            <h1 class="bg-red-500">
-              hello<button onClick={pop}>pop</button>
-            </h1>
-          ))
-        }
-      >
-        push dialog
-      </button>
+      <Layer />
 
       <hr class="border-z" />
 
