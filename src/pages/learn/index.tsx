@@ -11,6 +11,7 @@ import {
   For,
   JSX,
   Show,
+  untrack,
 } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { timestampDist } from "../quiz/shared"
@@ -49,9 +50,21 @@ const { note, cards } = unwrap(
 unwrap(app.notes.push(note))
 cards.map((x) => unwrap(app.cards.set(x)))
 
-function TagEditor() {
-  const [tags, setTags] = createSignal<string[]>([])
-  const [field, setField] = createSignal("")
+function TagEditor(props: {
+  value?: string
+  onChange?: (value: string) => void
+}) {
+  const [tags, __unsafeSetTags] = createSignal<string[]>(
+    props.value?.split(/\s+/g).filter((x) => x) || [],
+  )
+  const setTags = (tags: string[] | ((x: string[]) => string[])) => {
+    props.onChange?.(__unsafeSetTags(tags).join(" "))
+  }
+  createEffect(() => {
+    if (props.value != tags().join(" ")) {
+      setTags(props.value?.split(/\s+/g).filter((x) => x) || [])
+    }
+  })
   let el: HTMLInputElement
   const id = randomId() + ""
 
@@ -166,6 +179,30 @@ function TagEditor() {
             setTags((tags) => tags.concat(list.filter((x) => x)))
             el.currentTarget.value = last
           }}
+          onKeyDown={(el) => {
+            if (el.altKey || el.ctrlKey || el.metaKey || el.key != "Enter") {
+              return
+            }
+
+            const { value } = el.currentTarget
+            if (!/\S/.test(value)) {
+              return
+            }
+
+            const list = value.split(/\s+/g)
+            setTags((tags) => tags.concat(list.filter((x) => x)))
+            el.currentTarget.value = ""
+          }}
+          onBlur={(el) => {
+            const { value } = el.currentTarget
+            if (!/\S/.test(value)) {
+              return
+            }
+
+            const list = value.split(/\s+/g)
+            setTags((tags) => tags.concat(list.filter((x) => x)))
+            el.currentTarget.value = ""
+          }}
         />
       </div>
     </div>
@@ -189,6 +226,14 @@ export function PrevDebug() {
       app.models.byId[Object.keys(app.models.byId)[0]!]!,
     )
     const [fields, setFields] = createSignal(model().fields.map(() => ""))
+    const [tags, setTags] = createSignal(model().tags)
+
+    createEffect(() => {
+      const current = untrack(tags)
+      if (current == "") {
+        setTags(model().tags)
+      }
+    })
 
     return (
       <div class="flex flex-col gap-4">
@@ -270,7 +315,7 @@ export function PrevDebug() {
           </For>
         </div>
 
-        <TagEditor />
+        <TagEditor value={tags()} onChange={(tags) => setTags(tags)} />
       </div>
     )
   }

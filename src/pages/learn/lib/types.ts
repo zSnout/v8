@@ -212,9 +212,13 @@ export const Model = v.object({
   /** Templates that this model generates */
   tmpls: v.array(ModelTemplate),
 
+  /** Last tags used with this model */
+  tags: v.string(),
+
+  /** 0=standard model, 1=cloze model */
+  type: v.picklist([0, 1]),
+
   // mod: "modification time in seconds",
-  // tags: "Anki saves the tags of the last added note to the current model, use an empty array []",
-  // type: "Integer specifying what type of model. 0 for standard, 1 for cloze",
 })
 
 export interface Deck extends v.InferOutput<typeof Deck> {}

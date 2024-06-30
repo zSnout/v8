@@ -107,6 +107,8 @@ export function createModels(): Collection["models"] {
           name: "Front --> Back",
         },
       ],
+      tags: "",
+      type: 0,
     },
     [ID_MODEL_BASIC_AND_REVERSED]: {
       id: ID_MODEL_BASIC_AND_REVERSED,
@@ -143,6 +145,8 @@ export function createModels(): Collection["models"] {
           name: "Back --> Front",
         },
       ],
+      tags: "",
+      type: 0,
     },
   }
 }
