@@ -36,7 +36,7 @@ export function AutocompleteBox<T extends string>(props: {
 
   return (
     <div class="h-[calc(2rem_+_2px)]">
-      <div class="z-field relative z-10 overflow-clip border-transparent p-0 shadow-none">
+      <div class="z-field relative z-10 overflow-clip border-z-bg-body-selected p-0 shadow-none">
         <input
           class="peer w-full bg-z-body-selected px-2 py-1 text-z transition focus:bg-z-body focus:outline-none"
           type="text"

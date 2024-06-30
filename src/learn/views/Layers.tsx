@@ -3,6 +3,7 @@ import {
   getOwner,
   JSX,
   onMount,
+  Owner,
   runWithOwner,
   useContext,
 } from "solid-js"
@@ -17,19 +18,9 @@ export function useLayers() {
   return context
 }
 
-export function withCurrentOwner<This, Args extends any[], Retval>(
-  fn: (this: This, ...args: Args) => Retval,
-): (this: This, ...args: Args) => Retval {
-  const owner = getOwner()
-
-  return function (this, ...args) {
-    return runWithOwner(owner, () => fn.apply(this, args))!
-  }
-}
-
 export class Layers {
   static Root(props: { children: JSX.Element }) {
-    const layers = new Layers()
+    const layers = new Layers(getOwner())
     onMount(() => {
       addEventListener("keydown", (event) => {
         if (
@@ -58,6 +49,8 @@ export class Layers {
     )
   }
 
+  constructor(private owner: Owner | null) {}
+
   private root!: HTMLDivElement
   private layers: [layer: HTMLDivElement, previouslyFocused: Element | null][] =
     []
@@ -74,7 +67,7 @@ export class Layers {
     console.log(previouslyFocused)
     prev.inert = true
 
-    const child = el(pop)
+    const child = runWithOwner(this.owner, () => el(pop))
     const next = (
       <div
         class="fixed bottom-0 left-0 right-0 top-12 translate-x-16 transform overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"

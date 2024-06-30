@@ -9,7 +9,7 @@ import { Id } from "../../learn/id"
 import { App } from "../../learn/state"
 import * as Template from "../../learn/template"
 import { AnyCard } from "../../learn/types"
-import { Layers, useLayers, withCurrentOwner } from "../../learn/views/Layers"
+import { Layers, useLayers } from "../../learn/views/Layers"
 import { timestampDist } from "../quiz/shared"
 
 const grades: { grade: Grade; bg: string; text: string }[] = [
@@ -341,7 +341,7 @@ export function PrevDebug() {
     )
   }
 
-  const Inner = withCurrentOwner((pop: () => void) => {
+  const Inner = (pop: () => void) => {
     return (
       <div>
         hello world
@@ -354,7 +354,7 @@ export function PrevDebug() {
           ))}
       </div>
     )
-  })
+  }
 
   return (
     <div class="flex flex-col gap-8">

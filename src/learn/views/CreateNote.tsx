@@ -3,6 +3,7 @@ import { createEffect, createSignal, For, untrack } from "solid-js"
 import { randomId } from "../id"
 import { App } from "../state"
 import { AutocompleteBox } from "./AutocompleteBox"
+import { EditModelFields } from "./EditModelFields"
 import { useLayers } from "./Layers"
 import { TagEditor } from "./TagEditor"
 
@@ -25,41 +26,35 @@ export function CreateNote({ app }: { app: App }) {
     }
   })
 
-  function Layer() {
-    return (
-      <div>
-        <h1>this is a div</h1>
-        <button class="bg-green-500" onClick={() => layers.push(Layer)}>
-          push dialog
-        </button>
-        {/* <button class="bg-green-500" onClick={() => layers.pushScreen(Layer)}>
-          push screen
-        </button>
-        <button class="bg-green-500" onClick={() => layers.pushDialog(Layer)}>
-          push dialog
-        </button> */}
-      </div>
-    )
-  }
-
   return (
     <div class="flex flex-col gap-4">
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
-        <label>
-          <p class="mb-1 text-sm text-z-subtitle">Type</p>
-          <AutocompleteBox
-            options={Object.keys(app.models.byName).sort()}
-            onChange={(name) => {
-              setModel(
-                notNull(
-                  app.models.byName[name],
-                  "The selected model does not exist.",
-                ),
-              )
-            }}
-            value={model().name}
-          />
-        </label>
+        <div class="grid grid-cols-2 gap-1">
+          <label class="col-span-2">
+            <p class="mb-1 text-sm text-z-subtitle">Type</p>
+            <AutocompleteBox
+              options={Object.keys(app.models.byName).sort()}
+              onChange={(name) => {
+                setModel(
+                  notNull(
+                    app.models.byName[name],
+                    "The selected model does not exist.",
+                  ),
+                )
+              }}
+              value={model().name}
+            />
+          </label>
+
+          <button
+            class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+            onClick={() =>
+              layers.push((pop) => <EditModelFields close={pop} />)
+            }
+          >
+            Edit fields...
+          </button>
+        </div>
 
         <label>
           <p class="mb-1 text-sm text-z-subtitle">Deck</p>
@@ -77,8 +72,6 @@ export function CreateNote({ app }: { app: App }) {
           />
         </label>
       </div>
-
-      <Layer />
 
       <hr class="border-z" />
 
