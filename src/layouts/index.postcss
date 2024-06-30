@@ -42,8 +42,7 @@
 }
 
 :root,
-.light,
-.dark .theme-invert {
+.light {
   @apply z-light-slate z-light-focus-blue;
   color-scheme: light;
   --z-mq-filled: var(--z-bg-body);
@@ -56,9 +55,7 @@
   --z-text-checkbox-selected: white;
 }
 
-.dark,
-.theme-invert,
-.light .theme-invert {
+.dark {
   @apply z-dark-slate z-dark-focus-blue;
   color-scheme: dark;
   --z-mq-filled: var(--z-bg-body);
