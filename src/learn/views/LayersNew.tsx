@@ -43,11 +43,11 @@ export class LayersNew {
     // })
     return (
       <LayerContext.Provider value={layers}>
-        <div class="relative min-h-full w-full">
-          <div
-            class="min-h-full w-full transform opacity-100 transition"
-            ref={(el) => (layers.root = layers.current = el)}
-          >
+        <div
+          class="relative min-h-full w-full transform transition"
+          ref={(el) => (layers.root = el)}
+        >
+          <div class="min-h-full w-full transform opacity-100 transition">
             {props.children}
           </div>
         </div>
@@ -56,8 +56,7 @@ export class LayersNew {
   }
 
   root!: HTMLDivElement
-  current!: HTMLElement
-  last!: HTMLElement
+  current?: HTMLDialogElement
   owner!: Owner | null
 
   pushScreen(createScreen: (pop: () => void) => JSX.Element): () => void {
@@ -68,20 +67,28 @@ export class LayersNew {
 
     const dialog = (
       <dialog
-        class="pointer-events-none fixed left-0 top-0 flex min-h-full min-w-full flex-col bg-transparent px-6 pb-8 pt-20 opacity-0 transition backdrop:top-12 backdrop:bg-transparent backdrop:transition open:pointer-events-auto open:opacity-100 open:backdrop:bg-z-body-partial"
+        class="pointer-events-none fixed left-0 top-0 flex min-h-full min-w-full translate-x-12 flex-col bg-transparent px-6 pb-8 pt-20 opacity-0 backdrop-blur-none transition-[color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,filter,backdrop-filter] backdrop:hidden open:pointer-events-auto open:translate-x-0 open:bg-z-body-partial open:opacity-100 open:backdrop-blur"
         inert={!open()}
         onClose={() => {
           setOpen(false)
-          this.current = dialog.parentElement!
+          if (
+            dialog.parentElement &&
+            dialog.parentElement instanceof HTMLDialogElement
+          ) {
+            this.current = dialog.parentElement
+          } else {
+            this.current = undefined
+          }
           dialog.ontransitionend = () => dialog.remove()
+          shiftable.classList.remove("-translate-x-12")
         }}
-        open
-        style={{ opacity: 1 }}
+        // open
+        // style={{ opacity: 1 }}
       >
         <div class="hidden [[open]>&]:contents">
           <div class="fixed left-0 top-0 h-12 w-full bg-z-body"></div>
         </div>
-        <div class="relative w-full flex-1 translate-y-12 transition [[open]>&]:translate-y-0">
+        <div class="relative w-full flex-1 translate-x-12 transition [[open]>&]:translate-x-0">
           {el}
         </div>
         <div class="hidden [[open]>&]:contents">
@@ -89,12 +96,16 @@ export class LayersNew {
         </div>
       </dialog>
     ) as HTMLDialogElement
-    this.current.appendChild(dialog)
-    this.current = this.last = dialog
-    // setTimeout(() => {
-    //   setOpen(true)
-    //   dialog.showModal()
-    // })
+    const parent = this.current?.children[1] || document.body
+    const shiftable = this.current?.children[1] || this.root
+    parent.appendChild(dialog)
+    shiftable.classList.remove("translate-x-12")
+    shiftable.classList.add("-translate-x-12")
+    this.current = dialog
+    setTimeout(() => {
+      setOpen(true)
+      dialog.showModal()
+    })
 
     return pop
   }

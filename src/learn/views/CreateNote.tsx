@@ -127,6 +127,12 @@ export function CreateNote({ app }: { app: App }) {
       </div>
 
       <TagEditor value={tags()} onChange={(tags) => setTags(tags)} />
+
+      {Array(1000)
+        .fill(0)
+        .map(() => (
+          <p>hi</p>
+        ))}
     </div>
   )
 }
