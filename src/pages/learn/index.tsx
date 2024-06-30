@@ -1,7 +1,6 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { unwrap } from "@/components/result"
 import { CreateNote } from "@/learn/views/CreateNote"
-import { LayersNew } from "@/learn/views/LayersNew"
 import { batch, createMemo, createSignal, For } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { createCollection } from "../../learn/defaults"
@@ -10,7 +9,7 @@ import { Id } from "../../learn/id"
 import { App } from "../../learn/state"
 import * as Template from "../../learn/template"
 import { AnyCard } from "../../learn/types"
-import { useLayers, withCurrentOwner } from "../../learn/views/Layers"
+import { Layers, useLayers, withCurrentOwner } from "../../learn/views/Layers"
 import { timestampDist } from "../quiz/shared"
 
 const grades: { grade: Grade; bg: string; text: string }[] = [
@@ -347,7 +346,7 @@ export function PrevDebug() {
       <div>
         hello world
         <button onClick={pop}>or close it</button>
-        <button onClick={() => layers.pushScreen(Inner)}>or add another</button>
+        <button onClick={() => layers.push(Inner)}>or add another</button>
         {Array(100)
           .fill(0)
           .map(() => (
@@ -369,8 +368,8 @@ export function PrevDebug() {
 
 export function Main() {
   return (
-    <LayersNew.Root>
+    <Layers.Root>
       <CreateNote app={app} />
-    </LayersNew.Root>
+    </Layers.Root>
   )
 }

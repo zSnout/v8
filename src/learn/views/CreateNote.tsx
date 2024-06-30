@@ -3,11 +3,11 @@ import { createEffect, createSignal, For, untrack } from "solid-js"
 import { randomId } from "../id"
 import { App } from "../state"
 import { AutocompleteBox } from "./AutocompleteBox"
-import { useLayersNew } from "./LayersNew"
+import { useLayers } from "./Layers"
 import { TagEditor } from "./TagEditor"
 
 export function CreateNote({ app }: { app: App }) {
-  const layers = useLayersNew()
+  const layers = useLayers()
 
   const [deck, setDeck] = createSignal(
     app.decks.byId[Object.keys(app.decks.byId)[0]!]!,
@@ -29,7 +29,7 @@ export function CreateNote({ app }: { app: App }) {
     return (
       <div>
         <h1>this is a div</h1>
-        <button class="bg-green-500" onClick={() => layers.pushScreen(Layer)}>
+        <button class="bg-green-500" onClick={() => layers.push(Layer)}>
           push dialog
         </button>
         {/* <button class="bg-green-500" onClick={() => layers.pushScreen(Layer)}>
