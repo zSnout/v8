@@ -1,6 +1,7 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { unwrap } from "@/components/result"
 import { CreateNote } from "@/learn/views/CreateNote"
+import { LayersNew } from "@/learn/views/LayersNew"
 import { batch, createMemo, createSignal, For } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { createCollection } from "../../learn/defaults"
@@ -9,7 +10,7 @@ import { Id } from "../../learn/id"
 import { App } from "../../learn/state"
 import * as Template from "../../learn/template"
 import { AnyCard } from "../../learn/types"
-import { Layers, useLayers, withCurrentOwner } from "../../learn/views/Layers"
+import { useLayers, withCurrentOwner } from "../../learn/views/Layers"
 import { timestampDist } from "../quiz/shared"
 
 const grades: { grade: Grade; bg: string; text: string }[] = [
@@ -368,8 +369,8 @@ export function PrevDebug() {
 
 export function Main() {
   return (
-    <Layers.Root>
-      <PrevDebug />
-    </Layers.Root>
+    <LayersNew.Root>
+      <CreateNote app={app} />
+    </LayersNew.Root>
   )
 }
