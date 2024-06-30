@@ -49,6 +49,103 @@ const { note, cards } = unwrap(
 unwrap(app.notes.push(note))
 cards.map((x) => unwrap(app.cards.set(x)))
 
+function TagEditor() {
+  const [tags, setTags] = createSignal<string[]>([])
+  const [field, setField] = createSignal("")
+  let el: HTMLInputElement
+  const id = randomId() + ""
+
+  return (
+    <div class="flex flex-col">
+      <label
+        for={id}
+        class="mb-1 w-full select-none text-sm text-z-subtitle"
+        onMouseDown={(event) => {
+          event.preventDefault()
+          el.focus()
+        }}
+        contentEditable={false}
+      >
+        Tags
+      </label>
+
+      <div
+        class="flex flex-wrap gap-1"
+        onKeyDown={(event) => {
+          if (event.metaKey || event.altKey || event.ctrlKey) {
+            return
+          }
+
+          if (event.key == "ArrowLeft") {
+            const tag = event.target.previousElementSibling
+            if (tag && tag instanceof HTMLElement) {
+              tag.focus()
+              event.preventDefault()
+              return
+            }
+          }
+
+          if (event.key == "ArrowRight") {
+            const tag = event.target.nextElementSibling
+            if (tag && tag instanceof HTMLElement) {
+              tag.focus()
+              event.preventDefault()
+              return
+            }
+          }
+
+          if (event.key == "Backspace") {
+            const { target } = event
+            if (target instanceof HTMLDivElement) {
+              const next = (target.previousElementSibling ||
+                target.nextElementSibling) as HTMLElement
+              setTags((tags) => {
+                const next = tags.slice()
+                next.splice(+target.dataset.index!, 1)
+                return next
+              })
+              next.focus()
+              event.preventDefault()
+              return
+            }
+          }
+        }}
+      >
+        <For each={tags()}>
+          {(tag, index) => (
+            <div
+              class="flex-1 rounded-lg border border-transparent bg-z-body-selected px-2 py-1 text-center focus:outline-none focus:invert"
+              tabIndex={-1}
+              data-index={index()}
+            >
+              {tag}
+            </div>
+          )}
+        </For>
+
+        <input
+          type="text"
+          ref={(e) => (el = e)}
+          class="z-field min-w-[min(8rem,100%)] flex-[1000] px-2 py-1 shadow-none"
+          contentEditable
+          tabIndex={0}
+          onInput={(el) => {
+            const { value } = el.currentTarget
+            if (!/\s/.test(value)) {
+              return
+            }
+
+            const list = value.split(/\s+/g)
+            const last = list.pop()!
+            setTags((tags) => tags.concat(list.filter((x) => x)))
+            el.currentTarget.value = last
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
 export function PrevDebug() {
   const [decks] = createExpr(() => app.decks)
   const tree = createMemo(() => decks().tree(Date.now()).tree)
@@ -107,18 +204,27 @@ export function PrevDebug() {
           <For each={model().fields}>
             {(field, index) => {
               const id = randomId() + ""
+              let el: HTMLDivElement
               return (
-                <label
-                  class="z-field rounded-lg border-transparent bg-z-body-selected p-0 shadow-none"
-                  for={id}
-                >
-                  <p class="mb-1 select-none px-2 pt-1 text-sm text-z-subtitle">
+                <div class="z-field cursor-text rounded-lg border-z p-0 shadow-none">
+                  <p
+                    id={id}
+                    class="mb-1 w-full select-none px-2 pt-1 text-sm text-z-subtitle"
+                    onMouseDown={(event) => {
+                      event.preventDefault()
+                      el.focus()
+                    }}
+                    contentEditable={false}
+                  >
                     {field.name}
                   </p>
+
                   <div
-                    id={id}
+                    ref={(e) => (el = e)}
+                    aria-labelledby={id}
                     class="-mt-1 px-2 pb-1 focus:outline-none"
                     contentEditable
+                    tabIndex={0}
                     style={{
                       "font-family": field.font,
                       "font-size": field.size
@@ -132,11 +238,13 @@ export function PrevDebug() {
                       )
                     }
                   />
-                </label>
+                </div>
               )
             }}
           </For>
         </div>
+
+        <TagEditor />
       </div>
     )
   }
@@ -452,9 +560,7 @@ export function PrevDebug() {
   return (
     <div class="flex flex-col gap-8">
       <CreateNotePretty />
-      <div />
-      <div />
-      <div />
+      <div class="h-[100dvh]" />
       <CreateNote />
       <RawInformation />
     </div>
