@@ -56,7 +56,7 @@ export class Layers {
     []
 
   push(el: (pop: () => void) => JSX.Element): () => void {
-    const prev = this.layers[this.layers.length - 1]?.[0] || this.root
+    const prev = this.layers[this.layers.length - 1]?.[0] ?? this.root
 
     const idx = this.layers.length
     const pop = () => {
@@ -70,13 +70,15 @@ export class Layers {
     const child = runWithOwner(this.owner, () => el(pop))
     const next = (
       <div
-        class="fixed bottom-0 left-0 right-0 top-12 translate-x-16 transform overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
+        class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
         ref={(el) => {
           this.layers.push([el, previouslyFocused])
-          setTimeout(() => animateIn(prev, el))
+          setTimeout(() => {
+            animateIn(prev, el)
+          })
         }}
       >
-        {child}
+        <div class="mx-auto min-h-full w-full max-w-5xl">{child}</div>
       </div>
     ) as HTMLDivElement
 
@@ -85,7 +87,7 @@ export class Layers {
   }
 
   pop(idx: number): boolean {
-    const prev = this.layers[idx - 1]?.[0] || this.root
+    const prev = this.layers[idx - 1]?.[0] ?? this.root
     const current = this.layers[idx]
     if (!current) {
       return false
@@ -158,5 +160,7 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
   next.classList.add("translate-x-16")
   next.classList.add("overflow-clip")
   next.inert = true
-  next.addEventListener("transitionend", () => next.remove())
+  next.addEventListener("transitionend", () => {
+    next.remove()
+  })
 }
