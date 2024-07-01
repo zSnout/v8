@@ -1,4 +1,5 @@
 import { Fa } from "@/components/Fa"
+import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { notNull } from "@/components/pray"
 import {
   faCheck,
@@ -10,12 +11,19 @@ import {
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import { DndItem, dndzone } from "solid-dnd-directive"
-import { createMemo, createSignal, For, Show, untrack } from "solid-js"
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Show,
+  untrack,
+} from "solid-js"
 import { safeParse } from "valibot"
+import { createField } from "../defaults"
 import { Model, ModelField, ModelFields } from "../types"
 import { AutocompleteFontFamily } from "./AutocompleteFonts"
 import { IntegratedField } from "./IntegratedField"
-import { Checkbox } from "@/components/fields/CheckboxGroup"
 
 function Action(props: {
   icon: IconDefinition
@@ -28,6 +36,7 @@ function Action(props: {
     <button
       class="z-field flex w-full items-center gap-2 border-transparent bg-z-body-selected px-2 py-1 shadow-none"
       classList={{ "justify-center": props.center }}
+      onClick={props.onClick}
     >
       <div class="flex h-6 items-center justify-center">
         <Fa class="h-4 w-4" icon={props.icon} title={false} />
@@ -43,6 +52,7 @@ export function EditModelFields(props: {
 }) {
   const [model, setModel] = createSignal(props.model)
   const [fields, setFields] = createSignal<DndItem[]>(model().fields)
+  createEffect(() => setFields(model().fields))
   const [selectedId, setSelectedId] = createSignal(fields()[0]?.id)
   const selectedIndex = createMemo(() => {
     const field = model().fields.findIndex((x) => x.id == selectedId())
@@ -77,8 +87,39 @@ export function EditModelFields(props: {
         {FieldList()}
 
         <div class="grid h-fit grid-cols-2 gap-1 sm:grid-cols-1">
+          <Action
+            icon={faPlus}
+            label="Add"
+            onClick={() => {
+              setModel((model) => {
+                if (!model.fields.some((x) => x.name == "Unnamed field")) {
+                  return {
+                    ...model,
+                    fields: model.fields.concat(createField("Unnamed field")),
+                  }
+                }
+
+                const taken = model.fields
+                  .map((x) =>
+                    Number(x.name.match(/^Unnamed field (\d+)$/)?.[1]),
+                  )
+                  .filter((x) => !isNaN(x))
+
+                console.log(taken)
+
+                let n = 1
+                while (taken.includes(n)) n++
+
+                return {
+                  ...model,
+                  fields: model.fields.concat(
+                    createField(`Unnamed field ${n}`),
+                  ),
+                }
+              })
+            }}
+          />
           {/* TODO: all of these need click actions */}
-          <Action icon={faPlus} label="Add" />
           <Action icon={faTrash} label="Delete" />
           <Action icon={faPencil} label="Rename" />
         </div>

@@ -68,6 +68,10 @@ export function IntegratedField(props: {
           onInput={(el) => props.onInput?.(el.currentTarget.value)}
           value={props.value}
           placeholder={props.placeholder}
+          style={{
+            "font-family": props.font,
+            "font-size": props.sizePx ? `${props.sizePx / 16}rem` : "",
+          }}
         />
       )}
     </div>

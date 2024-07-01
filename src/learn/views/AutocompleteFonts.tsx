@@ -162,9 +162,13 @@ export function AutocompleteFontFamily(props: {
       options={fonts()}
       allowArbitrary
       fontFamily={(x) => {
-        if (fonts().includes(x)) {
-          return x
-        } else {
+        try {
+          if (fonts().includes(x) || document.fonts.check(`12px "${x}"`)) {
+            return `"${x}"`
+          } else {
+            return
+          }
+        } catch {
           return
         }
       }}
