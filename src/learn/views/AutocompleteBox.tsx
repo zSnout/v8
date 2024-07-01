@@ -174,7 +174,7 @@ export function AutocompleteBox<T extends string>(
           >
             {([match, pos], index) => (
               <button
-                class="border-dashed border-z px-2 py-0.5 text-left"
+                class="border-dashed border-z px-2 py-0.5 text-left hover:bg-z-body-selected"
                 classList={{
                   "bg-z-body-selected": index() == selected(),
                   "border-t": index() != 0 && infIndex() == index(),
@@ -188,16 +188,19 @@ export function AutocompleteBox<T extends string>(
                     }
                   })
                 }}
-                onClick={(event) => {
+                onMouseDown={() => {
                   setField(() => match)
                   setAttemptedBlur()
                   props.onInput?.(match)
                   props.onChange?.(match)
                   setSelected(0)
-                  event.currentTarget.blur()
                 }}
-                onMouseOver={() => {
-                  setSelected(index())
+                onPointerDown={() => {
+                  setField(() => match)
+                  setAttemptedBlur()
+                  props.onInput?.(match)
+                  props.onChange?.(match)
+                  setSelected(0)
                 }}
                 tabIndex={-1}
                 style={{ "font-family": props.fontFamily?.(match) }}

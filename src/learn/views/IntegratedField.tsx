@@ -4,7 +4,7 @@ import { sanitize } from "../sanitize"
 
 export function IntegratedField(props: {
   label: JSX.Element
-  type: "plain" | "html"
+  type: "html" | "text" | "number"
   placeholder?: string
   font?: string
   sizePx?: number
@@ -18,10 +18,16 @@ export function IntegratedField(props: {
 
   return (
     <div
-      class="z-field cursor-text rounded-lg p-0 shadow-none"
+      class="z-field flex cursor-text flex-col rounded-lg p-0 shadow-none"
       classList={{
         "bg-z-body-selected": !props.emptyBg,
         "border-transparent": !props.emptyBg,
+      }}
+      onMouseDown={(event) => {
+        if (event.currentTarget == event.target) {
+          event.preventDefault()
+          el.focus()
+        }
       }}
     >
       <div
@@ -56,8 +62,8 @@ export function IntegratedField(props: {
       ) : (
         <input
           ref={(e) => (el = e)}
-          type="text"
-          class="-mt-1 block w-full bg-transparent px-2 pb-1 placeholder:text-z-subtitle placeholder:opacity-30 focus:outline-none"
+          type={props.type}
+          class="z-field-number -mt-1 block w-full bg-transparent px-2 pb-1 placeholder:text-z-subtitle placeholder:opacity-30 focus:outline-none"
           aria-labelledby={id}
           onInput={(el) => props.onInput?.(el.currentTarget.value)}
           value={props.value}

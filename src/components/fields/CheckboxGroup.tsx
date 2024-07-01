@@ -1,6 +1,7 @@
 import {
   faCheck,
   faChevronRight,
+  faCircle,
   faMinus,
 } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -21,6 +22,7 @@ export function Checkbox(props: {
   checked?: boolean
   disabled?: boolean
   indeterminate?: boolean
+  circular?: boolean
 }) {
   return (
     <>
@@ -50,19 +52,28 @@ export function Checkbox(props: {
         class="group-checkbox flex h-6 cursor-pointer select-none items-center justify-center"
         role="button"
       >
-        <div class="relative flex h-5 w-5 items-center justify-center rounded border border-transparent ring ring-transparent transition-[box-shadow,border-color] [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:focus-visible+*>&]:border-z-focus [:focus-visible+*>&]:ring-z-focus [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]">
-          <div class="absolute -m-px size-[calc(100%_+_2px)] rounded border border-z [:checked+.group-checkbox_&]:hidden [:focus-visible+*>*>&]:border-z-focus [:indeterminate+.group-checkbox_&]:hidden" />
+        <div
+          class="relative flex h-5 w-5 items-center justify-center rounded border border-transparent bg-z-body ring ring-transparent transition-[box-shadow,border-color] [:checked+.group-checkbox_&]:bg-[--z-bg-checkbox-selected] [:focus-visible+*>&]:border-z-focus [:focus-visible+*>&]:ring-z-focus [:indeterminate+.group-checkbox_&]:bg-[--z-bg-checkbox-selected]"
+          classList={{ "rounded-full": props.circular }}
+        >
+          <div
+            class="absolute -m-px size-[calc(100%_+_2px)] rounded border border-z [:checked+.group-checkbox_&]:hidden [:focus-visible+*>*>&]:border-z-focus [:indeterminate+.group-checkbox_&]:hidden"
+            classList={{ "rounded-full": props.circular }}
+          />
 
           <Fa
-            class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:checked:not(:indeterminate)+.group-checkbox_&]:block"
-            icon={faCheck}
-            title="expand section"
+            class={
+              "hidden icon-[--z-text-checkbox-selected] [:checked:not(:indeterminate)+.group-checkbox_&]:block " +
+              (props.circular ? "size-2" : "size-4")
+            }
+            icon={props.circular ? faCircle : faCheck}
+            title="checked"
           />
 
           <Fa
             class="hidden h-4 w-4 icon-[--z-text-checkbox-selected] [:indeterminate+.group-checkbox_&]:block"
             icon={faMinus}
-            title="expand section"
+            title="indeterminate"
           />
         </div>
       </div>
