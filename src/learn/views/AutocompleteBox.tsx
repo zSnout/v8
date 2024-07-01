@@ -1,15 +1,39 @@
 import { Fa } from "@/components/Fa"
 import { faChevronDown } from "@fortawesome/free-solid-svg-icons"
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js"
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  JSX,
+  Show,
+} from "solid-js"
 
-export function AutocompleteBox<T extends string>(props: {
-  options: readonly T[]
-  value?: string
-  onInput?: (value: string) => void
-  onChange?: (value: T) => void
-}) {
+export function AutocompleteBox<T extends string>(
+  props:
+    | {
+        options: readonly T[]
+        value?: string
+        onInput?: (value: string) => void
+        onChange?: (value: T) => void
+        fontFamily?: (option: string) => string
+        allowArbitrary?: false
+        label?: string
+      }
+    | {
+        options: readonly T[]
+        value?: string
+        onInput?: (value: string) => void
+        onChange?: (value: string) => void
+        fontFamily?: (option: string) => string
+        allowArbitrary: true
+        label?: string
+      },
+): JSX.Element {
   const [field, setField] = createSignal(
-    props.options.includes(props.value as T) ? props.value! : "",
+    !!props.allowArbitrary || props.options.includes(props.value as T)
+      ? props.value ?? ""
+      : "",
   )
 
   const matchingRaw = createMemo(() => {
@@ -21,7 +45,11 @@ export function AutocompleteBox<T extends string>(props: {
         return [option, index == -1 ? 1 / 0 : index] as const
       })
       .sort(([, a], [, b]) => a - b)
-
+    if (props.allowArbitrary) {
+      if (!result.some((x) => x[0] == f)) {
+        result.unshift([f as T, 0])
+      }
+    }
     const infinity = result.findIndex(([, v]) => v == 1 / 0)
 
     return { result, infinity }
@@ -29,16 +57,36 @@ export function AutocompleteBox<T extends string>(props: {
 
   const matching = () => matchingRaw().result
   const infIndex = () => matchingRaw().infinity
-
   const [selected, setSelected] = createSignal(0)
-
   const [attemptedBlur, setAttemptedBlur] = createSignal<1>()
 
   return (
-    <div class="h-[calc(2rem_+_2px)]">
-      <div class="z-field relative z-10 overflow-clip border-z-bg-body-selected p-0 shadow-none">
+    <div
+      classList={{
+        "h-[calc(3.25rem_+_2px)]": !!props.label,
+        "h-[calc(2rem_+_2px)]": !props.label,
+      }}
+    >
+      <div class="z-field relative z-10 overflow-clip border-z-bg-body-selected bg-z-body-selected p-0 shadow-none transition focus-within:z-20 focus-within:bg-z-body">
+        <Show when={props.label}>
+          <div
+            class="line-clamp-1 w-full select-none px-2 pt-1 text-sm text-z-subtitle"
+            aria-hidden="true"
+            onMouseDown={(event) => {
+              const el = event.currentTarget
+                .nextElementSibling as HTMLInputElement
+              el.focus()
+              event.preventDefault()
+            }}
+          >
+            {props.label}
+          </div>
+        </Show>
+
         <input
-          class="peer w-full bg-z-body-selected px-2 py-1 text-z transition focus:bg-z-body focus:outline-none"
+          class="peer w-full bg-transparent px-2 py-1 text-z focus:outline-none"
+          aria-label={props.label}
+          classList={{ "-mt-1": !!props.label }}
           type="text"
           onKeyDown={(event) => {
             if (event.metaKey || event.ctrlKey || event.altKey) {
@@ -100,6 +148,7 @@ export function AutocompleteBox<T extends string>(props: {
             event.currentTarget.focus()
           }}
           value={field()}
+          style={{ "font-family": props.fontFamily?.(field()) }}
         />
 
         <div class="pointer-events-none absolute right-0 top-0 flex h-8 w-8 items-center justify-center">
@@ -126,6 +175,7 @@ export function AutocompleteBox<T extends string>(props: {
                   "bg-z-body-selected": index() == selected(),
                   "border-t": index() != 0 && infIndex() == index(),
                   "-mt-px": index() != 0 && infIndex() == index(),
+                  "text-sm": match.trim() == "",
                 }}
                 ref={(el) => {
                   createEffect(() => {
@@ -146,7 +196,11 @@ export function AutocompleteBox<T extends string>(props: {
                   setSelected(index())
                 }}
                 tabIndex={-1}
+                style={{ "font-family": props.fontFamily?.(match) }}
               >
+                <Show when={match.trim() == ""}>
+                  <em class="text-z-subtitle">{"<empty>"}</em>
+                </Show>
                 <span>{match.slice(0, pos)}</span>
                 <span class="font-semibold text-z-heading">
                   {match.slice(pos, pos + field().length)}
