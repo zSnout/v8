@@ -1,31 +1,38 @@
 import { Fa } from "@/components/Fa"
 import { notNull } from "@/components/pray"
 import {
+  faCheck,
   faGripVertical,
   faKey,
   faPencil,
   faPlus,
   faTrash,
-  faUpDown,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import { DndItem, dndzone } from "solid-dnd-directive"
 import { createMemo, createSignal, For, Show, untrack } from "solid-js"
 import { safeParse } from "valibot"
 import { Model, ModelField, ModelFields } from "../types"
-import { IntegratedField } from "./IntegratedField"
 import { AutocompleteFontFamily } from "./AutocompleteFonts"
-import { AutocompleteBox } from "./AutocompleteBox"
+import { IntegratedField } from "./IntegratedField"
+import { Checkbox } from "@/components/fields/CheckboxGroup"
 
 function Action(props: {
   icon: IconDefinition
   label: string
   onClick?: () => void
+  shrinks?: boolean
+  center?: boolean
 }) {
   return (
-    <button class="z-field flex w-full items-center gap-2 border-transparent bg-z-body-selected px-2 py-1 shadow-none">
-      <Fa class="h-4 w-4" icon={props.icon} title={false} />
-      {props.label}
+    <button
+      class="z-field flex w-full items-center gap-2 border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+      classList={{ "justify-center": props.center }}
+    >
+      <div class="flex h-6 items-center justify-center">
+        <Fa class="h-4 w-4" icon={props.icon} title={false} />
+      </div>
+      <div classList={{ "max-sm:sr-only": props.shrinks }}>{props.label}</div>
     </button>
   )
 }
@@ -57,20 +64,14 @@ export function EditModelFields(props: {
   }
 
   return (
-    <div class="flex w-full flex-col gap-8">
-      <div class="mx-auto flex w-72 max-w-full items-baseline gap-1">
-        <div class="whitespace-nowrap">Fields of</div>
-        <input
-          class="z-field flex-1 border-transparent bg-z-body-selected px-1 py-0 text-left shadow-none"
-          type="text"
-          value={model().name}
-          onInput={(x) =>
-            setModel((model) => {
-              return { ...model, name: x.currentTarget.value }
-            })
-          }
-        />
-      </div>
+    <div class="flex min-h-full w-full flex-col gap-8">
+      <IntegratedField
+        label="Editing fields of"
+        rtl={false}
+        type="text"
+        value={model().name}
+        onInput={(value) => setModel((model) => ({ ...model, name: value }))}
+      />
 
       <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
         {FieldList()}
@@ -80,7 +81,6 @@ export function EditModelFields(props: {
           <Action icon={faPlus} label="Add" />
           <Action icon={faTrash} label="Delete" />
           <Action icon={faPencil} label="Rename" />
-          <Action icon={faUpDown} label="Reposition" />
         </div>
       </div>
 
@@ -94,11 +94,85 @@ export function EditModelFields(props: {
           onInput={(y) => {
             setSelected((x) => ({ ...x, desc: y }))
           }}
-          type="plain"
+          type="text"
           placeholder="Placeholder to show when no value is typed in"
         />
 
-        <AutocompleteFontFamily label="Editing Font" placeholder="(optional)" />
+        <div class="grid grid-cols-[1fr,8rem] gap-1">
+          <AutocompleteFontFamily
+            label="Editing Font"
+            placeholder="(optional)"
+            value={selected().font}
+            onChange={(font) => {
+              setSelected((field) => ({ ...field, font }))
+            }}
+          />
+
+          <IntegratedField
+            label="Size"
+            rtl={false}
+            type="number"
+            placeholder="(optional)"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1 rounded-lg bg-z-body-selected px-2 pb-1 pt-1">
+          <p class="text-sm text-z-subtitle">Other options</p>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              circular
+              checked={model().sort_field == selectedIndex()}
+              onInput={() =>
+                setModel((model) => ({ ...model, sort_field: selectedIndex() }))
+              }
+            />
+
+            <p>Sort by this field in the browser</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={selected().rtl}
+              onInput={(rtl) => setSelected((x) => ({ ...x, rtl }))}
+            />
+
+            <p>Edit as right-to-left text</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={selected().html}
+              onInput={(html) => setSelected((x) => ({ ...x, html }))}
+            />
+
+            <p>Default to editing raw HTML</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={selected().collapsed}
+              onInput={(collapsed) => setSelected((x) => ({ ...x, collapsed }))}
+            />
+
+            <p>Collapse field in card creator</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={selected().excludeFromSearch}
+              onInput={(excludeFromSearch) =>
+                setSelected((x) => ({ ...x, excludeFromSearch }))
+              }
+            />
+
+            <p>Exclude from unqualified searches</p>
+          </label>
+        </div>
+      </div>
+
+      <div class="mx-auto mt-auto w-full max-w-96">
+        <Action icon={faCheck} label="Save changes" center />
       </div>
     </div>
   )
