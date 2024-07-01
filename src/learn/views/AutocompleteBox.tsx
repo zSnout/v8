@@ -19,15 +19,17 @@ export function AutocompleteBox<T extends string>(
         fontFamily?: (option: string) => string
         allowArbitrary?: false
         label?: string
+        placeholder?: string
       }
     | {
         options: readonly T[]
         value?: string
         onInput?: (value: string) => void
         onChange?: (value: string) => void
-        fontFamily?: (option: string) => string
+        fontFamily?: (option: string) => string | undefined
         allowArbitrary: true
         label?: string
+        placeholder?: string
       },
 ): JSX.Element {
   const [field, setField] = createSignal(
@@ -37,7 +39,8 @@ export function AutocompleteBox<T extends string>(
   )
 
   const matchingRaw = createMemo(() => {
-    const f = field().toLowerCase()
+    const og = field()
+    const f = og.toLowerCase()
 
     const result = props.options
       .map((option) => {
@@ -46,8 +49,8 @@ export function AutocompleteBox<T extends string>(
       })
       .sort(([, a], [, b]) => a - b)
     if (props.allowArbitrary) {
-      if (!result.some((x) => x[0] == f)) {
-        result.unshift([f as T, 0])
+      if (!result.some((x) => x[0] == og)) {
+        result.unshift([og as T, 0])
       }
     }
     const infinity = result.findIndex(([, v]) => v == 1 / 0)
@@ -84,7 +87,7 @@ export function AutocompleteBox<T extends string>(
         </Show>
 
         <input
-          class="peer w-full bg-transparent px-2 py-1 text-z focus:outline-none"
+          class="peer w-full bg-transparent px-2 py-1 text-z placeholder:text-z-subtitle placeholder:opacity-30 focus:outline-none"
           aria-label={props.label}
           classList={{ "-mt-1": !!props.label }}
           type="text"
@@ -149,6 +152,7 @@ export function AutocompleteBox<T extends string>(
           }}
           value={field()}
           style={{ "font-family": props.fontFamily?.(field()) }}
+          placeholder={props.placeholder}
         />
 
         <div class="pointer-events-none absolute right-0 top-0 flex h-8 w-8 items-center justify-center">

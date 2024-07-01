@@ -21,6 +21,8 @@ export function CreateNote({ app }: { app: App }) {
   const [fields, setFields] = createSignal(model().fields.map(() => ""))
   const [tags, setTags] = createSignal(model().tags)
 
+  // TODO: tags should use the same IntegratedField style
+
   createEffect(() => {
     const current = untrack(tags)
     if (current == "") {
@@ -32,9 +34,9 @@ export function CreateNote({ app }: { app: App }) {
     <div class="flex flex-col gap-4">
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
         <div class="grid grid-cols-2 gap-1">
-          <label class="col-span-2">
-            <p class="mb-1 text-sm text-z-subtitle">Type</p>
+          <div class="col-span-2">
             <AutocompleteBox
+              label="Type"
               options={Object.keys(app.models.byName).sort()}
               onChange={(name) => {
                 setModel(
@@ -46,7 +48,7 @@ export function CreateNote({ app }: { app: App }) {
               }}
               value={model().name}
             />
-          </label>
+          </div>
 
           <button
             class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
@@ -66,21 +68,19 @@ export function CreateNote({ app }: { app: App }) {
           </button>
         </div>
 
-        <label>
-          <p class="mb-1 text-sm text-z-subtitle">Deck</p>
-          <AutocompleteBox
-            options={Object.keys(app.decks.byName).sort()}
-            onChange={(name) => {
-              setDeck(
-                notNull(
-                  app.decks.byName[name],
-                  "The selected deck does not exist.",
-                ),
-              )
-            }}
-            value={deck().name}
-          />
-        </label>
+        <AutocompleteBox
+          label="Deck"
+          options={Object.keys(app.decks.byName).sort()}
+          onChange={(name) => {
+            setDeck(
+              notNull(
+                app.decks.byName[name],
+                "The selected deck does not exist.",
+              ),
+            )
+          }}
+          value={deck().name}
+        />
       </div>
 
       <hr class="border-z" />

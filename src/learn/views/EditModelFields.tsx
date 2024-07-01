@@ -14,6 +14,8 @@ import { createMemo, createSignal, For, Show, untrack } from "solid-js"
 import { safeParse } from "valibot"
 import { Model, ModelField, ModelFields } from "../types"
 import { IntegratedField } from "./IntegratedField"
+import { AutocompleteFontFamily } from "./AutocompleteFonts"
+import { AutocompleteBox } from "./AutocompleteBox"
 
 function Action(props: {
   icon: IconDefinition
@@ -73,27 +75,30 @@ export function EditModelFields(props: {
       <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
         {FieldList()}
 
-        <div class="grid h-fit grid-cols-2 gap-2 sm:grid-cols-1">
+        <div class="grid h-fit grid-cols-2 gap-1 sm:grid-cols-1">
+          {/* TODO: all of these need click actions */}
           <Action icon={faPlus} label="Add" />
           <Action icon={faTrash} label="Delete" />
           <Action icon={faPencil} label="Rename" />
           <Action icon={faUpDown} label="Reposition" />
         </div>
+      </div>
 
-        <div class="flex flex-col">
-          <IntegratedField
-            label="Description"
-            rtl={selected().rtl}
-            font={selected().font}
-            sizePx={selected().size}
-            value={selected().desc}
-            onInput={(y) => {
-              setSelected((x) => ({ ...x, desc: y }))
-            }}
-            type="plain"
-            placeholder="Placeholder to show when no value is typed in"
-          />
-        </div>
+      <div class="flex flex-col gap-1">
+        <IntegratedField
+          label="Description"
+          rtl={selected().rtl}
+          font={selected().font}
+          sizePx={selected().size}
+          value={selected().desc}
+          onInput={(y) => {
+            setSelected((x) => ({ ...x, desc: y }))
+          }}
+          type="plain"
+          placeholder="Placeholder to show when no value is typed in"
+        />
+
+        <AutocompleteFontFamily label="Editing Font" placeholder="(optional)" />
       </div>
     </div>
   )
