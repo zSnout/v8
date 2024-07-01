@@ -168,8 +168,17 @@ export const ModelField = v.object({
   /** The value to fill in by default when creating a new card of this model */
   sticky: v.optional(v.string()),
 
+  /** Whether the field is collapsed in the editor */
+  collapsed: v.boolean(),
+
+  /** Whether the field defaults to html view */
+  html: v.boolean(),
+
   /** The placeholder to show in the entry window when no value is entered. */
   desc: v.string(),
+
+  /** Whether to exclude this field from unqualified searches */
+  excludeFromSearch: v.boolean(),
 })
 
 export interface ModelFields extends v.InferOutput<typeof ModelFields> {}

@@ -1,5 +1,5 @@
 import { Id, idOf, randomId } from "./id"
-import type { Collection, Conf, Core, Deck, Prefs } from "./types"
+import type { Collection, Conf, Core, Deck, ModelField, Prefs } from "./types"
 
 const ID_DECK_DEFAULT = idOf(1)
 const ID_CONF_DEFAULT = idOf(1)
@@ -79,6 +79,18 @@ export function createDeck(now: number, name: string, id: Id): Deck {
   }
 }
 
+export function createField(name: string): ModelField {
+  return {
+    id: randomId(),
+    name,
+    rtl: false,
+    desc: "",
+    collapsed: false,
+    excludeFromSearch: false,
+    html: false,
+  }
+}
+
 export function createModels(): Collection["models"] {
   return {
     [ID_MODEL_BASIC]: {
@@ -90,10 +102,7 @@ export function createModels(): Collection["models"] {
     color: black;
     background-color: white;
 }`,
-      fields: [
-        { id: randomId(), name: "Front", rtl: false, desc: "" },
-        { id: randomId(), name: "Back", rtl: false, desc: "" },
-      ],
+      fields: [createField("Front"), createField("Back")],
       name: "Basic",
       sort_field: 0,
       tmpls: [
@@ -119,10 +128,7 @@ export function createModels(): Collection["models"] {
     color: black;
     background-color: white;
 }`,
-      fields: [
-        { id: randomId(), name: "Front", rtl: false, desc: "" },
-        { id: randomId(), name: "Back", rtl: false, desc: "" },
-      ],
+      fields: [createField("Front"), createField("Back")],
       name: "Basic and reversed",
       sort_field: 0,
       tmpls: [
