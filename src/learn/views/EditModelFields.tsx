@@ -63,6 +63,32 @@ export function EditModelFields(props: {
   })
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const selected = createMemo(() => model().fields[selectedIndex()]!)
+
+  const owner = getOwner()
+
+  return (
+    <div class="flex min-h-full w-full flex-col gap-8">
+      <IntegratedField
+        label="Editing fields of"
+        rtl={false}
+        type="text"
+        value={model().name}
+        onInput={(value) => setModel((model) => ({ ...model, name: value }))}
+      />
+
+      <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
+        {FieldList()}
+        {SideActions()}
+      </div>
+
+      {FieldOptions()}
+
+      <div class="mx-auto mt-auto w-full max-w-96">
+        <Action icon={faCheck} label="Save changes" center />
+      </div>
+    </div>
+  )
+
   function setSelected(fn: ModelField | ((x: ModelField) => ModelField)) {
     const idx = untrack(selectedIndex)
     if (typeof fn == "function") {
@@ -76,7 +102,6 @@ export function EditModelFields(props: {
     })
   }
 
-  const owner = getOwner()
   async function confirmImportantChange(ingVerb: string) {
     return await confirm({
       owner,
@@ -123,96 +148,8 @@ export function EditModelFields(props: {
     }
   }
 
-  return (
-    <div class="flex min-h-full w-full flex-col gap-8">
-      <IntegratedField
-        label="Editing fields of"
-        rtl={false}
-        type="text"
-        value={model().name}
-        onInput={(value) => setModel((model) => ({ ...model, name: value }))}
-      />
-
-      <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
-        {FieldList()}
-
-        <div class="grid h-fit grid-cols-2 gap-1 sm:grid-cols-1">
-          <Action
-            icon={faPlus}
-            label="Add"
-            onClick={async () => {
-              if (!(await confirmImportantChange("Adding a new field"))) {
-                return
-              }
-
-              const fieldName = await pickFieldName("New field name")
-
-              if (!fieldName) {
-                return
-              }
-
-              setModel((model) => ({
-                ...model,
-                fields: model.fields.concat(createField(fieldName)),
-              }))
-            }}
-          />
-
-          <Action
-            icon={faTrash}
-            label="Delete"
-            onClick={async () => {
-              if (model().fields.length <= 1) {
-                await alert({
-                  owner,
-                  title: "Unable to delete",
-                  description: (
-                    <ModalDescription>
-                      Card types need at least one field.
-                    </ModalDescription>
-                  ),
-                })
-                return
-              }
-
-              if (!(await confirmImportantChange("Removing this field"))) {
-                return
-              }
-
-              batch(() => {
-                const index = selectedIndex()
-
-                const model = setModel((model) => ({
-                  ...model,
-                  fields: model.fields.toSpliced(index, 1),
-                }))
-
-                setSelectedId(
-                  model.fields[Math.min(index, model.fields.length - 1)]!.id,
-                )
-              })
-            }}
-          />
-
-          <Action
-            icon={faPencil}
-            label="Rename"
-            onClick={async () => {
-              const fieldName = await pickFieldName(
-                "New field name",
-                selected().name,
-              )
-
-              if (!fieldName) {
-                return
-              }
-
-              setSelected((field) => ({ ...field, name: fieldName }))
-            }}
-          />
-        </div>
-      </div>
-
+  function FieldOptions() {
+    return (
       <div class="flex flex-col gap-1">
         <IntegratedField
           label="Description"
@@ -299,12 +236,88 @@ export function EditModelFields(props: {
           </label>
         </div>
       </div>
+    )
+  }
 
-      <div class="mx-auto mt-auto w-full max-w-96">
-        <Action icon={faCheck} label="Save changes" center />
+  function SideActions() {
+    return (
+      <div class="grid h-fit grid-cols-2 gap-1 sm:grid-cols-1">
+        <Action
+          icon={faPlus}
+          label="Add"
+          onClick={async () => {
+            if (!(await confirmImportantChange("Adding a new field"))) {
+              return
+            }
+
+            const fieldName = await pickFieldName("New field name")
+
+            if (!fieldName) {
+              return
+            }
+
+            setModel((model) => ({
+              ...model,
+              fields: model.fields.concat(createField(fieldName)),
+            }))
+          }}
+        />
+
+        <Action
+          icon={faTrash}
+          label="Delete"
+          onClick={async () => {
+            if (model().fields.length <= 1) {
+              await alert({
+                owner,
+                title: "Unable to delete",
+                description: (
+                  <ModalDescription>
+                    Card types need at least one field.
+                  </ModalDescription>
+                ),
+              })
+              return
+            }
+
+            if (!(await confirmImportantChange("Removing this field"))) {
+              return
+            }
+
+            batch(() => {
+              const index = selectedIndex()
+
+              const model = setModel((model) => ({
+                ...model,
+                fields: model.fields.toSpliced(index, 1),
+              }))
+
+              setSelectedId(
+                model.fields[Math.min(index, model.fields.length - 1)]!.id,
+              )
+            })
+          }}
+        />
+
+        <Action
+          icon={faPencil}
+          label="Rename"
+          onClick={async () => {
+            const fieldName = await pickFieldName(
+              "New field name",
+              selected().name,
+            )
+
+            if (!fieldName) {
+              return
+            }
+
+            setSelected((field) => ({ ...field, name: fieldName }))
+          }}
+        />
       </div>
-    </div>
-  )
+    )
+  }
 
   function FieldList() {
     const sortId = createMemo(() => model().fields[model().sort_field]?.id)
