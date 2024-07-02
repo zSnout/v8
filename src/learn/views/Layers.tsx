@@ -70,7 +70,7 @@ export class Layers {
     const child = runWithOwner(this.owner, () => el(pop))
     const next = (
       <div
-        class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
+        class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
         ref={(el) => {
           this.layers.push([el, previouslyFocused])
           setTimeout(() => {
@@ -78,7 +78,7 @@ export class Layers {
           })
         }}
       >
-        <div class="mx-auto min-h-full w-full max-w-5xl">{child}</div>
+        <div class="mx-auto w-full max-w-5xl flex-1 flex-col">{child}</div>
       </div>
     ) as HTMLDivElement
 

@@ -3,6 +3,7 @@ import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { alert, confirm, ModalDescription, prompt } from "@/components/Modal"
 import { notNull } from "@/components/pray"
 import {
+  faCancel,
   faCheck,
   faGripVertical,
   faKey,
@@ -83,11 +84,20 @@ export function EditModelFields(props: {
 
       {FieldOptions()}
 
-      <div class="mx-auto mt-auto w-full max-w-96">
-        <Action icon={faCheck} label="Save changes" center />
-      </div>
+      {"a a a ".repeat(1000)}
+
+      {SaveChanges()}
     </div>
   )
+
+  function SaveChanges() {
+    return (
+      <div class="mx-auto mt-auto grid w-full max-w-96 gap-1 xs:grid-cols-2">
+        <Action icon={faCancel} label="Cancel" center />
+        <Action icon={faCheck} label="Save changes" center />
+      </div>
+    )
+  }
 
   function setSelected(fn: ModelField | ((x: ModelField) => ModelField)) {
     const idx = untrack(selectedIndex)
