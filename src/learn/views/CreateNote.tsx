@@ -57,7 +57,9 @@ export function CreateNote({ app }: { app: App }) {
                 <EditModelFields
                   model={model()}
                   close={(model) => {
-                    unwrap(app.models.set(model))
+                    if (model != null) {
+                      unwrap(app.models.set(model))
+                    }
                     pop()
                   }}
                 />

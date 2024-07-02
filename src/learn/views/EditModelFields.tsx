@@ -27,8 +27,8 @@ import { safeParse } from "valibot"
 import { createField } from "../defaults"
 import { Model, ModelField, ModelFields } from "../types"
 import { AutocompleteFontFamily } from "./AutocompleteFonts"
-import { IntegratedField } from "./IntegratedField"
 import { BottomButtons } from "./BottomButtons"
+import { IntegratedField } from "./IntegratedField"
 
 function Action(props: {
   icon: IconDefinition
@@ -53,7 +53,7 @@ function Action(props: {
 
 export function EditModelFields(props: {
   model: Model
-  close: (model: Model) => void
+  close: (model?: Model) => void
 }) {
   const [model, setModel] = createSignal(props.model)
   const [fields, setFields] = createSignal<DndItem[]>(model().fields)
@@ -94,8 +94,18 @@ export function EditModelFields(props: {
   function SaveChanges() {
     return (
       <BottomButtons class="grid w-full max-w-96 gap-1 xs:grid-cols-2">
-        <Action icon={faCancel} label="Cancel" center />
-        <Action icon={faCheck} label="Save changes" center />
+        <Action
+          icon={faCancel}
+          label="Cancel"
+          center
+          onClick={() => props.close()}
+        />
+        <Action
+          icon={faCheck}
+          label="Save changes"
+          center
+          onClick={() => props.close(model())}
+        />
       </BottomButtons>
     )
   }
