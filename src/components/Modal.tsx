@@ -1,4 +1,4 @@
-import { createSignal, JSX, Owner, runWithOwner, Show, untrack } from "solid-js"
+import { createSignal, JSX, Owner, runWithOwner, untrack } from "solid-js"
 import { Portal } from "solid-js/web"
 
 export function ModalCancel(props: {
@@ -129,10 +129,10 @@ export function Modal(props: {
 
 export function confirm(props: {
   owner: Owner | null
-  title: string
-  description?: string
+  title: JSX.Element
+  description?: JSX.Element
   cancelText?: string
-  confirmText?: string
+  okText?: string
 }): Promise<boolean> {
   return new Promise((resolve) => {
     let modal: ModalRef
@@ -149,15 +149,13 @@ export function confirm(props: {
         }}
       >
         <ModalTitle>{props.title}</ModalTitle>
-        <Show when={props.description}>
-          <ModalDescription>{props.description}</ModalDescription>
-        </Show>
+        {props.description}
         <ModalButtons>
           <ModalCancel onClick={() => modal.cancel()}>
             {props.cancelText || "Cancel"}
           </ModalCancel>
           <ModalConfirm onClick={() => modal.close("true")}>
-            {props.confirmText || "OK"}
+            {props.okText || "OK"}
           </ModalConfirm>
         </ModalButtons>
       </Modal>
@@ -169,8 +167,8 @@ export function confirm(props: {
 
 export function alert(props: {
   owner: Owner | null
-  title: string
-  description?: string
+  title: JSX.Element
+  description?: JSX.Element
   okText?: string
 }): Promise<void> {
   return new Promise((resolve) => {
@@ -187,9 +185,7 @@ export function alert(props: {
         }}
       >
         <ModalTitle>{props.title}</ModalTitle>
-        <Show when={props.description}>
-          <ModalDescription>{props.description}</ModalDescription>
-        </Show>
+        {props.description}
         <ModalButtons>
           <ModalConfirm onClick={() => modal.close("")}>
             {props.okText || "OK"}
@@ -204,8 +200,8 @@ export function alert(props: {
 
 export function prompt(props: {
   owner: Owner | null
-  title: string
-  description?: string
+  title: JSX.Element
+  description?: JSX.Element
   cancelText?: string
   okText?: string
   value?: string
@@ -226,9 +222,7 @@ export function prompt(props: {
         }}
       >
         <ModalTitle>{props.title}</ModalTitle>
-        <Show when={props.description}>
-          <ModalDescription>{props.description}</ModalDescription>
-        </Show>
+        {props.description}
         <form
           onSubmit={(event) => {
             event.preventDefault()

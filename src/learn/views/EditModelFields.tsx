@@ -1,5 +1,6 @@
 import { Fa } from "@/components/Fa"
 import { Checkbox } from "@/components/fields/CheckboxGroup"
+import { alert, confirm, ModalDescription, prompt } from "@/components/Modal"
 import { notNull } from "@/components/pray"
 import {
   faCheck,
@@ -12,10 +13,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { DndItem, dndzone } from "solid-dnd-directive"
 import {
+  batch,
   createEffect,
   createMemo,
   createSignal,
   For,
+  getOwner,
   Show,
   untrack,
 } from "solid-js"
@@ -73,6 +76,53 @@ export function EditModelFields(props: {
     })
   }
 
+  const owner = getOwner()
+  async function confirmImportantChange(ingVerb: string) {
+    return await confirm({
+      owner,
+      title: "Are you sure you want to do this?",
+      get description() {
+        return (
+          <ModalDescription>
+            {ingVerb} will require a full upload of the database when you next
+            synchronize your collection. If you have reviews or other changes
+            waiting on another device that haven't been synchronized here yet,{" "}
+            <u class="font-semibold text-z">they will be lost</u>. Continue?
+          </ModalDescription>
+        )
+      },
+      cancelText: "Cancel",
+      okText: "Continue",
+    })
+  }
+
+  async function pickFieldName(title: string, cancelName?: string | undefined) {
+    let first = true
+
+    while (true) {
+      const name = await prompt({
+        owner,
+        title,
+        description: first ? undefined : (
+          <ModalDescription>
+            That field name is already used. Please pick a different name, or
+            cancel the action.
+          </ModalDescription>
+        ),
+      })
+
+      if (name == null || name == cancelName) {
+        return
+      }
+
+      if (!model().fields.some((x) => x.name == name)) {
+        return name
+      }
+
+      first = false
+    }
+  }
+
   return (
     <div class="flex min-h-full w-full flex-col gap-8">
       <IntegratedField
@@ -90,38 +140,76 @@ export function EditModelFields(props: {
           <Action
             icon={faPlus}
             label="Add"
-            onClick={() => {
-              setModel((model) => {
-                if (!model.fields.some((x) => x.name == "Unnamed field")) {
-                  return {
-                    ...model,
-                    fields: model.fields.concat(createField("Unnamed field")),
-                  }
-                }
+            onClick={async () => {
+              if (!(await confirmImportantChange("Adding a new field"))) {
+                return
+              }
 
-                const taken = model.fields
-                  .map((x) =>
-                    Number(x.name.match(/^Unnamed field (\d+)$/)?.[1]),
-                  )
-                  .filter((x) => !isNaN(x))
+              const fieldName = await pickFieldName("New field name")
 
-                console.log(taken)
+              if (!fieldName) {
+                return
+              }
 
-                let n = 1
-                while (taken.includes(n)) n++
+              setModel((model) => ({
+                ...model,
+                fields: model.fields.concat(createField(fieldName)),
+              }))
+            }}
+          />
 
-                return {
-                  ...model,
-                  fields: model.fields.concat(
-                    createField(`Unnamed field ${n}`),
+          <Action
+            icon={faTrash}
+            label="Delete"
+            onClick={async () => {
+              if (model().fields.length <= 1) {
+                await alert({
+                  owner,
+                  title: "Unable to delete",
+                  description: (
+                    <ModalDescription>
+                      Card types need at least one field.
+                    </ModalDescription>
                   ),
-                }
+                })
+                return
+              }
+
+              if (!(await confirmImportantChange("Removing this field"))) {
+                return
+              }
+
+              batch(() => {
+                const index = selectedIndex()
+
+                const model = setModel((model) => ({
+                  ...model,
+                  fields: model.fields.toSpliced(index, 1),
+                }))
+
+                setSelectedId(
+                  model.fields[Math.min(index, model.fields.length - 1)]!.id,
+                )
               })
             }}
           />
-          {/* TODO: all of these need click actions */}
-          <Action icon={faTrash} label="Delete" />
-          <Action icon={faPencil} label="Rename" />
+
+          <Action
+            icon={faPencil}
+            label="Rename"
+            onClick={async () => {
+              const fieldName = await pickFieldName(
+                "New field name",
+                selected().name,
+              )
+
+              if (!fieldName) {
+                return
+              }
+
+              setSelected((field) => ({ ...field, name: fieldName }))
+            }}
+          />
         </div>
       </div>
 
@@ -223,7 +311,7 @@ export function EditModelFields(props: {
 
     return (
       <div
-        class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z"
+        class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z pb-8"
         ref={(el) => {
           dndzone(el, () => ({
             items: fields,
