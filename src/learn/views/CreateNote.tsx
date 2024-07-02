@@ -1,4 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import {
+  Modal,
+  ModalButtons,
+  ModalCancel,
+  ModalConfirm,
+  ModalDescription,
+  ModalTitle,
+} from "@/components/Modal"
 import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import { createEffect, createSignal, For, untrack } from "solid-js"
@@ -30,8 +38,13 @@ export function CreateNote({ app }: { app: App }) {
     }
   })
 
+  const [open, setOpen] = createSignal(false)
+  // setTimeout(() => setOpen(true), 100)
+
   return (
     <div class="flex flex-col gap-4">
+      <button onClick={() => setOpen(true)}>open</button>
+
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
         <div class="grid grid-cols-2 gap-1">
           <div class="col-span-2">
@@ -105,6 +118,18 @@ export function CreateNote({ app }: { app: App }) {
       </div>
 
       <TagEditor value={tags()} onChange={(tags) => setTags(tags)} />
+
+      <Modal open={open()}>
+        <ModalTitle>Are you absolutely sure?</ModalTitle>
+        <ModalDescription>
+          This action cannot be undone. This will permanently delete your
+          account and remove your data from out servers.
+        </ModalDescription>
+        <ModalButtons>
+          <ModalCancel>Cancel</ModalCancel>
+          <ModalConfirm>Confirm</ModalConfirm>
+        </ModalButtons>
+      </Modal>
 
       {/* TODO: remove the `hi`s */}
       {Array(1000)
