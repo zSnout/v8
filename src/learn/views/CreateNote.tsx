@@ -126,7 +126,7 @@ export function CreateNote({ app }: { app: App }) {
           This action cannot be undone. This will permanently delete your
           account and remove your data from out servers.
         </ModalDescription>
-        {/* <ModalField /> */}
+        <ModalField />
         <ModalButtons>
           <ModalCancel autofocus onClick={() => modal.cancel()}>
             Cancel

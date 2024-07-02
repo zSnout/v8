@@ -24,7 +24,7 @@ export function ModalConfirm(props: {
 }) {
   return (
     <button
-      class="z-field rounded-md border-transparent bg-z-text-heading text-sm text-z-bg-body shadow-none hover:bg-z-text focus:border-z-focus"
+      class="z-field rounded-md border-transparent bg-z-text-heading text-sm text-z-bg-body shadow-none hover:bg-z-text"
       onClick={props.onClick}
     >
       {props.children}
@@ -44,8 +44,22 @@ export function ModalDescription(props: { children: JSX.Element }) {
   return <p class="mt-2 text-sm text-z-subtitle">{props.children}</p>
 }
 
-export function ModalField(props: {}) {
-  return <input class="z-field mt-3 shadow-none" type="text" />
+export function ModalField(props: {
+  value?: string
+  placeholder?: string
+  onInput?: JSX.InputEventHandlerUnion<HTMLInputElement, InputEvent>
+  onChange?: JSX.ChangeEventHandlerUnion<HTMLInputElement, Event>
+}) {
+  return (
+    <input
+      class="z-field mt-3 w-full shadow-none placeholder:opacity-50"
+      type="text"
+      value={props.value ?? []}
+      placeholder={props.placeholder}
+      onInput={props.onInput}
+      onChange={props.onChange}
+    />
+  )
 }
 
 export interface ModalRef {
@@ -93,7 +107,7 @@ export function Modal(props: {
           onCancel={() => props.onCancel?.()}
           inert={!open()}
         >
-          <div class="m-auto flex max-h-full w-full max-w-lg scale-95 flex-col overflow-y-auto rounded-lg bg-z-body px-6 py-6 opacity-0 shadow-lg transition group-open:scale-100 group-open:opacity-100">
+          <div class="m-auto max-h-full w-full max-w-lg scale-95 overflow-y-auto rounded-lg bg-z-body px-6 py-6 opacity-0 shadow-lg transition group-open:scale-100 group-open:opacity-100">
             {props.children}
           </div>
         </dialog>
