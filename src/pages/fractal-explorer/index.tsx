@@ -1,7 +1,7 @@
 import { ColorModifiers } from "@/components/ColorModifiers"
+import { DialogButton } from "@/components/Dialog"
 import { ErrorBoundary } from "@/components/Error"
 import { Fa } from "@/components/Fa"
-import { ModalButton } from "@/components/Modal"
 import { createEventListener } from "@/components/create-event-listener"
 import { isInteractive } from "@/components/draggable"
 import { CheckboxGroup, Radio } from "@/components/fields/Radio"
@@ -598,13 +598,13 @@ export function Main() {
       <DynamicOptions
         buttons={
           <>
-            <ModalButton onClick={() => setView("main")}>
+            <DialogButton onClick={() => setView("main")}>
               <div class="flex h-6 w-6">
                 <Fa class="m-auto h-6 w-6" icon={faSliders} title="Main View" />
               </div>
-            </ModalButton>
+            </DialogButton>
 
-            <ModalButton onClick={() => setView("equations")}>
+            <DialogButton onClick={() => setView("equations")}>
               <div class="flex h-6 w-6">
                 <Fa
                   class="m-auto h-6 w-6"
@@ -612,9 +612,9 @@ export function Main() {
                   title="Equation View"
                 />
               </div>
-            </ModalButton>
+            </DialogButton>
 
-            <ModalButton class="mr-auto" onClick={() => setView("help")}>
+            <DialogButton class="mr-auto" onClick={() => setView("help")}>
               <div class="flex h-6 w-6">
                 <Fa
                   class="m-auto h-6 w-6"
@@ -622,9 +622,9 @@ export function Main() {
                   title="Help View"
                 />
               </div>
-            </ModalButton>
+            </DialogButton>
 
-            <ModalButton
+            <DialogButton
               onClick={() => {
                 if (!gl) {
                   return
@@ -643,7 +643,7 @@ export function Main() {
                 icon={faLocationCrosshairs}
                 title="Reset Position"
               />
-            </ModalButton>
+            </DialogButton>
           </>
         }
       >
