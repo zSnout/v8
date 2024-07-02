@@ -5,7 +5,7 @@ import { Center } from "./Center"
 import { draggable } from "./draggable"
 import { Fa } from "./Fa"
 
-export function ModalButton(props: {
+export function DialogButton(props: {
   class?: string
   children: any
   onClick?: () => void
@@ -23,7 +23,7 @@ export function ModalButton(props: {
   )
 }
 
-export function Modal(props: {
+export function Dialog(props: {
   buttons?: JSX.Element
   onCancel?: () => void
   children: JSX.Element
@@ -48,9 +48,9 @@ export function Modal(props: {
           </div>
 
           <div class="flex gap-2">
-            <ModalButton class="mr-auto" onClick={props.onCancel}>
+            <DialogButton class="mr-auto" onClick={props.onCancel}>
               <Fa class="h-6 w-6" icon={faClose} title="Close" />
-            </ModalButton>
+            </DialogButton>
 
             {props.buttons}
           </div>

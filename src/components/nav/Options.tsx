@@ -2,8 +2,8 @@ import { faGear } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, untrack } from "solid-js"
 import { Portal } from "solid-js/web"
 import { createEventListener } from "../create-event-listener"
+import { Dialog } from "../Dialog"
 import { Fa } from "../Fa"
-import { Modal } from "../Modal"
 
 export function Options(props: { buttons?: any; children: any }) {
   const [open, setOpen] = createSignal(false)
@@ -44,13 +44,13 @@ export function Options(props: { buttons?: any; children: any }) {
         </div>
       </button>
 
-      <Modal
+      <Dialog
         buttons={props.buttons}
         onCancel={() => setOpen(false)}
         open={open()}
       >
         {props.children}
-      </Modal>
+      </Dialog>
     </>
   )
 }
