@@ -5,6 +5,8 @@ import {
   ModalCancel,
   ModalConfirm,
   ModalDescription,
+  ModalField,
+  ModalRef,
   ModalTitle,
 } from "@/components/Modal"
 import { notNull } from "@/components/pray"
@@ -38,12 +40,11 @@ export function CreateNote({ app }: { app: App }) {
     }
   })
 
-  const [open, setOpen] = createSignal(false)
-  // setTimeout(() => setOpen(true), 100)
+  let modal: ModalRef
 
   return (
     <div class="flex flex-col gap-4">
-      <button onClick={() => setOpen(true)}>open</button>
+      <button onClick={() => modal.showModal()}>open</button>
 
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
         <div class="grid grid-cols-2 gap-1">
@@ -119,14 +120,17 @@ export function CreateNote({ app }: { app: App }) {
 
       <TagEditor value={tags()} onChange={(tags) => setTags(tags)} />
 
-      <Modal open={open()}>
+      <Modal ref={(e) => (modal = e)}>
         <ModalTitle>Are you absolutely sure?</ModalTitle>
         <ModalDescription>
           This action cannot be undone. This will permanently delete your
           account and remove your data from out servers.
         </ModalDescription>
+        {/* <ModalField /> */}
         <ModalButtons>
-          <ModalCancel>Cancel</ModalCancel>
+          <ModalCancel autofocus onClick={() => modal.cancel()}>
+            Cancel
+          </ModalCancel>
           <ModalConfirm>Confirm</ModalConfirm>
         </ModalButtons>
       </Modal>
