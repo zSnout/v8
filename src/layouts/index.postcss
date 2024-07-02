@@ -311,3 +311,9 @@ html.no-transition * {
 .z-field-number[type="number"] {
   -moz-appearance: textfield;
 }
+
+@layer components {
+  .z-field:where(button:not([disabled])):active {
+    @apply translate-y-0;
+  }
+}

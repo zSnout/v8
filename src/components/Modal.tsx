@@ -1,4 +1,4 @@
-import { createSignal, JSX } from "solid-js"
+import { createSignal, JSX, Owner, runWithOwner, Show, untrack } from "solid-js"
 import { Portal } from "solid-js/web"
 
 export function ModalCancel(props: {
@@ -49,6 +49,7 @@ export function ModalField(props: {
   placeholder?: string
   onInput?: JSX.InputEventHandlerUnion<HTMLInputElement, InputEvent>
   onChange?: JSX.ChangeEventHandlerUnion<HTMLInputElement, Event>
+  autofocus?: boolean
 }) {
   return (
     <input
@@ -58,13 +59,14 @@ export function ModalField(props: {
       placeholder={props.placeholder}
       onInput={props.onInput}
       onChange={props.onChange}
+      autofocus
     />
   )
 }
 
 export interface ModalRef {
   showModal(): void
-  close(value?: string): void
+  close(value: string): void
   cancel(): void
 }
 
@@ -73,11 +75,12 @@ export function Modal(props: {
   ref?: (ref: ModalRef) => void
   onCancel?: () => void
   onClose?: (value: string) => void
+  refPortal?: (ref: HTMLDivElement) => void
 }) {
   const [open, setOpen] = createSignal(false)
 
   return (
-    <Portal>
+    <Portal ref={props.refPortal}>
       <div class="pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-black/0 transition [&:has(>[open])]:pointer-events-auto [&:has(>[open])]:bg-black/75">
         <dialog
           class="group pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-transparent transition open:pointer-events-auto [&:modal]:max-h-[100vh] [&:modal]:max-w-[100vw] [body:has(>*>*>&[open])]:overflow-hidden"
@@ -88,6 +91,14 @@ export function Modal(props: {
               showModal() {
                 el.showModal()
                 setOpen(true)
+                const autofocused = el.querySelector("[autofocus]")
+                if (
+                  autofocused &&
+                  (autofocused instanceof HTMLElement ||
+                    autofocused instanceof SVGElement)
+                ) {
+                  autofocused.focus()
+                }
               },
               close(value) {
                 el.close(value)
@@ -114,4 +125,132 @@ export function Modal(props: {
       </div>
     </Portal>
   )
+}
+
+export function confirm(props: {
+  owner: Owner | null
+  title: string
+  description?: string
+  cancelText?: string
+  confirmText?: string
+}): Promise<boolean> {
+  return new Promise((resolve) => {
+    let modal: ModalRef
+    let portal: HTMLDivElement
+
+    runWithOwner(props.owner, () => (
+      <Modal
+        ref={(e) => (modal = e)}
+        refPortal={(e) => (portal = e)}
+        onCancel={() => resolve(false)}
+        onClose={(value) => {
+          resolve(value == "true")
+          portal.ontransitionend = () => portal.remove()
+        }}
+      >
+        <ModalTitle>{props.title}</ModalTitle>
+        <Show when={props.description}>
+          <ModalDescription>{props.description}</ModalDescription>
+        </Show>
+        <ModalButtons>
+          <ModalCancel onClick={() => modal.cancel()}>
+            {props.cancelText || "Cancel"}
+          </ModalCancel>
+          <ModalConfirm onClick={() => modal.close("true")}>
+            {props.confirmText || "OK"}
+          </ModalConfirm>
+        </ModalButtons>
+      </Modal>
+    ))
+
+    setTimeout(() => modal!.showModal(), 1)
+  })
+}
+
+export function alert(props: {
+  owner: Owner | null
+  title: string
+  description?: string
+  okText?: string
+}): Promise<void> {
+  return new Promise((resolve) => {
+    let modal: ModalRef
+    let portal: HTMLDivElement
+
+    runWithOwner(props.owner, () => (
+      <Modal
+        ref={(e) => (modal = e)}
+        refPortal={(e) => (portal = e)}
+        onClose={() => {
+          resolve()
+          portal.ontransitionend = () => portal.remove()
+        }}
+      >
+        <ModalTitle>{props.title}</ModalTitle>
+        <Show when={props.description}>
+          <ModalDescription>{props.description}</ModalDescription>
+        </Show>
+        <ModalButtons>
+          <ModalConfirm onClick={() => modal.close("")}>
+            {props.okText || "OK"}
+          </ModalConfirm>
+        </ModalButtons>
+      </Modal>
+    ))
+
+    setTimeout(() => modal!.showModal(), 1)
+  })
+}
+
+export function prompt(props: {
+  owner: Owner | null
+  title: string
+  description?: string
+  cancelText?: string
+  okText?: string
+  value?: string
+}): Promise<string | undefined> {
+  return new Promise((resolve) => {
+    let modal: ModalRef
+    let portal: HTMLDivElement
+    let value: string
+
+    runWithOwner(props.owner, () => (
+      <Modal
+        ref={(e) => (modal = e)}
+        refPortal={(e) => (portal = e)}
+        onCancel={() => resolve(undefined)}
+        onClose={(value) => {
+          resolve(value)
+          portal.ontransitionend = () => portal.remove()
+        }}
+      >
+        <ModalTitle>{props.title}</ModalTitle>
+        <Show when={props.description}>
+          <ModalDescription>{props.description}</ModalDescription>
+        </Show>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            modal.close(value)
+          }}
+        >
+          <ModalField
+            value={untrack(() => props.value)}
+            onInput={(el) => (value = el.currentTarget.value)}
+          />
+        </form>
+        <ModalButtons>
+          <ModalCancel onClick={() => modal.cancel()}>
+            {props.cancelText || "Cancel"}
+          </ModalCancel>
+          <ModalConfirm onClick={() => modal.close(value)}>
+            {props.okText || "OK"}
+          </ModalConfirm>
+        </ModalButtons>
+      </Modal>
+    ))
+
+    setTimeout(() => modal!.showModal(), 1)
+  })
 }

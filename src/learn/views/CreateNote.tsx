@@ -1,17 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  Modal,
-  ModalButtons,
-  ModalCancel,
-  ModalConfirm,
-  ModalDescription,
-  ModalField,
-  ModalRef,
-  ModalTitle,
-} from "@/components/Modal"
+import { prompt } from "@/components/Modal"
 import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
-import { createEffect, createSignal, For, untrack } from "solid-js"
+import { createEffect, createSignal, For, getOwner, untrack } from "solid-js"
 import { App } from "../state"
 import { AutocompleteBox } from "./AutocompleteBox"
 import { EditModelFields } from "./EditModelFields"
@@ -40,11 +31,21 @@ export function CreateNote({ app }: { app: App }) {
     }
   })
 
-  let modal: ModalRef
+  const owner = getOwner()
 
   return (
     <div class="flex flex-col gap-4">
-      <button onClick={() => modal.showModal()}>open</button>
+      <button
+        onClick={async () => {
+          const result = await prompt({
+            owner,
+            title: "Are you sure you want to do this?",
+          })
+          console.log(result)
+        }}
+      >
+        open
+      </button>
 
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
         <div class="grid grid-cols-2 gap-1">
@@ -119,21 +120,6 @@ export function CreateNote({ app }: { app: App }) {
       </div>
 
       <TagEditor value={tags()} onChange={(tags) => setTags(tags)} />
-
-      <Modal ref={(e) => (modal = e)}>
-        <ModalTitle>Are you absolutely sure?</ModalTitle>
-        <ModalDescription>
-          This action cannot be undone. This will permanently delete your
-          account and remove your data from out servers.
-        </ModalDescription>
-        <ModalField />
-        <ModalButtons>
-          <ModalCancel autofocus onClick={() => modal.cancel()}>
-            Cancel
-          </ModalCancel>
-          <ModalConfirm>Confirm</ModalConfirm>
-        </ModalButtons>
-      </Modal>
 
       {/* TODO: remove the `hi`s */}
       {Array(1000)
