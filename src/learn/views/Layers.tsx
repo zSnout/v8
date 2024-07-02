@@ -2,7 +2,6 @@ import {
   createContext,
   getOwner,
   JSX,
-  onMount,
   Owner,
   runWithOwner,
   useContext,
@@ -78,7 +77,7 @@ export class Layers {
           })
         }}
       >
-        <div class="mx-auto w-full max-w-5xl flex-1 flex-col">{child}</div>
+        <div class="mx-auto w-full max-w-5xl flex-1">{child}</div>
       </div>
     ) as HTMLDivElement
 

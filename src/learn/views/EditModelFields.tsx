@@ -28,6 +28,7 @@ import { createField } from "../defaults"
 import { Model, ModelField, ModelFields } from "../types"
 import { AutocompleteFontFamily } from "./AutocompleteFonts"
 import { IntegratedField } from "./IntegratedField"
+import { BottomButtons } from "./BottomButtons"
 
 function Action(props: {
   icon: IconDefinition
@@ -84,7 +85,7 @@ export function EditModelFields(props: {
 
       {FieldOptions()}
 
-      {"a a a ".repeat(1000)}
+      {"a ".repeat(3000)}
 
       {SaveChanges()}
     </div>
@@ -92,10 +93,10 @@ export function EditModelFields(props: {
 
   function SaveChanges() {
     return (
-      <div class="mx-auto mt-auto grid w-full max-w-96 gap-1 xs:grid-cols-2">
+      <BottomButtons class="grid w-full max-w-96 gap-1 xs:grid-cols-2">
         <Action icon={faCancel} label="Cancel" center />
         <Action icon={faCheck} label="Save changes" center />
-      </div>
+      </BottomButtons>
     )
   }
 
