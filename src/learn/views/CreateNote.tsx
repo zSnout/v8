@@ -7,7 +7,6 @@ import { AutocompleteBox } from "./AutocompleteBox"
 import { EditModelFields } from "./EditModelFields"
 import { IntegratedField } from "./IntegratedField"
 import { useLayers } from "./Layers"
-import { TagEditor } from "./TagEditor"
 
 export function CreateNote(props: {
   app: App
@@ -116,7 +115,13 @@ export function CreateNote(props: {
         </For>
       </div>
 
-      <TagEditor value={tags()} onChange={(tags) => setTags(tags)} />
+      <IntegratedField
+        type="tags"
+        label="Tags"
+        value={model().tags}
+        rtl={false}
+        onInput={(tags) => setTags(tags)}
+      />
     </div>
   )
 }
