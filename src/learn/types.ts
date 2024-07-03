@@ -14,11 +14,8 @@ export function makeCard<
     /** Note id (links to a corresponding note) */
     nid: Id,
 
-    /**
-     * Template index (which template to use for a given note).
-     * This is not an id.
-     */
-    tid: v.number(),
+    /** Template id (can be found on the corresponding model) */
+    tid: Id,
 
     /** Deck id (links to a corresponding deck) */
     did: Id,
@@ -79,6 +76,9 @@ export const Grave = v.object({
   type: v.picklist([0, 1, 2]),
 })
 
+export interface NoteFields extends v.InferOutput<typeof NoteFields> {}
+export const NoteFields = v.record(IdKey, v.string())
+
 export interface Note extends v.InferOutput<typeof Note> {}
 export const Note = v.object({
   /** Note id */
@@ -97,7 +97,7 @@ export const Note = v.object({
   tags: v.string(),
 
   /** List of fields */
-  fields: v.array(v.string()),
+  fields: NoteFields,
 
   /** Value of sort field */
   sort_field: v.string(),
@@ -182,7 +182,7 @@ export const ModelField = v.object({
 })
 
 export interface ModelFields extends v.InferOutput<typeof ModelFields> {}
-export const ModelFields = v.array(ModelField)
+export const ModelFields = v.record(IdKey, ModelField)
 
 export interface MathjaxOptions extends v.InferOutput<typeof MathjaxOptions> {}
 export const MathjaxOptions = v.object({
@@ -195,6 +195,9 @@ export const MathjaxOptions = v.object({
 
 export interface ModelTemplate extends v.InferOutput<typeof ModelTemplate> {}
 export const ModelTemplate = v.object({
+  /** Template id used for sorting */
+  id: Id,
+
   /** Format string for the question */
   qfmt: v.string(),
 
@@ -204,6 +207,9 @@ export const ModelTemplate = v.object({
   /** Name of the template */
   name: v.string(),
 })
+
+export interface ModelTemplates extends v.InferOutput<typeof ModelTemplates> {}
+export const ModelTemplates = v.record(IdKey, ModelTemplate)
 
 export interface Model extends v.InferOutput<typeof Model> {}
 export const Model = v.object({
@@ -226,10 +232,10 @@ export const Model = v.object({
   name: v.string(),
 
   /** Which field to use when sorting */
-  sort_field: v.number(),
+  sort_field: v.optional(Id),
 
   /** Templates that this model generates */
-  tmpls: v.array(ModelTemplate),
+  tmpls: ModelTemplates,
 
   /** Last tags used with this model */
   tags: v.string(),
@@ -498,7 +504,7 @@ export const Collection = v.object({
 
   // All things below are part of `collection` in Anki
   core: Core,
-  models: v.record(IdKey, Model),
+  models: Models,
   decks: Decks,
   confs: Confs,
   prefs: Prefs,

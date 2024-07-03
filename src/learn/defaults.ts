@@ -1,5 +1,15 @@
 import { Id, idOf, randomId } from "./id"
-import type { Collection, Conf, Core, Deck, ModelField, Prefs } from "./types"
+import type {
+  Collection,
+  Conf,
+  Core,
+  Deck,
+  Model,
+  ModelField,
+  Models,
+  ModelTemplate,
+  Prefs,
+} from "./types"
 
 const ID_DECK_DEFAULT = idOf(1)
 const ID_CONF_DEFAULT = idOf(1)
@@ -91,70 +101,86 @@ export function createField(name: string): ModelField {
   }
 }
 
-export function createModels(): Collection["models"] {
+export function createModelTemplate(
+  qfmt: string,
+  afmt: string,
+  name: string,
+): ModelTemplate {
+  const id = randomId()
+  return { id, qfmt, afmt, name }
+}
+
+export function createModel(
+  id: Id,
+  name: string,
+  tmpls: ModelTemplate[],
+  css: string,
+  fields: ModelField[],
+): Model {
   return {
-    [ID_MODEL_BASIC]: {
-      id: ID_MODEL_BASIC,
-      css: `.card {
-    font-family: Arial, sans-serif;
-    font-size: 1.5rem;
-    text-align: center;
-    color: black;
-    background-color: white;
-}`,
-      fields: [createField("Front"), createField("Back")],
-      name: "Basic",
-      sort_field: 0,
-      tmpls: [
-        {
-          qfmt: "{{Front}}",
-          afmt: `{{Front}}
+    id,
+    css,
+    fields: Object.fromEntries(fields.map((x) => [x.id, x])),
+    tmpls: Object.fromEntries(tmpls.map((x) => [x.id, x])),
+    name,
+    tags: "",
+    type: 0,
+    sort_field: fields[0]?.id,
+  }
+}
+
+const DEFAULT_MODEL_CSS = `.card {
+  font-size: 1.5rem;
+  text-align: center;
+}`
+
+export function createModels(): Models {
+  const a = createModel(
+    ID_MODEL_BASIC,
+    "Basic",
+    [
+      createModelTemplate(
+        "{{Front}}",
+        `{{Front}}
 
 <hr id="answer" />
 
 {{Back}}`,
-          name: "Front --> Back",
-        },
-      ],
-      tags: "",
-      type: 0,
-    },
-    [ID_MODEL_BASIC_AND_REVERSED]: {
-      id: ID_MODEL_BASIC_AND_REVERSED,
-      css: `.card {
-    font-family: Arial, sans-serif;
-    font-size: 1.5rem;
-    text-align: center;
-    color: black;
-    background-color: white;
-}`,
-      fields: [createField("Front"), createField("Back")],
-      name: "Basic and reversed",
-      sort_field: 0,
-      tmpls: [
-        {
-          qfmt: "{{Front}}",
-          afmt: `{{Front}}
+        "Front --> Back",
+      ),
+    ],
+    DEFAULT_MODEL_CSS,
+    [createField("Front"), createField("Back")],
+  )
+  const b = createModel(
+    ID_MODEL_BASIC_AND_REVERSED,
+    "Basic",
+    [
+      createModelTemplate(
+        "{{Front}}",
+        `{{FrontSide}}
 
 <hr id="answer" />
 
 {{Back}}`,
-          name: "Front --> Back",
-        },
-        {
-          qfmt: "{{Back}}",
-          afmt: `{{Back}}
+        "Front --> Back",
+      ),
+      createModelTemplate(
+        "{{Back}}",
+        `{{FrontSide}}
 
 <hr id="answer" />
 
 {{Front}}`,
-          name: "Back --> Front",
-        },
-      ],
-      tags: "",
-      type: 0,
-    },
-  }
+        "Back --> Front",
+      ),
+    ],
+    DEFAULT_MODEL_CSS,
+    [createField("Front"), createField("Back")],
+  )
+  const models = [a, b]
+
+  return Object.fromEntries(models.map((x) => [x.id, x]))
 }
 
 export function createCollection(now: number): Collection {

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { notNull } from "@/components/pray"
+import { notNull, pray } from "@/components/pray"
 import { error, ok, Result } from "@/components/result"
 import { Tree } from "@/components/tree"
 import { createEmptyCard, FSRS, State } from "ts-fsrs"
@@ -17,9 +17,12 @@ import {
   Deck,
   Decks,
   Model,
+  ModelFields,
   Models,
+  ModelTemplates,
   NewCard,
   Note,
+  NoteFields,
   Notes,
   Prefs,
   RepeatInfo,
@@ -63,28 +66,12 @@ export class App {
   readonly prefs: AppPrefs
 
   constructor(private c: Readonly<Collection>) {
-    this.confs = new AppConfs(c.confs)
-    this.decks = new AppDecks(c.decks, this.confs)
-    this.prefs = new AppPrefs(c.prefs)
-    this.models = new AppModels(c.models)
-    this.notes = new AppNotes(
-      c.notes,
-      this.models,
-      // note: this needs to be set manually later
-      0 as unknown as AppCards,
-      this.decks,
-      this.prefs,
-    )
-    this.cards = new AppCards(
-      c.cards,
-      this.notes,
-      this.decks,
-      this.confs,
-      this.prefs,
-      this.models,
-    )
-    // note: this is later
-    ;(this.notes as { cards: AppCards }).cards = this.cards
+    this.confs = new AppConfs(c.confs, this)
+    this.decks = new AppDecks(c.decks, this)
+    this.prefs = new AppPrefs(c.prefs, this)
+    this.models = new AppModels(c.models, this)
+    this.notes = new AppNotes(c.notes, this)
+    this.cards = new AppCards(c.cards, this)
   }
 
   toJSON(): Collection {
@@ -99,7 +86,7 @@ export class AppConfs {
   /** Record from conf ids to confs */
   readonly byId: Record<string, Conf> = Object.create(null)
 
-  constructor(confs: Confs) {
+  constructor(confs: Confs, private app: App) {
     this.byId = confs
     for (const key in confs) {
       const conf = confs[key]!
@@ -128,7 +115,7 @@ export class AppConfs {
     return ok()
   }
 
-  getDefault(now: number): Conf {
+  default(now: number): Conf {
     const byName = this.byName["Default"]
     if (byName) {
       return byName
@@ -160,12 +147,36 @@ export class AppDecks {
   /** Record from deck ids to decks */
   readonly byId: Record<string, Deck> = Object.create(null)
 
-  constructor(decks: Decks, private c: AppConfs) {
+  constructor(decks: Decks, private app: App) {
     this.byId = decks
     for (const key in decks) {
       const deck = decks[key]!
       this.byName[deck.name] = deck
     }
+  }
+
+  default(now: number): Deck {
+    const byName = this.byName["Default"]
+    if (byName) {
+      return byName
+    }
+
+    const byId = this.byId[1]
+    if (byId) {
+      return byId
+    }
+
+    const firstKey = Object.keys(this.byId)[0]
+    if (firstKey) {
+      const first = this.byId[firstKey]
+      if (first) {
+        return first
+      }
+    }
+
+    const deck = this.create(now, "Default")
+    this.push(deck)
+    return deck
   }
 
   create(now: number, name: string): Deck {
@@ -178,7 +189,7 @@ export class AppDecks {
       last_edited: now,
       name,
       new_today: 0,
-      conf: this.c.getDefault(now).id,
+      conf: this.app.confs.default(now).id,
     }
   }
 
@@ -235,7 +246,7 @@ export class AppDecks {
 }
 
 export class AppPrefs {
-  constructor(private p: Prefs) {}
+  constructor(private p: Prefs, private app: App) {}
 
   /** Returns milliseconds between start of local day and Unix epoch */
   startOfDay(now: number | Date): number {
@@ -273,14 +284,7 @@ export class AppPrefs {
 export class AppCards {
   readonly byNid: Record<string, AnyCard[]>
 
-  constructor(
-    readonly byId: Cards,
-    private notes: AppNotes,
-    private decks: AppDecks,
-    private confs: AppConfs,
-    private prefs: AppPrefs,
-    private models: AppModels,
-  ) {
+  constructor(readonly byId: Cards, private app: App) {
     this.byNid = Object.create(null)
     for (const id in byId) {
       const card = byId[id]!
@@ -290,20 +294,22 @@ export class AppCards {
   }
 
   repeat(card: AnyCard, now: number, reviewTime: number): RepeatInfo {
+    const { decks, confs, prefs } = this.app
+
     const deck = notNull(
-      this.decks.byId[card.did],
+      decks.byId[card.did],
       "This card is linked to a nonexistent deck.",
     )
 
     const conf = notNull(
-      this.confs.byId[deck.conf],
+      confs.byId[deck.conf],
       "This card's deck is linked to a nonexistent configuration.",
     )
 
     return __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
       card,
       conf,
-      this.prefs,
+      prefs,
       new FSRS({
         enable_fuzz: true,
         maximum_interval: conf.review.max_review_interval,
@@ -330,17 +336,19 @@ export class AppCards {
   }
 
   set(card: AnyCard): Result<void> {
-    const deck = this.decks.byId[card.did]
+    const { decks, notes, models } = this.app
+
+    const deck = decks.byId[card.did]
     if (!deck) {
       return error("Card must be associated with a deck which exists.")
     }
 
-    const note = this.notes.byId[card.nid]
+    const note = notes.byId[card.nid]
     if (!note) {
       return error("Card must be associated with a note which exists.")
     }
 
-    const model = this.models.byId[note.mid]
+    const model = models.byId[note.mid]
     if (!model) {
       return error("Note must be associated with a model which exists.")
     }
@@ -359,9 +367,46 @@ export class AppCards {
 }
 
 export class AppModels {
+  static renameFieldAccessesInTemplates(
+    prev: ModelFields,
+    next: ModelFields,
+    tmpls: ModelTemplates,
+  ): ModelTemplates {
+    const renames = Object.create(null) as Record<string, string>
+
+    for (const { id, name } of Object.values(prev)) {
+      const newField = next[id]
+      if (newField) {
+        renames[name] = newField.name
+      }
+    }
+
+    return Object.fromEntries(
+      Object.values(tmpls).map((tmpl) => {
+        const qc = Template.parse(tmpl.qfmt)
+        let qfmt
+        if (qc.ok) {
+          qfmt = Template.toSource(Template.renameFields(qc.value, renames))
+        } else {
+          qfmt = tmpl.qfmt
+        }
+
+        const ac = Template.parse(tmpl.afmt)
+        let afmt
+        if (ac.ok) {
+          afmt = Template.toSource(Template.renameFields(ac.value, renames))
+        } else {
+          afmt = tmpl.afmt
+        }
+
+        return [tmpl.id, { id: tmpl.id, name: tmpl.name, qfmt, afmt }]
+      }),
+    )
+  }
+
   readonly byName: Record<string, Model>
 
-  constructor(readonly byId: Models) {
+  constructor(readonly byId: Models, readonly app: App) {
     this.byName = Object.create(null)
 
     for (const key in byId) {
@@ -370,15 +415,63 @@ export class AppModels {
     }
   }
 
-  set(model: Model) {
-    const id = model.id
-    const prevName = this.byId[id]?.name
-    if (prevName != null) {
-      this.byName[prevName] = undefined
+  private adjustNotesAndCardsForModelChange(
+    prev: Model,
+    next: Model,
+    now: number,
+  ) {
+    pray(
+      prev.id == next.id,
+      "Models passed to `.transition` should have the same id.",
+    )
+
+    const { notes } = this.app
+
+    for (const note of Object.values(notes.byId)) {
+      if (note.mid != next.id) {
+        continue
+      }
+
+      const sort_field = note.fields[next.sort_field ?? 0] ?? ""
+      const fields = Object.create(null) as NoteFields
+      for (const key in next.fields) {
+        fields[key] = note.fields[key] ?? ""
+      }
+      const last_edited = now
+      // TODO: update csum
+      notes.byId[note.id] = {
+        ...note,
+        sort_field,
+        fields,
+        last_edited,
+      }
+      const did = notes.getDeckId(note.id, now)
+      // TODO: update which cards exist and their corresponding templates
+      const cards = AppNotes.createAssociatedCards(
+        now,
+        fields,
+        note.id,
+        did,
+        next,
+      )
     }
+  }
+
+  set(model: Model, now: number) {
     if (model.name.trim() == "") {
       return error("Model name is empty.")
     }
+
+    const id = model.id
+    const prev = this.byId[id]
+    if (prev == null) {
+      this.byId[model.id] = model
+      this.byName[model.name] = model
+      return ok()
+    }
+
+    this.adjustNotesAndCardsForModelChange(prev, model, now)
+    this.byName[prev.name] = undefined
     this.byId[model.id] = model
     this.byName[model.name] = model
     return ok()
@@ -386,19 +479,72 @@ export class AppModels {
 }
 
 export class AppNotes {
-  constructor(
-    readonly byId: Notes,
-    readonly models: AppModels,
-    /**
-     * This is initially null when set by `new Application`, so don't use it in
-     * the constructor. This is because `notes` and `cards` depend on each other
-     * in a circular relationship, so one (`notes`) is not initially
-     * instantiated fully.
-     */
-    readonly cards: AppCards,
-    readonly decks: AppDecks,
-    readonly prefs: AppPrefs,
-  ) {}
+  static createAssociatedCards(
+    now: number,
+    fields: string[],
+    nid: Id,
+    did: Id,
+    model: Model,
+  ) {
+    const fieldRecord = Template.fieldRecord(model.fields, fields)
+    if (!fieldRecord.ok) {
+      return fieldRecord
+    }
+
+    const cards: NewCard[] = []
+
+    for (let tid = 0; tid < model.tmpls.length; tid++) {
+      const tmpl = model.tmpls[tid]!
+      const base = createEmptyCard(now)
+      let template = Template.parse(tmpl.qfmt)
+      if (!template.ok) {
+        template = { ok: true, value: [] }
+      }
+      const isFilled = Template.isFilled(template.value, fieldRecord.value)
+      if (!isFilled) {
+        continue
+      }
+      const card: NewCard = {
+        ...base,
+        did,
+        nid,
+        tid,
+        id: randomId(),
+        due: base.due.getTime(),
+        last_edit: now,
+        last_review: undefined,
+        queue: 0,
+        state: State.New,
+      }
+      cards.push(card)
+    }
+
+    return ok(cards)
+  }
+
+  constructor(readonly byId: Notes, private app: App) {}
+
+  getDeckId(nid: Id, now: number) {
+    const cards = this.app.cards.byNid[nid]
+    if (!cards) {
+      return this.app.decks.default(now).id
+    }
+
+    const deckIdsWithCardCounts = Object.create(null) as { [x: string]: number }
+
+    for (const card of cards) {
+      const count = deckIdsWithCardCounts[card.did] ?? 0
+      deckIdsWithCardCounts[card.did] = count + 1
+    }
+
+    const entries = Object.entries(deckIdsWithCardCounts)
+
+    if (entries.length == 0) {
+      return this.app.decks.default(now).id
+    }
+
+    return +entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0] as Id
+  }
 
   push(note: Note): Result<void> {
     if (note.id in this.byId) {
@@ -417,7 +563,9 @@ export class AppNotes {
     tags?: string
     did: Id
   }) {
-    const model = this.models.byId[props.mid]
+    const { models } = this.app
+
+    const model = models.byId[props.mid]
     if (!model) {
       return error("A note must be associated with a model which exists.")
     }
@@ -427,10 +575,7 @@ export class AppNotes {
       return fieldRecord
     }
 
-    const sortField = props.fields[model.sort_field]
-    if (sortField == null) {
-      return error("Model has an invalid sort field position.")
-    }
+    const sortField = props.fields[model.sort_field] ?? ""
 
     const nid = randomId()
     const tags = props.tags ?? ""

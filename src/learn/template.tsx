@@ -1,5 +1,4 @@
 // TODO: ban `:` `#` `^` `/` `$` `@` `{` `}` `\s` from field names
-// TODO: field replacement
 // TODO: {{Tags, Type, Deck, Subdeck, CardFlag, Card, FrontSide}}
 // TODO: match hint content, css, and css classes to anki
 // TODO: img
@@ -13,7 +12,7 @@
 
 import { error, ok, Result } from "@/components/result"
 import { sanitize } from "./sanitize"
-import { ModelField } from "./types"
+import { ModelFields, NoteFields } from "./types"
 
 export interface Text {
   type: "text"
@@ -22,17 +21,24 @@ export interface Text {
 
 export interface Field {
   type: "field"
+  action?: undefined
+  field: string
+}
+
+export interface Action {
+  type: "action"
+  action: string
   field: string
 }
 
 export interface Tag {
   type: "tag"
   negative: boolean
-  name: string
+  field: string
   contents: Compiled
 }
 
-export type Item = Text | Field | Tag
+export type Item = Tag | Text | Field | Action
 export type Compiled = Item[]
 
 export function parseTemplate<T extends string>(source: T): Result<Compiled> {
@@ -67,7 +73,7 @@ export function parseTemplate<T extends string>(source: T): Result<Compiled> {
       const tag: Tag = {
         type: "tag",
         negative: expr.startsWith("^"),
-        name: expr.slice(1),
+        field: expr.slice(1),
         contents,
       }
       current.push(tag)
@@ -86,7 +92,17 @@ export function parseTemplate<T extends string>(source: T): Result<Compiled> {
       continue
     }
 
-    current.push({ type: "field", field: expr })
+    const colonIndex = expr.indexOf(":")
+    if (colonIndex == -1) {
+      current.push({ type: "field", field: expr })
+    } else if (colonIndex == 0) {
+      const field = expr.slice(1).trim()
+      current.push({ type: "field", field })
+    } else {
+      const action = expr.slice(0, colonIndex).trim()
+      const field = expr.slice(colonIndex + 1).trim()
+      current.push({ type: "action", action, field })
+    }
   }
 
   if (inner.length != 0) {
@@ -111,9 +127,9 @@ export type RequiredFieldName =
   | "Card"
   | "FrontSide"
 
-type Action = (fieldValue: string) => string
+type ActionFn = (fieldValue: string) => string
 
-const actions: Record<string, Action> = {
+const actions: Record<string, ActionFn> = {
   tts(value) {
     return `<learn-tts style=display:contents>${value}</learn-tts>`
   },
@@ -164,145 +180,153 @@ const actions: Record<string, Action> = {
   },
 }
 
-function inner(source: Compiled, fields: Fields): Result<string> {
+export function generate(source: Compiled, fields: FieldsRecord): string {
   let output = ""
 
   for (const item of source) {
-    if (item.type == "tag") {
-      const value = fields[item.name]
-      if (value == null) {
-        throw new Error("Referenced field `" + item.name + "` does not exist.")
-      }
-      const exists = !!value.trim()
-      if (exists != item.negative) {
-        const result = inner(item.contents, fields)
-        if (!result.ok) {
-          return result
+    switch (item.type) {
+      case "tag": {
+        const value = fields[item.field] ?? ""
+
+        const exists = !!value.trim()
+        if (exists != item.negative) {
+          output += generate(item.contents, fields)
         }
-        output += result.value
+        break
       }
-      continue
-    }
 
-    if (item.type == "text") {
-      output += item.text
-      continue
-    }
-
-    const { field } = item
-    const colon = field.indexOf(":")
-    if (colon == -1) {
-      const value = fields[field]
-      if (value == null) {
-        throw new Error("Referenced field does not exist.")
+      case "text": {
+        output += item.text
+        break
       }
-      output += value
-      continue
-    }
 
-    const actionName = field.slice(0, colon)
-    const action = actions[actionName]
-    if (action == null) {
-      throw new Error(`Action \`{{${actionName}:...}}\` does not exist.`)
+      case "field": {
+        const value = fields[item.field] ?? ""
+        output += value
+        break
+      }
+
+      case "action": {
+        const field = fields[item.field] ?? ""
+        const action = actions[item.action]
+        if (action == null) {
+          output += field
+        } else {
+          output += action(field)
+        }
+        break
+      }
     }
-    const fieldName = field.slice(colon + 1)
-    const fieldValue = fields[fieldName]
-    if (fieldValue == null) {
-      throw new Error("Referenced field does not exist.")
-    }
-    output += action(fieldValue)
   }
 
-  return ok(output)
+  return output
 }
 
-/** Checks if at least one field is referenced and is non-empty. */
-export function isFilled(source: Compiled, fields: Fields): boolean {
+export function isFilled(source: Compiled, fields: FieldsRecord): boolean {
   for (const item of source) {
-    if (item.type == "tag") {
-      const value = fields[item.name]
-      if (value == null) {
-        throw new Error("Referenced field `" + item.name + "` does not exist.")
+    switch (item.type) {
+      case "tag": {
+        const value = fields[item.field] ?? ""
+
+        const exists = !!value.trim()
+        if (exists != item.negative) {
+          if (isFilled(item.contents, fields)) {
+            return true
+          }
+        }
+        break
       }
-      const exists = !!value.trim()
-      if (exists != item.negative) {
-        if (isFilled(item.contents, fields)) {
+
+      case "text": {
+        break
+      }
+
+      case "field":
+      case "action": {
+        const value = fields[item.field]
+        if (value?.trim()) {
           return true
         }
+        break
       }
-      continue
-    }
-
-    if (item.type == "text") {
-      continue
-    }
-
-    const { field } = item
-    const colon = field.indexOf(":")
-    if (colon == -1) {
-      const value = fields[field]
-      if (value == null) {
-        throw new Error("Referenced field does not exist.")
-      }
-      if (value.trim() != "") {
-        return true
-      }
-      continue
-    }
-
-    const actionName = field.slice(0, colon)
-    const action = actions[actionName]
-    if (action == null) {
-      throw new Error(`Action \`{{${actionName}:...}}\` does not exist.`)
-    }
-    const fieldName = field.slice(colon + 1)
-    const fieldValue = fields[fieldName]
-    if (fieldValue == null) {
-      throw new Error("Referenced field does not exist.")
-    }
-    if (fieldValue.trim() != "") {
-      return true
     }
   }
 
   return false
 }
 
-export type Fields = Record<string, string>
+export type ValidationIssue =
+  | { type: "missing-field"; name: string; cause: Item }
+  | { type: "invalid-action"; name: string; cause: Item }
 
-// TODO: force function to accept `RequiredFieldName`s
-/** Fills in a compiled template with field values. */
-export function generate(source: Compiled, fields: Fields): Result<string> {
-  const result = inner(source, fields)
-  if (!result.ok) {
-    return result
+function validateInner(
+  source: Compiled,
+  fields: FieldsRecord,
+  issues: ValidationIssue[],
+) {
+  for (const item of source) {
+    switch (item.type) {
+      case "tag": {
+        const value = fields[item.field]
+        if (value == null) {
+          issues.push({ type: "missing-field", name: item.field, cause: item })
+        }
+        validateInner(item.contents, fields, issues)
+        break
+      }
+
+      case "text": {
+        break
+      }
+
+      case "field": {
+        const value = fields[item.field]
+        if (value == null) {
+          issues.push({ type: "missing-field", name: item.field, cause: item })
+        }
+        break
+      }
+
+      case "action": {
+        const value = fields[item.field]
+        if (value == null) {
+          issues.push({ type: "missing-field", name: item.field, cause: item })
+        }
+
+        const action = actions[item.action]
+        if (action == null) {
+          issues.push({ type: "invalid-action", name: item.field, cause: item })
+        }
+
+        break
+      }
+    }
   }
-  return ok(result.value)
 }
+
+export function validate(
+  source: Compiled,
+  fields: FieldsRecord,
+): ValidationIssue[] {
+  const issues: ValidationIssue[] = []
+  validateInner(source, fields, issues)
+  return issues
+}
+
+export type FieldsRecord = Record<string, string>
 
 /** Creates a record of fields from a model and array of fields. */
-export function fieldRecord(model: readonly ModelField[], fields: string[]) {
-  if (model.length != fields.length) {
-    return error(
-      `Model has \`${model.length}\` field${
-        model.length == 1 ? "" : "s"
-      }, but note provided \`${fields.length}\`.`,
-    )
+export function fieldRecord(model: ModelFields, note: NoteFields) {
+  const record = Object.create(null) as FieldsRecord
+
+  for (const field of Object.values(model)) {
+    record[field.name] = note[field.id] ?? ""
   }
 
-  const record: Fields = Object.create(null) as Fields
-
-  for (let index = 0; index < model.length; index++) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const mf = model[index]!
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const field = fields[index]!
-    record[mf.name] = field
-  }
-
-  return ok(record)
+  return record
 }
 
+/** Renders sanitized html. */
 export function Render(props: { class?: string; html: string }) {
   return (
     <div
@@ -312,6 +336,94 @@ export function Render(props: { class?: string; html: string }) {
       {"<loading external html>"}
     </div>
   )
+}
+
+/** Converts a template to its source string. */
+export function toSource(template: Compiled): string {
+  let output = ""
+
+  for (const item of template) {
+    switch (item.type) {
+      case "tag": {
+        output += `{{${item.negative ? "^" : "#"}${item.field}}}`
+        output += toSource(item.contents)
+        output += `{{/${item.field}`
+        break
+      }
+      case "text": {
+        output += item.text
+        break
+      }
+      case "field": {
+        output += `{{${item.field}}}`
+        break
+      }
+      case "action": {
+        output += `{{${item.action}:${item.field}}}`
+        break
+      }
+    }
+  }
+
+  return output
+}
+
+/** Renames fields in a template. */
+function renameFieldsInner(
+  template: Compiled,
+  renames: Record<string, string | undefined>,
+  output: Compiled,
+) {
+  for (const item of template) {
+    switch (item.type) {
+      case "tag": {
+        const next = renames[item.field]
+        if (next == null) {
+          // We now treat this field as empty. If it's negative, that means all
+          // cards will have it filled, so fill it. If it's positive, that means
+          // no cards have it filled, so we can remove it entirely.
+          if (item.negative) {
+            renameFieldsInner(item.contents, renames, output)
+          }
+        } else {
+          output.push({
+            ...item,
+            field: next,
+            contents: renameFields(item.contents, renames),
+          })
+        }
+        break
+      }
+
+      case "text": {
+        output.push(item)
+        break
+      }
+
+      case "field":
+      case "action": {
+        const next = renames[item.field]
+        // If there isn't a new field (e.g. it was deleted), then replace it
+        // with nothing, like a regular template. While actions could
+        // technically replace emptiness with something, that mechanic is never
+        // used.
+        if (next != null) {
+          output.push({ ...item, field: next })
+        }
+        break
+      }
+    }
+  }
+}
+
+/** Renames fields in a template. */
+export function renameFields(
+  template: Compiled,
+  renames: Record<string, string | undefined>,
+): Compiled {
+  const output: Compiled = []
+  renameFieldsInner(template, renames, output)
+  return output
 }
 
 export { parseTemplate as parse, type Compiled as Type }

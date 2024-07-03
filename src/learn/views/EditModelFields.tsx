@@ -101,7 +101,10 @@ export function EditModelFields(props: {
           icon={faCheck}
           label="Save changes"
           center
-          onClick={() => props.close(model())}
+          onClick={() => {
+            const m = model()
+            props.close({...m,tmpls:})
+          }}
         />
       </BottomButtons>
     )
@@ -357,16 +360,10 @@ export function EditModelFields(props: {
           if (result.success) {
             setFields(result.output)
             setModel((model) => {
-              const prevSortField = notNull(
-                model.fields[model.sort_field],
-                "A sort field was not previously specified.",
-              )
+              const prevSortField = model.fields[model.sort_field]
               const sortField = result.output.findIndex(
-                (field) => field.id == prevSortField.id,
+                (field) => field.id == prevSortField?.id,
               )
-              if (sortField == -1) {
-                throw new Error("The sort field could not be moved.")
-              }
               return {
                 ...model,
                 fields: result.output,

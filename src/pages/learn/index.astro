@@ -1,6 +1,10 @@
 ---
 import DocumentLayout from "@/layouts/DocumentLayout.astro"
 import { Main } from "."
+
+if (import.meta.env.PROD) {
+  throw new Error("nope i don't want you built yet")
+}
 ---
 
 <DocumentLayout

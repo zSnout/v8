@@ -129,22 +129,16 @@ export function PrevDebug() {
   function Card({ card }: { card: AnyCard }) {
     const info = app.cards.repeat(card, Date.now(), 0)
     const note = app.notes.byId[card.nid]!
-    const front = unwrap(
-      Template.generate(
-        unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.qfmt)),
-        unwrap(Template.fieldRecord(models()[note.mid]!.fields, note.fields)),
-      ),
+    const front = Template.generate(
+      unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.qfmt)),
+      Template.fieldRecord(models()[note.mid]!.fields, note.fields),
     )
-    const back = unwrap(
-      Template.generate(
-        unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.afmt)),
-        {
-          ...unwrap(
-            Template.fieldRecord(models()[note.mid]!.fields, note.fields),
-          ),
-          FrontSide: front,
-        },
-      ),
+    const back = Template.generate(
+      unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.afmt)),
+      {
+        ...Template.fieldRecord(models()[note.mid]!.fields, note.fields),
+        FrontSide: front,
+      },
     )
     return (
       <div class="flex flex-col rounded bg-z-body px-2 py-1 text-xs">

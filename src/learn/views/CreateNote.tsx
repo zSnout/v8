@@ -58,7 +58,7 @@ export function CreateNote({ app }: { app: App }) {
                   model={model()}
                   close={(model) => {
                     if (model != null) {
-                      unwrap(app.models.set(model))
+                      unwrap(app.models.set(model, Date.now()))
                     }
                     pop()
                   }}
