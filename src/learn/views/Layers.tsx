@@ -163,3 +163,5 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
     next.remove()
   })
 }
+
+// TODO: properly unmount new layers once they're removed

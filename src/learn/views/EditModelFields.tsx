@@ -25,7 +25,8 @@ import {
 } from "solid-js"
 import { array, parse } from "valibot"
 import { createField } from "../defaults"
-import { arrayToRecord, Id } from "../id"
+import { Id, idOf } from "../id"
+import { arrayToRecord } from "../record"
 import { AppModels } from "../state"
 import { Model, ModelField } from "../types"
 import { AutocompleteFontFamily } from "./AutocompleteFonts"
@@ -211,6 +212,21 @@ export function EditModelFields(props: {
             rtl={false}
             type="number"
             placeholder="(optional)"
+            value={selected().size?.toString() ?? ""}
+            onInput={(value) =>
+              setSelected((field) => {
+                if (value == "") {
+                  return { ...field, size: undefined }
+                }
+
+                const size = Math.floor(+value)
+                if (Number.isFinite(size)) {
+                  return { ...field, size: Math.max(4, Math.min(256, size)) }
+                } else {
+                  return field
+                }
+              })
+            }
           />
         </div>
 
@@ -224,7 +240,7 @@ export function EditModelFields(props: {
               onInput={() =>
                 setModel((model) => ({
                   ...model,
-                  sort_field: +selectedId()! as Id,
+                  sort_field: idOf(selectedId()!),
                 }))
               }
             />

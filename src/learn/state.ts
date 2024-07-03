@@ -4,8 +4,9 @@ import { notNull, pray } from "@/components/pray"
 import { error, ok, Result, unwrapOr } from "@/components/result"
 import { Tree } from "@/components/tree"
 import { createEmptyCard, FSRS, State } from "ts-fsrs"
-import { createConf, createDeck } from "./defaults"
-import { arrayToRecord, Id, randomId } from "./id"
+import { createBasicModel, createConf, createDeck } from "./defaults"
+import { Id, idOf, randomId } from "./id"
+import { arrayToRecord } from "./record"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "./repeat"
 import * as Template from "./template"
 import {
@@ -134,7 +135,7 @@ export class AppConfs {
       }
     }
 
-    const conf = this.create(now, 1 as Id, "Default")
+    const conf = this.create(now, idOf(1), "Default")
     this.push(conf)
     return conf
   }
@@ -247,6 +248,32 @@ export class AppDecks {
 
 export class AppPrefs {
   constructor(private p: Prefs, private app: App) {}
+
+  /** The deck to put new cards into by default. */
+  currentDeck(now: number): Deck {
+    const did = this.p.current_deck
+    if (did != null) {
+      const deck = this.app.decks.byId[did]
+      if (deck) {
+        return deck
+      }
+    }
+
+    return this.app.decks.default(now)
+  }
+
+  /** The model to put new cards into by default. */
+  currentModel(now: number): Model {
+    const mid = this.p.last_model_used
+    if (mid != null) {
+      const model = this.app.models.byId[mid]
+      if (model) {
+        return model
+      }
+    }
+
+    return this.app.models.default(now)
+  }
 
   /** Returns milliseconds between start of local day and Unix epoch */
   startOfDay(now: number | Date): number {
@@ -415,6 +442,30 @@ export class AppModels {
     }
   }
 
+  default(now: number): Model {
+    const byName = this.byName["Default"]
+    if (byName) {
+      return byName
+    }
+
+    const byId = this.byId[1]
+    if (byId) {
+      return byId
+    }
+
+    const firstKey = Object.keys(this.byId)[0]
+    if (firstKey) {
+      const first = this.byId[firstKey]
+      if (first) {
+        return first
+      }
+    }
+
+    const model = createBasicModel()
+    this.set(model, now)
+    return model
+  }
+
   private adjustNotesAndCardsForModelChange(
     prev: Model,
     next: Model,
@@ -535,7 +586,7 @@ export class AppNotes {
       return this.app.decks.default(now).id
     }
 
-    return +entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0] as Id
+    return idOf(entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0])
   }
 
   push(note: Note): Result<void> {

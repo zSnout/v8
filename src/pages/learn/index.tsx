@@ -272,7 +272,7 @@ export function PrevDebug() {
 
   return (
     <div class="flex flex-col gap-8">
-      <CreateNote app={app} notifyOfModelUpdate={reloadModels} />
+      <CreateNote app={app} onModelUpdate={reloadModels} />
       <RawInformation />
     </div>
   )

@@ -2,31 +2,43 @@
 import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import { createEffect, createSignal, For, untrack } from "solid-js"
+import { mapRecord } from "../record"
 import { App } from "../state"
 import { AutocompleteBox } from "./AutocompleteBox"
 import { EditModelFields } from "./EditModelFields"
 import { IntegratedField } from "./IntegratedField"
 import { useLayers } from "./Layers"
 
-export function CreateNote(props: {
-  app: App
-  notifyOfModelUpdate?: () => void
-}) {
+export function CreateNote(props: { app: App; onModelUpdate: () => void }) {
   const { app } = props
   const layers = useLayers()
 
-  const [deck, setDeck] = createSignal(
-    app.decks.byId[Object.keys(app.decks.byId)[0]!]!,
-  )
-  const [model, setModel] = createSignal(
-    app.models.byId[Object.keys(app.models.byId)[0]!]!,
-  )
+  const [deck, setDeck] = createSignal(app.prefs.currentDeck(Date.now()))
+  const [model, setModel] = createSignal(app.prefs.currentModel(Date.now()))
   const [fields, setFields] = createSignal(
-    Object.fromEntries(
-      Object.values(model().fields).map((x) => [x.id, x.sticky]),
-    ),
+    mapRecord(model().fields, (x) => x.sticky ?? ""),
+  )
+  const [sticky, setSticky] = createSignal(
+    mapRecord(model().fields, (x) => !!x.sticky),
+  )
+  const [showHtml, setShowHtml] = createSignal(
+    mapRecord(model().fields, (x) => x.html),
   )
   const [tags, setTags] = createSignal(model().tags)
+
+  function onExternalModelUpdate() {
+    setFields((prev) =>
+      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? sticky ?? ""),
+    )
+
+    setSticky((prev) =>
+      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? !!sticky),
+    )
+
+    setShowHtml((prev) =>
+      mapRecord(model().fields, ({ id, html }) => prev[id] ?? html),
+    )
+  }
 
   // TODO: tags should use the same IntegratedField style
 
@@ -38,7 +50,7 @@ export function CreateNote(props: {
   })
 
   return (
-    <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-8">
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
         <div class="grid grid-cols-2 gap-1">
           <div class="col-span-2">
@@ -46,12 +58,14 @@ export function CreateNote(props: {
               label="Type"
               options={Object.keys(app.models.byName).sort()}
               onChange={(name) => {
+                // TODO: ensure this works with all the new signals
                 setModel(
                   notNull(
                     app.models.byName[name],
                     "The selected model does not exist.",
                   ),
                 )
+                onExternalModelUpdate()
               }}
               value={model().name}
             />
@@ -67,7 +81,8 @@ export function CreateNote(props: {
                     if (model != null) {
                       unwrap(app.models.set(model, Date.now()))
                       setModel(model)
-                      props.notifyOfModelUpdate?.()
+                      onExternalModelUpdate()
+                      props.onModelUpdate?.()
                     }
                     pop()
                   }}
@@ -94,8 +109,6 @@ export function CreateNote(props: {
         />
       </div>
 
-      <hr class="border-z" />
-
       <div class="flex flex-col gap-1">
         <For each={Object.values(model().fields)}>
           {(field) => (
@@ -105,11 +118,19 @@ export function CreateNote(props: {
               font={field.font}
               sizePx={field.size}
               type="html"
-              onInput={(value) =>
+              onInput={(value) => {
                 setFields((fields) => ({ ...fields, [field.id]: value }))
-              }
+              }}
               placeholder={field.desc}
-              value={field.sticky}
+              value={fields()[field.id]}
+              sticky={sticky()[field.id]}
+              onSticky={(sticky) => {
+                setSticky((fields) => ({ ...fields, [field.id]: sticky }))
+              }}
+              showHtml={showHtml()[field.id]}
+              onShowHtml={(showHtml) => {
+                setShowHtml((fields) => ({ ...fields, [field.id]: showHtml }))
+              }}
             />
           )}
         </For>
@@ -119,8 +140,8 @@ export function CreateNote(props: {
         type="tags"
         label="Tags"
         value={model().tags}
-        rtl={false}
         onInput={(tags) => setTags(tags)}
+        emptyBg
       />
     </div>
   )

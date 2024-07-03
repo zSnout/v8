@@ -1,4 +1,5 @@
-import { arrayToRecord, Id, idOf, randomId } from "./id"
+import { Id, idOf, randomId } from "./id"
+import { arrayToRecord } from "./record"
 import type {
   Collection,
   Conf,
@@ -134,8 +135,8 @@ const DEFAULT_MODEL_CSS = `.card {
   text-align: center;
 }`
 
-export function createModels(): Models {
-  const a = createModel(
+export function createBasicModel(): Model {
+  return createModel(
     ID_MODEL_BASIC,
     "Basic",
     [
@@ -152,7 +153,10 @@ export function createModels(): Models {
     DEFAULT_MODEL_CSS,
     [createField("Front"), createField("Back")],
   )
-  const b = createModel(
+}
+
+export function createModels(): Models {
+  const basicAndReversed = createModel(
     ID_MODEL_BASIC_AND_REVERSED,
     "Basic and reversed",
     [
@@ -178,9 +182,7 @@ export function createModels(): Models {
     DEFAULT_MODEL_CSS,
     [createField("Front"), createField("Back")],
   )
-  const models = [a, b]
-
-  return arrayToRecord(models)
+  return arrayToRecord([createBasicModel(), basicAndReversed])
 }
 
 export function createCollection(now: number): Collection {
