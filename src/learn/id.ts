@@ -27,3 +27,13 @@ export const Id = v.pipe(
 )
 
 export type Id = v.InferOutput<typeof Id>
+
+export function arrayToRecord<T extends { id: Id }>(data: T[]): Record<Id, T> {
+  const output = Object.create(null) as Record<Id, T>
+
+  for (const el of data) {
+    output[el.id] = el
+  }
+
+  return output
+}

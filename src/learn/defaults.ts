@@ -1,4 +1,4 @@
-import { Id, idOf, randomId } from "./id"
+import { arrayToRecord, Id, idOf, randomId } from "./id"
 import type {
   Collection,
   Conf,
@@ -120,8 +120,8 @@ export function createModel(
   return {
     id,
     css,
-    fields: Object.fromEntries(fields.map((x) => [x.id, x])),
-    tmpls: Object.fromEntries(tmpls.map((x) => [x.id, x])),
+    fields: arrayToRecord(fields),
+    tmpls: arrayToRecord(tmpls),
     name,
     tags: "",
     type: 0,
@@ -180,7 +180,7 @@ export function createModels(): Models {
   )
   const models = [a, b]
 
-  return Object.fromEntries(models.map((x) => [x.id, x]))
+  return arrayToRecord(models)
 }
 
 export function createCollection(now: number): Collection {

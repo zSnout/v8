@@ -30,3 +30,11 @@ export function unwrap<T>(result: Result<T>): T {
 
   throw new Error(result.reason)
 }
+
+export function unwrapOr<T>(result: Result<T>, defaultValue: T): T {
+  if (result.ok) {
+    return result.value
+  } else {
+    return defaultValue
+  }
+}

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { notNull, pray } from "@/components/pray"
-import { error, ok, Result } from "@/components/result"
+import { error, ok, Result, unwrapOr } from "@/components/result"
 import { Tree } from "@/components/tree"
 import { createEmptyCard, FSRS, State } from "ts-fsrs"
 import { createConf, createDeck } from "./defaults"
-import { Id, randomId } from "./id"
+import { arrayToRecord, Id, randomId } from "./id"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "./repeat"
 import * as Template from "./template"
 import {
@@ -56,6 +56,8 @@ type Record<K extends string | number | symbol, T> = { [X in K]: T | undefined }
 
 //   return output
 // }
+
+// TODO: invalidate all data saving when another tab is open
 
 export class App {
   readonly cards: AppCards
@@ -381,7 +383,7 @@ export class AppModels {
       }
     }
 
-    return Object.fromEntries(
+    return arrayToRecord(
       Object.values(tmpls).map((tmpl) => {
         const qc = Template.parse(tmpl.qfmt)
         let qfmt
@@ -399,7 +401,7 @@ export class AppModels {
           afmt = tmpl.afmt
         }
 
-        return [tmpl.id, { id: tmpl.id, name: tmpl.name, qfmt, afmt }]
+        return { id: tmpl.id, name: tmpl.name, qfmt, afmt }
       }),
     )
   }
@@ -481,26 +483,18 @@ export class AppModels {
 export class AppNotes {
   static createAssociatedCards(
     now: number,
-    fields: string[],
+    fields: NoteFields,
     nid: Id,
     did: Id,
     model: Model,
   ) {
     const fieldRecord = Template.fieldRecord(model.fields, fields)
-    if (!fieldRecord.ok) {
-      return fieldRecord
-    }
-
     const cards: NewCard[] = []
 
-    for (let tid = 0; tid < model.tmpls.length; tid++) {
-      const tmpl = model.tmpls[tid]!
+    for (const tmpl of Object.values(model.tmpls)) {
       const base = createEmptyCard(now)
-      let template = Template.parse(tmpl.qfmt)
-      if (!template.ok) {
-        template = { ok: true, value: [] }
-      }
-      const isFilled = Template.isFilled(template.value, fieldRecord.value)
+      const template = unwrapOr(Template.parse(tmpl.qfmt), [])
+      const isFilled = Template.isFilled(template, fieldRecord)
       if (!isFilled) {
         continue
       }
@@ -508,7 +502,7 @@ export class AppNotes {
         ...base,
         did,
         nid,
-        tid,
+        tid: tmpl.id,
         id: randomId(),
         due: base.due.getTime(),
         last_edit: now,
@@ -519,7 +513,7 @@ export class AppNotes {
       cards.push(card)
     }
 
-    return ok(cards)
+    return cards
   }
 
   constructor(readonly byId: Notes, private app: App) {}
@@ -559,7 +553,7 @@ export class AppNotes {
   create(props: {
     now: number
     mid: Id
-    fields: string[]
+    fields: NoteFields
     tags?: string
     did: Id
   }) {
@@ -570,12 +564,7 @@ export class AppNotes {
       return error("A note must be associated with a model which exists.")
     }
 
-    const fieldRecord = Template.fieldRecord(model.fields, props.fields)
-    if (!fieldRecord.ok) {
-      return fieldRecord
-    }
-
-    const sortField = props.fields[model.sort_field] ?? ""
+    const sortField = props.fields[model.sort_field ?? 0] ?? ""
 
     const nid = randomId()
     const tags = props.tags ?? ""
@@ -593,34 +582,13 @@ export class AppNotes {
       tags,
     }
 
-    const cards: NewCard[] = []
-
-    for (let tid = 0; tid < model.tmpls.length; tid++) {
-      const tmpl = model.tmpls[tid]!
-      const base = createEmptyCard(now)
-      const template = Template.parse(tmpl.qfmt)
-      if (!template.ok) {
-        return error("Card template was invalid. " + template.reason)
-      }
-      const isFilled = Template.isFilled(template.value, fieldRecord.value)
-      if (!isFilled) {
-        continue
-      }
-      const card: NewCard = {
-        ...base,
-        did,
-        nid,
-        tid,
-        id: randomId(),
-        due: base.due.getTime(),
-        last_edit: now,
-        last_review: undefined,
-        queue: 0,
-        state: State.New,
-      }
-      cards.push(card)
-    }
-
+    const cards = AppNotes.createAssociatedCards(
+      now,
+      props.fields,
+      nid,
+      did,
+      model,
+    )
     if (cards.length == 0) {
       return error("Note generated no cards.")
     }

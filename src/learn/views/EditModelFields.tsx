@@ -23,9 +23,11 @@ import {
   Show,
   untrack,
 } from "solid-js"
-import { safeParse } from "valibot"
+import { array, parse } from "valibot"
 import { createField } from "../defaults"
-import { Model, ModelField, ModelFields } from "../types"
+import { arrayToRecord, Id } from "../id"
+import { AppModels } from "../state"
+import { Model, ModelField } from "../types"
 import { AutocompleteFontFamily } from "./AutocompleteFonts"
 import { BottomButtons } from "./BottomButtons"
 import { IntegratedField } from "./IntegratedField"
@@ -56,15 +58,15 @@ export function EditModelFields(props: {
   close: (model?: Model) => void
 }) {
   const [model, setModel] = createSignal(props.model)
-  const [fields, setFields] = createSignal<DndItem[]>(model().fields)
-  createEffect(() => setFields(model().fields))
-  const [selectedId, setSelectedId] = createSignal(fields()[0]?.id)
-  const selectedIndex = createMemo(() => {
-    const field = model().fields.findIndex((x) => x.id == selectedId())
+  const [fields, setFields] = createSignal<DndItem[]>(
+    Object.values(model().fields),
+  )
+  createEffect(() => setFields(Object.values(model().fields)))
+  const [selectedId, setSelectedId] = createSignal(model().fields[0]!.id)
+  const selected = createMemo(() => {
+    const field = model().fields[selectedId() ?? 0]
     return notNull(field, "There must be a field selected in the explorer.")
   })
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const selected = createMemo(() => model().fields[selectedIndex()]!)
 
   const owner = getOwner()
 
@@ -103,7 +105,15 @@ export function EditModelFields(props: {
           center
           onClick={() => {
             const m = model()
-            props.close({...m,tmpls:})
+
+            props.close({
+              ...m,
+              tmpls: AppModels.renameFieldAccessesInTemplates(
+                props.model.fields,
+                m.fields,
+                m.tmpls,
+              ),
+            })
           }}
         />
       </BottomButtons>
@@ -111,14 +121,13 @@ export function EditModelFields(props: {
   }
 
   function setSelected(fn: ModelField | ((x: ModelField) => ModelField)) {
-    const idx = untrack(selectedIndex)
     if (typeof fn == "function") {
       fn = fn(untrack(selected))
     }
     setModel((model) => {
       return {
         ...model,
-        fields: model.fields.with(idx, fn),
+        fields: { ...model.fields, [fn.id]: fn },
       }
     })
   }
@@ -161,7 +170,7 @@ export function EditModelFields(props: {
         return
       }
 
-      if (!model().fields.some((x) => x.name == name)) {
+      if (!Object.values(model().fields).some((x) => x.name == name)) {
         return name
       }
 
@@ -209,9 +218,12 @@ export function EditModelFields(props: {
           <label class="flex w-full gap-2">
             <Checkbox
               circular
-              checked={model().sort_field == selectedIndex()}
+              checked={model().sort_field == selectedId()}
               onInput={() =>
-                setModel((model) => ({ ...model, sort_field: selectedIndex() }))
+                setModel((model) => ({
+                  ...model,
+                  sort_field: +selectedId()! as Id,
+                }))
               }
             />
 
@@ -277,10 +289,13 @@ export function EditModelFields(props: {
               return
             }
 
-            setModel((model) => ({
-              ...model,
-              fields: model.fields.concat(createField(fieldName)),
-            }))
+            setModel((model) => {
+              const next = createField(fieldName)
+              return {
+                ...model,
+                fields: { ...model.fields, [next.id]: next },
+              }
+            })
           }}
         />
 
@@ -288,7 +303,7 @@ export function EditModelFields(props: {
           icon={faTrash}
           label="Delete"
           onClick={async () => {
-            if (model().fields.length <= 1) {
+            if (Object.keys(model().fields).length <= 1) {
               await alert({
                 owner,
                 title: "Unable to delete",
@@ -306,16 +321,15 @@ export function EditModelFields(props: {
             }
 
             batch(() => {
-              const index = selectedIndex()
+              const model = setModel((model) => {
+                const { [selectedId()]: _, ...fields } = model.fields
+                return {
+                  ...model,
+                  fields,
+                }
+              })
 
-              const model = setModel((model) => ({
-                ...model,
-                fields: model.fields.toSpliced(index, 1),
-              }))
-
-              setSelectedId(
-                model.fields[Math.min(index, model.fields.length - 1)]!.id,
-              )
+              setSelectedId(Object.values(model.fields)[0]!.id)
             })
           }}
         />
@@ -341,7 +355,7 @@ export function EditModelFields(props: {
   }
 
   function FieldList() {
-    const sortId = createMemo(() => model().fields[model().sort_field]?.id)
+    const sortId = createMemo(() => model().fields[model().sort_field ?? 0]?.id)
 
     return (
       <div
@@ -356,25 +370,9 @@ export function EditModelFields(props: {
         }}
         onconsider={({ detail: { items } }) => setFields(items)}
         onfinalize={({ detail: { items } }) => {
-          const result = safeParse(ModelFields, items)
-          if (result.success) {
-            setFields(result.output)
-            setModel((model) => {
-              const prevSortField = model.fields[model.sort_field]
-              const sortField = result.output.findIndex(
-                (field) => field.id == prevSortField?.id,
-              )
-              return {
-                ...model,
-                fields: result.output,
-                sort_field: sortField,
-              }
-            })
-          } else {
-            throw new Error(
-              "Model fields were in an invalid state after sorting.",
-            )
-          }
+          const result = parse(array(ModelField), items)
+          setFields(result)
+          setModel((model) => ({ ...model, fields: arrayToRecord(result) }))
         }}
       >
         <For each={fields()}>
@@ -396,7 +394,7 @@ export function EditModelFields(props: {
                 </div>
                 <button
                   class="flex-1 py-1 pl-1 pr-2 text-left"
-                  onClick={() => setSelectedId(field.id)}
+                  onClick={() => setSelectedId(+field.id as Id)}
                 >
                   {String(field["name"])}
                 </button>
