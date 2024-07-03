@@ -1,11 +1,10 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { unwrap } from "@/components/result"
 import { CreateNote } from "@/learn/views/CreateNote"
-import { batch, createMemo, createSignal, For } from "solid-js"
+import { createMemo, For } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { createCollection } from "../../learn/defaults"
 import { createExpr } from "../../learn/expr"
-import { Id } from "../../learn/id"
 import { App } from "../../learn/state"
 import * as Template from "../../learn/template"
 import { AnyCard } from "../../learn/types"
@@ -27,104 +26,14 @@ unwrap(app.decks.push(app.decks.create(Date.now(), "Definitely not real")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "Wow::23")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "45")))
 
-const { note, cards } = unwrap(
-  app.notes.create({
-    now: Date.now(),
-    mid: 2 as Id,
-    did: 1 as Id,
-    fields: ["text", "words"],
-  }),
-)
-
-unwrap(app.notes.push(note))
-cards.map((x) => unwrap(app.cards.set(x)))
-
 export function PrevDebug() {
   const [decks] = createExpr(() => app.decks)
   const tree = createMemo(() => decks().tree(Date.now()).tree)
-  const [models] = createExpr(() => app.models.byId)
-  const [notes, reloadNotes] = createExpr(() => app.notes.byId)
+  const [models, reloadModels] = createExpr(() => app.models.byId)
+  const [notes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
   const [confs] = createExpr(() => app.confs.byId)
   const layers = useLayers()
-
-  function CreateNoteOld() {
-    const [deck, setDeck] = createSignal(
-      app.decks.byId[Object.keys(app.decks.byId)[0]!]!,
-    )
-    const [model, setModel] = createSignal(
-      app.models.byId[Object.keys(app.models.byId)[0]!]!,
-    )
-    const [fields, setFields] = createSignal(model().fields.map(() => ""))
-
-    return (
-      <div class="flex flex-col gap-1">
-        <select
-          class="rounded bg-z-body-selected px-2 py-1"
-          onInput={(x) => setDeck(app.decks.byId[x.currentTarget.value]!)}
-        >
-          <For each={Object.entries(decks().byId)}>
-            {(deck) => <option value={deck[0]}>{deck[1].name}</option>}
-          </For>
-        </select>
-
-        <select
-          class="rounded bg-z-body-selected px-2 py-1"
-          onInput={(x) => {
-            const model = setModel(app.models.byId[x.currentTarget.value]!)
-            setFields(model.fields.map(() => ""))
-          }}
-        >
-          <For each={Object.entries(models())}>
-            {(model) => <option value={model[0]}>{model[1].name}</option>}
-          </For>
-        </select>
-
-        <For each={model().fields}>
-          {(field, index) => (
-            <div class="z-field flex flex-col rounded border-transparent bg-z-body-selected p-0 shadow-none">
-              <div class="px-2 pt-1 text-sm text-z-subtitle">{field.name}</div>
-              <div
-                contentEditable
-                class="px-2 py-1 focus:outline-none"
-                onInput={(event) =>
-                  setFields((x) =>
-                    x.with(index(), event.currentTarget.innerHTML),
-                  )
-                }
-              ></div>
-            </div>
-          )}
-        </For>
-
-        <button
-          class="rounded bg-z-body-selected px-2 py-1"
-          onClick={() => {
-            const { note, cards } = unwrap(
-              app.notes.create({
-                now: Date.now(),
-                mid: model().id,
-                fields: fields(),
-                did: deck().id,
-              }),
-            )
-
-            app.notes.push(note)
-            for (const card of cards) {
-              app.cards.set(card)
-            }
-
-            batch(() => {
-              reloadNotes()
-              reloadCards()
-            })
-          }}
-        >
-          add note
-        </button>
-      </div>
-    )
-  }
 
   function Card({ card }: { card: AnyCard }) {
     const info = app.cards.repeat(card, Date.now(), 0)
@@ -258,11 +167,20 @@ export function PrevDebug() {
                     "<uses mathquill settings for latex>"}
                 </pre>
                 <pre class="bg-z-body-selected px-2 py-1 text-xs">
-                  {model.tmpls.length} templates{"\n"}
-                  {model.fields.length} fields
+                  {Object.keys(model.tmpls).length} templates{"\n"}
+                  {Object.keys(model.fields).length} fields
                 </pre>
+                <For each={Object.values(model.tmpls)}>
+                  {(tmpl) => (
+                    <div class="bg-z-body-selected px-2">
+                      <pre class="py-1 text-xs">{tmpl.qfmt}</pre>
+                      <hr class="border-z" />
+                      <pre class="py-1 text-xs">{tmpl.afmt}</pre>
+                    </div>
+                  )}
+                </For>
                 <div class="col-span-3 flex gap-2 overflow-x-auto bg-z-body-selected p-2">
-                  <For each={model.fields}>
+                  <For each={Object.values(model.fields)}>
                     {(field) => (
                       <div class="flex w-56 flex-col rounded bg-z-body px-2 py-1 text-xs">
                         <div class="mb-1 border-b border-z pb-1 text-center text-base">
@@ -292,7 +210,9 @@ export function PrevDebug() {
                 <p>creation? {note.creation}</p>
                 <p>csum? {note.csum}</p>
                 <p class="row-span-3 border-l border-z pl-1">
-                  <For each={note.fields}>{(field) => <p>{field}</p>}</For>
+                  <For each={Object.values(note.fields)}>
+                    {(field) => <p>{field}</p>}
+                  </For>
                 </p>
                 <p>last_edited? {note.last_edited}</p>
                 <p>mid? {note.mid}</p>
@@ -352,9 +272,7 @@ export function PrevDebug() {
 
   return (
     <div class="flex flex-col gap-8">
-      <CreateNote app={app} />
-      <div class="h-[100dvh]" />
-      <CreateNoteOld />
+      <CreateNote app={app} notifyOfModelUpdate={reloadModels} />
       <RawInformation />
     </div>
   )
@@ -363,7 +281,7 @@ export function PrevDebug() {
 export function Main() {
   return (
     <Layers.Root>
-      <CreateNote app={app} />
+      <PrevDebug />
     </Layers.Root>
   )
 }

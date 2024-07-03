@@ -154,7 +154,7 @@ export function createModels(): Models {
   )
   const b = createModel(
     ID_MODEL_BASIC_AND_REVERSED,
-    "Basic",
+    "Basic and reversed",
     [
       createModelTemplate(
         "{{Front}}",

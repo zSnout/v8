@@ -83,7 +83,7 @@ export function TagEditor(props: {
                 target.nextElementSibling) as HTMLElement
               setTags((tags) => {
                 const next = tags.slice()
-                next.splice(+target.dataset.index!, 1)
+                next.splice(+target.dataset["index"]!, 1)
                 return next
               })
               next.focus()

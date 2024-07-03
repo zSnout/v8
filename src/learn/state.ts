@@ -28,8 +28,6 @@ import {
   RepeatInfo,
 } from "./types"
 
-type Record<K extends string | number | symbol, T> = { [X in K]: T | undefined }
-
 // FIXME: filter blank cards like anki does
 // FIXME: add cloze support
 // FIXME: add image occlusion support
@@ -473,7 +471,7 @@ export class AppModels {
     }
 
     this.adjustNotesAndCardsForModelChange(prev, model, now)
-    this.byName[prev.name] = undefined
+    delete this.byName[prev.name]
     this.byId[model.id] = model
     this.byName[model.name] = model
     return ok()

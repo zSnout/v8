@@ -9,7 +9,11 @@ import { IntegratedField } from "./IntegratedField"
 import { useLayers } from "./Layers"
 import { TagEditor } from "./TagEditor"
 
-export function CreateNote({ app }: { app: App }) {
+export function CreateNote(props: {
+  app: App
+  notifyOfModelUpdate?: () => void
+}) {
+  const { app } = props
   const layers = useLayers()
 
   const [deck, setDeck] = createSignal(
@@ -18,7 +22,11 @@ export function CreateNote({ app }: { app: App }) {
   const [model, setModel] = createSignal(
     app.models.byId[Object.keys(app.models.byId)[0]!]!,
   )
-  const [fields, setFields] = createSignal(model().fields.map(() => ""))
+  const [fields, setFields] = createSignal(
+    Object.fromEntries(
+      Object.values(model().fields).map((x) => [x.id, x.sticky]),
+    ),
+  )
   const [tags, setTags] = createSignal(model().tags)
 
   // TODO: tags should use the same IntegratedField style
@@ -59,6 +67,8 @@ export function CreateNote({ app }: { app: App }) {
                   close={(model) => {
                     if (model != null) {
                       unwrap(app.models.set(model, Date.now()))
+                      setModel(model)
+                      props.notifyOfModelUpdate?.()
                     }
                     pop()
                   }}
@@ -88,8 +98,8 @@ export function CreateNote({ app }: { app: App }) {
       <hr class="border-z" />
 
       <div class="flex flex-col gap-1">
-        <For each={model().fields}>
-          {(field, index) => (
+        <For each={Object.values(model().fields)}>
+          {(field) => (
             <IntegratedField
               label={field.name}
               rtl={field.rtl}
@@ -97,7 +107,7 @@ export function CreateNote({ app }: { app: App }) {
               sizePx={field.size}
               type="html"
               onInput={(value) =>
-                setFields((fields) => fields.with(index(), value))
+                setFields((fields) => ({ ...fields, [field.id]: value }))
               }
               placeholder={field.desc}
               value={field.sticky}

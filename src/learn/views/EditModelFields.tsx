@@ -62,7 +62,9 @@ export function EditModelFields(props: {
     Object.values(model().fields),
   )
   createEffect(() => setFields(Object.values(model().fields)))
-  const [selectedId, setSelectedId] = createSignal(model().fields[0]!.id)
+  const [selectedId, setSelectedId] = createSignal(
+    Object.values(model().fields)[0]?.id,
+  )
   const selected = createMemo(() => {
     const field = model().fields[selectedId() ?? 0]
     return notNull(field, "There must be a field selected in the explorer.")
@@ -322,11 +324,8 @@ export function EditModelFields(props: {
 
             batch(() => {
               const model = setModel((model) => {
-                const { [selectedId()]: _, ...fields } = model.fields
-                return {
-                  ...model,
-                  fields,
-                }
+                const { [selectedId() ?? 0]: _, ...fields } = model.fields
+                return { ...model, fields }
               })
 
               setSelectedId(Object.values(model.fields)[0]!.id)
