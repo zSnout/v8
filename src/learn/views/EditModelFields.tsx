@@ -55,8 +55,14 @@ function Action(props: {
 }
 
 export function EditModelFields(props: {
+  /** The model to edit the fields of. */
   model: Model
-  close: (model?: Model) => void
+
+  /**
+   * Called to close the modal. If a `model` is passed, it is the updated model.
+   * If `null` is passed, it means that the edit action was canceled.
+   */
+  close: (model: Model | null) => void
 }) {
   const [model, setModel] = createSignal(props.model)
   const [fields, setFields] = createSignal<DndItem[]>(
@@ -100,7 +106,7 @@ export function EditModelFields(props: {
           icon={faCancel}
           label="Cancel"
           center
-          onClick={() => props.close()}
+          onClick={() => props.close(null)}
         />
         <Action
           icon={faCheck}
@@ -292,7 +298,7 @@ export function EditModelFields(props: {
 
   function SideActions() {
     return (
-      <div class="grid h-fit grid-cols-2 gap-1 sm:grid-cols-1">
+      <div class="flex flex-col gap-1">
         <Action
           icon={faPlus}
           label="Add"

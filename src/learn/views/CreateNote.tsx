@@ -9,7 +9,16 @@ import { EditModelFields } from "./EditModelFields"
 import { IntegratedField } from "./IntegratedField"
 import { useLayers } from "./Layers"
 
-export function CreateNote(props: { app: App; onModelUpdate: () => void }) {
+export function CreateNote(props: {
+  /** The `app` to add notes to. */
+  app: App
+
+  /**
+   * Called when the `CreateNote` layer is closed. External layers should assume
+   * that all data in `app` is fresh and should thus refresh all data signals.
+   */
+  close: () => void
+}) {
   const { app } = props
   const layers = useLayers()
 
@@ -40,8 +49,6 @@ export function CreateNote(props: { app: App; onModelUpdate: () => void }) {
     )
   }
 
-  // TODO: tags should use the same IntegratedField style
-
   createEffect(() => {
     const current = untrack(tags)
     if (current == "") {
@@ -58,7 +65,6 @@ export function CreateNote(props: { app: App; onModelUpdate: () => void }) {
               label="Type"
               options={Object.keys(app.models.byName).sort()}
               onChange={(name) => {
-                // TODO: ensure this works with all the new signals
                 setModel(
                   notNull(
                     app.models.byName[name],
@@ -82,7 +88,6 @@ export function CreateNote(props: { app: App; onModelUpdate: () => void }) {
                       unwrap(app.models.set(model, Date.now()))
                       setModel(model)
                       onExternalModelUpdate()
-                      props.onModelUpdate?.()
                     }
                     pop()
                   }}
@@ -141,7 +146,6 @@ export function CreateNote(props: { app: App; onModelUpdate: () => void }) {
         label="Tags"
         value={model().tags}
         onInput={(tags) => setTags(tags)}
-        emptyBg
       />
     </div>
   )
