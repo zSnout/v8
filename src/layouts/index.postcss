@@ -317,3 +317,51 @@ html.no-transition * {
     @apply translate-y-0;
   }
 }
+
+@keyframes fatalerror-backdrop {
+  0% {
+    @apply opacity-0;
+  }
+
+  10% {
+    @apply opacity-75;
+  }
+
+  90% {
+    @apply opacity-75;
+  }
+
+  100% {
+    @apply opacity-0;
+  }
+}
+
+@keyframes fatalerror-message {
+  0% {
+    transform: translate(0, calc(100% + 3rem)) scale(1);
+  }
+
+  10% {
+    transform: translate(0, 0) scale(2);
+  }
+
+  25% {
+    transform: scale(1.5) rotate(-10deg);
+  }
+
+  40% {
+    transform: scale(1.5) rotate(10deg);
+  }
+
+  55% {
+    transform: scale(1.5) rotate(-10deg);
+  }
+
+  90% {
+    transform: scale(1.5) rotate(0deg);
+  }
+
+  100% {
+    transform: none;
+  }
+}

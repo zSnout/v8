@@ -1,7 +1,8 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { unwrap } from "@/components/result"
 import { CreateNote } from "@/learn/views/CreateNote"
-import { createMemo, For } from "solid-js"
+import { Error } from "@/learn/views/Error"
+import { batch, createMemo, For, JSX } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { createCollection } from "../../learn/defaults"
 import { createExpr } from "../../learn/expr"
@@ -26,13 +27,13 @@ unwrap(app.decks.push(app.decks.create(Date.now(), "Definitely not real")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "Wow::23")))
 unwrap(app.decks.push(app.decks.create(Date.now(), "45")))
 
-export function PrevDebug() {
-  const [decks] = createExpr(() => app.decks)
+export function Debug() {
+  const [decks, reloadDecks] = createExpr(() => app.decks)
   const tree = createMemo(() => decks().tree(Date.now()).tree)
   const [models, reloadModels] = createExpr(() => app.models.byId)
-  const [notes] = createExpr(() => app.notes.byId)
+  const [notes, reloadNotes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
-  const [confs] = createExpr(() => app.confs.byId)
+  const [confs, reloadConfs] = createExpr(() => app.confs.byId)
   const layers = useLayers()
 
   function Card({ card }: { card: AnyCard }) {
@@ -98,7 +99,7 @@ export function PrevDebug() {
             isExpanded={({ data }) => !data.collapsed}
             setExpanded={({ data }, expanded) => (data.collapsed = !expanded)}
             node={({ data }) => (
-              <div class="grid w-full grid-cols-3 rounded bg-z-body-selected px-2 py-1 text-xs">
+              <div class="grid w-full grid-cols-3 rounded-lg bg-z-body-selected px-2 py-1 text-xs">
                 <p class="col-span-3 mb-1 border-b border-z pb-1 text-base font-semibold text-z-heading">
                   {data.name.split("::").at(-1)}
                 </p>
@@ -120,7 +121,7 @@ export function PrevDebug() {
         <div class="flex flex-col gap-1">
           <For each={Object.values(confs())}>
             {(conf) => (
-              <div class="grid w-full grid-cols-6 rounded bg-z-body-selected px-2 py-1 text-xs">
+              <div class="grid w-full grid-cols-6 rounded-lg bg-z-body-selected px-2 py-1 text-xs">
                 <p class="col-span-6 mb-1 border-b border-z pb-1 text-base font-semibold text-z-heading">
                   {conf.id}
                 </p>
@@ -272,16 +273,50 @@ export function PrevDebug() {
 
   return (
     <div class="flex flex-col gap-8">
-      <CreateNote app={app} onModelUpdate={reloadModels} />
+      <button
+        class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+        onClick={() =>
+          layers.push((pop) => (
+            <CreateNote
+              app={app}
+              close={() => {
+                batch(() => {
+                  reloadDecks()
+                  reloadModels()
+                  reloadNotes()
+                  reloadCards()
+                  reloadConfs()
+                })
+                pop()
+              }}
+            />
+          ))
+        }
+      >
+        Create Notes
+      </button>
+
       <RawInformation />
     </div>
   )
 }
 
+export function ErrorHandler(props: { children: JSX.Element }) {
+  return (
+    <>
+      {props.children}
+
+      <Error />
+    </>
+  )
+}
+
 export function Main() {
   return (
-    <Layers.Root>
-      <PrevDebug />
-    </Layers.Root>
+    <ErrorHandler>
+      <Layers.Root>
+        <Debug />
+      </Layers.Root>
+    </ErrorHandler>
   )
 }
