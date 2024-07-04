@@ -20,20 +20,7 @@ export function useLayers() {
 export class Layers {
   static Root(props: { children: JSX.Element }) {
     const layers = new Layers(getOwner())
-    // onMount(() => {
-    //   addEventListener("keydown", (event) => {
-    //     if (
-    //       !event.altKey &&
-    //       !event.ctrlKey &&
-    //       !event.metaKey &&
-    //       event.key == "Escape" &&
-    //       layers.layers.length >= 1
-    //     ) {
-    //       event.preventDefault()
-    //       layers.popLatest()
-    //     }
-    //   })
-    // })
+
     return (
       <LayerContext.Provider value={layers}>
         <div class="relative min-h-full w-full">
@@ -63,8 +50,6 @@ export class Layers {
     }
 
     const previouslyFocused = document.activeElement
-    console.log(previouslyFocused)
-    prev.inert = true
 
     const child = runWithOwner(this.owner, () => el(pop))
     const next = (
@@ -81,6 +66,7 @@ export class Layers {
       </div>
     ) as HTMLDivElement
 
+    prev.inert = true
     prev.after(next)
     return pop
   }
