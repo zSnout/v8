@@ -17,7 +17,7 @@ import type {
   DeckOptions,
   NewCard,
   ReviewedCard,
-} from "../../../learn/types"
+} from "../../../learn/lib/types"
 import cardStyle from "./card.postcss?inline"
 
 export function cardAfterHandler(base: BaseCard): NewCard {

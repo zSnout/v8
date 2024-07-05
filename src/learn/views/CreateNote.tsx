@@ -2,12 +2,12 @@
 import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import { createEffect, createSignal, For, untrack } from "solid-js"
-import { mapRecord } from "../record"
-import { App } from "../state"
-import { AutocompleteBox } from "./AutocompleteBox"
+import { AutocompleteBox } from "../el/AutocompleteBox"
+import { IntegratedField } from "../el/IntegratedField"
+import { useLayers } from "../el/Layers"
+import { mapRecord } from "../lib/record"
+import { App } from "../lib/state"
 import { EditModelFields } from "./EditModelFields"
-import { IntegratedField } from "./IntegratedField"
-import { useLayers } from "./Layers"
 
 export function CreateNote(props: {
   /** The `app` to add notes to. */

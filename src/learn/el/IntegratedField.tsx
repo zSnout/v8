@@ -14,8 +14,8 @@ import {
   faBookmark as faSolidSticky,
 } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createSignal, For, JSX, Show } from "solid-js"
-import { randomId } from "../id"
-import { sanitize } from "../sanitize"
+import { randomId } from "../lib/id"
+import { sanitize } from "../lib/sanitize"
 
 function IntegratedTagField(
   props: {

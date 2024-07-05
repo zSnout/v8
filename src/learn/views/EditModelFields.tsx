@@ -24,14 +24,14 @@ import {
   untrack,
 } from "solid-js"
 import { array, parse } from "valibot"
-import { createField } from "../defaults"
-import { Id, idOf } from "../id"
-import { arrayToRecord } from "../record"
-import { AppModels } from "../state"
-import { Model, ModelField } from "../types"
-import { AutocompleteFontFamily } from "./AutocompleteFonts"
-import { BottomButtons } from "./BottomButtons"
-import { IntegratedField } from "./IntegratedField"
+import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
+import { BottomButtons } from "../el/BottomButtons"
+import { IntegratedField } from "../el/IntegratedField"
+import { createField } from "../lib/defaults"
+import { Id, idOf } from "../lib/id"
+import { arrayToRecord } from "../lib/record"
+import { AppModels } from "../lib/state"
+import { Model, ModelField } from "../lib/types"
 
 function Action(props: {
   icon: IconDefinition
