@@ -1,8 +1,9 @@
+import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
-import { unwrap } from "@/components/result"
+import { error, unwrap } from "@/components/result"
 import { CreateNote } from "@/learn/views/CreateNote"
 import { Error } from "@/learn/views/Error"
-import { batch, createMemo, For, JSX } from "solid-js"
+import { batch, createMemo, createSignal, For, JSX, Show } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { createCollection } from "../../learn/defaults"
 import { createExpr } from "../../learn/expr"
@@ -302,11 +303,23 @@ export function Debug() {
 }
 
 export function ErrorHandler(props: { children: JSX.Element }) {
+  const [reason, setError] = createSignal<unknown>()
+
+  createEventListener(window, "unhandledrejection", (event) => {
+    setError(event.reason)
+  })
+
+  createEventListener(window, "error", (event) => {
+    setError(event.error)
+  })
+
   return (
     <>
       {props.children}
 
-      <Error />
+      <Show when={reason() != null}>
+        <Error message={error(reason()).reason} onClose={() => setError()} />
+      </Show>
     </>
   )
 }
