@@ -300,7 +300,6 @@ export function IntegratedField(props: IntegratedFieldProps) {
               el.innerHTML = sanitize(props.value ?? "")
               createEffect(() => {
                 const next = sanitize(props.value ?? "")
-                console.log({ value: props.value, next })
                 if (self.innerHTML != next) {
                   self.innerHTML = next
                 }

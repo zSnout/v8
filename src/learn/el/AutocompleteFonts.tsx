@@ -125,6 +125,13 @@ async function getFonts() {
     "Trebuchet MS",
     "Verdana",
     "Zapfino",
+    // toki pona
+    "nasin-nanpa",
+    "linja lipamanka",
+    "sitelen seli kiwen asuki",
+    "sitelen seli kiwen juniko",
+    "sitelen seli kiwen asuki mono",
+    "sitelen seli kiwen juniko mono",
   ])
 
   await document.fonts.ready

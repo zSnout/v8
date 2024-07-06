@@ -206,18 +206,17 @@ export function CreateNote(props: {
       />
 
       <BottomButtons class="grid w-full gap-1 xs:grid-cols-[min(18rem,50%),auto,min(18rem,50%)]">
-        {/* TODO: pressing cmd-enter should also run `addCard` */}
-        <Action icon={faPlus} label="Add Card" center onClick={addCard} />
-
-        {/* spacer */}
-        <div />
-
         <Action
           icon={faRightFromBracket}
           label="Exit"
           center
           onClick={() => props.close()}
         />
+
+        {/* spacer */}
+        <div />
+
+        <Action icon={faPlus} label="Add Card" center onClick={addCard} />
       </BottomButtons>
     </div>
   )
