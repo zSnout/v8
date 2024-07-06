@@ -8,7 +8,7 @@ export function ModalCancel(props: {
 }) {
   return (
     <button
-      class="z-field rounded-md text-sm text-z-heading shadow-none hover:bg-z-field-selected"
+      class="z-field rounded-md text-sm text-z shadow-none hover:bg-z-field-selected"
       onClick={props.onClick}
       autofocus={props.autofocus}
     >
@@ -24,7 +24,8 @@ export function ModalConfirm(props: {
 }) {
   return (
     <button
-      class="z-field rounded-md border-transparent bg-z-text-heading text-sm text-z-bg-body shadow-none hover:bg-z-text"
+      // class="z-field rounded-md border-transparent bg-z-text-heading text-sm text-z-bg-body shadow-none hover:bg-z-text"
+      class="z-field rounded-md border-transparent bg-z-body-selected text-sm text-z shadow-none hover:bg-z-text hover:text-z-bg-body"
       onClick={props.onClick}
     >
       {props.children}
@@ -81,7 +82,10 @@ export function Modal(props: {
 
   return (
     <Portal ref={props.refPortal}>
-      <div class="pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-black/0 transition [&:has(>[open])]:pointer-events-auto [&:has(>[open])]:bg-black/75">
+      <div
+        class="pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-black/0 transition [&:has(>[open])]:pointer-events-auto [&:has(>[open])]:bg-z-body-partial"
+        // [&:has(>[open])]:bg-black/75
+      >
         <dialog
           class="group pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-transparent transition open:pointer-events-auto [&:modal]:max-h-[100vh] [&:modal]:max-w-[100vw] [body:has(>*>*>&[open])]:overflow-hidden"
           ref={(el) => {
