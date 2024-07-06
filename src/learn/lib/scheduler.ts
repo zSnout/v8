@@ -24,7 +24,11 @@ export class Scheduler {
     if (card.state == State.New) {
       return 0
     } else if (card.state == State.Learning || card.state == State.Relearning) {
-      return 1
+      if (card.scheduled_days == 0) {
+        return 1
+      } else {
+        return 2
+      }
     } else if (this.app.prefs.startOfDay(card.due) <= today) {
       return 2
     } else {
@@ -57,7 +61,11 @@ export class Scheduler {
           card.state == State.Learning ||
           card.state == State.Relearning
         ) {
-          b1.push(card)
+          if (card.scheduled_days == 0) {
+            b1.push(card)
+          } else {
+            b2.push(card)
+          }
         } else if (this.app.prefs.startOfDay(card.due) <= today) {
           b2.push(card)
         }
@@ -99,6 +107,40 @@ export class Scheduler {
 
     return Math.max(0, limit - seen)
   }
+
+  /**
+   * Provides a fast lower bound for the number of reviews today. Could be
+   * significantly improved, but doesn't need to be.
+   */
+  estimatedReviewsLeft(now: number) {
+    const newLeft = this.newCardsLeft(now)
+    const learningLeft = this.learning.length
+    const reviewsLeft = this.review.length
+    return newLeft + learningLeft + reviewsLeft
+  }
+
+  /** Picks a learning card due before `now`. */
+  private pickLearningWithin(now: number) {
+    const possible = this.learning.filter((x) => x.due <= now)
+    if (possible.length == 0) {
+      return null
+    }
+
+    const card = possible[Math.floor(Math.random() * possible.length)]
+    if (!card) {
+      return null
+    }
+
+    // Could be optimized, but I'd rather finish the project.
+    const index = this.learning.indexOf(card)
+
+    return new DueCard(card, this, 1, index, false)
+  }
+
+  /** Picks a review card. */
+
+  /** Selects a card to review. This may be a learning or review card. */
+  nextReview() {}
 }
 
 type CardBucket =
@@ -155,7 +197,12 @@ export class DueCard {
     bucket.push(this.card)
   }
 
-  /** The `DueCard` should not be used after calling `.save()`. */
+  /**
+   * If the scheduler is tampered with before `.save()` is called, its results
+   * will be unpredictable.
+   *
+   * The `DueCard` should not be used after calling `.save()`.
+   */
   save(now: number) {
     if (this.saved) {
       throw new Error("A `DueCard` cannot be saved twice.")
@@ -170,3 +217,14 @@ export class DueCard {
     }
   }
 }
+
+/**
+ * Algorithm for picking cards
+ *
+ * BASE SELECTION
+ * 1. If any learning cards with a 0-day interval are due, show the oldest one.
+ * 2. Pick a random learning or review card and show it.
+ *
+ * NEW CARD INSERTION
+ * 3. Evenly distribute new cards throughout the session.
+ */
