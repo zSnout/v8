@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import type { Json } from "@/components/basic-tree"
 import { pray } from "@/components/pray"
 import { Result, error, ok } from "@/components/result"

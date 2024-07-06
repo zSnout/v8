@@ -107,7 +107,7 @@ export function Main() {
     Array.from({ length: 10 }, createCard),
   )
 
-  const [forcedDelay, setForcedDelay] = createSignal(1000 * 60 * 20)
+  const [forcedDelay] = createSignal(1000 * 60 * 20)
 
   const f = fsrs({
     w: [
@@ -193,7 +193,7 @@ export function Main() {
       }
       responses={
         <MatchResult
-          fallback={(error) => (
+          fallback={() => (
             <ResponseGray>
               TODO: add onclick
               <br />

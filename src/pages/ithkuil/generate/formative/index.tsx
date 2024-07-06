@@ -81,7 +81,6 @@ import {
   createSignal,
   untrack,
 } from "solid-js"
-import { Dynamic } from "solid-js/web"
 
 const rootSearcher = new Searcher(
   roots.flatMap((root) =>
@@ -266,32 +265,32 @@ function CircleButton(props: {
   )
 }
 
-function AffixSelector(props: {
-  get: () => Affix
-  set: (a: Affix | ((previous: Affix) => Affix)) => void
-  remove(): void
-  insert(): void
-}) {
-  return (
-    // @ts-ignore
-    <Dynamic
-      component={(() => {
-        const value = props.get()
+// function AffixSelector(props: {
+//   get: () => Affix
+//   set: (a: Affix | ((previous: Affix) => Affix)) => void
+//   remove(): void
+//   insert(): void
+// }) {
+//   return (
+//     // @ts-ignore
+//     <Dynamic
+//       component={(() => {
+//         const value = props.get()
 
-        if ("case" in value) {
-          return undefined
-        } else if ("referents" in value) {
-          return undefined
-        } else if ("ca" in value) {
-          return CaSelector
-        } else {
-          return PlainAffixSelector
-        }
-      })()}
-      {...props}
-    />
-  )
-}
+//         if ("case" in value) {
+//           return undefined
+//         } else if ("referents" in value) {
+//           return undefined
+//         } else if ("ca" in value) {
+//           return CaSelector
+//         } else {
+//           return PlainAffixSelector
+//         }
+//       })()}
+//       {...props}
+//     />
+//   )
+// }
 
 interface PlainAffix {
   readonly cs: string

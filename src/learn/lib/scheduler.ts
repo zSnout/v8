@@ -19,7 +19,7 @@ export class Scheduler {
     this.gather(now)
   }
 
-  // FIXME: keep in line with `bucketOf`
+  // keep in line with algorithm in `.gather()`
   bucketOf(today: number, card: AnyCard): CardBucket {
     if (card.state == State.New) {
       return 0
@@ -54,7 +54,6 @@ export class Scheduler {
       if (!cards) continue
 
       for (const card of cards) {
-        // FIXME: keep in line with `bucketOf`
         if (card.state == State.New) {
           b0.push(card)
         } else if (
@@ -71,6 +70,8 @@ export class Scheduler {
         }
       }
     }
+
+    b0.sort((a, b) => a.due - b.due)
   }
 
   /** Returns `true` if the buckets changed, and `false` otherwise. */
@@ -120,27 +121,58 @@ export class Scheduler {
   }
 
   /** Picks a learning card due before `now`. */
-  private pickLearningWithin(now: number) {
+  private pickLearningBefore(now: number) {
     const possible = this.learning.filter((x) => x.due <= now)
-    if (possible.length == 0) {
-      return null
-    }
-
     const card = possible[Math.floor(Math.random() * possible.length)]
     if (!card) {
       return null
     }
 
-    // Could be optimized, but I'd rather finish the project.
     const index = this.learning.indexOf(card)
-
-    return new DueCard(card, this, 1, index, false)
+    return new DueCard(card, this, 1, index)
   }
 
   /** Picks a review card. */
+  private pickReview() {
+    const card = this.review[Math.floor(Math.random() * this.review.length)]
+    if (!card) {
+      return null
+    }
 
-  /** Selects a card to review. This may be a learning or review card. */
-  nextReview() {}
+    const index = this.learning.indexOf(card)
+    return new DueCard(card, this, 2, index)
+  }
+
+  /** Picks a new card. */
+  private pickNew() {
+    if (this.conf.new.pick_at_random) {
+      const card = this.new[Math.floor(Math.random() * this.new.length)]
+      if (!card) {
+        return null
+      }
+
+      const index = this.learning.indexOf(card)
+      return new DueCard(card, this, 1, index)
+    } else {
+      const card = this.new[0]
+      if (!card) {
+        return null
+      }
+
+      return new DueCard(card, this, 1, 0)
+    }
+  }
+
+  /** Selects a review card to show. */
+  private nextReview(now: number) {
+    return (
+      this.pickLearningBefore(now) ??
+      this.pickReview() ??
+      this.pickLearningBefore(now + this.app.prefs.prefs.collapse_time * 1000)
+    )
+  }
+
+  nextCard() {}
 }
 
 type CardBucket =
@@ -152,12 +184,13 @@ type CardBucket =
 const BUCKETS = ["new", "learning", "review"] as const
 
 export class DueCard {
+  private saved = false
+
   constructor(
     readonly card: AnyCard,
     private scheduler: Scheduler,
     private bucket: CardBucket,
     private index: number,
-    private saved: boolean,
   ) {}
 
   /**
@@ -195,6 +228,10 @@ export class DueCard {
 
     const bucket = this.scheduler[BUCKETS[bucketIndex]]
     bucket.push(this.card)
+    if (bucketIndex == 0) {
+      // keep `new` bucket sorted properly
+      bucket.sort((a, b) => a.due - b.due)
+    }
   }
 
   /**

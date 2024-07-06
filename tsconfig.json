@@ -3,15 +3,15 @@
   "compilerOptions": {
     "baseUrl": ".",
     "exactOptionalPropertyTypes": false,
-    "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "module": "ESNext",
+    "target": "ES2022",
     "paths": {
       "~/assets/*": ["src/assets/*"],
       "@/*": ["src/*"]
     },
-    "skipLibCheck": false
+    "skipLibCheck": true
   }
 }

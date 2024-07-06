@@ -90,13 +90,13 @@ side		一	丨
 
 const SCALE = 0.5
 const MAX_STRENGTH = 1
-const MAX_STROKES = 3
+// const MAX_STROKES = 3
 
 export function Main() {
   const nodes: MutableNode[] = []
-  for (const { name, index, inner } of data) {
-    const yStroke = (inner.length * (50 / MAX_STROKES) - 25) * SCALE
-    const yIndex = (index / data.length - 0.5) * 50 * SCALE
+  for (const { name } of data) {
+    // const yStroke = (inner.length * (50 / MAX_STROKES) - 25) * SCALE
+    // const yIndex = (index / data.length - 0.5) * 50 * SCALE
     nodes.push({
       x: Math.random() * 10 - 5,
       y: Math.random() * 10 - 5,
