@@ -98,6 +98,18 @@ export class Scheduler {
     return seen
   }
 
+  reviewsToday(now: number) {
+    let seen = 0
+
+    for (const deck of this.decks) {
+      if (this.app.prefs.isSameDay(deck.today, now)) {
+        seen += deck.reviews_today
+      }
+    }
+
+    return seen
+  }
+
   newCardsLeft(now: number) {
     if (!this.app.prefs.isSameDay(this.main.today, now)) {
       return this.conf.new.per_day
@@ -172,7 +184,28 @@ export class Scheduler {
     )
   }
 
-  nextCard() {}
+  /** Picks the next card to show. */
+  nextCard(now: number) {
+    this.regather(now)
+
+    const reviewsDone = this.reviewsToday(now)
+    const reviewsLeft = this.estimatedReviewsLeft(now)
+    const reviewsTotal = reviewsDone + reviewsLeft
+
+    const newDone = this.newCardsSeenToday(now)
+    const newLeft = this.newCardsLeft(now)
+    const newTotal = newDone + newLeft
+
+    /** When `true`, indicates that a new card should be shown. */
+    const preferNew =
+      newLeft >= 0 && newLeft / newTotal >= reviewsLeft / reviewsTotal
+
+    return (
+      (preferNew && newLeft >= 0 && this.pickNew()) ||
+      this.nextReview(now) ||
+      this.pickNew()
+    )
+  }
 }
 
 type CardBucket =
@@ -241,6 +274,8 @@ export class DueCard {
    * The `DueCard` should not be used after calling `.save()`.
    */
   save(now: number) {
+    // TODO: this needs to update the properties of its corresponding deck
+
     if (this.saved) {
       throw new Error("A `DueCard` cannot be saved twice.")
     } else {
