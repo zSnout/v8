@@ -256,6 +256,7 @@ export function IntegratedField(props: IntegratedFieldProps) {
               }
             >
               <button
+                tabIndex={-1}
                 class="z-field -m-1 rounded border-transparent bg-transparent p-1 shadow-none focus-visible:bg-z-body"
                 onClick={() => {
                   if (props.type == "html") {
@@ -274,6 +275,7 @@ export function IntegratedField(props: IntegratedFieldProps) {
 
             <Show when={typeof props.sticky == "boolean"}>
               <button
+                tabIndex={-1}
                 class="z-field -m-1 rounded border-transparent bg-transparent p-1 shadow-none focus-visible:bg-z-body"
                 onClick={() => {
                   props.onSticky?.(!props.sticky)
@@ -298,6 +300,7 @@ export function IntegratedField(props: IntegratedFieldProps) {
               el.innerHTML = sanitize(props.value ?? "")
               createEffect(() => {
                 const next = sanitize(props.value ?? "")
+                console.log({ value: props.value, next })
                 if (self.innerHTML != next) {
                   self.innerHTML = next
                 }

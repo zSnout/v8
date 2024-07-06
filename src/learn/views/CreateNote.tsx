@@ -2,7 +2,8 @@
 import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import { faPlus, faRightFromBracket } from "@fortawesome/free-solid-svg-icons"
-import { createEffect, createSignal, For, untrack } from "solid-js"
+import { batch, createEffect, createSignal, For, untrack } from "solid-js"
+import { createStore } from "solid-js/store"
 import { AutocompleteBox } from "../el/AutocompleteBox"
 import { Action, BottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
@@ -10,6 +11,7 @@ import { useLayers } from "../el/Layers"
 import { mapRecord } from "../lib/record"
 import { App } from "../lib/state"
 import { fieldRecord } from "../lib/template"
+import { Model } from "../lib/types"
 import { EditModelFields } from "./EditModelFields"
 import { EditModelTemplates } from "./EditModelTemplates"
 
@@ -28,13 +30,13 @@ export function CreateNote(props: {
 
   const [deck, setDeck] = createSignal(app.prefs.currentDeck(Date.now()))
   const [model, setModel] = createSignal(app.prefs.currentModel(Date.now()))
-  const [fields, setFields] = createSignal(
+  const [fields, setFields] = createStore(
     mapRecord(model().fields, (x) => x.sticky ?? ""),
   )
-  const [sticky, setSticky] = createSignal(
+  const [sticky, setSticky] = createStore(
     mapRecord(model().fields, (x) => !!x.sticky),
   )
-  const [showHtml, setShowHtml] = createSignal(
+  const [showHtml, setShowHtml] = createStore(
     mapRecord(model().fields, (x) => x.html),
   )
   const [tags, setTags] = createSignal(model().tags)
@@ -48,7 +50,7 @@ export function CreateNote(props: {
 
   function addCard() {
     const lastTags = tags()
-    const lastFields = fields()
+    const lastFields = untrack(() => ({ ...fields }))
 
     const { note, cards } = unwrap(
       app.notes.create({
@@ -74,13 +76,26 @@ export function CreateNote(props: {
           : field,
       ),
     }))
-    unwrap(app.models.set(nextModel, Date.now()))
 
-    onExternalModelUpdate()
+    unwrap(app.models.set(nextModel, Date.now()))
+    onExternalModelUpdate(nextModel)
   }
 
   return (
-    <div class="flex min-h-full flex-1 flex-col gap-8">
+    <div
+      class="flex min-h-full flex-1 flex-col gap-8"
+      onKeyDown={(event) => {
+        if (event.shiftKey || event.altKey || event.key != "Enter") {
+          return
+        }
+
+        if (event.ctrlKey == event.metaKey) {
+          return
+        }
+
+        addCard()
+      }}
+    >
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
         <div class="grid grid-cols-2 gap-1">
           <div class="col-span-2">
@@ -88,13 +103,14 @@ export function CreateNote(props: {
               label="Type"
               options={Object.keys(app.models.byName).sort()}
               onChange={(name) => {
-                setModel(
-                  notNull(
-                    app.models.byName[name],
-                    "The selected model does not exist.",
+                onExternalModelUpdate(
+                  setModel(
+                    notNull(
+                      app.models.byName[name],
+                      "The selected model does not exist.",
+                    ),
                   ),
                 )
-                onExternalModelUpdate()
               }}
               value={model().name}
             />
@@ -109,8 +125,7 @@ export function CreateNote(props: {
                   close={(model) => {
                     if (model != null) {
                       unwrap(app.models.set(model, Date.now()))
-                      setModel(model)
-                      onExternalModelUpdate()
+                      onExternalModelUpdate(setModel(model))
                     }
                     pop()
                   }}
@@ -127,12 +142,11 @@ export function CreateNote(props: {
               layers.push((pop) => (
                 <EditModelTemplates
                   model={model()}
-                  fields={fieldRecord(model().fields, fields())}
+                  fields={fieldRecord(model().fields, { ...fields })}
                   close={(model) => {
                     if (model != null) {
                       unwrap(app.models.set(model, Date.now()))
-                      setModel(model)
-                      onExternalModelUpdate()
+                      onExternalModelUpdate(setModel(model))
                     }
                     pop()
                   }}
@@ -168,19 +182,13 @@ export function CreateNote(props: {
               font={field.font}
               sizePx={field.size}
               type="html"
-              onInput={(value) => {
-                setFields((fields) => ({ ...fields, [field.id]: value }))
-              }}
+              onInput={(value) => setFields(field.id + "", value)}
               placeholder={field.desc}
-              value={fields()[field.id]}
-              sticky={sticky()[field.id]}
-              onSticky={(sticky) => {
-                setSticky((fields) => ({ ...fields, [field.id]: sticky }))
-              }}
-              showHtml={showHtml()[field.id]}
-              onShowHtml={(showHtml) => {
-                setShowHtml((fields) => ({ ...fields, [field.id]: showHtml }))
-              }}
+              value={fields[field.id]}
+              sticky={sticky[field.id]}
+              onSticky={(sticky) => setSticky(field.id + "", sticky)}
+              showHtml={showHtml[field.id]}
+              onShowHtml={(show) => setShowHtml(field.id + "", show)}
             />
           )}
         </For>
@@ -214,17 +222,16 @@ export function CreateNote(props: {
     </div>
   )
 
-  function onExternalModelUpdate() {
-    setFields((prev) =>
-      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? sticky ?? ""),
-    )
+  function onExternalModelUpdate(model: Model) {
+    batch(() => {
+      for (const key in fields) setFields(key, undefined!)
+      for (const key in model.fields) setFields(key, model.fields[key]!.sticky)
 
-    setSticky((prev) =>
-      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? !!sticky),
-    )
+      for (const key in sticky) setSticky(key, undefined!)
+      for (const k in model.fields) setSticky(k, !!model.fields[k]!.sticky)
 
-    setShowHtml((prev) =>
-      mapRecord(model().fields, ({ id, html }) => prev[id] ?? html),
-    )
+      for (const key in showHtml) setShowHtml(key, undefined!)
+      for (const key in model.fields) setShowHtml(key, model.fields[key]!.html)
+    })
   }
 }
