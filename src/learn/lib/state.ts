@@ -8,6 +8,7 @@ import { createBasicModel, createConf, createDeck } from "./defaults"
 import { Id, idOf, randomId } from "./id"
 import { arrayToRecord } from "./record"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "./repeat"
+import { Scheduler } from "./scheduler"
 import * as Template from "./template"
 import {
   AnyCard,
@@ -15,6 +16,7 @@ import {
   Collection,
   Conf,
   Confs,
+  Core,
   Deck,
   Decks,
   Model,
@@ -41,6 +43,7 @@ import {
 // TODO: invalidate all data saving when another tab is open
 
 export class App {
+  readonly core: AppCore
   readonly cards: AppCards
   readonly confs: AppConfs
   readonly decks: AppDecks
@@ -50,6 +53,7 @@ export class App {
   readonly revLog: AppRevLog
 
   constructor(private c: Readonly<Collection>) {
+    this.core = new AppCore(c.core, this)
     this.confs = new AppConfs(c.confs, this)
     this.decks = new AppDecks(c.decks, this)
     this.prefs = new AppPrefs(c.prefs, this)
@@ -64,17 +68,20 @@ export class App {
   }
 }
 
+export class AppCore {
+  constructor(readonly core: Core, private app: App) {}
+}
+
 export class AppConfs {
   /** Record from conf names to confs */
   readonly byName: Record<string, Conf> = Object.create(null)
 
-  /** Record from conf ids to confs */
-  readonly byId: Record<string, Conf> = Object.create(null)
-
-  constructor(confs: Confs, private app: App) {
-    this.byId = confs
-    for (const key in confs) {
-      const conf = confs[key]!
+  constructor(
+    /** Record from conf ids to confs */ readonly byId: Confs,
+    private app: App,
+  ) {
+    for (const key in byId) {
+      const conf = byId[key]!
       this.byName[conf.name] = conf
     }
   }
@@ -179,13 +186,14 @@ export class AppDecks {
     const id = randomId()
     return {
       id,
-      collapsed: false,
+      collapsed: true,
       desc: "",
       is_filtered: false,
       last_edited: now,
       name,
       new_today: 0,
       conf: this.app.confs.default(now).id,
+      today: now,
     }
   }
 
@@ -259,7 +267,7 @@ export class AppDecks {
 
     decks.unshift(deck)
 
-    return new Scheduler(decks, structuredClone(conf), this.app)
+    return new Scheduler(deck, decks, structuredClone(conf), this.app)
   }
 }
 
@@ -328,17 +336,24 @@ export class AppPrefs {
 
     return Math.round((end - start) / (1000 * 60 * 60 * 24))
   }
+
+  /** Checks if two timestamps occurred on the same day. */
+  isSameDay(start: number | Date, end: number | Date) {
+    return this.daysBetween(start, end) == 0
+  }
 }
 
 export class AppCards {
   readonly byNid: Record<string, AnyCard[]>
+  readonly byDid: Record<string, AnyCard[]>
 
   constructor(readonly byId: Cards, private app: App) {
     this.byNid = Object.create(null)
+    this.byDid = Object.create(null)
     for (const id in byId) {
       const card = byId[id]!
-
       ;(this.byNid[card.nid] ??= []).push(card)
+      ;(this.byDid[card.did] ??= []).push(card)
     }
   }
 
@@ -378,10 +393,19 @@ export class AppCards {
           oldNidGroup.splice(oldNidGroupIndex, 1)
         }
       }
+
+      const oldDidGroup = this.byDid[old.did]
+      if (oldDidGroup) {
+        const oldDidGroupIndex = oldDidGroup.indexOf(old)
+        if (oldDidGroupIndex != -1) {
+          oldDidGroup.splice(oldDidGroupIndex, 1)
+        }
+      }
     }
 
     this.byId[card.id] = card
     ;(this.byNid[card.nid] ||= []).push(card)
+    ;(this.byDid[card.did] ||= []).push(card)
   }
 
   set(card: AnyCard): Result<void> {
@@ -670,8 +694,4 @@ export class AppNotes {
 
 export class AppRevLog {
   constructor(readonly log: RevLog, private app: App) {}
-}
-
-export class Scheduler {
-  constructor(readonly decks: Deck[], readonly conf: Conf, private app: App) {}
 }

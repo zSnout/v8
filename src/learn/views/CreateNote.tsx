@@ -15,6 +15,10 @@ import { Model } from "../lib/types"
 import { EditModelFields } from "./EditModelFields"
 import { EditModelTemplates } from "./EditModelTemplates"
 
+// TODO: pressing cmd+enter should bring you back to the first field
+// TODO: fields can be collapsed
+// TODO: sticky fields work
+
 export function CreateNote(props: {
   /** The `app` to add notes to. */
   app: App
@@ -70,11 +74,10 @@ export function CreateNote(props: {
     const nextModel = setModel((model) => ({
       ...model,
       tags: lastTags,
-      fields: mapRecord(model.fields, (field) =>
-        field.sticky
-          ? { ...field, sticky: lastFields[field.id] ?? field.sticky }
-          : field,
-      ),
+      fields: mapRecord(model.fields, (field) => ({
+        ...field,
+        sticky: (sticky[field.id] && lastFields[field.id]) || "",
+      })),
     }))
 
     unwrap(app.models.set(nextModel, Date.now()))
