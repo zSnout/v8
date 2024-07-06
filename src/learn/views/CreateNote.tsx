@@ -7,7 +7,9 @@ import { IntegratedField } from "../el/IntegratedField"
 import { useLayers } from "../el/Layers"
 import { mapRecord } from "../lib/record"
 import { App } from "../lib/state"
+import { fieldRecord } from "../lib/template"
 import { EditModelFields } from "./EditModelFields"
+import { EditModelTemplates } from "./EditModelTemplates"
 
 export function CreateNote(props: {
   /** The `app` to add notes to. */
@@ -96,6 +98,28 @@ export function CreateNote(props: {
             }
           >
             Edit fields...
+          </button>
+
+          <button
+            class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+            onClick={() =>
+              layers.push((pop) => (
+                <EditModelTemplates
+                  model={model()}
+                  fields={fieldRecord(model().fields, fields())}
+                  close={(model) => {
+                    if (model != null) {
+                      unwrap(app.models.set(model, Date.now()))
+                      setModel(model)
+                      onExternalModelUpdate()
+                    }
+                    pop()
+                  }}
+                />
+              ))
+            }
+          >
+            Edit templates...
           </button>
         </div>
 

@@ -51,20 +51,27 @@ export class Layers {
 
     const previouslyFocused = document.activeElement
 
-    const child = runWithOwner(this.owner, () => el(pop))
-    const next = (
-      <div
-        class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
-        ref={(el) => {
-          this.layers.push([el, previouslyFocused])
-          setTimeout(() => {
-            animateIn(prev, el)
-          })
-        }}
-      >
-        <div class="mx-auto w-full max-w-5xl flex-1">{child}</div>
-      </div>
-    ) as HTMLDivElement
+    const next = runWithOwner(this.owner, () => {
+      const child = (
+        <LayerContext.Provider value={this}>{el(pop)}</LayerContext.Provider>
+      )
+
+      const next = (
+        <div
+          class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
+          ref={(el) => {
+            this.layers.push([el, previouslyFocused])
+            setTimeout(() => {
+              animateIn(prev, el)
+            })
+          }}
+        >
+          <div class="mx-auto w-full max-w-5xl flex-1">{child}</div>
+        </div>
+      ) as HTMLDivElement
+
+      return next
+    })!
 
     prev.inert = true
     prev.after(next)

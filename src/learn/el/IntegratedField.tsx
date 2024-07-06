@@ -18,6 +18,7 @@ import { createEffect, createSignal, For, JSX, Show } from "solid-js"
 import { randomId } from "../lib/id"
 import { sanitize } from "../lib/sanitize"
 
+// TODO: make tags deletable
 function IntegratedTagField(
   props: {
     placeholder?: string
@@ -242,14 +243,16 @@ export function IntegratedField(props: IntegratedFieldProps) {
           when={
             typeof props.sticky == "boolean" ||
             (props.type == "html" && typeof props.showHtml == "boolean") ||
-            props.type == "html-only"
+            props.type == "html-only" ||
+            props.type == "css-only"
           }
         >
-          <div class="ml-auto flex -translate-y-[0.5px] gap-2">
+          <div class="ml-auto flex -translate-y-[0.5px] translate-x-1 gap-1">
             <Show
               when={
                 (props.type == "html" && typeof props.showHtml == "boolean") ||
-                props.type == "html-only"
+                props.type == "html-only" ||
+                props.type == "css-only"
               }
             >
               <button
@@ -261,10 +264,11 @@ export function IntegratedField(props: IntegratedFieldProps) {
                 }}
                 disabled={
                   props.type == "html-only" ||
+                  props.type == "css-only" ||
                   (props.type == "html" && props.onShowHtml == null)
                 }
               >
-                <Fa class="h-4 w-4" icon={faCode} title="toggle html view" />
+                <Fa class="h-4 w-4" icon={faCode} title="code view" />
               </button>
             </Show>
 
@@ -329,7 +333,7 @@ export function IntegratedField(props: IntegratedFieldProps) {
           })
         }}
         aria-labelledby={id}
-        class="-mt-1 w-full bg-transparent px-2 pb-1 focus:outline-none"
+        class="-mt-1 min-h-[1em] w-full bg-transparent px-2 pb-1 focus:outline-none"
         contentEditable
         tabIndex={0}
         style={{

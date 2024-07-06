@@ -2,9 +2,7 @@ import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { error, unwrap } from "@/components/result"
 import { Error } from "@/learn/el/Error"
-import { doublyMapRecord } from "@/learn/lib/record"
 import { CreateNote } from "@/learn/views/CreateNote"
-import { EditModelTemplates } from "@/learn/views/EditModelTemplates"
 import { batch, createMemo, createSignal, For, JSX, Show } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { Layers, useLayers } from "../../learn/el/Layers"
@@ -262,21 +260,6 @@ export function Debug() {
     )
   }
 
-  const Inner = (pop: () => void) => {
-    return (
-      <div>
-        hello world
-        <button onClick={pop}>or close it</button>
-        <button onClick={() => layers.push(Inner)}>or add another</button>
-        {Array(100)
-          .fill(0)
-          .map(() => (
-            <p>hi</p>
-          ))}
-      </div>
-    )
-  }
-
   return (
     <div class="flex flex-col gap-8">
       <button
@@ -334,7 +317,7 @@ export function Main() {
   return (
     <ErrorHandler>
       <Layers.Root>
-        <EditModelTemplates
+        {/* <EditModelTemplates
           model={app.models.default(Date.now())}
           fields={doublyMapRecord(
             app.models.default(Date.now()).fields,
@@ -342,8 +325,8 @@ export function Main() {
             (f) => "idk some value for " + f.name + " maybe",
           )}
           close={() => {}}
-        />
-        {/* <Debug /> */}
+        /> */}
+        <Debug />
       </Layers.Root>
     </ErrorHandler>
   )
