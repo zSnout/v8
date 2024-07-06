@@ -22,3 +22,22 @@ export function mapRecord<K extends keyof any, T, U>(
 
   return output
 }
+
+export function doublyMapRecord<
+  K extends keyof any,
+  T,
+  K2 extends keyof any,
+  T2,
+>(
+  data: Record<K, T>,
+  k: (value: T, key: K) => K2,
+  v: (value: T, key: K) => T2,
+): Record<K2, T2> {
+  const output = Object.create(null) as Record<K2, T2>
+
+  for (const key in data) {
+    output[k(data[key], key)] = v(data[key], key)
+  }
+
+  return output
+}

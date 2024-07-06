@@ -11,6 +11,7 @@
 // TODO: `learn-tts` and `learn-hint` custom elements
 
 import { error, ok, Result } from "@/components/result"
+import { createEffect } from "solid-js"
 import { sanitize } from "./sanitize"
 import { ModelFields, NoteFields } from "./types"
 
@@ -41,7 +42,7 @@ export interface Tag {
 export type Item = Tag | Text | Field | Action
 export type Compiled = Item[]
 
-export function parseTemplate<T extends string>(source: T): Result<Compiled> {
+export function parse<T extends string>(source: T): Result<Compiled> {
   const output: Compiled = []
   const inner: Compiled[] = []
   let current = output
@@ -256,8 +257,8 @@ export function isFilled(source: Compiled, fields: FieldsRecord): boolean {
 }
 
 export type ValidationIssue =
-  | { type: "missing-field"; name: string; cause: Item }
-  | { type: "invalid-action"; name: string; cause: Item }
+  | { type: "missing-field"; name: string; cause: Field | Action | Tag }
+  | { type: "invalid-action"; action: string; field: string; cause: Action }
 
 function validateInner(
   source: Compiled,
@@ -295,7 +296,12 @@ function validateInner(
 
         const action = actions[item.action]
         if (action == null) {
-          issues.push({ type: "invalid-action", name: item.field, cause: item })
+          issues.push({
+            type: "invalid-action",
+            action: item.action,
+            field: item.field,
+            cause: item,
+          })
         }
 
         break
@@ -313,6 +319,16 @@ export function validate(
   return issues
 }
 
+export function issueToString(issue: ValidationIssue): string {
+  switch (issue.type) {
+    case "missing-field":
+      return `Field {{${issue.name}}} is referenced but does not exist.`
+
+    case "invalid-action":
+      return `Action {{${issue.action}:...}} is not supported.`
+  }
+}
+
 export type FieldsRecord = Record<string, string>
 
 /** Creates a record of fields from a model and array of fields. */
@@ -327,14 +343,25 @@ export function fieldRecord(model: ModelFields, note: NoteFields) {
 }
 
 /** Renders sanitized html. */
-export function Render(props: { class?: string; html: string }) {
+export function Render(props: { class?: string; html: string; css: string }) {
   return (
     <div
       class={props.class}
-      ref={(el) => (el.innerHTML = sanitize(props.html))}
-    >
-      {"<loading external html>"}
-    </div>
+      ref={(el) => {
+        const root = el.attachShadow({ mode: "open" })
+
+        const html = document.createElement("div")
+        html.classList.add("card")
+
+        const css = document.createElement("style")
+
+        root.appendChild(html)
+        root.appendChild(css)
+
+        createEffect(() => (html.innerHTML = sanitize(props.html)))
+        createEffect(() => (css.textContent = props.css))
+      }}
+    />
   )
 }
 
@@ -425,5 +452,3 @@ export function renameFields(
   renameFieldsInner(template, renames, output)
   return output
 }
-
-export { parseTemplate as parse, type Compiled as Type }

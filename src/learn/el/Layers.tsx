@@ -23,9 +23,9 @@ export class Layers {
 
     return (
       <LayerContext.Provider value={layers}>
-        <div class="relative min-h-full w-full">
+        <div class="relative flex min-h-full w-full">
           <div
-            class="z-layer-root min-h-full w-full transform opacity-100 transition"
+            class="z-layer-root flex min-h-full w-full transform flex-col opacity-100 transition"
             ref={(el) => (layers.root = el)}
           >
             {props.children}

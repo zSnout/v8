@@ -1,16 +1,18 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { error, unwrap } from "@/components/result"
+import { Error } from "@/learn/el/Error"
+import { doublyMapRecord } from "@/learn/lib/record"
 import { CreateNote } from "@/learn/views/CreateNote"
-import { Error } from "@/learn/comp/Error"
+import { EditModelTemplates } from "@/learn/views/EditModelTemplates"
 import { batch, createMemo, createSignal, For, JSX, Show } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
+import { Layers, useLayers } from "../../learn/el/Layers"
 import { createCollection } from "../../learn/lib/defaults"
 import { createExpr } from "../../learn/lib/expr"
 import { App } from "../../learn/lib/state"
 import * as Template from "../../learn/lib/template"
 import { AnyCard } from "../../learn/lib/types"
-import { Layers, useLayers } from "../../learn/el/Layers"
 import { timestampDist } from "../quiz/shared"
 
 const grades: { grade: Grade; bg: string; text: string }[] = [
@@ -51,15 +53,18 @@ export function Debug() {
         FrontSide: front,
       },
     )
+    const css = models()[note.mid]!.css
     return (
       <div class="flex flex-col rounded bg-z-body px-2 py-1 text-xs">
         <Template.Render
           class="mb-1 border-b border-z pb-1 text-center text-base"
           html={front}
+          css={css}
         />
         <Template.Render
           class="mb-1 border-b border-z pb-1 text-center text-base"
           html={back}
+          css={css}
         />
         <div>did? {card.did}</div>
         <div>tid? {card.tid}</div>
@@ -324,11 +329,21 @@ export function ErrorHandler(props: { children: JSX.Element }) {
   )
 }
 
+// TODO: "Create Notes" buttons doesn't work
 export function Main() {
   return (
     <ErrorHandler>
       <Layers.Root>
-        <Debug />
+        <EditModelTemplates
+          model={app.models.default(Date.now())}
+          fields={doublyMapRecord(
+            app.models.default(Date.now()).fields,
+            (f) => f.name,
+            (f) => "idk some value for " + f.name + " maybe",
+          )}
+          close={() => {}}
+        />
+        {/* <Debug /> */}
       </Layers.Root>
     </ErrorHandler>
   )

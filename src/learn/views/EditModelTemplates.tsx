@@ -1,12 +1,12 @@
 import { Fa } from "@/components/Fa"
-import { Checkbox } from "@/components/fields/CheckboxGroup"
+import { MatchResult } from "@/components/MatchResult"
 import { alert, confirm, ModalDescription, prompt } from "@/components/Modal"
 import { notNull } from "@/components/pray"
+import { error, ok } from "@/components/result"
 import {
   faCancel,
   faCheck,
   faGripVertical,
-  faKey,
   faPencil,
   faPlus,
   faTrash,
@@ -20,18 +20,16 @@ import {
   createSignal,
   For,
   getOwner,
-  Show,
   untrack,
 } from "solid-js"
 import { array, parse } from "valibot"
-import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
 import { BottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
-import { createField } from "../lib/defaults"
-import { Id, idOf } from "../lib/id"
+import { createModelTemplate } from "../lib/defaults"
+import { Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
-import { AppModels } from "../lib/state"
-import { Model, ModelField } from "../lib/types"
+import * as Template from "../lib/template"
+import { Model, ModelTemplate } from "../lib/types"
 
 function Action(props: {
   icon: IconDefinition
@@ -55,9 +53,12 @@ function Action(props: {
 }
 
 // TODO: stop user from editing model name to potential ambiguity
-export function EditModelFields(props: {
-  /** The model to edit the fields of. */
+export function EditModelTemplates(props: {
+  /** The model to edit the templates of. */
   model: Model
+
+  /** The fields record to use as a reference. */
+  fields: Template.FieldsRecord
 
   /**
    * Called to close the modal. If a `model` is passed, it is the updated model.
@@ -66,16 +67,16 @@ export function EditModelFields(props: {
   close: (model: Model | null) => void
 }) {
   const [model, setModel] = createSignal(props.model)
-  const [fields, setFields] = createSignal<DndItem[]>(
-    Object.values(model().fields),
+  const [tmpls, setTemplates] = createSignal<DndItem[]>(
+    Object.values(model().tmpls),
   )
-  createEffect(() => setFields(Object.values(model().fields)))
+  createEffect(() => setTemplates(Object.values(model().tmpls)))
   const [selectedId, setSelectedId] = createSignal(
-    Object.values(model().fields)[0]?.id,
+    Object.values(model().tmpls)[0]?.id,
   )
   const selected = createMemo(() => {
-    const field = model().fields[selectedId() ?? 0]
-    return notNull(field, "There must be a field selected in the explorer.")
+    const tmpl = model().tmpls[selectedId() ?? 0]
+    return notNull(tmpl, "There must be a template selected in the explorer.")
   })
 
   const owner = getOwner()
@@ -83,7 +84,7 @@ export function EditModelFields(props: {
   return (
     <div class="flex min-h-full w-full flex-col gap-8">
       <IntegratedField
-        label="Editing fields of"
+        label="Editing templates of"
         rtl={false}
         type="text"
         value={model().name}
@@ -95,7 +96,7 @@ export function EditModelFields(props: {
         {SideActions()}
       </div>
 
-      {FieldOptions()}
+      {TemplateOptions()}
       {SaveChanges()}
     </div>
   )
@@ -115,29 +116,23 @@ export function EditModelFields(props: {
           center
           onClick={() => {
             const m = model()
-
-            props.close({
-              ...m,
-              tmpls: AppModels.renameFieldAccessesInTemplates(
-                props.model.fields,
-                m.fields,
-                m.tmpls,
-              ),
-            })
+            props.close(m)
           }}
         />
       </BottomButtons>
     )
   }
 
-  function setSelected(fn: ModelField | ((x: ModelField) => ModelField)) {
+  function setSelected(
+    fn: ModelTemplate | ((x: ModelTemplate) => ModelTemplate),
+  ) {
     if (typeof fn == "function") {
       fn = fn(untrack(selected))
     }
     setModel((model) => {
       return {
         ...model,
-        fields: { ...model.fields, [fn.id]: fn },
+        tmpls: { ...model.tmpls, [fn.id]: fn },
       }
     })
   }
@@ -161,7 +156,10 @@ export function EditModelFields(props: {
     })
   }
 
-  async function pickFieldName(title: string, cancelName?: string | undefined) {
+  async function pickTemplateName(
+    title: string,
+    cancelName?: string | undefined,
+  ) {
     let first = true
 
     while (true) {
@@ -170,7 +168,7 @@ export function EditModelFields(props: {
         title,
         description: first ? undefined : (
           <ModalDescription>
-            That field name is already used. Please pick a different name, or
+            That template name is already used. Please pick a different name, or
             cancel the action.
           </ModalDescription>
         ),
@@ -180,7 +178,7 @@ export function EditModelFields(props: {
         return
       }
 
-      if (!Object.values(model().fields).some((x) => x.name == name)) {
+      if (!Object.values(model().tmpls).some((x) => x.name == name)) {
         return name
       }
 
@@ -188,110 +186,71 @@ export function EditModelFields(props: {
     }
   }
 
-  function FieldOptions() {
+  function Preview(local: { tmpl: string; css: string }) {
+    const compiled = createMemo(() => {
+      const result = Template.parse(local.tmpl)
+      if (!result.ok) {
+        return result
+      }
+      const { value } = result
+      const issues = Template.validate(value, props.fields)
+      if (issues.length) {
+        return error(issues.map(Template.issueToString).join("\n"))
+      }
+      return ok(value)
+    })
+
     return (
-      <div class="flex flex-col gap-1">
+      <MatchResult
+        result={compiled()}
+        fallback={(err) => (
+          <div class="rounded-lg bg-z-body-selected px-3 py-2">
+            <For each={err().split("\n")}>{(el) => <p>{el}</p>}</For>
+          </div>
+        )}
+      >
+        {(value) => (
+          <Template.Render
+            class="rounded-lg bg-z-body-selected px-3 py-2"
+            html={Template.generate(value(), props.fields)}
+            css={local.css}
+          />
+        )}
+      </MatchResult>
+    )
+  }
+
+  function TemplateOptions() {
+    return (
+      <div class="grid grid-cols-[auto,calc(375px_-_1.5rem)] gap-1">
         <IntegratedField
-          label="Description"
-          rtl={selected().rtl}
-          font={selected().font}
-          sizePx={selected().size}
-          value={selected().desc}
-          onInput={(y) => {
-            setSelected((x) => ({ ...x, desc: y }))
-          }}
-          type="text"
-          placeholder="Placeholder to show when no value is typed in"
+          label="Front Template"
+          onInput={(value) => setSelected((tmpl) => ({ ...tmpl, qfmt: value }))}
+          type="html-only"
+          value={selected().qfmt}
+          minHeight
         />
 
-        <div class="grid grid-cols-[1fr,8rem] gap-1">
-          <AutocompleteFontFamily
-            label="Editing Font"
-            placeholder="(optional)"
-            value={selected().font}
-            onChange={(font) => {
-              setSelected((field) => ({ ...field, font }))
-            }}
-          />
+        <Preview tmpl={selected().qfmt} css={model().css} />
 
+        <IntegratedField
+          label="Back Template"
+          onInput={(value) => setSelected((tmpl) => ({ ...tmpl, afmt: value }))}
+          type="html-only"
+          value={selected().afmt}
+          minHeight
+        />
+
+        <Preview tmpl={selected().afmt} css={model().css} />
+
+        <div class="col-span-2">
           <IntegratedField
-            label="Size"
-            rtl={false}
-            type="number"
-            placeholder="(optional)"
-            value={selected().size?.toString() ?? ""}
-            onInput={(value) =>
-              setSelected((field) => {
-                if (value == "") {
-                  return { ...field, size: undefined }
-                }
-
-                const size = Math.floor(+value)
-                if (Number.isFinite(size)) {
-                  return { ...field, size: Math.max(4, Math.min(256, size)) }
-                } else {
-                  return field
-                }
-              })
-            }
+            label="Styling (affects all templates)"
+            onInput={(css) => setModel((model) => ({ ...model, css }))}
+            type="css-only"
+            value={model().css}
+            minHeight
           />
-        </div>
-
-        <div class="flex flex-col gap-1 rounded-lg bg-z-body-selected px-2 pb-1 pt-1">
-          <p class="text-sm text-z-subtitle">Other options</p>
-
-          <label class="flex w-full gap-2">
-            <Checkbox
-              circular
-              checked={model().sort_field == selectedId()}
-              onInput={() =>
-                setModel((model) => ({
-                  ...model,
-                  sort_field: idOf(selectedId()!),
-                }))
-              }
-            />
-
-            <p>Sort by this field in the browser</p>
-          </label>
-
-          <label class="flex w-full gap-2">
-            <Checkbox
-              checked={selected().rtl}
-              onInput={(rtl) => setSelected((x) => ({ ...x, rtl }))}
-            />
-
-            <p>Edit as right-to-left text</p>
-          </label>
-
-          <label class="flex w-full gap-2">
-            <Checkbox
-              checked={selected().html}
-              onInput={(html) => setSelected((x) => ({ ...x, html }))}
-            />
-
-            <p>Default to editing raw HTML</p>
-          </label>
-
-          <label class="flex w-full gap-2">
-            <Checkbox
-              checked={selected().collapsed}
-              onInput={(collapsed) => setSelected((x) => ({ ...x, collapsed }))}
-            />
-
-            <p>Collapse field in card creator</p>
-          </label>
-
-          <label class="flex w-full gap-2">
-            <Checkbox
-              checked={selected().excludeFromSearch}
-              onInput={(excludeFromSearch) =>
-                setSelected((x) => ({ ...x, excludeFromSearch }))
-              }
-            />
-
-            <p>Exclude from unqualified searches</p>
-          </label>
         </div>
       </div>
     )
@@ -304,21 +263,21 @@ export function EditModelFields(props: {
           icon={faPlus}
           label="Add"
           onClick={async () => {
-            if (!(await confirmImportantChange("Adding a new field"))) {
+            if (!(await confirmImportantChange("Adding a new template"))) {
               return
             }
 
-            const fieldName = await pickFieldName("New field name")
+            const tmplName = await pickTemplateName("New template name")
 
-            if (!fieldName) {
+            if (!tmplName) {
               return
             }
 
             setModel((model) => {
-              const next = createField(fieldName)
+              const next = createModelTemplate("", "", tmplName)
               return {
                 ...model,
-                fields: { ...model.fields, [next.id]: next },
+                tmpls: { ...model.tmpls, [next.id]: next },
               }
             })
           }}
@@ -328,30 +287,30 @@ export function EditModelFields(props: {
           icon={faTrash}
           label="Delete"
           onClick={async () => {
-            if (Object.keys(model().fields).length <= 1) {
+            if (Object.keys(model().tmpls).length <= 1) {
               await alert({
                 owner,
                 title: "Unable to delete",
                 description: (
                   <ModalDescription>
-                    Card types need at least one field.
+                    Card types need at least one template.
                   </ModalDescription>
                 ),
               })
               return
             }
 
-            if (!(await confirmImportantChange("Removing this field"))) {
+            if (!(await confirmImportantChange("Removing this template"))) {
               return
             }
 
             batch(() => {
               const model = setModel((model) => {
-                const { [selectedId() ?? 0]: _, ...fields } = model.fields
-                return { ...model, fields }
+                const { [selectedId() ?? 0]: _, ...tmpls } = model.tmpls
+                return { ...model, tmpls }
               })
 
-              setSelectedId(Object.values(model.fields)[0]!.id)
+              setSelectedId(Object.values(model.tmpls)[0]!.id)
             })
           }}
         />
@@ -360,16 +319,16 @@ export function EditModelFields(props: {
           icon={faPencil}
           label="Rename"
           onClick={async () => {
-            const fieldName = await pickFieldName(
-              "New field name",
+            const tmplName = await pickTemplateName(
+              "New template name",
               selected().name,
             )
 
-            if (!fieldName) {
+            if (!tmplName) {
               return
             }
 
-            setSelected((field) => ({ ...field, name: fieldName }))
+            setSelected((tmpl) => ({ ...tmpl, name: tmplName }))
           }}
         />
       </div>
@@ -377,34 +336,32 @@ export function EditModelFields(props: {
   }
 
   function FieldList() {
-    const sortId = createMemo(() => model().fields[model().sort_field ?? 0]?.id)
-
     return (
       <div
         class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z pb-8"
         ref={(el) => {
           dndzone(el, () => ({
-            items: fields,
+            items: tmpls,
             flipDurationMs: 0,
             dropTargetClasses: ["!outline-none"],
             zoneTabIndex: -1,
           }))
         }}
-        onconsider={({ detail: { items } }) => setFields(items)}
+        onconsider={({ detail: { items } }) => setTemplates(items)}
         onfinalize={({ detail: { items } }) => {
-          const result = parse(array(ModelField), items)
-          setFields(result)
-          setModel((model) => ({ ...model, fields: arrayToRecord(result) }))
+          const result = parse(array(ModelTemplate), items)
+          setTemplates(result)
+          setModel((model) => ({ ...model, tmpls: arrayToRecord(result) }))
         }}
       >
-        <For each={fields()}>
-          {(field, index) => {
+        <For each={tmpls()}>
+          {(tmpl, index) => {
             return (
               <div
                 class="-mx-px -mt-px flex items-center border border-z"
                 classList={{
-                  "bg-z-body": field.id != selectedId(),
-                  "bg-z-body-selected": field.id == selectedId(),
+                  "bg-z-body": tmpl.id != selectedId(),
+                  "bg-z-body-selected": tmpl.id == selectedId(),
                 }}
               >
                 <div class="z-handle cursor-move py-1 pl-2 pr-1">
@@ -416,13 +373,10 @@ export function EditModelFields(props: {
                 </div>
                 <button
                   class="flex-1 py-1 pl-1 pr-2 text-left"
-                  onClick={() => setSelectedId(+field.id as Id)}
+                  onClick={() => setSelectedId(+tmpl.id as Id)}
                 >
-                  {String(field["name"])}
+                  {String(tmpl["name"])}
                 </button>
-                <Show when={field.id == sortId()}>
-                  <Fa class="h-3 w-3" icon={faKey} title="sort field" />
-                </Show>
                 <div class="px-2 font-mono text-sm text-z-subtitle">
                   {index() + 1}
                 </div>

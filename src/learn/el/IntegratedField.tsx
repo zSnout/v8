@@ -1,6 +1,7 @@
 import { Fa } from "@/components/Fa"
 import * as autocomplete from "@codemirror/autocomplete"
 import * as commands from "@codemirror/commands"
+import { css } from "@codemirror/lang-css"
 import { html } from "@codemirror/lang-html"
 import * as language from "@codemirror/language"
 import * as lint from "@codemirror/lint"
@@ -105,16 +106,19 @@ function IntegratedTagField(
   )
 }
 
-function IntegratedHTMLField(props: {
-  value?: string | undefined
-  onInput?: (value: string) => void
-  emptyBg?: boolean
-}) {
+function IntegratedCodeField(
+  props: {
+    value?: string | undefined
+    onInput?: (value: string) => void
+    emptyBg?: boolean
+  },
+  moreProps?: { alone?: boolean; lang?: language.LanguageSupport },
+) {
   let editor: EditorView
 
   return (
     <div
-      class="border-t border-z focus-within:*:outline-none"
+      class="flex flex-1 border-t border-z *:flex-1 focus-within:*:outline-none"
       ref={(el) => {
         editor = new EditorView({
           doc: props.value,
@@ -143,7 +147,7 @@ function IntegratedHTMLField(props: {
               ...autocomplete.completionKeymap,
               ...lint.lintKeymap,
             ]),
-            html(),
+            moreProps?.lang || html(),
             EditorView.updateListener.of((v) => {
               if (v.docChanged) {
                 props.onInput?.(editor.state.doc.toString())
@@ -180,6 +184,7 @@ interface IntegratedFieldPropsBase<T> {
   emptyBg?: boolean
   sticky?: boolean
   onSticky?: (sticky: boolean) => void
+  minHeight?: boolean
 }
 
 interface IntegratedFieldPropsText<T> extends IntegratedFieldPropsBase<T> {
@@ -195,12 +200,15 @@ interface IntegratedFieldPropsHTML<T> extends IntegratedFieldPropsText<T> {
 
 type IntegratedFieldProps =
   | IntegratedFieldPropsBase<"tags">
-  | IntegratedFieldPropsText<"text" | "number">
+  | IntegratedFieldPropsText<"text">
+  | IntegratedFieldPropsText<"number">
   | IntegratedFieldPropsHTML<"html">
+  | IntegratedFieldPropsBase<"html-only">
+  | IntegratedFieldPropsBase<"css-only">
 
 export function IntegratedField(props: IntegratedFieldProps) {
   const id = randomId().toString()
-  let el!: HTMLDivElement
+  let el: HTMLDivElement | undefined
 
   return (
     <div
@@ -208,12 +216,12 @@ export function IntegratedField(props: IntegratedFieldProps) {
       classList={{
         "bg-z-body-selected": !props.emptyBg,
         "border-transparent": !props.emptyBg,
-        " [&:has(button:focus)]:border-transparent": !props.emptyBg,
-        " [&:has(button:focus)]:border-z": props.emptyBg,
+        "[&:has(button:focus)]:border-transparent": !props.emptyBg,
+        "[&:has(button:focus)]:border-z": props.emptyBg,
+        "min-h-72": props.minHeight,
       }}
       onMouseDown={(event) => {
-        if (event.currentTarget == event.target) {
-          event.preventDefault()
+        if (event.currentTarget == event.target && el) {
           el.focus()
         }
       }}
@@ -222,22 +230,27 @@ export function IntegratedField(props: IntegratedFieldProps) {
         id={id}
         class="mb-1 flex w-full select-none gap-2 px-2 pt-1 text-sm text-z-subtitle"
         onMouseDown={(event) => {
-          event.preventDefault()
-          el.focus()
+          if (el) {
+            event.preventDefault()
+            el.focus()
+          }
         }}
-        contentEditable={false}
       >
         <div>{props.label}</div>
 
         <Show
           when={
             typeof props.sticky == "boolean" ||
-            (props.type == "html" && typeof props.showHtml == "boolean")
+            (props.type == "html" && typeof props.showHtml == "boolean") ||
+            props.type == "html-only"
           }
         >
-          <div class="ml-auto flex translate-y-1 gap-2">
+          <div class="ml-auto flex -translate-y-[0.5px] gap-2">
             <Show
-              when={props.type == "html" && typeof props.showHtml == "boolean"}
+              when={
+                (props.type == "html" && typeof props.showHtml == "boolean") ||
+                props.type == "html-only"
+              }
             >
               <button
                 class="z-field -m-1 rounded border-transparent bg-transparent p-1 shadow-none focus-visible:bg-z-body"
@@ -246,6 +259,10 @@ export function IntegratedField(props: IntegratedFieldProps) {
                     props.onShowHtml?.(!props.showHtml)
                   }
                 }}
+                disabled={
+                  props.type == "html-only" ||
+                  (props.type == "html" && props.onShowHtml == null)
+                }
               >
                 <Fa class="h-4 w-4" icon={faCode} title="toggle html view" />
               </button>
@@ -271,31 +288,13 @@ export function IntegratedField(props: IntegratedFieldProps) {
 
       {props.type == "html" ? (
         <>
-          <div
-            ref={(e) => {
-              el = e
-              el.innerHTML = sanitize(props.value ?? "")
-              createEffect(() => {
-                const next = sanitize(props.value ?? "")
-                if (el.innerHTML != next) {
-                  el.innerHTML = next
-                }
-              })
-            }}
-            aria-labelledby={id}
-            class="-mt-1 w-full bg-transparent px-2 pb-1 focus:outline-none"
-            contentEditable
-            tabIndex={0}
-            style={{
-              "font-family": props.font,
-              "font-size": props.sizePx ? `${props.sizePx / 16}rem` : "",
-            }}
-            dir={props.rtl ? "rtl" : "ltr"}
-            onInput={(el) => props.onInput?.(el.currentTarget.innerHTML)}
-          />
-
-          <Show when={props.showHtml}>{IntegratedHTMLField(props)}</Show>
+          {ContentEditableField(props)}
+          <Show when={props.showHtml}>{IntegratedCodeField(props)}</Show>
         </>
+      ) : props.type == "html-only" ? (
+        IntegratedCodeField(props, { alone: true })
+      ) : props.type == "css-only" ? (
+        IntegratedCodeField(props, { alone: true, lang: css() })
       ) : props.type == "tags" ? (
         IntegratedTagField(props, id)
       ) : (
@@ -315,4 +314,31 @@ export function IntegratedField(props: IntegratedFieldProps) {
       )}
     </div>
   )
+
+  function ContentEditableField(p: { rtl: boolean }) {
+    return (
+      <div
+        ref={(self) => {
+          el = self
+          el.innerHTML = sanitize(props.value ?? "")
+          createEffect(() => {
+            const next = sanitize(props.value ?? "")
+            if (self.innerHTML != next) {
+              self.innerHTML = next
+            }
+          })
+        }}
+        aria-labelledby={id}
+        class="-mt-1 w-full bg-transparent px-2 pb-1 focus:outline-none"
+        contentEditable
+        tabIndex={0}
+        style={{
+          "font-family": props.font,
+          "font-size": props.sizePx ? `${props.sizePx / 16}rem` : "",
+        }}
+        dir={p.rtl ? "rtl" : "ltr"}
+        onInput={(el) => props.onInput?.(el.currentTarget.innerHTML)}
+      />
+    )
+  }
 }

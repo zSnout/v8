@@ -131,8 +131,14 @@ export function createModel(
 }
 
 const DEFAULT_MODEL_CSS = `.card {
-  font-size: 1.5rem;
+  font-size: 1rem;
   text-align: center;
+}
+
+hr {
+  border-width: 0;
+  border-top-width: 1px;
+  border-top-color: var(--z-border);
 }`
 
 export function createBasicModel(): Model {
