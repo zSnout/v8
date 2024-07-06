@@ -1,4 +1,5 @@
 import { Fa } from "@/components/Fa"
+import { isDark } from "@/stores/theme"
 import * as autocomplete from "@codemirror/autocomplete"
 import * as commands from "@codemirror/commands"
 import { css } from "@codemirror/lang-css"
@@ -7,6 +8,7 @@ import * as language from "@codemirror/language"
 import * as lint from "@codemirror/lint"
 import * as search from "@codemirror/search"
 import * as state from "@codemirror/state"
+import { oneDark } from "@codemirror/theme-one-dark"
 import * as view from "@codemirror/view"
 import { EditorView } from "@codemirror/view"
 import { faBookmark as faRegularSticky } from "@fortawesome/free-regular-svg-icons"
@@ -107,6 +109,23 @@ function IntegratedTagField(
   )
 }
 
+const light: [] = []
+
+const dark = [
+  oneDark,
+  state.Prec.highest(
+    view.EditorView.theme(
+      {
+        "&": {
+          backgroundColor: "transparent",
+        },
+      },
+      { dark: true },
+    ),
+  ),
+]
+
+// TODO: undo/redo seems to behave very strangely
 function IntegratedCodeField(
   props: {
     value?: string | undefined
@@ -116,6 +135,8 @@ function IntegratedCodeField(
   moreProps?: { alone?: boolean; lang?: language.LanguageSupport },
 ) {
   let editor: EditorView
+
+  const theme = new state.Compartment()
 
   return (
     <div
@@ -133,6 +154,7 @@ function IntegratedCodeField(
             language.syntaxHighlighting(language.defaultHighlightStyle, {
               fallback: true,
             }),
+            theme.of(isDark() ? dark : light),
             language.bracketMatching(),
             autocomplete.closeBrackets(),
             autocomplete.autocompletion(),
@@ -156,6 +178,12 @@ function IntegratedCodeField(
             }),
           ],
           parent: el,
+        })
+
+        createEffect(() => {
+          editor.dispatch({
+            effects: theme.reconfigure(isDark() ? dark : light),
+          })
         })
 
         createEffect(() => {

@@ -9,11 +9,11 @@ export function Fa(props: {
     <svg
       class={`overflow-visible transition ${props.class}`}
       fill="var(--icon-fill)"
-      role="img"
+      role={props.title === false ? "presentation" : "img"}
       viewBox={`0 0 ${props.icon.icon[0]} ${props.icon.icon[1]}`}
       xmlns="http://www.w3.org/2000/svg"
     >
-      <title>{props.title}</title>
+      <title>{props.title ?? "<no title>"}</title>
       <path d={String(props.icon.icon[4])}></path>
     </svg>
   )
