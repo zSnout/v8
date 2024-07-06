@@ -292,7 +292,29 @@ export function IntegratedField(props: IntegratedFieldProps) {
 
       {props.type == "html" ? (
         <>
-          {ContentEditableField(props)}
+          <div
+            ref={(self) => {
+              el = self
+              el.innerHTML = sanitize(props.value ?? "")
+              createEffect(() => {
+                const next = sanitize(props.value ?? "")
+                if (self.innerHTML != next) {
+                  self.innerHTML = next
+                }
+              })
+            }}
+            aria-labelledby={id}
+            class="-mt-1 min-h-[1em] w-full bg-transparent px-2 pb-1 focus:outline-none"
+            contentEditable
+            tabIndex={0}
+            style={{
+              "font-family": props.font,
+              "font-size": props.sizePx ? `${props.sizePx / 16}rem` : "",
+            }}
+            dir={props.rtl ? "rtl" : "ltr"}
+            onInput={(el) => props.onInput?.(el.currentTarget.innerHTML)}
+          />
+
           <Show when={props.showHtml}>{IntegratedCodeField(props)}</Show>
         </>
       ) : props.type == "html-only" ? (
@@ -318,31 +340,4 @@ export function IntegratedField(props: IntegratedFieldProps) {
       )}
     </div>
   )
-
-  function ContentEditableField(p: { rtl: boolean }) {
-    return (
-      <div
-        ref={(self) => {
-          el = self
-          el.innerHTML = sanitize(props.value ?? "")
-          createEffect(() => {
-            const next = sanitize(props.value ?? "")
-            if (self.innerHTML != next) {
-              self.innerHTML = next
-            }
-          })
-        }}
-        aria-labelledby={id}
-        class="-mt-1 min-h-[1em] w-full bg-transparent px-2 pb-1 focus:outline-none"
-        contentEditable
-        tabIndex={0}
-        style={{
-          "font-family": props.font,
-          "font-size": props.sizePx ? `${props.sizePx / 16}rem` : "",
-        }}
-        dir={p.rtl ? "rtl" : "ltr"}
-        onInput={(el) => props.onInput?.(el.currentTarget.innerHTML)}
-      />
-    )
-  }
 }

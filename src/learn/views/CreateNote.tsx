@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { notNull } from "@/components/pray"
 import { unwrap } from "@/components/result"
+import { faPlus, faRightFromBracket } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createSignal, For, untrack } from "solid-js"
 import { AutocompleteBox } from "../el/AutocompleteBox"
+import { Action, BottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
 import { useLayers } from "../el/Layers"
 import { mapRecord } from "../lib/record"
@@ -37,20 +39,6 @@ export function CreateNote(props: {
   )
   const [tags, setTags] = createSignal(model().tags)
 
-  function onExternalModelUpdate() {
-    setFields((prev) =>
-      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? sticky ?? ""),
-    )
-
-    setSticky((prev) =>
-      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? !!sticky),
-    )
-
-    setShowHtml((prev) =>
-      mapRecord(model().fields, ({ id, html }) => prev[id] ?? html),
-    )
-  }
-
   createEffect(() => {
     const current = untrack(tags)
     if (current == "") {
@@ -58,8 +46,41 @@ export function CreateNote(props: {
     }
   })
 
+  function addCard() {
+    const lastTags = tags()
+    const lastFields = fields()
+
+    const { note, cards } = unwrap(
+      app.notes.create({
+        now: Date.now(),
+        mid: model().id,
+        fields: lastFields,
+        tags: lastTags,
+        did: deck().id,
+      }),
+    )
+
+    app.notes.push(note)
+    for (const card of cards) {
+      app.cards.set(card)
+    }
+
+    const nextModel = setModel((model) => ({
+      ...model,
+      tags: lastTags,
+      fields: mapRecord(model.fields, (field) =>
+        field.sticky
+          ? { ...field, sticky: lastFields[field.id] ?? field.sticky }
+          : field,
+      ),
+    }))
+    unwrap(app.models.set(nextModel, Date.now()))
+
+    onExternalModelUpdate()
+  }
+
   return (
-    <div class="flex flex-col gap-8">
+    <div class="flex min-h-full flex-1 flex-col gap-8">
       <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
         <div class="grid grid-cols-2 gap-1">
           <div class="col-span-2">
@@ -165,12 +186,45 @@ export function CreateNote(props: {
         </For>
       </div>
 
+      {/* provides 4rem extra space */}
+      <div />
+      <div class="flex-1" />
+
       <IntegratedField
         type="tags"
         label="Tags"
         value={model().tags}
         onInput={(tags) => setTags(tags)}
       />
+
+      <BottomButtons class="grid w-full gap-1 xs:grid-cols-[min(18rem,50%),auto,min(18rem,50%)]">
+        {/* TODO: pressing cmd-enter should also run `addCard` */}
+        <Action icon={faPlus} label="Add Card" center onClick={addCard} />
+
+        {/* spacer */}
+        <div />
+
+        <Action
+          icon={faRightFromBracket}
+          label="Exit"
+          center
+          onClick={() => props.close()}
+        />
+      </BottomButtons>
     </div>
   )
+
+  function onExternalModelUpdate() {
+    setFields((prev) =>
+      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? sticky ?? ""),
+    )
+
+    setSticky((prev) =>
+      mapRecord(model().fields, ({ id, sticky }) => prev[id] ?? !!sticky),
+    )
+
+    setShowHtml((prev) =>
+      mapRecord(model().fields, ({ id, html }) => prev[id] ?? html),
+    )
+  }
 }

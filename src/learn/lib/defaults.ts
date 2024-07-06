@@ -99,6 +99,7 @@ export function createField(name: string): ModelField {
     collapsed: false,
     excludeFromSearch: false,
     html: false,
+    sticky: "",
   }
 }
 

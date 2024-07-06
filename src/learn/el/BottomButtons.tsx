@@ -1,3 +1,5 @@
+import { Fa } from "@/components/Fa"
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons"
 import { JSX } from "solid-js"
 
 export function BottomButtons(props: { class: string; children: JSX.Element }) {
@@ -6,12 +8,25 @@ export function BottomButtons(props: { class: string; children: JSX.Element }) {
       <div class={props.class}>{props.children}</div>
     </div>
   )
+}
 
-  // return (
-  //   <div class="sticky -bottom-8 -mx-6 -mb-8 mt-auto flex flex-col justify-center">
-  //     <div class="flex flex-1 justify-center px-6 pb-8 *:*:border-z-bg-body *:*:shadow">
-  //       <div class={props.class}>{props.children}</div>
-  //     </div>
-  //   </div>
-  // )
+export function Action(props: {
+  icon: IconDefinition
+  label: string
+  onClick?: () => void
+  shrinks?: boolean
+  center?: boolean
+}) {
+  return (
+    <button
+      class="z-field flex w-full items-center gap-2 border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+      classList={{ "justify-center": props.center }}
+      onClick={props.onClick}
+    >
+      <div class="flex h-6 items-center justify-center">
+        <Fa class="h-4 w-4" icon={props.icon} title={false} />
+      </div>
+      <div classList={{ "max-sm:sr-only": props.shrinks }}>{props.label}</div>
+    </button>
+  )
 }

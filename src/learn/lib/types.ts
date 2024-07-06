@@ -166,7 +166,7 @@ export const ModelField = v.object({
   name: v.string(),
 
   /** The value to fill in by default when creating a new card of this model */
-  sticky: v.optional(v.string()),
+  sticky: v.string(),
 
   /** Whether the field is collapsed in the editor */
   collapsed: v.boolean(),
