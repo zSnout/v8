@@ -248,7 +248,7 @@ export class AppDecks {
     return tree
   }
 
-  scheduler(deck: Deck) {
+  scheduler(deck: Deck, now: number) {
     if (!(deck.id in this.byId)) {
       return error("The selected deck is not in the collection.")
     }
@@ -267,7 +267,7 @@ export class AppDecks {
 
     decks.unshift(deck)
 
-    return new Scheduler(deck, decks, structuredClone(conf), this.app)
+    return new Scheduler(deck, decks, structuredClone(conf), this.app, now)
   }
 }
 
