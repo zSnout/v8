@@ -5,7 +5,7 @@ import { faPlus, faRightFromBracket } from "@fortawesome/free-solid-svg-icons"
 import { batch, createEffect, createSignal, For, untrack } from "solid-js"
 import { createStore } from "solid-js/store"
 import { AutocompleteBox } from "../el/AutocompleteBox"
-import { Action, BottomButtons } from "../el/BottomButtons"
+import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
 import { useLayers } from "../el/Layers"
 import { mapRecord } from "../lib/record"
@@ -205,7 +205,7 @@ export function CreateNote(props: {
         onInput={(tags) => setTags(tags)}
       />
 
-      <BottomButtons class="grid w-full gap-1 xs:grid-cols-[min(18rem,50%),auto,min(18rem,50%)]">
+      <TwoBottomButtons>
         <Action
           icon={faRightFromBracket}
           label="Exit"
@@ -213,11 +213,8 @@ export function CreateNote(props: {
           onClick={() => props.close()}
         />
 
-        {/* spacer */}
-        <div />
-
         <Action icon={faPlus} label="Add Card" center onClick={addCard} />
-      </BottomButtons>
+      </TwoBottomButtons>
     </div>
   )
 

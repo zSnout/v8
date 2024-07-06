@@ -50,6 +50,7 @@ export function createPrefs(): Prefs {
       sort_field: "Sort Field",
       sort_backwards: false,
     },
+    debug: false,
   }
 }
 

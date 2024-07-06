@@ -22,7 +22,7 @@ import {
   untrack,
 } from "solid-js"
 import { array, parse } from "valibot"
-import { Action, BottomButtons } from "../el/BottomButtons"
+import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
 import { createModelTemplate } from "../lib/defaults"
 import { Id } from "../lib/id"
@@ -81,7 +81,7 @@ export function EditModelTemplates(props: {
 
   function SaveChanges() {
     return (
-      <BottomButtons class="grid w-full max-w-96 gap-1 xs:grid-cols-2">
+      <TwoBottomButtons>
         <Action
           icon={faCancel}
           label="Cancel"
@@ -97,7 +97,7 @@ export function EditModelTemplates(props: {
             props.close(m)
           }}
         />
-      </BottomButtons>
+      </TwoBottomButtons>
     )
   }
 

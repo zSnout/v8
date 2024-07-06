@@ -1,16 +1,14 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { unwrap } from "@/components/result"
 import { timestampDist } from "@/pages/quiz/shared"
-import { batch, createMemo, For } from "solid-js"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
+import { createMemo, For } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
-import { useLayers } from "../el/Layers"
+import { Action } from "../el/BottomButtons"
 import { createExpr } from "../lib/expr"
 import { App } from "../lib/state"
 import * as Template from "../lib/template"
 import { AnyCard } from "../lib/types"
-import { CreateNote } from "./CreateNote"
-import { Action } from "../el/BottomButtons"
-import { faXmark } from "@fortawesome/free-solid-svg-icons"
 
 const grades: { grade: Grade; bg: string; text: string }[] = [
   { grade: Rating.Again, bg: "bg-red-300", text: "text-red-900" },
@@ -20,13 +18,12 @@ const grades: { grade: Grade; bg: string; text: string }[] = [
 ]
 
 export function Debug({ app, close }: { app: App; close: () => void }) {
-  const [decks, reloadDecks] = createExpr(() => app.decks)
+  const [decks] = createExpr(() => app.decks)
   const tree = createMemo(() => decks().tree(Date.now()).tree)
-  const [models, reloadModels] = createExpr(() => app.models.byId)
-  const [notes, reloadNotes] = createExpr(() => app.notes.byId)
+  const [models] = createExpr(() => app.models.byId)
+  const [notes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
-  const [confs, reloadConfs] = createExpr(() => app.confs.byId)
-  const layers = useLayers()
+  const [confs] = createExpr(() => app.confs.byId)
 
   function Card({ card }: { card: AnyCard }) {
     const info = app.cards.repeat(card, Date.now(), 0)

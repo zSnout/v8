@@ -10,6 +10,14 @@ export function BottomButtons(props: { class: string; children: JSX.Element }) {
   )
 }
 
+export function TwoBottomButtons(props: { children: JSX.Element }) {
+  return (
+    <BottomButtons class="grid w-full max-w-96 gap-1 xs:grid-cols-2">
+      {props.children}
+    </BottomButtons>
+  )
+}
+
 export function Action(props: {
   icon: IconDefinition
   label: string

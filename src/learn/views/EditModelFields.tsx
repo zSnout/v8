@@ -24,7 +24,8 @@ import {
 } from "solid-js"
 import { array, parse } from "valibot"
 import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
-import { Action, BottomButtons } from "../el/BottomButtons"
+import { Action, TwoBottomButtons } from "../el/BottomButtons"
+import { CheckboxContainer } from "../el/CheckboxContainer"
 import { IntegratedField } from "../el/IntegratedField"
 import { createField } from "../lib/defaults"
 import { Id, idOf } from "../lib/id"
@@ -80,7 +81,7 @@ export function EditModelFields(props: {
 
   function SaveChanges() {
     return (
-      <BottomButtons class="grid w-full max-w-96 gap-1 xs:grid-cols-2">
+      <TwoBottomButtons>
         <Action
           icon={faCancel}
           label="Cancel"
@@ -104,7 +105,7 @@ export function EditModelFields(props: {
             })
           }}
         />
-      </BottomButtons>
+      </TwoBottomButtons>
     )
   }
 
@@ -215,9 +216,7 @@ export function EditModelFields(props: {
           />
         </div>
 
-        <div class="flex flex-col gap-1 rounded-lg bg-z-body-selected px-2 pb-1 pt-1">
-          <p class="text-sm text-z-subtitle">Other options</p>
-
+        <CheckboxContainer label="Other options">
           <label class="flex w-full gap-2">
             <Checkbox
               circular
@@ -270,7 +269,7 @@ export function EditModelFields(props: {
 
             <p>Exclude from unqualified searches</p>
           </label>
-        </div>
+        </CheckboxContainer>
       </div>
     )
   }

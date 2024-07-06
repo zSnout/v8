@@ -439,6 +439,9 @@ export const Prefs = v.object({
     /** Whether to sort backwards */
     sort_backwards: v.boolean(),
   }),
+
+  /** Whether to enable debug features */
+  debug: v.boolean(),
 })
 
 export interface Core extends v.InferOutput<typeof Core> {}

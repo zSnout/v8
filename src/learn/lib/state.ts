@@ -247,11 +247,16 @@ export class AppDecks {
 }
 
 export class AppPrefs {
-  constructor(private p: Prefs, private app: App) {}
+  constructor(readonly prefs: Prefs, private app: App) {}
+
+  /** Replaces all preferences. */
+  set(prefs: Prefs) {
+    Object.assign(this.prefs, prefs)
+  }
 
   /** The deck to put new cards into by default. */
   currentDeck(now: number): Deck {
-    const did = this.p.current_deck
+    const did = this.prefs.current_deck
     if (did != null) {
       const deck = this.app.decks.byId[did]
       if (deck) {
@@ -264,7 +269,7 @@ export class AppPrefs {
 
   /** The model to put new cards into by default. */
   currentModel(now: number): Model {
-    const mid = this.p.last_model_used
+    const mid = this.prefs.last_model_used
     if (mid != null) {
       const model = this.app.models.byId[mid]
       if (model) {
@@ -281,7 +286,7 @@ export class AppPrefs {
     date.setHours(0)
     date.setMinutes(0)
     date.setSeconds(0)
-    date.setMilliseconds(this.p.day_start)
+    date.setMilliseconds(this.prefs.day_start)
     let value = date.valueOf()
     if (value > now.valueOf()) {
       value -= 1000 * 60 * 60 * 24
