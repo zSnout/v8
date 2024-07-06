@@ -135,8 +135,8 @@ export function EditModelFields(props: {
           </ModalDescription>
         )
       },
-      cancelText: "Cancel",
-      okText: "Continue",
+      cancelText: "No, cancel",
+      okText: "Yes, continue",
     })
   }
 

@@ -132,8 +132,8 @@ export function confirm(props: {
   owner: Owner | null
   title: JSX.Element
   description?: JSX.Element
-  cancelText?: string
-  okText?: string
+  cancelText: string
+  okText: string
 }): Promise<boolean> {
   return new Promise((resolve) => {
     let modal: ModalRef
@@ -152,6 +152,7 @@ export function confirm(props: {
         <ModalTitle>{props.title}</ModalTitle>
         {props.description}
         <ModalButtons>
+          {/* TODO: get rid of these defaults once we're sure nobody relies on them */}
           <ModalCancel onClick={() => modal.cancel()}>
             {props.cancelText || "Cancel"}
           </ModalCancel>

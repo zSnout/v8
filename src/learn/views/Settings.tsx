@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import { confirm } from "@/components/Modal"
+import { alert, confirm, ModalDescription } from "@/components/Modal"
 import { unwrap as unwrapResult } from "@/components/result"
 import {
   faCheck,
@@ -43,6 +43,8 @@ export function Settings({ app, close }: { app: App; close: () => void }) {
       title: "Discard changes?",
       description:
         "You have some unsaved changes, and closing this window discards them. Continue?",
+      cancelText: "No, stay here",
+      okText: "Yes, exit",
     })
 
     if (result) {
@@ -60,15 +62,46 @@ export function Settings({ app, close }: { app: App; close: () => void }) {
         <input
           type="file"
           class="sr-only"
+          accept="application/json"
           ref={filePicker}
           onChange={async (event) => {
             const file = event.currentTarget.files?.[0]
             if (!file) {
               return
             }
-
             event.currentTarget.value = ""
+
+            const result = await confirm({
+              owner,
+              title: "Confirm import?",
+              description: (
+                <ModalDescription>
+                  This will{" "}
+                  <strong class="text-z underline">irreversibly</strong> replace
+                  your entire collection with data from the imported file. We
+                  highly recommend exporting your current data before you
+                  import, just in case.
+                </ModalDescription>
+              ),
+              cancelText: "No, cancel",
+              okText: "Yes, import",
+            })
+
+            if (!result) {
+              return
+            }
+
             unwrapResult(app.import(await file.text()))
+
+            await alert({
+              owner,
+              title: "Imported successfully",
+              description: (
+                <ModalDescription>
+                  The collection was imported successfully.
+                </ModalDescription>
+              ),
+            })
           }}
         />
         <Icon
