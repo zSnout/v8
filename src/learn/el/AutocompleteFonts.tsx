@@ -136,15 +136,15 @@ async function getFonts() {
 
   await document.fonts.ready
 
-  const fontAvailable = new Set<string>()
+  const available = new Set<string>()
 
   for (const font of fontCheck.values()) {
     if (document.fonts.check(`12px "${font}"`)) {
-      fontAvailable.add(font)
+      available.add(font)
     }
   }
 
-  return Array.from(fontAvailable.values()).sort()
+  return Array.from(available.values()).sort()
 }
 
 function useFonts() {
