@@ -33,6 +33,7 @@ export function Expandable(props: {
   expanded?: boolean
   setExpanded?(value: boolean): void
   z?: number
+  shift?: boolean
 }) {
   const [expanding, setExpanding] = createSignal(false)
   let inner: HTMLDivElement | undefined
@@ -63,10 +64,13 @@ export function Expandable(props: {
     <li class="flex flex-col" classList={{ "z-expanding": expanding() }}>
       <div class="flex w-full">
         <button
-          class="z-expand-checkbox-group pr-3"
+          class="z-expand-checkbox-group"
           classList={{
             "z-expanded-now": props.expanded,
             relative: props.z != null,
+            "pr-3": !props.shift,
+            "pl-[0.625rem]": props.shift,
+            "pr-[0.125rem]": props.shift,
           }}
           style={{ "z-index": props.z }}
           // @ts-ignore solid is fine with this
@@ -154,6 +158,9 @@ export function ExpandableTree<T, U>(props: {
   /** main tree */
   tree: TreeOf<T, U>
 
+  /** whether to shift dropdowns */
+  shift?: boolean
+
   /** render subtree label */
   subtree: (props: SubtreeProps<T, U>) => JSX.Element
 
@@ -179,6 +186,7 @@ export function ExpandableTree<T, U>(props: {
     setExpanded: rootSetExpanded,
     sort: __coreUnsafeSort,
     z,
+    shift,
   } = props
 
   const sort = __coreUnsafeSort
@@ -220,6 +228,7 @@ export function ExpandableTree<T, U>(props: {
           setExpanded(isExpanded(props))
         }}
         z={z}
+        shift={shift}
       >
         <SubtreeInner
           subtree={props.subtree}
@@ -261,6 +270,9 @@ export function MonotypeExpandableTree<T, U>(props: {
   /** main tree */
   tree: TreeOf<T, U>
 
+  /** whether to shift dropdown arrows */
+  shift?: boolean
+
   /** render node label */
   node: (props: NodeProps<T, U>) => JSX.Element
 
@@ -285,6 +297,7 @@ export function MonotypeExpandableTree<T, U>(props: {
       subtree={props.node}
       sort={props.sort}
       z={props.z}
+      shift={props.shift}
     />
   )
 }

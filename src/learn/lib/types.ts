@@ -482,6 +482,7 @@ export const Cards = v.record(IdKey, AnyCard)
 export interface Notes extends v.InferOutput<typeof Notes> {}
 export const Notes = v.record(IdKey, Note)
 
+/** A map from card ids to arrays of reviews. */
 export interface RevLog extends v.InferOutput<typeof RevLog> {}
 export const RevLog = v.record(IdKey, v.array(Review))
 

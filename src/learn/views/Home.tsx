@@ -15,7 +15,8 @@ import { getOwner, JSX, Show } from "solid-js"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { useLayers } from "../el/Layers"
 import { createExpr } from "../lib/expr"
-import { App } from "../lib/state"
+import { App, AppDecks } from "../lib/state"
+import { Deck } from "../lib/types"
 import { CreateNote } from "./CreateNote"
 import { Debug } from "./Debug"
 import { Settings } from "./Settings"
@@ -85,21 +86,36 @@ export function Home({ app }: { app: App }) {
         </Show>
       </div>
 
-      <MonotypeExpandableTree
-        z={10}
-        tree={decks().tree}
-        isExpanded={({ data }) => !data.collapsed}
-        setExpanded={({ data }, expanded) => (data.collapsed = !expanded)}
-        node={({ data }) => (
-          <div class="w-full rounded-lg bg-z-body-selected px-2 py-1">
-            <p>{data.name.split("::").at(-1)}</p>
-          </div>
-        )}
-        sort={([a], [b]) =>
-          a.toLocaleLowerCase().localeCompare(b.toLocaleLowerCase()) ||
-          a.localeCompare(b)
-        }
-      />
+      <div class="flex-1 rounded-lg bg-z-body-selected py-1">
+        <div class="mb-1 grid grid-cols-[auto,4rem,4rem,4rem] items-baseline border-b border-z pb-1 pl-8 pr-4">
+          <p>Deck</p>
+          <p class="text-right text-sm text-z-subtitle">New</p>
+          <p class="text-right text-sm text-z-subtitle">Learn</p>
+          <p class="text-right text-sm text-z-subtitle">Due</p>
+        </div>
+
+        <MonotypeExpandableTree<Deck, Deck>
+          z={10}
+          shift
+          tree={decks().tree}
+          isExpanded={({ data }) => !data.collapsed}
+          setExpanded={({ data }, expanded) => (data.collapsed = !expanded)}
+          node={({ data, subtree }) => (
+            <div
+              class={
+                "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg pl-8 pr-4" +
+                (subtree ? " -ml-6" : "")
+              }
+            >
+              <p>{data.name.split("::").at(-1)}</p>
+              <p class="text-right font-mono text-sm text-z-subtitle">23</p>
+              <p class="text-right font-mono text-sm text-z-subtitle">45</p>
+              <p class="text-right font-mono text-sm text-z-subtitle">789</p>
+            </div>
+          )}
+          sort={([a], [b]) => AppDecks.compare(a, b)}
+        />
+      </div>
 
       <TwoBottomButtons>
         <Action

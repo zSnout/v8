@@ -27,34 +27,16 @@ import {
   Notes,
   Prefs,
   RepeatInfo,
+  RevLog,
 } from "./types"
 
-// FIXME: filter blank cards like anki does
 // FIXME: add cloze support
 // FIXME: add image occlusion support
-// FIXME: report global errors as small popups at bottom of screen
-// FIXME: put an ErrorBoundary around the entire application
 // FIXME: allow importing anki decks
-// FIXME: circular times
+// FIXME: circular timers
 // FIXME: integration with graphing tools
 // FIXME: randomly generated cards
 // FIXME: online deck shares
-
-// export function recordAfterHandler(recordLog: BaseRecordLog): RecordLog {
-//   const output = {} as RecordLog
-
-//   for (const grade of Grades) {
-//     const { log, card: baseCard } = recordLog[grade]
-//     const card = baseCard as ReviewedCard
-
-//     output[grade] = {
-//       card,
-//       log: { ...log, cid: card.cid },
-//     }
-//   }
-
-//   return output
-// }
 
 // TODO: invalidate all data saving when another tab is open
 
@@ -65,6 +47,7 @@ export class App {
   readonly models: AppModels
   readonly notes: AppNotes
   readonly prefs: AppPrefs
+  readonly revLog: AppRevLog
 
   constructor(private c: Readonly<Collection>) {
     this.confs = new AppConfs(c.confs, this)
@@ -73,6 +56,7 @@ export class App {
     this.models = new AppModels(c.models, this)
     this.notes = new AppNotes(c.notes, this)
     this.cards = new AppCards(c.cards, this)
+    this.revLog = new AppRevLog(c.rev_log, this)
   }
 
   toJSON(): Collection {
@@ -142,6 +126,17 @@ export class AppConfs {
 }
 
 export class AppDecks {
+  static compare(a: string, b: string) {
+    const al = a.toLowerCase()
+    const bl = b.toLowerCase()
+
+    if (al < bl) return -1
+    if (al > bl) return 1
+    if (a < b) return -1
+    if (a > b) return 1
+    return 0
+  }
+
   /** Record from deck names to decks */
   readonly byName: Record<string, Deck> = Object.create(null)
 
@@ -243,6 +238,28 @@ export class AppDecks {
     }
 
     return tree
+  }
+
+  scheduler(deck: Deck) {
+    if (!(deck.id in this.byId)) {
+      return error("The selected deck is not in the collection.")
+    }
+
+    const conf = this.app.confs.byId[deck.conf]
+
+    if (!conf) {
+      return error("The selected deck isn't attached to a configuration.")
+    }
+
+    const nestedName = deck.name + "::"
+
+    const decks = Object.values(this.byName)
+      .filter((x) => x.name.startsWith(nestedName))
+      .sort(({ name: a }, { name: b }) => AppDecks.compare(a, b))
+
+    decks.unshift(deck)
+
+    return new Scheduler(decks, structuredClone(conf), this.app)
   }
 }
 
@@ -649,4 +666,12 @@ export class AppNotes {
 
     return ok({ note, cards })
   }
+}
+
+export class AppRevLog {
+  constructor(readonly log: RevLog, private app: App) {}
+}
+
+export class Scheduler {
+  constructor(readonly decks: Deck[], readonly conf: Conf, private app: App) {}
 }
