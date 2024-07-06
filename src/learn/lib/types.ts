@@ -272,6 +272,9 @@ export const Deck = v.object({
   /** Number of new cards seen today */
   new_today: v.number(),
 
+  /** Number of reviews done today */
+  reviews_today: v.number(),
+
   /** When `new_today` and the `..._limit` properties were last updated */
   today: v.number(),
 

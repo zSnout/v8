@@ -192,6 +192,7 @@ export class AppDecks {
       last_edited: now,
       name,
       new_today: 0,
+      reviews_today: 0,
       conf: this.app.confs.default(now).id,
       today: now,
     }

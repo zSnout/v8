@@ -89,6 +89,7 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     new_today: 0,
     conf: ID_CONF_DEFAULT,
     today: now,
+    reviews_today: 0,
   }
 }
 
