@@ -1,19 +1,22 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { confirm } from "@/components/Modal"
-import { faCheck, faRightFromBracket } from "@fortawesome/free-solid-svg-icons"
+import { unwrap as unwrapResult } from "@/components/result"
+import {
+  faCheck,
+  faDownload,
+  faRightFromBracket,
+  faUpload,
+} from "@fortawesome/free-solid-svg-icons"
 import { getOwner } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
-import { Prefs } from "../lib/types"
+import { Icon, Icons } from "../el/IconButton"
+import { App } from "../lib/state"
 
-export function Settings(rawProps: {
-  initial: Prefs
-  save: (prefs: Prefs) => void
-  close: () => void
-}) {
+export function Settings({ app, close }: { app: App; close: () => void }) {
   const [prefs, dangerousUnsafeRawSetPrefs] = createStore(
-    structuredClone(rawProps.initial),
+    structuredClone(app.prefs.prefs),
   )
   const owner = getOwner()
   let changed = false
@@ -24,12 +27,75 @@ export function Settings(rawProps: {
   } as typeof dangerousUnsafeRawSetPrefs
 
   function save() {
-    rawProps.save(structuredClone(unwrap(prefs)))
+    app.prefs.set(structuredClone(unwrap(prefs)))
     changed = false
+    close()
   }
 
+  async function exit() {
+    if (!changed) {
+      close()
+      return
+    }
+
+    const result = await confirm({
+      owner,
+      title: "Discard changes?",
+      description:
+        "You have some unsaved changes, and closing this window discards them. Continue?",
+    })
+
+    if (result) {
+      close()
+    }
+  }
+
+  let filePicker!: HTMLInputElement
+
   return (
-    <div class="flex min-h-full w-full flex-col">
+    <div class="flex min-h-full w-full flex-col gap-8">
+      <Icons>
+        <Icon icon={faRightFromBracket} label="Exit" onClick={exit} />
+        <Icon icon={faCheck} label="Save" onClick={save} />
+        <input
+          type="file"
+          class="sr-only"
+          ref={filePicker}
+          onChange={async (event) => {
+            const file = event.currentTarget.files?.[0]
+            if (!file) {
+              return
+            }
+
+            event.currentTarget.value = ""
+            unwrapResult(app.import(await file.text()))
+          }}
+        />
+        <Icon
+          icon={faUpload}
+          label="Import"
+          onClick={() => filePicker.click()}
+        />
+        <Icon
+          icon={faDownload}
+          label="Export"
+          onClick={() => {
+            const file = new File(
+              [app.export()],
+              "zsnout-learn-" + new Date().toISOString() + ".json",
+            )
+
+            const url = URL.createObjectURL(file)
+            const a = document.createElement("a")
+            a.style.display = "none"
+            document.body.append(a)
+            a.href = url
+            a.download = file.name
+            a.click()
+          }}
+        />
+      </Icons>
+
       {/* TODO: show all available options, not just booleans */}
 
       <CheckboxContainer label="Other options">
@@ -66,37 +132,8 @@ export function Settings(rawProps: {
       </CheckboxContainer>
 
       <TwoBottomButtons>
-        <Action
-          icon={faRightFromBracket}
-          label="Exit"
-          center
-          onClick={async () => {
-            if (!changed) {
-              rawProps.close()
-              return
-            }
-
-            const result = await confirm({
-              owner,
-              title: "Discard changes?",
-              description:
-                "You have some unsaved changes, and closing this window discards them. Continue?",
-            })
-
-            if (result) {
-              rawProps.close()
-            }
-          }}
-        />
-        <Action
-          icon={faCheck}
-          label="Save"
-          center
-          onClick={() => {
-            save()
-            rawProps.close()
-          }}
-        />
+        <Action icon={faRightFromBracket} label="Exit" center onClick={exit} />
+        <Action icon={faCheck} label="Save" center onClick={save} />
       </TwoBottomButtons>
     </div>
   )

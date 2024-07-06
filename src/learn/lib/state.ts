@@ -4,6 +4,7 @@ import { notNull, pray } from "@/components/pray"
 import { error, ok, Result, unwrapOr } from "@/components/result"
 import { Tree } from "@/components/tree"
 import { createEmptyCard, FSRS, State } from "ts-fsrs"
+import { parse } from "valibot"
 import { createBasicModel, createConf, createDeck } from "./defaults"
 import { Id, idOf, randomId } from "./id"
 import { arrayToRecord } from "./record"
@@ -43,16 +44,21 @@ import {
 // TODO: invalidate all data saving when another tab is open
 
 export class App {
-  readonly core: AppCore
-  readonly cards: AppCards
-  readonly confs: AppConfs
-  readonly decks: AppDecks
-  readonly models: AppModels
-  readonly notes: AppNotes
-  readonly prefs: AppPrefs
-  readonly revLog: AppRevLog
+  core!: AppCore
+  cards!: AppCards
+  confs!: AppConfs
+  decks!: AppDecks
+  models!: AppModels
+  notes!: AppNotes
+  prefs!: AppPrefs
+  revLog!: AppRevLog
 
   constructor(private c: Readonly<Collection>) {
+    this.construct(c)
+  }
+
+  construct(c: Readonly<Collection>) {
+    this.c = c
     this.core = new AppCore(c.core, this)
     this.confs = new AppConfs(c.confs, this)
     this.decks = new AppDecks(c.decks, this)
@@ -65,6 +71,32 @@ export class App {
 
   toJSON(): Collection {
     return this.c
+  }
+
+  export() {
+    return JSON.stringify(this)
+  }
+
+  importJSON(json: unknown) {
+    let data
+    try {
+      data = parse(Collection, json)
+    } catch (e) {
+      console.error(e)
+      return error("Data file is missing proper data.")
+    }
+
+    this.construct(data)
+    return ok()
+  }
+
+  import(text: string) {
+    try {
+      return this.importJSON(JSON.parse(text))
+    } catch (e) {
+      console.error(e)
+      return error("Data file is malformed. Did you import a JSON file?")
+    }
   }
 }
 

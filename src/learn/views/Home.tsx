@@ -1,5 +1,4 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
-import { Fa } from "@/components/Fa"
 import { ModalDescription, prompt } from "@/components/Modal"
 import {
   faChartBar,
@@ -9,36 +8,16 @@ import {
   faSync,
   faTableCellsLarge,
   faUpload,
-  IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import { getOwner, JSX, Show } from "solid-js"
+import { getOwner, Show } from "solid-js"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
-import { useLayers } from "../el/Layers"
+import { Icon, Icons } from "../el/IconButton"
 import { createExpr } from "../lib/expr"
 import { App, AppDecks } from "../lib/state"
 import { Deck } from "../lib/types"
 import { CreateNote } from "./CreateNote"
 import { Debug } from "./Debug"
 import { Settings } from "./Settings"
-
-function Icon(props: {
-  icon: IconDefinition
-  label: string
-  layer: (pop: () => void) => JSX.Element
-}) {
-  const layers = useLayers()
-
-  return (
-    <button
-      class="flex w-[4.25rem] flex-col items-center gap-1 rounded-lg bg-z-body-selected px-2 pb-1 pt-2 text-center"
-      onClick={() => layers.push(props.layer)}
-    >
-      <Fa class="size-8" icon={props.icon} title={false} />
-
-      <p class="text-sm text-z-subtitle">{props.label}</p>
-    </button>
-  )
-}
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -54,7 +33,7 @@ export function Home({ app }: { app: App }) {
 
   return (
     <div class="flex min-h-full flex-1 flex-col gap-8">
-      <div class="flex justify-center gap-2">
+      <Icons>
         <Icon
           icon={faPlus}
           label="Add"
@@ -67,12 +46,12 @@ export function Home({ app }: { app: App }) {
           label="Settings"
           layer={(pop) => (
             <Settings
-              initial={app.prefs.prefs}
-              save={(prefs) => {
-                app.prefs.set(prefs)
+              app={app}
+              close={() => {
                 reloadPrefs()
+                reloadDecks()
+                pop()
               }}
-              close={pop}
             />
           )}
         />
@@ -84,7 +63,7 @@ export function Home({ app }: { app: App }) {
             layer={(pop) => <Debug app={app} close={pop} />}
           />
         </Show>
-      </div>
+      </Icons>
 
       <div class="flex-1 rounded-lg bg-z-body-selected py-1">
         <div class="mb-1 grid grid-cols-[auto,4rem,4rem,4rem] items-baseline border-b border-z pb-1 pl-8 pr-4">

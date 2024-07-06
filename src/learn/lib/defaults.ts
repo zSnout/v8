@@ -70,7 +70,7 @@ export function createConf(now: number): Conf {
     review: {
       bury_related: false,
       max_review_interval: 36500,
-      per_day: Infinity,
+      per_day: Number.MAX_SAFE_INTEGER,
       relearning_steps: [10 * 60],
     },
     show_global_timer: false,
