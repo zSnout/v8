@@ -1,3 +1,4 @@
+import { Fa } from "@/components/Fa"
 import { notNull, prayTruthy } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import {
@@ -9,6 +10,29 @@ import {
   Shortcut,
 } from "@/pages/quiz/layout"
 import { timestampDist } from "@/pages/quiz/shared"
+import {
+  faBackward,
+  faBookmark,
+  faBrain,
+  faCalendar,
+  faClock,
+  faCopy,
+  faEarListen,
+  faEyeSlash,
+  faFlag,
+  faForward,
+  faInfoCircle,
+  faMicrophone,
+  faPause,
+  faPen,
+  faPersonDigging,
+  faPlay,
+  faRightFromBracket,
+  faSliders,
+  faSync,
+  faTrash,
+  IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import { batch, createMemo, createSignal, JSX, Show } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
 import { Scheduler } from "../lib/scheduler"
@@ -110,7 +134,7 @@ export function Study({
       <Show
         fallback={
           <ResponseGray onClick={close}>
-            Back to Decks
+            Exit Session
             <Shortcut key="0" />
           </ResponseGray>
         }
@@ -194,11 +218,83 @@ export function Study({
     )
   }
 
+  function QuickAction(props: {
+    icon: IconDefinition
+    label: string
+    onClick?: () => void
+    shortcut?: string
+  }) {
+    const { shortcut = "" } = props
+    const mods = shortcut.match(/[⇧⌘⌥⌫]/g)?.join("") ?? ""
+    const keys = shortcut.match(/[^⇧⌘⌥⌫]/g)?.join("") ?? ""
+
+    return (
+      <button
+        class="z-field mx-[calc(-0.5rem_-_1px)] flex items-center gap-2 border-transparent bg-transparent px-2 py-0.5 text-z shadow-none transition hover:enabled:bg-z-body-selected"
+        onClick={props.onClick}
+        disabled={!props.onClick}
+      >
+        <Fa class="h-4 w-4" icon={props.icon} title={false} />
+        <span class="flex-1 text-left">{props.label}</span>
+        <span class="text-right text-sm text-z-subtitle">
+          {mods}
+          <span class="font-mono">{keys}</span>
+        </span>
+      </button>
+    )
+  }
+
+  function QuickActionLine() {
+    return <hr class="my-2 border-z" />
+  }
+
   function Sidebar() {
     return (
-      <div class="w-full flex-1">
-        <h1 class="text-center">Quick Actions</h1>
-        <button onClick={close}>Exit</button>
+      <div class="flex w-full flex-1 flex-col">
+        <h1 class="pb-0.5 text-center">Quick Actions</h1>
+        <QuickActionLine />
+        <QuickAction
+          icon={faRightFromBracket}
+          label="Exit Session"
+          shortcut="Esc"
+          onClick={close}
+        />
+        <QuickAction icon={faSync} label="Sync" shortcut="Y" />
+        <QuickActionLine />
+        <QuickAction icon={faSliders} label="Deck Options" shortcut="O" />
+        <QuickAction icon={faClock} label="Toggle Timer" shortcut="T" />
+        <QuickAction icon={faForward} label="Auto Advance" shortcut="⇧A" />
+        <QuickActionLine />
+        <QuickAction icon={faFlag} label="Flag Card..." />
+        <QuickAction icon={faPersonDigging} label="Bury Card" shortcut="-" />
+        <QuickAction icon={faBrain} label="Forget Card..." shortcut="⌥⌘N" />
+        <QuickAction icon={faCalendar} label="Set Due Date..." shortcut="⇧⌘D" />
+        <QuickAction icon={faEyeSlash} label="Suspend Card" shortcut="@" />
+        <QuickAction icon={faInfoCircle} label="Card Info" shortcut="I" />
+        <QuickAction
+          icon={faInfoCircle}
+          label="Previous Card Info"
+          shortcut="⌥⌘I"
+        />
+        <QuickActionLine />
+        <QuickAction icon={faBookmark} label="Mark Note" shortcut="*" />
+        <QuickAction icon={faPersonDigging} label="Bury Note" shortcut="=" />
+        <QuickAction icon={faEyeSlash} label="Suspend Note" shortcut="!" />
+        <QuickAction icon={faCopy} label="Create Copy..." shortcut="⌥⌘E" />
+        <QuickAction icon={faTrash} label="Delete Note" shortcut="⌘⌫" />
+        <QuickAction icon={faPen} label="Edit Note" shortcut="E" />
+        <QuickActionLine />
+        {/* play audio should change to replay audio sometimes */}
+        <QuickAction icon={faPlay} label="Play Audio" shortcut="R" />
+        <QuickAction icon={faPause} label="Pause Audio" shortcut="5" />
+        <QuickAction icon={faBackward} label="Audio -5s" shortcut="6" />
+        <QuickAction icon={faForward} label="Audio +5s" shortcut="7" />
+        <QuickAction
+          icon={faMicrophone}
+          label="Record Own Voice"
+          shortcut="⇧V"
+        />
+        <QuickAction icon={faEarListen} label="Replay Own Voice" shortcut="V" />
       </div>
     )
   }
