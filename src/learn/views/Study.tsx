@@ -36,6 +36,7 @@ import {
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import { batch, createMemo, createSignal, JSX, Show } from "solid-js"
+import { createStore, unwrap as unwrapSolid } from "solid-js/store"
 import { Grade, Rating } from "ts-fsrs"
 import { Layerable } from "../el/Layers"
 import { Scheduler } from "../lib/scheduler"
@@ -90,6 +91,11 @@ export const Study = (({ app, scheduler }, pop) => {
   })
   const repeat = createMemo(() => card().card?.repeat(Date.now(), 0))
   const [now, setNow] = createSignal(Date.now())
+  const [prefs, _______unsafeRawSetPrefs] = createStore(app.prefs.prefs)
+  const setPrefs = function (this: any) {
+    _______unsafeRawSetPrefs.apply(this, arguments as never)
+    app.prefs.set(unwrapSolid(prefs))
+  } as typeof _______unsafeRawSetPrefs
   setInterval(() => setNow(Date.now()), 30_000)
 
   return {
@@ -117,7 +123,7 @@ export const Study = (({ app, scheduler }, pop) => {
       <Show fallback={<NullCard />} when={card().card}>
         <ContentCard
           fullFront
-          source={tmpl().source}
+          source={prefs.show_deck_name && tmpl().source}
           front={
             <Template.Render
               html={tmpl()[answerShown() ? "ahtml" : "qhtml"]}
@@ -252,6 +258,7 @@ export const Study = (({ app, scheduler }, pop) => {
     return <hr class="my-2 border-z" />
   }
 
+  // TODO: undo
   function Sidebar() {
     return (
       <div class="flex w-full flex-1 flex-col">
@@ -266,8 +273,17 @@ export const Study = (({ app, scheduler }, pop) => {
         <QuickAction icon={faSync} label="Sync" shortcut="Y" />
         <QuickActionLine />
         <QuickAction icon={faSliders} label="Deck Options" shortcut="O" />
-        <QuickAction icon={faClock} label="Toggle Timer" shortcut="C" />
-        <QuickAction icon={faBook} label="Toggle Deck Name" shortcut="N" />
+        <QuickAction
+          icon={faBook}
+          label="Toggle Deck Name"
+          shortcut="N"
+          onClick={() => setPrefs("show_deck_name", (v) => !v)}
+        />
+        <QuickAction
+          icon={faClock}
+          label="Toggle Per-Card Timer"
+          shortcut="C"
+        />
         <QuickAction icon={faForward} label="Auto Advance" shortcut="⇧A" />
         <QuickActionLine />
         <QuickAction icon={faFlag} label="Flag Card..." />

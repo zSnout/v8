@@ -112,7 +112,7 @@ export class Layers {
   }
 
   async forcePopAll() {
-    for (let index = this.layers.length - 1; index >= 0; index++) {
+    for (let index = this.layers.length - 1; index >= 0; index--) {
       const data = this.layers[index]
       if (!data) {
         return
@@ -126,8 +126,6 @@ export class Layers {
 
       this.pop(index)
     }
-
-    // TODO: do stuff
   }
 }
 

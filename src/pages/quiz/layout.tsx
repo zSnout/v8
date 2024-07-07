@@ -94,23 +94,25 @@ export function ContentNoneLeft() {
 }
 
 export function ContentCard(props: {
-  source: readonly string[]
+  source: readonly string[] | false
   front: JSX.Element
   back?: JSX.Element
   fullFront?: boolean
 }) {
   return (
     <div class="flex w-full max-w-full flex-1 flex-col gap-4 @container">
-      <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
-        <For each={props.source}>
-          {(item, index) => (
-            <Show fallback={item} when={index() != 0}>
-              {" "}
-              / {item}
-            </Show>
-          )}
-        </For>
-      </div>
+      <Show when={props.source !== false}>
+        <div class="font-mono text-sm/[1] lowercase text-z-subtitle">
+          <For each={props.source}>
+            {(item, index) => (
+              <Show fallback={item} when={index() != 0}>
+                {" "}
+                / {item}
+              </Show>
+            )}
+          </For>
+        </div>
+      </Show>
 
       <div
         class="max-w-full flex-col hyphens-auto text-center text-6xl font-semibold text-z-heading @sm:text-7xl @md:text-8xl @lg:text-9xl"
