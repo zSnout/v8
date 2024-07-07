@@ -181,17 +181,26 @@ const actions: Record<string, ActionFn> = {
   },
 }
 
-export function generate(source: Compiled, fields: FieldsRecord): string {
+export interface ExtraFieldsRecord {
+  FrontSide: string | undefined
+  [x: string]: string | undefined
+}
+
+export function generate(
+  source: Compiled,
+  fields: FieldsRecord,
+  extraFields: ExtraFieldsRecord,
+): string {
   let output = ""
 
   for (const item of source) {
     switch (item.type) {
       case "tag": {
-        const value = fields[item.field] ?? ""
+        const value = fields[item.field] ?? extraFields[item.field] ?? ""
 
         const exists = !!value.trim()
         if (exists != item.negative) {
-          output += generate(item.contents, fields)
+          output += generate(item.contents, fields, extraFields)
         }
         break
       }
@@ -202,13 +211,13 @@ export function generate(source: Compiled, fields: FieldsRecord): string {
       }
 
       case "field": {
-        const value = fields[item.field] ?? ""
+        const value = fields[item.field] ?? extraFields[item.field] ?? ""
         output += value
         break
       }
 
       case "action": {
-        const field = fields[item.field] ?? ""
+        const field = fields[item.field] ?? extraFields[item.field] ?? ""
         const action = actions[item.action]
         if (action == null) {
           output += field
@@ -223,15 +232,19 @@ export function generate(source: Compiled, fields: FieldsRecord): string {
   return output
 }
 
-export function isFilled(source: Compiled, fields: FieldsRecord): boolean {
+export function isFilled(
+  source: Compiled,
+  fields: FieldsRecord,
+  extraFields: ExtraFieldsRecord,
+): boolean {
   for (const item of source) {
     switch (item.type) {
       case "tag": {
-        const value = fields[item.field] ?? ""
+        const value = fields[item.field] ?? extraFields[item.field] ?? ""
 
         const exists = !!value.trim()
         if (exists != item.negative) {
-          if (isFilled(item.contents, fields)) {
+          if (isFilled(item.contents, fields, extraFields)) {
             return true
           }
         }
@@ -244,8 +257,8 @@ export function isFilled(source: Compiled, fields: FieldsRecord): boolean {
 
       case "field":
       case "action": {
-        const value = fields[item.field]
-        if (value?.trim()) {
+        const value = fields[item.field] ?? extraFields[item.field] ?? ""
+        if (value.trim()) {
           return true
         }
         break
@@ -263,16 +276,17 @@ export type ValidationIssue =
 function validateInner(
   source: Compiled,
   fields: FieldsRecord,
+  extraFields: ExtraFieldsRecord,
   issues: ValidationIssue[],
 ) {
   for (const item of source) {
     switch (item.type) {
       case "tag": {
-        const value = fields[item.field]
+        const value = fields[item.field] ?? extraFields[item.field]
         if (value == null) {
           issues.push({ type: "missing-field", name: item.field, cause: item })
         }
-        validateInner(item.contents, fields, issues)
+        validateInner(item.contents, fields, extraFields, issues)
         break
       }
 
@@ -281,7 +295,7 @@ function validateInner(
       }
 
       case "field": {
-        const value = fields[item.field]
+        const value = fields[item.field] ?? extraFields[item.field]
         if (value == null) {
           issues.push({ type: "missing-field", name: item.field, cause: item })
         }
@@ -289,7 +303,7 @@ function validateInner(
       }
 
       case "action": {
-        const value = fields[item.field]
+        const value = fields[item.field] ?? extraFields[item.field]
         if (value == null) {
           issues.push({ type: "missing-field", name: item.field, cause: item })
         }
@@ -313,9 +327,10 @@ function validateInner(
 export function validate(
   source: Compiled,
   fields: FieldsRecord,
+  extraFields: ExtraFieldsRecord,
 ): ValidationIssue[] {
   const issues: ValidationIssue[] = []
-  validateInner(source, fields, issues)
+  validateInner(source, fields, extraFields, issues)
   return issues
 }
 
