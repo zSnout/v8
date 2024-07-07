@@ -21,14 +21,17 @@ export class Scheduler {
 
   // keep in line with algorithm in `.gather()`
   bucketOf(today: number, card: AnyCard): CardBucket {
+    if (card.queue == 1 || card.queue == 2) {
+      return null
+    }
+
     if (card.state == State.New) {
       return 0
-    } else if (card.state == State.Learning || card.state == State.Relearning) {
-      if (card.scheduled_days == 0) {
-        return 1
-      } else {
-        return 2
-      }
+    } else if (
+      (card.state == State.Learning || card.state == State.Relearning) &&
+      card.scheduled_days == 0
+    ) {
+      return 1
     } else if (this.app.prefs.startOfDay(card.due) <= today) {
       return 2
     } else {
@@ -54,17 +57,17 @@ export class Scheduler {
       if (!cards) continue
 
       for (const card of cards) {
+        if (card.queue == 1 || card.queue == 2) {
+          continue
+        }
+
         if (card.state == State.New) {
           b0.push(card)
         } else if (
-          card.state == State.Learning ||
-          card.state == State.Relearning
+          (card.state == State.Learning || card.state == State.Relearning) &&
+          card.scheduled_days == 0
         ) {
-          if (card.scheduled_days == 0) {
-            b1.push(card)
-          } else {
-            b2.push(card)
-          }
+          b1.push(card)
         } else if (this.app.prefs.startOfDay(card.due) <= today) {
           b2.push(card)
         }
