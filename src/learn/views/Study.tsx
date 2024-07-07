@@ -12,6 +12,7 @@ import {
 import { timestampDist } from "@/pages/quiz/shared"
 import {
   faBackward,
+  faBook,
   faBookmark,
   faBrain,
   faCalendar,
@@ -30,6 +31,7 @@ import {
   faRightFromBracket,
   faSliders,
   faSync,
+  faTags,
   faTrash,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
@@ -264,7 +266,8 @@ export const Study = (({ app, scheduler }, pop) => {
         <QuickAction icon={faSync} label="Sync" shortcut="Y" />
         <QuickActionLine />
         <QuickAction icon={faSliders} label="Deck Options" shortcut="O" />
-        <QuickAction icon={faClock} label="Toggle Timer" shortcut="T" />
+        <QuickAction icon={faClock} label="Toggle Timer" shortcut="C" />
+        <QuickAction icon={faBook} label="Toggle Deck Name" shortcut="N" />
         <QuickAction icon={faForward} label="Auto Advance" shortcut="⇧A" />
         <QuickActionLine />
         <QuickAction icon={faFlag} label="Flag Card..." />
@@ -285,6 +288,7 @@ export const Study = (({ app, scheduler }, pop) => {
         <QuickAction icon={faCopy} label="Create Copy..." shortcut="⌥⌘E" />
         <QuickAction icon={faTrash} label="Delete Note" shortcut="⌘⌫" />
         <QuickAction icon={faPen} label="Edit Note" shortcut="E" />
+        <QuickAction icon={faTags} label="Edit Tags" shortcut="T" />
         <QuickActionLine />
         {/* play audio should change to replay audio sometimes */}
         <QuickAction icon={faPlay} label="Play Audio" shortcut="R" />
