@@ -1,4 +1,5 @@
 import { pray } from "@/components/pray"
+import { ok } from "@/components/result"
 import { State } from "ts-fsrs"
 import { App } from "./state"
 import { AnyCard, Conf, Deck } from "./types"
@@ -228,13 +229,23 @@ export class DueCard {
   private saved = false
 
   constructor(
-    readonly card: AnyCard,
+    public card: AnyCard,
     private scheduler: Scheduler,
     private bucket: CardBucket,
     private index: number,
   ) {}
 
-  // TODO: `.set()`
+  set(card: AnyCard) {
+    const result = this.scheduler.app.cards.set(card)
+    if (!result.ok) {
+      return result
+    }
+    this.card = card
+    if (this.bucket != null) {
+      this.scheduler[BUCKETS[this.bucket]][this.index] = card
+    }
+    return ok()
+  }
 
   repeat(now: number, repeatTime: number) {
     return this.scheduler.app.cards.repeat(this.card, now, repeatTime)
