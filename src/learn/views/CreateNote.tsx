@@ -145,8 +145,12 @@ export function CreateNote(props: {
               layers.push((pop) => (
                 <EditModelTemplates
                   model={model()}
-                  fields={fieldRecord(model().fields, { ...fields })}
-                  close={(model) => {
+                  fieldsInitial={fieldRecord(model().fields, { ...fields })}
+                  editStyle={app.prefs.prefs.template_edit_style}
+                  close={(model, editStyle) => {
+                    if (editStyle != null) {
+                      app.prefs.prefs.template_edit_style = editStyle
+                    }
                     if (model != null) {
                       unwrap(app.models.set(model, Date.now()))
                       onExternalModelUpdate(setModel(model))

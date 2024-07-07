@@ -305,6 +305,11 @@
     "day_start": 14400000,
     "debug": true,
     "sidebar_state": "auto",
+    "template_edit_style": {
+      "row": "inline",
+      "template": { "front": true, "back": true, "styling": true },
+      "theme": { "light": true, "dark": true }
+    },
     "browser": {
       "active_cols": ["Sort Field", "Due", "Card", "Tags", "Deck"],
       "sort_field": "Sort Field",
@@ -314,7 +319,7 @@
   "models": {
     "1": {
       "id": 1,
-      "css": ".card {\n  font-size: 1rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n}",
+      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n  margin: 0.25rem;\n}",
       "fields": {
         "4096856383636694": {
           "id": 4096856383636694,
@@ -341,7 +346,7 @@
         "245183064871958": {
           "id": 245183064871958,
           "qfmt": "{{Front}}",
-          "afmt": "{{Front}}\n\n<hr id=\"answer\" />\n\n{{Back}}",
+          "afmt": "{{FrontSide}}\n\n<hr id=\"answer\" />\n\n{{Back}}",
           "name": "Front --> Back"
         }
       },
@@ -352,7 +357,7 @@
     },
     "2": {
       "id": 2,
-      "css": ".card {\n  font-size: 1rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n}",
+      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n  margin: 0.25rem;\n}",
       "fields": {
         "1276515751035116": {
           "id": 1276515751035116,

@@ -4,11 +4,12 @@ import {
   ContentCard,
   Full,
   Response,
+  ResponseGray,
   ResponsesGrid,
   Shortcut,
 } from "@/pages/quiz/layout"
 import { timestampDist } from "@/pages/quiz/shared"
-import { createMemo, createSignal } from "solid-js"
+import { createMemo, createSignal, Show } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
 import { Scheduler } from "../lib/scheduler"
 import { App } from "../lib/state"
@@ -95,35 +96,56 @@ export function Study({
   function Responses() {
     return (
       // TODO: this should change based on `answerShown`
-      <ResponsesGrid class="grid-cols-4">
-        <Button
-          class="bg-red-300 text-red-900"
-          rating={Rating.Again}
-          label="Again"
-          shortcut="1"
-        />
 
-        <Button
-          class="bg-[#ffcc91] text-yellow-900"
-          rating={Rating.Hard}
-          label="Hard"
-          shortcut="2"
-        />
+      <Show
+        fallback={
+          <ResponseGray onClick={close}>
+            Close
+            <Shortcut key="0" />
+          </ResponseGray>
+        }
+        when={card()}
+      >
+        <Show
+          fallback={
+            <ResponseGray onClick={() => setAnswerShown(true)}>
+              Reveal Answer
+              <Shortcut key="0" />
+            </ResponseGray>
+          }
+          when={answerShown()}
+        >
+          <ResponsesGrid class="grid-cols-4">
+            <Button
+              class="bg-red-300 text-red-900"
+              rating={Rating.Again}
+              label="Again"
+              shortcut="1"
+            />
 
-        <Button
-          class="bg-green-300 text-green-900"
-          rating={Rating.Good}
-          label="Good"
-          shortcut="3"
-        />
+            <Button
+              class="bg-[#ffcc91] text-yellow-900"
+              rating={Rating.Hard}
+              label="Hard"
+              shortcut="2"
+            />
 
-        <Button
-          class="bg-blue-300 text-blue-900"
-          rating={Rating.Easy}
-          label="Easy"
-          shortcut="4"
-        />
-      </ResponsesGrid>
+            <Button
+              class="bg-green-300 text-green-900"
+              rating={Rating.Good}
+              label="Good"
+              shortcut="3"
+            />
+
+            <Button
+              class="bg-blue-300 text-blue-900"
+              rating={Rating.Easy}
+              label="Easy"
+              shortcut="4"
+            />
+          </ResponsesGrid>
+        </Show>
+      </Show>
     )
   }
 
@@ -148,14 +170,16 @@ export function Study({
           const q = r[props.rating]
           return timestampDist((q.card.due - q.card.last_review) / 1000)
         })()}
-        {/* { timestampDist(card()?.repeat[])} */}
-        {/* {intervalLabel(card().lastInterval, "again")} */}
         <Shortcut key={props.shortcut} />
       </Response>
     )
   }
 
   function Sidebar() {
-    return <div class="w-full flex-1 bg-red-500">hello world</div>
+    return (
+      <div class="w-full flex-1">
+        <h1 class="text-center">Quick Actions</h1>
+      </div>
+    )
   }
 }

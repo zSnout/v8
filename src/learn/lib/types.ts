@@ -402,6 +402,24 @@ export const SortableBrowserColumn = v.picklist([
   "Note",
 ])
 
+export type EditStyleRow = v.InferOutput<typeof EditStyleRow>
+export const EditStyleRow = v.picklist(["inline", "separate", "all-separate"])
+
+export interface TemplateEditStyle
+  extends v.InferOutput<typeof TemplateEditStyle> {}
+export const TemplateEditStyle = v.object({
+  row: EditStyleRow,
+  template: v.object({
+    front: v.boolean(),
+    back: v.boolean(),
+    styling: v.boolean(),
+  }),
+  theme: v.object({
+    light: v.boolean(),
+    dark: v.boolean(),
+  }),
+})
+
 export interface Prefs extends v.InferOutput<typeof Prefs> {}
 export const Prefs = v.object({
   /** Current deck id */
@@ -445,6 +463,9 @@ export const Prefs = v.object({
 
   /** The state of the sidebar during reviews */
   sidebar_state: v.picklist(["auto", "open", "closed"]),
+
+  /** Options used when editing templates */
+  template_edit_style: TemplateEditStyle,
 
   /** Configuration relating to the browser */
   browser: v.object({

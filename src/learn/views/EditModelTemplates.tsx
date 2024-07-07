@@ -1,8 +1,9 @@
 import { Fa } from "@/components/Fa"
+import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
 import { alert, confirm, ModalDescription, prompt } from "@/components/Modal"
 import { notNull } from "@/components/pray"
-import { error, ok } from "@/components/result"
+import { error, ok, Result } from "@/components/result"
 import {
   faCancel,
   faCheck,
@@ -19,16 +20,24 @@ import {
   createSignal,
   For,
   getOwner,
+  Show,
   untrack,
 } from "solid-js"
+import { createStore, unwrap } from "solid-js/store"
 import { array, parse } from "valibot"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
+import { CheckboxContainer } from "../el/CheckboxContainer"
 import { IntegratedField } from "../el/IntegratedField"
 import { createModelTemplate } from "../lib/defaults"
 import { Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
 import * as Template from "../lib/template"
-import { Model, ModelTemplate } from "../lib/types"
+import {
+  Model,
+  ModelTemplate,
+  NoteFields,
+  TemplateEditStyle,
+} from "../lib/types"
 
 // TODO: stop user from editing model name to potential ambiguity
 export function EditModelTemplates(props: {
@@ -36,13 +45,17 @@ export function EditModelTemplates(props: {
   model: Model
 
   /** The fields record to use as a reference. */
-  fields: Template.FieldsRecord
+  fieldsInitial: Template.FieldsRecord
+
+  /** The preferences of this app. */
+  editStyle: TemplateEditStyle
 
   /**
    * Called to close the modal. If a `model` is passed, it is the updated model.
-   * If `null` is passed, it means that the edit action was canceled.
+   * If `null` is passed, it means that the edit action was canceled. Same for
+   * `prefs`.
    */
-  close: (model: Model | null) => void
+  close: (model: Model | null, editStyle: TemplateEditStyle | null) => void
 }) {
   const [model, setModel] = createSignal(props.model)
   const [tmpls, setTemplates] = createSignal<DndItem[]>(
@@ -56,8 +69,29 @@ export function EditModelTemplates(props: {
     const tmpl = model().tmpls[selectedId() ?? 0]
     return notNull(tmpl, "There must be a template selected in the explorer.")
   })
+  const [editStyle, setEditStyle] = createStore(
+    structuredClone(props.editStyle),
+  )
+  const layout = createMemo(() => {
+    const triple = editStyle.theme.light && editStyle.theme.dark
 
+    if (editStyle.row == "all-separate") {
+      return "all-separate"
+    } else if (editStyle.row == "separate") {
+      if (triple) {
+        return "separate"
+      } else {
+        return "all-separate"
+      }
+    } else if (triple) {
+      return "triple"
+    } else {
+      return "dual"
+    }
+  })
   const owner = getOwner()
+  const [fields, setFields] = createStore<NoteFields>(props.fieldsInitial)
+  const [html, setHtml] = createStore<Record<string, boolean>>({})
 
   return (
     <div class="flex min-h-full w-full flex-col gap-8">
@@ -69,15 +103,40 @@ export function EditModelTemplates(props: {
         onInput={(value) => setModel((model) => ({ ...model, name: value }))}
       />
 
-      <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
-        {FieldList()}
+      <div class="grid w-full gap-x-6 gap-y-8 sm:grid-cols-[auto,16rem]">
+        {TemplateList()}
         {SideActions()}
       </div>
 
-      {TemplateOptions()}
+      {EditingOptions()}
+      {Templates()}
+      {EditFields()}
       {SaveChanges()}
     </div>
   )
+
+  function EditFields() {
+    return (
+      <div class="flex flex-col gap-1">
+        <For each={Object.values(model().fields)}>
+          {(field) => (
+            <IntegratedField
+              label={field.name}
+              rtl={field.rtl}
+              font={field.font}
+              sizePx={field.size}
+              type="html"
+              placeholder={field.desc}
+              value={fields[field.name]}
+              onInput={(value) => setFields(field.name + "", value)}
+              showHtml={html[field.name] ?? false}
+              onShowHtml={(show) => setHtml(field.name + "", show)}
+            />
+          )}
+        </For>
+      </div>
+    )
+  }
 
   function SaveChanges() {
     return (
@@ -86,7 +145,7 @@ export function EditModelTemplates(props: {
           icon={faCancel}
           label="Cancel"
           center
-          onClick={() => props.close(null)}
+          onClick={() => props.close(null, null)}
         />
         <Action
           icon={faCheck}
@@ -94,7 +153,7 @@ export function EditModelTemplates(props: {
           center
           onClick={() => {
             const m = model()
-            props.close(m)
+            props.close(m, structuredClone(unwrap(editStyle)))
           }}
         />
       </TwoBottomButtons>
@@ -164,23 +223,14 @@ export function EditModelTemplates(props: {
     }
   }
 
-  function Preview(local: { tmpl: string; css: string }) {
-    const compiled = createMemo(() => {
-      const result = Template.parse(local.tmpl)
-      if (!result.ok) {
-        return result
-      }
-      const { value } = result
-      const issues = Template.validate(value, props.fields)
-      if (issues.length) {
-        return error(issues.map(Template.issueToString).join("\n"))
-      }
-      return ok(value)
-    })
-
+  function Preview(local: {
+    class: string
+    html: Result<string>
+    css: string
+  }) {
     return (
       <MatchResult
-        result={compiled()}
+        result={local.html}
         fallback={(err) => (
           <div class="rounded-lg bg-z-body-selected px-3 py-2">
             <For each={err().split("\n")}>{(el) => <p>{el}</p>}</For>
@@ -189,8 +239,10 @@ export function EditModelTemplates(props: {
       >
         {(value) => (
           <Template.Render
-            class="rounded-lg bg-z-body-selected px-3 py-2"
-            html={Template.generate(value(), props.fields)}
+            class={
+              "min-h-48 rounded-lg bg-z-body-selected px-3 py-2 " + local.class
+            }
+            html={value()}
             css={local.css}
           />
         )}
@@ -198,38 +250,206 @@ export function EditModelTemplates(props: {
     )
   }
 
-  function TemplateOptions() {
+  function Templates() {
+    const qhtml = createMemo(() => {
+      const result = Template.parse(selected()["qfmt"])
+      if (!result.ok) {
+        return result
+      }
+      const { value } = result
+      const issues = Template.validate(value, unwrap(fields))
+      if (issues.length) {
+        return error(issues.map(Template.issueToString).join("\n"))
+      }
+      return ok(Template.generate(value, fields))
+    })
+
+    const ahtml = createMemo(() => {
+      const result = Template.parse(selected()["afmt"])
+      if (!result.ok) {
+        return result
+      }
+      const { value } = result
+      const q = qhtml()
+      const f = {
+        ...fields,
+        FrontSide: q.ok ? q.value : q.reason,
+      }
+      const issues = Template.validate(value, f)
+      if (issues.length) {
+        return error(issues.map(Template.issueToString).join("\n"))
+      }
+      return ok(Template.generate(value, f))
+    })
+
     return (
-      <div class="grid grid-cols-[auto,calc(375px_-_1.5rem)] gap-1">
-        <IntegratedField
-          label="Front Template"
-          onInput={(value) => setSelected((tmpl) => ({ ...tmpl, qfmt: value }))}
-          type="html-only"
-          value={selected().qfmt}
-          minHeight
-        />
+      <div
+        class="flex flex-col gap-4"
+        classList={{ "md:gap-1": editStyle.row == "inline" }}
+      >
+        <Show when={editStyle.template.front}>
+          {SingleTemplate("qfmt", qhtml)}
+        </Show>
+        <Show when={editStyle.template.back}>
+          {SingleTemplate("afmt", ahtml)}
+        </Show>
+        <Show when={editStyle.template.styling}>{Styling()}</Show>
+      </div>
+    )
+  }
 
-        <Preview tmpl={selected().qfmt} css={model().css} />
+  function Styling() {
+    return (
+      <IntegratedField
+        label="Styling (affects all templates)"
+        onInput={(css) => setModel((model) => ({ ...model, css }))}
+        type="css-only"
+        value={model().css}
+        minHeight
+      />
+    )
+  }
 
-        <IntegratedField
-          label="Back Template"
-          onInput={(value) => setSelected((tmpl) => ({ ...tmpl, afmt: value }))}
-          type="html-only"
-          value={selected().afmt}
-          minHeight
-        />
+  function EditingOptions() {
+    return (
+      <div class="grid grid-cols-3 gap-1">
+        <CheckboxContainer label="Templates shown">
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={editStyle.template.front}
+              onInput={(v) => setEditStyle("template", "front", v)}
+            />
 
-        <Preview tmpl={selected().afmt} css={model().css} />
+            <p>Front</p>
+          </label>
 
-        <div class="col-span-2">
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={editStyle.template.back}
+              onInput={(v) => setEditStyle("template", "back", v)}
+            />
+
+            <p>Back</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={editStyle.template.styling}
+              onInput={(v) => setEditStyle("template", "styling", v)}
+            />
+
+            <p>Styling</p>
+          </label>
+        </CheckboxContainer>
+
+        <CheckboxContainer label="Themes shown">
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={editStyle.theme.light}
+              onInput={(v) => setEditStyle("theme", "light", v)}
+            />
+
+            <p>Light</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={editStyle.theme.dark}
+              onInput={(v) => setEditStyle("theme", "dark", v)}
+            />
+
+            <p>Dark</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              circular
+              checked={!(editStyle.theme.light || editStyle.theme.dark)}
+              onInput={() => setEditStyle("theme", ["light", "dark"], false)}
+            />
+
+            <p>Auto</p>
+          </label>
+        </CheckboxContainer>
+
+        <CheckboxContainer label="Grouping">
+          <label class="flex w-full gap-2">
+            <Checkbox
+              circular
+              checked={editStyle.row == "inline"}
+              onInput={() => setEditStyle("row", "inline")}
+            />
+
+            <p>Inline (desktop only)</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              circular
+              checked={editStyle.row == "separate"}
+              onInput={() => setEditStyle("row", "separate")}
+            />
+
+            <p>Separate</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              circular
+              checked={editStyle.row == "all-separate"}
+              onInput={() => setEditStyle("row", "all-separate")}
+              disabled={!(editStyle.theme.light && editStyle.theme.dark)}
+            />
+
+            <p
+              classList={{
+                "opacity-30": !(editStyle.theme.light && editStyle.theme.dark),
+              }}
+            >
+              All separate
+            </p>
+          </label>
+        </CheckboxContainer>
+      </div>
+    )
+  }
+
+  function SingleTemplate(type: "qfmt" | "afmt", html: () => Result<string>) {
+    return (
+      <div
+        class="grid gap-1"
+        classList={{
+          "grid-cols-2": layout() == "triple",
+          "md:grid-cols-3": layout() == "triple",
+          "md:grid-cols-2": layout() == "dual" || layout() == "separate",
+        }}
+      >
+        <div
+          classList={{
+            "col-span-2": layout() == "triple" || layout() == "separate",
+            "md:col-span-1": layout() == "triple" || layout() == "dual",
+          }}
+        >
           <IntegratedField
-            label="Styling (affects all templates)"
-            onInput={(css) => setModel((model) => ({ ...model, css }))}
-            type="css-only"
-            value={model().css}
+            label={type == "afmt" ? "Back Template" : "Front Template"}
+            onInput={(value) =>
+              setSelected((tmpl) => ({ ...tmpl, [type]: value }))
+            }
+            type="html-only"
+            value={selected()[type]}
             minHeight
           />
         </div>
+
+        <Show when={editStyle.theme.light}>
+          <Preview class="light" html={html()} css={model().css} />
+        </Show>
+        <Show when={editStyle.theme.dark}>
+          <Preview class="dark" html={html()} css={model().css} />
+        </Show>
+        <Show when={!(editStyle.theme.light || editStyle.theme.dark)}>
+          <Preview class="" html={html()} css={model().css} />
+        </Show>
       </div>
     )
   }
@@ -313,7 +533,7 @@ export function EditModelTemplates(props: {
     )
   }
 
-  function FieldList() {
+  function TemplateList() {
     return (
       <div
         class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z pb-8"

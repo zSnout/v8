@@ -50,6 +50,7 @@ export function Checkbox(props: {
 
       <div
         class="group-checkbox flex h-6 cursor-pointer select-none items-center justify-center"
+        classList={{ "opacity-30": props.disabled }}
         role="button"
       >
         <div

@@ -48,6 +48,11 @@ export function createPrefs(): Prefs {
     debug: false,
     show_deck_name: true,
     sidebar_state: "closed",
+    template_edit_style: {
+      row: "inline",
+      template: { front: true, back: true, styling: true },
+      theme: { light: true, dark: true },
+    },
     browser: {
       active_cols: ["Sort Field", "Due", "Card", "Tags", "Deck"],
       sort_field: "Sort Field",
@@ -138,7 +143,7 @@ export function createModel(
 }
 
 const DEFAULT_MODEL_CSS = `.card {
-  font-size: 1rem;
+  font-size: 1.5rem;
   text-align: center;
 }
 
@@ -146,6 +151,7 @@ hr {
   border-width: 0;
   border-top-width: 1px;
   border-top-color: var(--z-border);
+  border-style: solid;
 }`
 
 export function createBasicModel(): Model {
@@ -155,7 +161,7 @@ export function createBasicModel(): Model {
     [
       createModelTemplate(
         "{{Front}}",
-        `{{Front}}
+        `{{FrontSide}}
 
 <hr id="answer" />
 
