@@ -39,8 +39,10 @@ import { Scheduler } from "../lib/scheduler"
 import { App } from "../lib/state"
 import * as Template from "../lib/template"
 
-// TODO: keyboard shortcuts
+// TODO: keyboard shortcuts should have `keydown` listeners
 // TODO: screen for when no cards are left
+// TODO: adjust shortcuts for mac/windows
+// TODO: add an `onbeforeunload` handler
 
 export function Study({
   app,
