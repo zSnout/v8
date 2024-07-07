@@ -322,6 +322,9 @@ export const Conf = v.object({
     /** Whether to bury cards from the same note */
     bury_related: v.boolean(),
 
+    /** Whether to enable fuzz when reviewing */
+    enable_fuzz: v.boolean(),
+
     /** The maximum review interval, in days */
     max_review_interval: v.number(),
 

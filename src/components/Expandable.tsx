@@ -34,6 +34,7 @@ export function Expandable(props: {
   setExpanded?(value: boolean): void
   z?: number
   shift?: boolean
+  noGap?: boolean
 }) {
   const [expanding, setExpanding] = createSignal(false)
   let inner: HTMLDivElement | undefined
@@ -135,7 +136,8 @@ export function Expandable(props: {
         aria-hidden={!props.expanded}
       >
         <ul
-          class="flex flex-col gap-1 pl-6"
+          class="flex flex-col pl-6"
+          classList={{ "gap-1": !props.noGap }}
           ref={(el) => {
             const observer = new ResizeObserver(([entry]) => {
               const { height } = entry!.contentRect || entry!.contentBoxSize
@@ -178,6 +180,9 @@ export function ExpandableTree<T, U>(props: {
 
   /** z-index of dropdowns */
   z?: number
+
+  /** if `true`, forces no gaps to be included */
+  noGap?: boolean
 }) {
   const {
     subtree,
@@ -187,6 +192,7 @@ export function ExpandableTree<T, U>(props: {
     sort: __coreUnsafeSort,
     z,
     shift,
+    noGap,
   } = props
 
   const sort = __coreUnsafeSort
@@ -229,6 +235,7 @@ export function ExpandableTree<T, U>(props: {
         }}
         z={z}
         shift={shift}
+        noGap={noGap}
       >
         <SubtreeInner
           subtree={props.subtree}
@@ -260,7 +267,7 @@ export function ExpandableTree<T, U>(props: {
   }
 
   return (
-    <ul class="flex flex-col gap-1">
+    <ul class="flex flex-col" classList={{ "gap-1": !noGap }}>
       <SubtreeInner subtree={props.tree} parent={[]} />
     </ul>
   )
@@ -287,6 +294,9 @@ export function MonotypeExpandableTree<T, U>(props: {
 
   /** z-index of dropdowns */
   z?: number
+
+  /** if `true`, forces no gaps to be included */
+  noGap?: boolean
 }) {
   return (
     <ExpandableTree
@@ -298,6 +308,7 @@ export function MonotypeExpandableTree<T, U>(props: {
       sort={props.sort}
       z={props.z}
       shift={props.shift}
+      noGap={props.noGap}
     />
   )
 }

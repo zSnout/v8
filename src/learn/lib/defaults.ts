@@ -71,6 +71,7 @@ export function createConf(now: number): Conf {
     replay_question_audio: false,
     review: {
       bury_related: false,
+      enable_fuzz: true,
       max_review_interval: 36500,
       per_day: Number.MAX_SAFE_INTEGER,
       relearning_steps: [10 * 60],

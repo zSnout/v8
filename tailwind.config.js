@@ -33,6 +33,8 @@ export default {
 
       addVariant("scrollbar", "&::-webkit-scrollbar")
 
+      addVariant("dhover", ["&:hover", "button:hover + &"])
+
       addVariant(
         "prose-details",
         '& :is(:where(details):not(:where([class~="not-prose"] *)))',

@@ -101,7 +101,7 @@ export function Home({ app }: { app: App }) {
 
   function DeckList() {
     return (
-      <div class="flex-1 rounded-lg bg-z-body-selected py-1">
+      <div class="mx-auto w-full max-w-xl flex-1 rounded-lg bg-z-body-selected px-1 py-1">
         <div class="mb-1 grid grid-cols-[auto,4rem,4rem,4rem] items-baseline border-b border-z pb-1 pl-8 pr-4">
           <p>Deck</p>
           <p class="text-right text-sm text-z-subtitle">New</p>
@@ -117,6 +117,7 @@ export function Home({ app }: { app: App }) {
           setExpanded={({ data }, expanded) => (data.collapsed = !expanded)}
           node={DeckEl}
           sort={([a], [b]) => AppDecks.compare(a, b)}
+          noGap
         />
       </div>
     )
@@ -170,7 +171,7 @@ export function Home({ app }: { app: App }) {
     return (
       <button
         class={
-          "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg pl-8 pr-4 text-left text-z-subtitle" +
+          "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg py-0.5 pl-8 pr-4 text-left text-z-subtitle dhover:bg-z-body" +
           (subtree ? " -ml-6" : "")
         }
         onClick={() =>

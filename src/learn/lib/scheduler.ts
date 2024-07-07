@@ -233,6 +233,12 @@ export class DueCard {
     private index: number,
   ) {}
 
+  // TODO: `.set()`
+
+  repeat(now: number, repeatTime: number) {
+    return this.scheduler.app.cards.repeat(this.card, now, repeatTime)
+  }
+
   /**
    * Removes this card from its old bucket. Regathers. Returns true if
    * regathering happened.

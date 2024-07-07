@@ -7,6 +7,7 @@ import {
   ResponsesGrid,
   Shortcut,
 } from "@/pages/quiz/layout"
+import { timestampDist } from "@/pages/quiz/shared"
 import { createMemo, createSignal } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
 import { Scheduler } from "../lib/scheduler"
@@ -64,6 +65,8 @@ export function Study({
     return { html, css: model.css, source: [deck.name] }
   })
 
+  const repeat = createMemo(() => card()?.repeat(Date.now(), 0))
+
   return (
     <div class="flex min-h-full w-full flex-1 flex-col">
       <Full
@@ -91,6 +94,7 @@ export function Study({
 
   function Responses() {
     return (
+      // TODO: this should change based on `answerShown`
       <ResponsesGrid class="grid-cols-4">
         <Button
           class="bg-red-300 text-red-900"
@@ -135,7 +139,16 @@ export function Study({
       <Response class={props.class} onClick={() => answer(props.rating)}>
         {props.label}
         <br />
-        2m
+        {(() => {
+          const r = repeat()
+          if (!r) {
+            return "<null>"
+          }
+
+          const q = r[props.rating]
+          return timestampDist((q.card.due - q.card.last_review) / 1000)
+        })()}
+        {/* { timestampDist(card()?.repeat[])} */}
         {/* {intervalLabel(card().lastInterval, "again")} */}
         <Shortcut key={props.shortcut} />
       </Response>

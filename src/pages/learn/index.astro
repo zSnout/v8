@@ -1,5 +1,5 @@
 ---
-import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import PaddedLayout from "@/layouts/PaddedLayout.astro"
 import { Main } from "."
 
 if (import.meta.env.PROD) {
@@ -7,7 +7,8 @@ if (import.meta.env.PROD) {
 }
 ---
 
-<DocumentLayout
+<PaddedLayout
+  maxWidth="max-w-xl [body:has(.z-layer-active)_&]:max-w-5xl transition-[max-width]"
   description="TODO"
   title="TODO"
   og={{
@@ -16,5 +17,9 @@ if (import.meta.env.PROD) {
     title: "TODO",
   }}
 >
-  <Main client:only />
-</DocumentLayout>
+  <div
+    class="mx-auto flex w-[64rem] max-w-full flex-1 flex-col text-z transition"
+  >
+    <Main client:only />
+  </div>
+</PaddedLayout>

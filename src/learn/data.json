@@ -284,6 +284,7 @@
       "replay_question_audio": false,
       "review": {
         "bury_related": false,
+        "enable_fuzz": true,
         "max_review_interval": 36500,
         "per_day": 9007199254740991,
         "relearning_steps": [600]
@@ -303,7 +304,7 @@
     "last_unburied": 0,
     "day_start": 14400000,
     "debug": true,
-    "sidebar_state": "closed",
+    "sidebar_state": "auto",
     "browser": {
       "active_cols": ["Sort Field", "Due", "Card", "Tags", "Deck"],
       "sort_field": "Sort Field",

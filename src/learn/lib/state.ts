@@ -408,7 +408,7 @@ export class AppCards {
       conf,
       prefs,
       new FSRS({
-        enable_fuzz: true,
+        enable_fuzz: conf.review.enable_fuzz,
         maximum_interval: conf.review.max_review_interval,
       }),
       now,

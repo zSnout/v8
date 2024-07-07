@@ -125,6 +125,7 @@ function animateIn(prev: HTMLDivElement, next: HTMLDivElement) {
   next.classList.remove("translate-y-8")
   next.classList.remove("-translate-y-8")
   next.classList.add("translate-y-0")
+  next.classList.add("z-layer-active")
   next.inert = false
 }
 
@@ -151,6 +152,7 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
   next.classList.remove("translate-y-0")
   next.classList.add("translate-x-16")
   next.classList.add("overflow-clip")
+  next.classList.remove("z-layer-active")
   next.inert = true
   next.addEventListener("transitionend", () => {
     next.remove()
