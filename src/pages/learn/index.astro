@@ -2,9 +2,9 @@
 import PaddedLayout from "@/layouts/PaddedLayout.astro"
 import { Main } from "."
 
-// if (import.meta.env.PROD) {
-//   throw new Error("nope i don't want you built yet")
-// }
+if (import.meta.env.PROD) {
+  throw new Error("nope i don't want you built yet")
+}
 ---
 
 {/* max-w-xl [body:has(.z-layer-active)_&]:max-w-5xl transition-[max-width] */}
