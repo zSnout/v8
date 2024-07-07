@@ -2,6 +2,12 @@
   "version": 1,
   "cards": {
     "4533391063060612": {
+      "id": 4533391063060612,
+      "nid": 373096820433538,
+      "tid": 245183064871958,
+      "did": 8449341597500966,
+      "last_edit": 1720314394094,
+      "queue": 0,
       "due": 1720314394094,
       "stability": 0,
       "difficulty": 0,
@@ -9,15 +15,15 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0,
-      "did": 8449341597500966,
-      "nid": 373096820433538,
-      "tid": 245183064871958,
-      "id": 4533391063060612,
-      "last_edit": 1720314394094,
-      "queue": 0
+      "state": 0
     },
     "2063382813401290": {
+      "id": 2063382813401290,
+      "nid": 7932316006989038,
+      "tid": 245183064871958,
+      "did": 4785035627561216,
+      "last_edit": 1720314403758,
+      "queue": 0,
       "due": 1720314403758,
       "stability": 0,
       "difficulty": 0,
@@ -25,15 +31,15 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0,
-      "did": 4785035627561216,
-      "nid": 7932316006989038,
-      "tid": 245183064871958,
-      "id": 2063382813401290,
-      "last_edit": 1720314403758,
-      "queue": 0
+      "state": 0
     },
     "5734422099908702": {
+      "id": 5734422099908702,
+      "nid": 6567690942011160,
+      "tid": 7678235351299250,
+      "did": 1,
+      "last_edit": 1720314415430,
+      "queue": 0,
       "due": 1720314415430,
       "stability": 0,
       "difficulty": 0,
@@ -41,15 +47,15 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0,
-      "did": 1,
-      "nid": 6567690942011160,
-      "tid": 7678235351299250,
-      "id": 5734422099908702,
-      "last_edit": 1720314415430,
-      "queue": 0
+      "state": 0
     },
     "7238877290637024": {
+      "id": 7238877290637024,
+      "nid": 6567690942011160,
+      "tid": 630738669685526,
+      "did": 1,
+      "last_edit": 1720314415430,
+      "queue": 0,
       "due": 1720314415430,
       "stability": 0,
       "difficulty": 0,
@@ -57,31 +63,15 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0,
-      "did": 1,
-      "nid": 6567690942011160,
-      "tid": 630738669685526,
-      "id": 7238877290637024,
-      "last_edit": 1720314415430,
-      "queue": 0
+      "state": 0
     },
     "8398679779461476": {
-      "due": 1720314436034,
-      "stability": 0,
-      "difficulty": 0,
-      "elapsed_days": 0,
-      "scheduled_days": 0,
-      "reps": 0,
-      "lapses": 0,
-      "state": 0,
-      "did": 6041667734385822,
+      "id": 8398679779461476,
       "nid": 8857918559806406,
       "tid": 7678235351299250,
-      "id": 8398679779461476,
+      "did": 6041667734385822,
       "last_edit": 1720314436034,
-      "queue": 0
-    },
-    "2642866645644228": {
+      "queue": 0,
       "due": 1720314436034,
       "stability": 0,
       "difficulty": 0,
@@ -89,65 +79,75 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0,
-      "did": 6041667734385822,
+      "state": 0
+    },
+    "2642866645644228": {
+      "id": 2642866645644228,
       "nid": 8857918559806406,
       "tid": 630738669685526,
-      "id": 2642866645644228,
+      "did": 6041667734385822,
       "last_edit": 1720314436034,
-      "queue": 0
+      "queue": 0,
+      "due": 1720314436034,
+      "stability": 0,
+      "difficulty": 0,
+      "elapsed_days": 0,
+      "scheduled_days": 0,
+      "reps": 0,
+      "lapses": 0,
+      "state": 0
     }
   },
   "graves": [],
   "notes": {
     "373096820433538": {
-      "creation": 1720314394094,
-      "fields": { "4096856383636694": "hello", "534487732448064": "world" },
-      "mid": 1,
-      "csum": 0,
       "id": 373096820433538,
-      "last_edited": 1720314403758,
+      "creation": 1720314394094,
+      "mid": 1,
+      "last_edited": 1720365946392,
+      "tags": "",
+      "fields": { "4096856383636694": "hello", "534487732448064": "world" },
       "sort_field": "hello",
-      "tags": ""
+      "csum": 0
     },
     "7932316006989038": {
+      "id": 7932316006989038,
       "creation": 1720314403758,
+      "mid": 1,
+      "last_edited": 1720365946392,
+      "tags": "",
       "fields": {
         "4096856383636694": "this card is in a",
         "534487732448064": "subdeck"
       },
-      "mid": 1,
-      "csum": 0,
-      "id": 7932316006989038,
-      "last_edited": 1720314403758,
       "sort_field": "this card is in a",
-      "tags": ""
+      "csum": 0
     },
     "6567690942011160": {
+      "id": 6567690942011160,
       "creation": 1720314415430,
+      "mid": 2,
+      "last_edited": 1720314436035,
+      "tags": "",
       "fields": {
         "1276515751035116": "this card has how many sides?",
         "5884895011942428": "2"
       },
-      "mid": 2,
-      "csum": 0,
-      "id": 6567690942011160,
-      "last_edited": 1720314436035,
       "sort_field": "this card has how many sides?",
-      "tags": ""
+      "csum": 0
     },
     "8857918559806406": {
+      "id": 8857918559806406,
       "creation": 1720314436034,
+      "mid": 2,
+      "last_edited": 1720314436035,
+      "tags": "",
       "fields": {
         "1276515751035116": "and now we're just in the wrong deck altogether",
         "5884895011942428": "and the back has <b>almost zero</b>&nbsp;<i>information???</i>"
       },
-      "mid": 2,
-      "csum": 0,
-      "id": 8857918559806406,
-      "last_edited": 1720314436035,
       "sort_field": "and now we're just in the wrong deck altogether",
-      "tags": ""
+      "csum": 0
     }
   },
   "rev_log": {},
@@ -159,114 +159,198 @@
     "last_sync": 1720314371175,
     "tags": ""
   },
+  "models": {
+    "1": {
+      "id": 1,
+      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n}\n\n.dark {\n  color: red;\n}\n\n.light {\n  color: orange;\n}",
+      "fields": {
+        "4096856383636694": {
+          "id": 4096856383636694,
+          "rtl": false,
+          "name": "Front",
+          "sticky": "",
+          "collapsed": false,
+          "html": false,
+          "desc": "",
+          "excludeFromSearch": false
+        },
+        "534487732448064": {
+          "id": 534487732448064,
+          "rtl": false,
+          "name": "Back",
+          "sticky": "",
+          "collapsed": false,
+          "html": false,
+          "desc": "",
+          "excludeFromSearch": false
+        }
+      },
+      "name": "Basic",
+      "sort_field": 4096856383636694,
+      "tmpls": {
+        "245183064871958": {
+          "id": 245183064871958,
+          "qfmt": "{{Front}}",
+          "afmt": "{{FrontSide}}\n\n<hr id=\"answer\" />\n\n{{Back}}",
+          "name": "Front --> Back"
+        }
+      },
+      "tags": "",
+      "type": 0
+    },
+    "2": {
+      "id": 2,
+      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n}",
+      "fields": {
+        "1276515751035116": {
+          "id": 1276515751035116,
+          "rtl": false,
+          "name": "Front",
+          "sticky": "",
+          "collapsed": false,
+          "html": false,
+          "desc": "",
+          "excludeFromSearch": false
+        },
+        "5884895011942428": {
+          "id": 5884895011942428,
+          "rtl": false,
+          "name": "Back",
+          "sticky": "",
+          "collapsed": false,
+          "html": false,
+          "desc": "",
+          "excludeFromSearch": false
+        }
+      },
+      "name": "Basic and reversed",
+      "sort_field": 1276515751035116,
+      "tmpls": {
+        "7678235351299250": {
+          "id": 7678235351299250,
+          "qfmt": "{{Front}}",
+          "afmt": "{{FrontSide}}\n\n<hr id=\"answer\" />\n\n{{Back}}",
+          "name": "Front --> Back"
+        },
+        "630738669685526": {
+          "id": 630738669685526,
+          "qfmt": "{{Back}}",
+          "afmt": "{{FrontSide}}\n\n<hr id=\"answer\" />\n\n{{Front}}",
+          "name": "Back --> Front"
+        }
+      },
+      "tags": "",
+      "type": 0
+    }
+  },
   "decks": {
     "1": {
       "id": 1,
+      "name": "Default::wow",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371175,
-      "name": "Default::wow",
       "new_today": 0,
-      "conf": 1,
+      "reviews_today": 0,
       "today": 1720314371175,
-      "reviews_today": 0
+      "desc": "",
+      "conf": 1
     },
     "6770040695863264": {
       "id": 6770040695863264,
+      "name": "Default::nope",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371176,
-      "name": "Default::nope",
       "new_today": 0,
       "reviews_today": 0,
-      "conf": 1,
-      "today": 1720314371176
+      "today": 1720314371176,
+      "desc": "",
+      "conf": 1
     },
     "8614011354630552": {
       "id": 8614011354630552,
+      "name": "Default::nuh uh",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371176,
-      "name": "Default::nuh uh",
       "new_today": 0,
       "reviews_today": 0,
-      "conf": 1,
-      "today": 1720314371176
+      "today": 1720314371176,
+      "desc": "",
+      "conf": 1
     },
     "4785035627561216": {
       "id": 4785035627561216,
+      "name": "Default::nuh uh::72",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371176,
-      "name": "Default::nuh uh::72",
       "new_today": 0,
       "reviews_today": 0,
-      "conf": 1,
-      "today": 1720314371176
+      "today": 1720314371176,
+      "desc": "",
+      "conf": 1
     },
     "5661882328403776": {
       "id": 5661882328403776,
+      "name": "Definitely not real",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371176,
-      "name": "Definitely not real",
       "new_today": 0,
       "reviews_today": 0,
-      "conf": 1,
-      "today": 1720314371176
+      "today": 1720314371176,
+      "desc": "",
+      "conf": 1
     },
     "6041667734385822": {
       "id": 6041667734385822,
+      "name": "Wow::23",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371176,
-      "name": "Wow::23",
       "new_today": 0,
       "reviews_today": 0,
-      "conf": 1,
-      "today": 1720314371176
+      "today": 1720314371176,
+      "desc": "",
+      "conf": 1
     },
     "7092786045316910": {
       "id": 7092786045316910,
+      "name": "45",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371176,
-      "name": "45",
       "new_today": 0,
       "reviews_today": 0,
-      "conf": 1,
-      "today": 1720314371176
+      "today": 1720314371176,
+      "desc": "",
+      "conf": 1
     },
     "8449341597500966": {
       "id": 8449341597500966,
+      "name": "Default",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371177,
-      "name": "Default",
       "new_today": 0,
-      "conf": 1,
+      "reviews_today": 0,
       "today": 1720314371177,
-      "reviews_today": 0
+      "desc": "",
+      "conf": 1
     },
     "2971470362961190": {
       "id": 2971470362961190,
+      "name": "Wow",
       "collapsed": true,
-      "desc": "",
       "is_filtered": false,
       "last_edited": 1720314371177,
-      "name": "Wow",
       "new_today": 0,
-      "conf": 1,
+      "reviews_today": 0,
       "today": 1720314371177,
-      "reviews_today": 0
+      "desc": "",
+      "conf": 1
     }
   },
   "confs": {
@@ -307,97 +391,13 @@
     "sidebar_state": "auto",
     "template_edit_style": {
       "row": "inline",
-      "template": { "front": true, "back": true, "styling": true },
+      "template": { "front": false, "back": false, "styling": false },
       "theme": { "light": true, "dark": true }
     },
     "browser": {
       "active_cols": ["Sort Field", "Due", "Card", "Tags", "Deck"],
       "sort_field": "Sort Field",
       "sort_backwards": false
-    }
-  },
-  "models": {
-    "1": {
-      "id": 1,
-      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n  margin: 0.25rem;\n}",
-      "fields": {
-        "4096856383636694": {
-          "id": 4096856383636694,
-          "name": "Front",
-          "rtl": false,
-          "desc": "",
-          "collapsed": false,
-          "excludeFromSearch": false,
-          "html": false,
-          "sticky": ""
-        },
-        "534487732448064": {
-          "id": 534487732448064,
-          "name": "Back",
-          "rtl": false,
-          "desc": "",
-          "collapsed": false,
-          "excludeFromSearch": false,
-          "html": false,
-          "sticky": ""
-        }
-      },
-      "tmpls": {
-        "245183064871958": {
-          "id": 245183064871958,
-          "qfmt": "{{Front}}",
-          "afmt": "{{FrontSide}}\n\n<hr id=\"answer\" />\n\n{{Back}}",
-          "name": "Front --> Back"
-        }
-      },
-      "name": "Basic",
-      "tags": "",
-      "type": 0,
-      "sort_field": 4096856383636694
-    },
-    "2": {
-      "id": 2,
-      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n  margin: 0.25rem;\n}",
-      "fields": {
-        "1276515751035116": {
-          "id": 1276515751035116,
-          "name": "Front",
-          "rtl": false,
-          "desc": "",
-          "collapsed": false,
-          "excludeFromSearch": false,
-          "html": false,
-          "sticky": ""
-        },
-        "5884895011942428": {
-          "id": 5884895011942428,
-          "name": "Back",
-          "rtl": false,
-          "desc": "",
-          "collapsed": false,
-          "excludeFromSearch": false,
-          "html": false,
-          "sticky": ""
-        }
-      },
-      "tmpls": {
-        "7678235351299250": {
-          "id": 7678235351299250,
-          "qfmt": "{{Front}}",
-          "afmt": "{{FrontSide}}\n\n<hr id=\"answer\" />\n\n{{Back}}",
-          "name": "Front --> Back"
-        },
-        "630738669685526": {
-          "id": 630738669685526,
-          "qfmt": "{{Back}}",
-          "afmt": "{{FrontSide}}\n\n<hr id=\"answer\" />\n\n{{Front}}",
-          "name": "Back --> Front"
-        }
-      },
-      "name": "Basic and reversed",
-      "tags": "",
-      "type": 0,
-      "sort_field": 1276515751035116
     }
   }
 }

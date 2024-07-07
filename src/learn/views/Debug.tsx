@@ -28,29 +28,29 @@ export function Debug({ app, close }: { app: App; close: () => void }) {
   function Card({ card }: { card: AnyCard }) {
     const info = app.cards.repeat(card, Date.now(), 0)
     const note = app.notes.byId[card.nid]!
-    const front = Template.generate(
-      unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.qfmt)),
-      Template.fieldRecord(models()[note.mid]!.fields, note.fields),
-    )
-    const back = Template.generate(
-      unwrap(Template.parse(models()[note.mid]!.tmpls[card.tid]!.afmt)),
-      {
-        ...Template.fieldRecord(models()[note.mid]!.fields, note.fields),
-        FrontSide: front,
-      },
-    )
-    const css = models()[note.mid]!.css
+    const model = models()[note.mid]!
+    const tmpl = model.tmpls[card.tid]!
+    const fields = Template.fieldRecord(model.fields, note.fields)
+    const front = Template.generate(unwrap(Template.parse(tmpl.qfmt)), fields, {
+      FrontSide: undefined,
+    })
+    const back = Template.generate(unwrap(Template.parse(tmpl.afmt)), fields, {
+      FrontSide: front,
+    })
+    const css = model.css
     return (
       <div class="flex flex-col rounded bg-z-body px-2 py-1 text-xs">
         <Template.Render
           class="mb-1 border-b border-z pb-1 text-center text-base"
           html={front}
           css={css}
+          theme="auto"
         />
         <Template.Render
           class="mb-1 border-b border-z pb-1 text-center text-base"
           html={back}
           css={css}
+          theme="auto"
         />
         <div>did? {card.did}</div>
         <div>tid? {card.tid}</div>

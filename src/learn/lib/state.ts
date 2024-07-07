@@ -622,7 +622,9 @@ export class AppNotes {
     for (const tmpl of Object.values(model.tmpls)) {
       const base = createEmptyCard(now)
       const template = unwrapOr(Template.parse(tmpl.qfmt), [])
-      const isFilled = Template.isFilled(template, fieldRecord)
+      const isFilled = Template.isFilled(template, fieldRecord, {
+        FrontSide: undefined,
+      })
       if (!isFilled) {
         continue
       }

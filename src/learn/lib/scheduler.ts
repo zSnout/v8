@@ -116,13 +116,14 @@ export class Scheduler {
   }
 
   newCardsLeft(now: number) {
+    const count = this.new.length
+
     if (!this.app.prefs.isSameDay(this.main.today, now)) {
-      return this.conf.new.per_day
+      return Math.min(count, this.conf.new.per_day)
     }
 
     const limit = this.main.custom_newcard_limit ?? this.conf.new.per_day
     const seen = this.newCardsSeenToday(now)
-    const count = this.new.length
 
     return Math.min(count, Math.max(0, limit - seen))
   }

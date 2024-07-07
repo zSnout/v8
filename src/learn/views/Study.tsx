@@ -15,7 +15,8 @@ import { Scheduler } from "../lib/scheduler"
 import { App } from "../lib/state"
 import * as Template from "../lib/template"
 
-// TODO: keep sidebar state saved in collection
+// TODO: keyboard shortcuts
+// TODO: screen for when no cards are left
 
 export function Study({
   app,
@@ -29,10 +30,10 @@ export function Study({
   const [card, setCard] = createSignal(scheduler.nextCard(Date.now()))
   const [answerShown, setAnswerShown] = createSignal(false)
 
-  const info = createMemo(() => {
+  const tmpl = createMemo(() => {
     const c = card()
     if (!c) {
-      return { html: "", css: "", source: [] }
+      return { qhtml: "", ahtml: "", css: "", source: [] }
     }
 
     const deck = notNull(
@@ -57,13 +58,12 @@ export function Study({
       "Card must be linked to a template which exists.",
     )
 
-    const source = answerShown() ? tmpl.afmt : tmpl.qfmt
+    const qc = unwrap(Template.parse(tmpl.qfmt))
+    const ac = unwrap(Template.parse(tmpl.afmt))
+    const qhtml = Template.generate(qc, fields, { FrontSide: undefined })
+    const ahtml = Template.generate(ac, fields, { FrontSide: qhtml })
 
-    const compiled = unwrap(Template.parse(source))
-
-    const html = Template.generate(compiled, fields)
-
-    return { html, css: model.css, source: [deck.name] }
+    return { qhtml, ahtml, css: model.css, source: [deck.name] }
   })
 
   const repeat = createMemo(() => card()?.repeat(Date.now(), 0))
@@ -85,9 +85,14 @@ export function Study({
     return (
       <ContentCard
         fullFront
-        source={info().source}
+        source={tmpl().source}
         front={
-          <Template.Render html={info().html} css={info().css} class="flex-1" />
+          <Template.Render
+            html={tmpl()[answerShown() ? "ahtml" : "qhtml"]}
+            css={tmpl().css}
+            class="flex-1"
+            theme="auto"
+          />
         }
       />
     )

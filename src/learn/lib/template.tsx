@@ -11,6 +11,7 @@
 // TODO: `learn-tts` and `learn-hint` custom elements
 
 import { error, ok, Result } from "@/components/result"
+import { isDark } from "@/stores/theme"
 import { createEffect } from "solid-js"
 import { sanitize } from "./sanitize"
 import { ModelFields, NoteFields } from "./types"
@@ -363,7 +364,12 @@ const CSS_BASE = `
 `
 
 /** Renders sanitized html. */
-export function Render(props: { class?: string; html: string; css: string }) {
+export function Render(props: {
+  class?: string
+  html: string
+  css: string
+  theme: "light" | "dark" | "auto"
+}) {
   return (
     <div
       class={props.class}
@@ -372,6 +378,18 @@ export function Render(props: { class?: string; html: string; css: string }) {
 
         const html = document.createElement("div")
         html.classList.add("card")
+
+        createEffect(() => {
+          const dark =
+            props.theme == "light"
+              ? false
+              : props.theme == "dark"
+              ? true
+              : isDark()
+
+          html.classList.toggle("light", !dark)
+          html.classList.toggle("dark", dark)
+        })
 
         const cssBase = document.createElement("style")
         cssBase.textContent = CSS_BASE

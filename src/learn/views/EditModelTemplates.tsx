@@ -224,7 +224,7 @@ export function EditModelTemplates(props: {
   }
 
   function Preview(local: {
-    class: string
+    theme: "light" | "dark" | "auto"
     html: Result<string>
     css: string
   }) {
@@ -232,7 +232,12 @@ export function EditModelTemplates(props: {
       <MatchResult
         result={local.html}
         fallback={(err) => (
-          <div class="rounded-lg bg-z-body-selected px-3 py-2">
+          <div
+            class={
+              "min-h-48 rounded-lg bg-z-body-selected px-3 py-2 text-z " +
+              local.theme
+            }
+          >
             <For each={err().split("\n")}>{(el) => <p>{el}</p>}</For>
           </div>
         )}
@@ -240,10 +245,11 @@ export function EditModelTemplates(props: {
         {(value) => (
           <Template.Render
             class={
-              "min-h-48 rounded-lg bg-z-body-selected px-3 py-2 " + local.class
+              "min-h-48 rounded-lg bg-z-body-selected px-3 py-2 " + local.theme
             }
             html={value()}
             css={local.css}
+            theme={local.theme}
           />
         )}
       </MatchResult>
@@ -257,11 +263,13 @@ export function EditModelTemplates(props: {
         return result
       }
       const { value } = result
-      const issues = Template.validate(value, unwrap(fields))
+      const issues = Template.validate(value, unwrap(fields), {
+        FrontSide: undefined,
+      })
       if (issues.length) {
         return error(issues.map(Template.issueToString).join("\n"))
       }
-      return ok(Template.generate(value, fields))
+      return ok(Template.generate(value, fields, { FrontSide: undefined }))
     })
 
     const ahtml = createMemo(() => {
@@ -271,15 +279,12 @@ export function EditModelTemplates(props: {
       }
       const { value } = result
       const q = qhtml()
-      const f = {
-        ...fields,
-        FrontSide: q.ok ? q.value : q.reason,
-      }
-      const issues = Template.validate(value, f)
+      const qh = q.ok ? q.value : "error while rendering FrontSide"
+      const issues = Template.validate(value, fields, { FrontSide: qh })
       if (issues.length) {
         return error(issues.map(Template.issueToString).join("\n"))
       }
-      return ok(Template.generate(value, f))
+      return ok(Template.generate(value, fields, { FrontSide: qh }))
     })
 
     return (
@@ -294,6 +299,19 @@ export function EditModelTemplates(props: {
           {SingleTemplate("afmt", ahtml)}
         </Show>
         <Show when={editStyle.template.styling}>{Styling()}</Show>
+        <Show
+          when={
+            !(
+              editStyle.template.front ||
+              editStyle.template.back ||
+              editStyle.template.styling
+            )
+          }
+        >
+          <div class="rounded-lg bg-z-body-selected px-2 py-1 text-center italic">
+            Select "Front", "Back", or "Styling" to start editing.
+          </div>
+        </Show>
       </div>
     )
   }
@@ -312,7 +330,7 @@ export function EditModelTemplates(props: {
 
   function EditingOptions() {
     return (
-      <div class="grid grid-cols-3 gap-1">
+      <div class="grid grid-cols-1 gap-1 rounded-lg bg-z-body-selected sm:grid-cols-3">
         <CheckboxContainer label="Templates shown">
           <label class="flex w-full gap-2">
             <Checkbox
@@ -442,13 +460,13 @@ export function EditModelTemplates(props: {
         </div>
 
         <Show when={editStyle.theme.light}>
-          <Preview class="light" html={html()} css={model().css} />
+          <Preview theme="light" html={html()} css={model().css} />
         </Show>
         <Show when={editStyle.theme.dark}>
-          <Preview class="dark" html={html()} css={model().css} />
+          <Preview theme="dark" html={html()} css={model().css} />
         </Show>
         <Show when={!(editStyle.theme.light || editStyle.theme.dark)}>
-          <Preview class="" html={html()} css={model().css} />
+          <Preview theme="auto" html={html()} css={model().css} />
         </Show>
       </div>
     )
