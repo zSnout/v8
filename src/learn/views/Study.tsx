@@ -35,6 +35,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { batch, createMemo, createSignal, JSX, Show } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
+import { Layerable } from "../el/Layers"
 import { Scheduler } from "../lib/scheduler"
 import { App } from "../lib/state"
 import * as Template from "../lib/template"
@@ -44,15 +45,7 @@ import * as Template from "../lib/template"
 // TODO: adjust shortcuts for mac/windows
 // TODO: add an `onbeforeunload` handler
 
-export function Study({
-  app,
-  scheduler,
-  close,
-}: {
-  app: App
-  scheduler: Scheduler
-  close: () => void
-}) {
+export const Study = (({ app, scheduler }, pop) => {
   const [card, setCard] = createSignal({
     card: scheduler.nextCard(Date.now()),
     shownAt: Date.now(),
@@ -97,18 +90,25 @@ export function Study({
   const [now, setNow] = createSignal(Date.now())
   setInterval(() => setNow(Date.now()), 30_000)
 
-  return (
-    <div class="flex min-h-full w-full flex-1 flex-col">
-      <Full
-        layer
-        responses={Responses()}
-        content={Content()}
-        sidebar={Sidebar()}
-        sidebarState={app.prefs.prefs.sidebar_state}
-        onSidebarState={(state) => void (app.prefs.prefs.sidebar_state = state)}
-      />
-    </div>
-  )
+  return {
+    el: (
+      <div class="flex min-h-full w-full flex-1 flex-col">
+        <Full
+          layer
+          responses={Responses()}
+          content={Content()}
+          sidebar={Sidebar()}
+          sidebarState={app.prefs.prefs.sidebar_state}
+          onSidebarState={(state) =>
+            void (app.prefs.prefs.sidebar_state = state)
+          }
+        />
+      </div>
+    ),
+    onForcePop() {
+      return true
+    },
+  }
 
   function Content() {
     return (
@@ -135,7 +135,7 @@ export function Study({
 
       <Show
         fallback={
-          <ResponseGray onClick={close}>
+          <ResponseGray onClick={pop}>
             Exit Session
             <Shortcut key="0" />
           </ResponseGray>
@@ -225,7 +225,6 @@ export function Study({
     label: string
     onClick?: () => void
     shortcut?: string
-    "data-z-layer-pop"?: true
   }) {
     const { shortcut = "" } = props
     const mods = shortcut.match(/[⇧⌘⌥⌫]/g)?.join("") ?? ""
@@ -236,7 +235,6 @@ export function Study({
         class="z-field mx-[calc(-0.5rem_-_1px)] flex items-center gap-2 border-transparent bg-transparent px-2 py-0.5 text-z shadow-none transition hover:enabled:bg-z-body-selected"
         onClick={props.onClick}
         disabled={!props.onClick}
-        data-z-layer-pop={props["data-z-layer-pop"]}
       >
         <Fa class="h-4 w-4" icon={props.icon} title={false} />
         <span class="flex-1 text-left">{props.label}</span>
@@ -261,8 +259,7 @@ export function Study({
           icon={faRightFromBracket}
           label="Exit Session"
           shortcut="Esc"
-          onClick={close}
-          data-z-layer-pop
+          onClick={pop}
         />
         <QuickAction icon={faSync} label="Sync" shortcut="Y" />
         <QuickActionLine />
@@ -380,4 +377,7 @@ export function Study({
       </button>
     )
   }
-}
+}) satisfies Layerable<{
+  app: App
+  scheduler: Scheduler
+}>

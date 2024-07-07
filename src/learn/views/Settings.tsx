@@ -12,9 +12,11 @@ import { createStore, unwrap } from "solid-js/store"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
+import { Layerable } from "../el/Layers"
 import { App } from "../lib/state"
 
-export function Settings({ app, close }: { app: App; close: () => void }) {
+// TODO: convert to layerable
+export const Settings = (({ app }, pop) => {
   const [prefs, dangerousUnsafeRawSetPrefs] = createStore(
     structuredClone(app.prefs.prefs),
   )
@@ -29,13 +31,12 @@ export function Settings({ app, close }: { app: App; close: () => void }) {
   function save() {
     app.prefs.set(structuredClone(unwrap(prefs)))
     changed = false
-    close()
+    pop()
   }
 
-  async function exit() {
+  async function shouldExit() {
     if (!changed) {
-      close()
-      return
+      return true
     }
 
     const result = await confirm({
@@ -48,132 +49,142 @@ export function Settings({ app, close }: { app: App; close: () => void }) {
     })
 
     if (result) {
-      close()
+      return true
+    }
+
+    return false
+  }
+
+  async function exitSelf() {
+    if (await shouldExit()) {
+      pop()
     }
   }
 
   let filePicker!: HTMLInputElement
 
-  return (
-    <div class="flex min-h-full w-full flex-col gap-8">
-      <Icons>
-        <Icon icon={faRightFromBracket} label="Exit" onClick={exit} />
-        <Icon icon={faCheck} label="Save" onClick={save} />
-        <input
-          type="file"
-          class="sr-only"
-          accept="application/json"
-          ref={filePicker}
-          onChange={async (event) => {
-            const file = event.currentTarget.files?.[0]
-            if (!file) {
-              return
-            }
-            event.currentTarget.value = ""
+  return {
+    el: (
+      <div class="flex min-h-full w-full flex-col gap-8">
+        <Icons>
+          <Icon icon={faRightFromBracket} label="Exit" onClick={exitSelf} />
+          <Icon icon={faCheck} label="Save" onClick={save} />
+          <input
+            type="file"
+            class="sr-only"
+            accept="application/json"
+            ref={filePicker}
+            onChange={async (event) => {
+              const file = event.currentTarget.files?.[0]
+              if (!file) {
+                return
+              }
+              event.currentTarget.value = ""
 
-            const result = await confirm({
-              owner,
-              title: "Confirm import?",
-              description: (
-                <ModalDescription>
-                  This will{" "}
-                  <strong class="text-z underline">irreversibly</strong> replace
-                  your entire collection with data from the imported file. We
-                  highly recommend exporting your current data before you
-                  import, just in case.
-                </ModalDescription>
-              ),
-              cancelText: "No, cancel",
-              okText: "Yes, import",
-            })
+              const result = await confirm({
+                owner,
+                title: "Confirm import?",
+                description: (
+                  <ModalDescription>
+                    This will{" "}
+                    <strong class="text-z underline">irreversibly</strong>{" "}
+                    replace your entire collection with data from the imported
+                    file. We highly recommend exporting your current data before
+                    you import, just in case.
+                  </ModalDescription>
+                ),
+                cancelText: "No, cancel",
+                okText: "Yes, import",
+              })
 
-            if (!result) {
-              return
-            }
+              if (!result) {
+                return
+              }
 
-            unwrapResult(app.import(await file.text()))
+              unwrapResult(app.import(await file.text()))
 
-            await alert({
-              owner,
-              title: "Imported successfully",
-              description: (
-                <ModalDescription>
-                  The collection was imported successfully.
-                </ModalDescription>
-              ),
-            })
-          }}
-        />
-        <Icon
-          icon={faUpload}
-          label="Import"
-          onClick={() => filePicker.click()}
-        />
-        <Icon
-          icon={faDownload}
-          label="Export"
-          onClick={() => {
-            const file = new File(
-              [app.export()],
-              "zsnout-learn-" + new Date().toISOString() + ".json",
-            )
-
-            const url = URL.createObjectURL(file)
-            const a = document.createElement("a")
-            a.style.display = "none"
-            document.body.append(a)
-            a.href = url
-            a.download = file.name
-            a.click()
-          }}
-        />
-      </Icons>
-
-      {/* TODO: show all available options, not just booleans */}
-
-      <CheckboxContainer label="Other options">
-        <label class="flex w-full gap-2">
-          <Checkbox
-            checked={prefs.show_review_time_above_buttons}
-            onInput={(checked) =>
-              setPrefs("show_review_time_above_buttons", checked)
-            }
+              await alert({
+                owner,
+                title: "Imported successfully",
+                description: (
+                  <ModalDescription>
+                    The collection was imported successfully.
+                  </ModalDescription>
+                ),
+              })
+            }}
           />
-
-          <p>Show next due date above buttons</p>
-        </label>
-
-        <label class="flex w-full gap-2">
-          <Checkbox
-            checked={prefs.show_remaining_due_counts}
-            onInput={(checked) =>
-              setPrefs("show_remaining_due_counts", checked)
-            }
+          <Icon
+            icon={faUpload}
+            label="Import"
+            onClick={() => filePicker.click()}
           />
+          <Icon
+            icon={faDownload}
+            label="Export"
+            onClick={() => {
+              const file = new File(
+                [app.export()],
+                "zsnout-learn-" + new Date().toISOString() + ".json",
+              )
 
-          <p>Show remaining due counts during reviews</p>
-        </label>
-
-        <label class="flex w-full gap-2">
-          <Checkbox
-            checked={prefs.debug}
-            onInput={(checked) => setPrefs("debug", checked)}
+              const url = URL.createObjectURL(file)
+              const a = document.createElement("a")
+              a.style.display = "none"
+              document.body.append(a)
+              a.href = url
+              a.download = file.name
+              a.click()
+            }}
           />
+        </Icons>
 
-          <p>Enable debug features</p>
-        </label>
-      </CheckboxContainer>
+        {/* TODO: show all available options, not just booleans */}
 
-      <TwoBottomButtons>
-        <Action
-          icon={faRightFromBracket}
-          label="Exit"
-          center
-          onClick={exit}
-          data-z-layer-pop
-        />
-        <Action icon={faCheck} label="Save" center onClick={save} />
-      </TwoBottomButtons>
-    </div>
-  )
-}
+        <CheckboxContainer label="Other options">
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={prefs.show_review_time_above_buttons}
+              onInput={(checked) =>
+                setPrefs("show_review_time_above_buttons", checked)
+              }
+            />
+
+            <p>Show next due date above buttons</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={prefs.show_remaining_due_counts}
+              onInput={(checked) =>
+                setPrefs("show_remaining_due_counts", checked)
+              }
+            />
+
+            <p>Show remaining due counts during reviews</p>
+          </label>
+
+          <label class="flex w-full gap-2">
+            <Checkbox
+              checked={prefs.debug}
+              onInput={(checked) => setPrefs("debug", checked)}
+            />
+
+            <p>Enable debug features</p>
+          </label>
+        </CheckboxContainer>
+
+        <TwoBottomButtons>
+          <Action
+            icon={faRightFromBracket}
+            label="Exit"
+            center
+            onClick={exitSelf}
+          />
+          <Action icon={faCheck} label="Save" center onClick={save} />
+        </TwoBottomButtons>
+      </div>
+    ),
+    onForcePop: shouldExit,
+  }
+}) satisfies Layerable<{ app: App }>

@@ -28,6 +28,7 @@ import { array, parse } from "valibot"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { IntegratedField } from "../el/IntegratedField"
+import { Layerable } from "../el/Layers"
 import { createModelTemplate } from "../lib/defaults"
 import { Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
@@ -40,23 +41,7 @@ import {
 } from "../lib/types"
 
 // TODO: stop user from editing model name to potential ambiguity
-export function EditModelTemplates(props: {
-  /** The model to edit the templates of. */
-  model: Model
-
-  /** The fields record to use as a reference. */
-  fieldsInitial: Template.FieldsRecord
-
-  /** The preferences of this app. */
-  editStyle: TemplateEditStyle
-
-  /**
-   * Called to close the modal. If a `model` is passed, it is the updated model.
-   * If `null` is passed, it means that the edit action was canceled. Same for
-   * `prefs`.
-   */
-  close: (model: Model | null, editStyle: TemplateEditStyle | null) => void
-}) {
+export const EditModelTemplates = ((props, pop) => {
   const [model, setModel] = createSignal(props.model)
   const [tmpls, setTemplates] = createSignal<DndItem[]>(
     Object.values(model().tmpls),
@@ -93,27 +78,31 @@ export function EditModelTemplates(props: {
   const [fields, setFields] = createStore<NoteFields>(props.fieldsInitial)
   const [html, setHtml] = createStore<Record<string, boolean>>({})
 
-  return (
-    <div class="flex min-h-full w-full flex-col gap-8">
-      <IntegratedField
-        label="Editing templates of"
-        rtl={false}
-        type="text"
-        value={model().name}
-        onInput={(value) => setModel((model) => ({ ...model, name: value }))}
-      />
+  return {
+    el: (
+      <div class="flex min-h-full w-full flex-col gap-8">
+        <IntegratedField
+          label="Editing templates of"
+          rtl={false}
+          type="text"
+          value={model().name}
+          onInput={(value) => setModel((model) => ({ ...model, name: value }))}
+        />
 
-      <div class="grid w-full gap-x-6 gap-y-8 sm:grid-cols-[auto,16rem]">
-        {TemplateList()}
-        {SideActions()}
+        <div class="grid w-full gap-x-6 gap-y-8 sm:grid-cols-[auto,16rem]">
+          {TemplateList()}
+          {SideActions()}
+        </div>
+
+        {EditingOptions()}
+        {Templates()}
+        {EditFields()}
+        {SaveChanges()}
       </div>
-
-      {EditingOptions()}
-      {Templates()}
-      {EditFields()}
-      {SaveChanges()}
-    </div>
-  )
+    ),
+    // TODO: make this show a "save changes?" dialog
+    onForcePop: () => true,
+  }
 
   function EditFields() {
     return (
@@ -141,20 +130,15 @@ export function EditModelTemplates(props: {
   function SaveChanges() {
     return (
       <TwoBottomButtons>
-        <Action
-          icon={faCancel}
-          label="Cancel"
-          center
-          onClick={() => props.close(null, null)}
-          data-z-layer-pop
-        />
+        <Action icon={faCancel} label="Cancel" center onClick={pop} />
         <Action
           icon={faCheck}
           label="Save changes"
           center
           onClick={() => {
             const m = model()
-            props.close(m, structuredClone(unwrap(editStyle)))
+            props.save(m, structuredClone(unwrap(editStyle)))
+            pop()
           }}
         />
       </TwoBottomButtons>
@@ -604,4 +588,16 @@ export function EditModelTemplates(props: {
       </div>
     )
   }
-}
+}) satisfies Layerable<{
+  /** The model to edit the templates of. */
+  model: Model
+
+  /** The fields record to use as a reference. */
+  fieldsInitial: Template.FieldsRecord
+
+  /** The preferences of this app. */
+  editStyle: TemplateEditStyle
+
+  /** Called to save information. */
+  save: (model: Model, editStyle: TemplateEditStyle) => void
+}>

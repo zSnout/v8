@@ -46,53 +46,38 @@ export function Home({ app }: { app: App }) {
   )
 
   function TopActions() {
+    const layers = useLayers()
+
     return (
       <Icons>
         <Icon
           icon={faPlus}
           label="Add"
-          layer={(pop) => (
-            <CreateNote
-              app={app}
-              close={() => {
-                reloadPrefs()
-                reloadDecks()
-                pop()
-              }}
-            />
-          )}
+          onClick={() =>
+            layers.push(
+              CreateNote,
+              { app },
+              () => (reloadPrefs(), reloadDecks()),
+            )
+          }
         />
-        <Icon icon={faTableCellsLarge} label="Browse" layer={nope} />
-        <Icon icon={faChartBar} label="Stats" layer={nope} />
+        <Icon icon={faTableCellsLarge} label="Browse" onClick={nope} />
+        <Icon icon={faChartBar} label="Stats" onClick={nope} />
         <Icon
           icon={faSliders}
           label="Settings"
-          layer={(pop) => (
-            <Settings
-              app={app}
-              close={() => {
-                reloadPrefs()
-                reloadDecks()
-                pop()
-              }}
-            />
-          )}
+          onClick={() =>
+            layers.push(Settings, { app }, () => (reloadPrefs(), reloadDecks()))
+          }
         />
-        <Icon icon={faSync} label="Sync" layer={nope} />
+        <Icon icon={faSync} label="Sync" onClick={nope} />
         <Show when={prefs().debug}>
           <Icon
             icon={faCode}
             label="Debug"
-            layer={(pop) => (
-              <Debug
-                app={app}
-                close={() => {
-                  reloadPrefs()
-                  reloadDecks()
-                  pop()
-                }}
-              />
-            )}
+            onClick={() =>
+              layers.push(Debug, { app }, () => (reloadPrefs(), reloadDecks()))
+            }
           />
         </Show>
       </Icons>
@@ -157,12 +142,11 @@ export function Home({ app }: { app: App }) {
   }
 
   function DeckEl({ data, subtree }: NodeProps<Deck, Deck>) {
+    const scheduler = unwrap(app.decks.scheduler(data, Date.now()))
+
     const s = createMemo(() => {
-      const n = now()
-      const scheduler = unwrap(app.decks.scheduler(data, n))
       return {
-        scheduler,
-        new: scheduler.newCardsLeft(n),
+        new: scheduler.newCardsLeft(now()),
         learning: scheduler.learning.length,
         review: scheduler.review.length,
       }
@@ -175,17 +159,11 @@ export function Home({ app }: { app: App }) {
           (subtree ? " -ml-6" : "")
         }
         onClick={() =>
-          layers.push((close) => (
-            <Study
-              app={app}
-              scheduler={s().scheduler}
-              close={() => {
-                reloadDecks()
-                reloadPrefs()
-                close()
-              }}
-            />
-          ))
+          layers.push(
+            Study,
+            { app, scheduler },
+            () => (reloadDecks(), reloadPrefs()),
+          )
         }
       >
         <p class="text-z">{data.name.split("::").at(-1)}</p>

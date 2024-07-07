@@ -1,30 +1,14 @@
 import { Fa } from "@/components/Fa"
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons"
 import { JSX } from "solid-js"
-import { useLayers } from "./Layers"
 
-export function Icon(
-  props:
-    | {
-        icon: IconDefinition
-        label: string
-        onClick?: undefined
-        layer: (pop: () => void) => JSX.Element
-      }
-    | {
-        icon: IconDefinition
-        label: string
-        onClick?: () => void
-        layer?: undefined
-      },
-) {
-  const onClick =
-    (props.layer &&
-      (
-        (layers) => () =>
-          layers.push(props.layer)
-      )(useLayers())) ||
-    props.onClick
+export function Icon(props: {
+  icon: IconDefinition
+  label: string
+  onClick: () => void
+  layer?: 23
+}) {
+  const onClick = props.onClick
 
   return (
     <button

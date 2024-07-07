@@ -17,6 +17,12 @@ export function useLayers() {
   return context
 }
 
+type LayerInfo = [
+  layer: HTMLDivElement,
+  previouslyFocused: Element | null,
+  onForcePop: ForcePopHandler,
+]
+
 export class Layers {
   static Root(props: { children: JSX.Element }) {
     const layers = new Layers(getOwner())
@@ -38,35 +44,42 @@ export class Layers {
   constructor(private owner: Owner | null) {}
 
   private root!: HTMLDivElement
-  private layers: [layer: HTMLDivElement, previouslyFocused: Element | null][] =
-    []
+  private layers: LayerInfo[] = []
 
-  push(el: (pop: () => void) => JSX.Element): () => void {
+  push<T>(fn: Layerable<T>, props: T, popHook: () => void) {
     const prev = this.layers[this.layers.length - 1]?.[0] ?? this.root
 
     const idx = this.layers.length
     const pop = () => {
       this.pop(idx)
+      popHook()
     }
 
     const previouslyFocused = document.activeElement
 
+    let onForcePop!: ForcePopHandler
+    function inner() {
+      const output = fn(props, pop)
+      onForcePop = output.onForcePop
+      return output.el
+    }
+
     const next = runWithOwner(this.owner, () => {
-      const child = (
-        <LayerContext.Provider value={this}>{el(pop)}</LayerContext.Provider>
+      const el = (
+        <LayerContext.Provider value={this}>{inner()}</LayerContext.Provider>
       )
 
       const next = (
         <div
           class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
           ref={(el) => {
-            this.layers.push([el, previouslyFocused])
+            this.layers.push([el, previouslyFocused, onForcePop])
             setTimeout(() => {
               animateIn(prev, el)
             })
           }}
         >
-          <div class="mx-auto w-full max-w-5xl flex-1">{child}</div>
+          <div class="mx-auto w-full max-w-5xl flex-1">{el}</div>
         </div>
       ) as HTMLDivElement
 
@@ -75,10 +88,9 @@ export class Layers {
 
     prev.inert = true
     prev.after(next)
-    return pop
   }
 
-  pop(idx: number): boolean {
+  private pop(idx: number): boolean {
     const prev = this.layers[idx - 1]?.[0] ?? this.root
     const current = this.layers[idx]
     if (!current) {
@@ -99,8 +111,23 @@ export class Layers {
     return true
   }
 
-  popLatest() {
-    return this.pop(this.layers.length - 1)
+  async forcePopAll() {
+    for (let index = this.layers.length - 1; index >= 0; index++) {
+      const data = this.layers[index]
+      if (!data) {
+        return
+      }
+
+      const [, , onForcePop] = data
+
+      if (!(await onForcePop())) {
+        return
+      }
+
+      this.pop(index)
+    }
+
+    // TODO: do stuff
   }
 }
 
@@ -165,14 +192,12 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
 
 // TODO: properly unmount new layers once they're removed
 
-export interface LayerProps<T> {
-  base: T
-  pop(): void
-}
-
 export interface LayerOutput {
+  /** The element to be shown in the layer. */
   el: JSX.Element
-  onForcePop(): boolean | PromiseLike<boolean>
+  onForcePop: ForcePopHandler
 }
 
-export type Layerable<T> = (props: LayerProps<T>) => LayerOutput
+export type ForcePopHandler = () => boolean | PromiseLike<boolean>
+
+export type Layerable<T> = (props: T, pop: () => void) => LayerOutput

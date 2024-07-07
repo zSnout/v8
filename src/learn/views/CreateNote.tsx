@@ -7,7 +7,7 @@ import { createStore } from "solid-js/store"
 import { AutocompleteBox } from "../el/AutocompleteBox"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
-import { useLayers } from "../el/Layers"
+import { Layerable, useLayers } from "../el/Layers"
 import { mapRecord } from "../lib/record"
 import { App } from "../lib/state"
 import { fieldRecord } from "../lib/template"
@@ -19,17 +19,7 @@ import { EditModelTemplates } from "./EditModelTemplates"
 // TODO: fields can be collapsed
 // TODO: sticky fields work
 
-export function CreateNote(props: {
-  /** The `app` to add notes to. */
-  app: App
-
-  /**
-   * Called when the `CreateNote` layer is closed. External layers should assume
-   * that all data in `app` is fresh and should thus refresh all data signals.
-   */
-  close: () => void
-}) {
-  const { app } = props
+export const CreateNote = (({ app }, pop) => {
   const layers = useLayers()
 
   const [deck, setDeck] = createSignal(app.prefs.currentDeck(Date.now()))
@@ -84,146 +74,152 @@ export function CreateNote(props: {
     onExternalModelUpdate(nextModel)
   }
 
-  return (
-    <div
-      class="flex min-h-full flex-1 flex-col gap-8"
-      onKeyDown={(event) => {
-        if (event.shiftKey || event.altKey || event.key != "Enter") {
-          return
-        }
+  return {
+    el: (
+      <div
+        class="flex min-h-full flex-1 flex-col gap-8"
+        onKeyDown={(event) => {
+          if (event.shiftKey || event.altKey || event.key != "Enter") {
+            return
+          }
 
-        if (event.ctrlKey == event.metaKey) {
-          return
-        }
+          if (event.ctrlKey == event.metaKey) {
+            return
+          }
 
-        addCard()
-      }}
-    >
-      <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
-        <div class="grid grid-cols-2 gap-1">
-          <div class="col-span-2">
-            <AutocompleteBox
-              label="Type"
-              options={Object.keys(app.models.byName).sort()}
-              onChange={(name) => {
-                onExternalModelUpdate(
-                  setModel(
-                    notNull(
-                      app.models.byName[name],
-                      "The selected model does not exist.",
+          addCard()
+        }}
+      >
+        <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
+          <div class="grid grid-cols-2 gap-1">
+            <div class="col-span-2">
+              <AutocompleteBox
+                label="Type"
+                options={Object.keys(app.models.byName).sort()}
+                onChange={(name) => {
+                  onExternalModelUpdate(
+                    setModel(
+                      notNull(
+                        app.models.byName[name],
+                        "The selected model does not exist.",
+                      ),
                     ),
-                  ),
+                  )
+                }}
+                value={model().name}
+              />
+            </div>
+
+            <button
+              class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+              onClick={() =>
+                layers.push(
+                  EditModelFields,
+                  {
+                    model: model(),
+                    save(model) {
+                      if (model != null) {
+                        unwrap(app.models.set(model, Date.now()))
+                        onExternalModelUpdate(setModel(model))
+                      }
+                    },
+                  },
+                  () => {},
                 )
-              }}
-              value={model().name}
-            />
+              }
+            >
+              Edit fields...
+            </button>
+
+            <button
+              class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+              onClick={() =>
+                layers.push(
+                  EditModelTemplates,
+                  {
+                    model: model(),
+                    fieldsInitial: fieldRecord(model().fields, { ...fields }),
+                    editStyle: app.prefs.prefs.template_edit_style,
+                    save(model, editStyle) {
+                      if (editStyle != null) {
+                        app.prefs.prefs.template_edit_style = editStyle
+                      }
+                      if (model != null) {
+                        unwrap(app.models.set(model, Date.now()))
+                        onExternalModelUpdate(setModel(model))
+                      }
+                    },
+                  },
+                  () => {},
+                )
+              }
+            >
+              Edit templates...
+            </button>
           </div>
 
-          <button
-            class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
-            onClick={() =>
-              layers.push((pop) => (
-                <EditModelFields
-                  model={model()}
-                  close={(model) => {
-                    if (model != null) {
-                      unwrap(app.models.set(model, Date.now()))
-                      onExternalModelUpdate(setModel(model))
-                    }
-                    pop()
-                  }}
-                />
-              ))
-            }
-          >
-            Edit fields...
-          </button>
-
-          <button
-            class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
-            onClick={() =>
-              layers.push((pop) => (
-                <EditModelTemplates
-                  model={model()}
-                  fieldsInitial={fieldRecord(model().fields, { ...fields })}
-                  editStyle={app.prefs.prefs.template_edit_style}
-                  close={(model, editStyle) => {
-                    if (editStyle != null) {
-                      app.prefs.prefs.template_edit_style = editStyle
-                    }
-                    if (model != null) {
-                      unwrap(app.models.set(model, Date.now()))
-                      onExternalModelUpdate(setModel(model))
-                    }
-                    pop()
-                  }}
-                />
-              ))
-            }
-          >
-            Edit templates...
-          </button>
+          <AutocompleteBox
+            label="Deck"
+            options={Object.keys(app.decks.byName).sort()}
+            onChange={(name) => {
+              setDeck(
+                notNull(
+                  app.decks.byName[name],
+                  "The selected deck does not exist.",
+                ),
+              )
+            }}
+            value={deck().name}
+          />
         </div>
 
-        <AutocompleteBox
-          label="Deck"
-          options={Object.keys(app.decks.byName).sort()}
-          onChange={(name) => {
-            setDeck(
-              notNull(
-                app.decks.byName[name],
-                "The selected deck does not exist.",
-              ),
-            )
-          }}
-          value={deck().name}
-        />
-      </div>
+        <div class="flex flex-col gap-1">
+          <For each={Object.values(model().fields)}>
+            {(field) => (
+              <IntegratedField
+                label={field.name}
+                rtl={field.rtl}
+                font={field.font}
+                sizePx={field.size}
+                type="html"
+                onInput={(value) => setFields(field.id + "", value)}
+                placeholder={field.desc}
+                value={fields[field.id]}
+                sticky={sticky[field.id]}
+                onSticky={(sticky) => setSticky(field.id + "", sticky)}
+                showHtml={showHtml[field.id]}
+                onShowHtml={(show) => setShowHtml(field.id + "", show)}
+              />
+            )}
+          </For>
+        </div>
 
-      <div class="flex flex-col gap-1">
-        <For each={Object.values(model().fields)}>
-          {(field) => (
-            <IntegratedField
-              label={field.name}
-              rtl={field.rtl}
-              font={field.font}
-              sizePx={field.size}
-              type="html"
-              onInput={(value) => setFields(field.id + "", value)}
-              placeholder={field.desc}
-              value={fields[field.id]}
-              sticky={sticky[field.id]}
-              onSticky={(sticky) => setSticky(field.id + "", sticky)}
-              showHtml={showHtml[field.id]}
-              onShowHtml={(show) => setShowHtml(field.id + "", show)}
-            />
-          )}
-        </For>
-      </div>
+        {/* provides 4rem extra space */}
+        <div />
+        <div class="flex-1" />
 
-      {/* provides 4rem extra space */}
-      <div />
-      <div class="flex-1" />
-
-      <IntegratedField
-        type="tags"
-        label="Tags"
-        value={model().tags}
-        onInput={(tags) => setTags(tags)}
-      />
-
-      <TwoBottomButtons>
-        <Action
-          icon={faRightFromBracket}
-          label="Exit"
-          center
-          onClick={() => props.close()}
+        <IntegratedField
+          type="tags"
+          label="Tags"
+          value={model().tags}
+          onInput={(tags) => setTags(tags)}
         />
 
-        <Action icon={faPlus} label="Add Card" center onClick={addCard} />
-      </TwoBottomButtons>
-    </div>
-  )
+        <TwoBottomButtons>
+          <Action
+            icon={faRightFromBracket}
+            label="Exit"
+            center
+            onClick={() => pop()}
+          />
+
+          <Action icon={faPlus} label="Add Card" center onClick={addCard} />
+        </TwoBottomButtons>
+      </div>
+    ),
+    // TODO: detect if fields are nonempty
+    onForcePop: () => true,
+  }
 
   function onExternalModelUpdate(model: Model) {
     batch(() => {
@@ -237,4 +233,4 @@ export function CreateNote(props: {
       for (const key in model.fields) setShowHtml(key, model.fields[key]!.html)
     })
   }
-}
+}) satisfies Layerable<{ app: App }>

@@ -41,22 +41,13 @@ function SublinkHandler(): undefined {
 
     if (el && el instanceof HTMLElement) {
       createEventListener(el, "click", (event) => {
-        const closeLayer = document.querySelector(
-          ".z-layer-active [data-z-layer-pop]",
-        )
-        if (closeLayer && closeLayer instanceof HTMLElement) {
-          event.preventDefault()
-          closeLayer.click()
-        } else {
-          event.preventDefault()
-          layers.pop(0)
-        }
+        event.preventDefault()
+        layers.forcePopAll()
       })
     }
   })
 }
 
-// TODO: "Create Notes" buttons doesn't work
 export function Main() {
   return (
     <ErrorHandler>

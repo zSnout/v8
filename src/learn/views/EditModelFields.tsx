@@ -27,6 +27,7 @@ import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { IntegratedField } from "../el/IntegratedField"
+import { Layerable } from "../el/Layers"
 import { createField } from "../lib/defaults"
 import { Id, idOf } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
@@ -34,16 +35,7 @@ import { AppModels } from "../lib/state"
 import { Model, ModelField } from "../lib/types"
 
 // TODO: stop user from editing model name to potential ambiguity
-export function EditModelFields(props: {
-  /** The model to edit the fields of. */
-  model: Model
-
-  /**
-   * Called to close the modal. If a `model` is passed, it is the updated model.
-   * If `null` is passed, it means that the edit action was canceled.
-   */
-  close: (model: Model | null) => void
-}) {
+export const EditModelFields = ((props, pop) => {
   const [model, setModel] = createSignal(props.model)
   const [fields, setFields] = createSignal<DndItem[]>(
     Object.values(model().fields),
@@ -59,44 +51,41 @@ export function EditModelFields(props: {
 
   const owner = getOwner()
 
-  return (
-    <div class="flex min-h-full w-full flex-col gap-8">
-      <IntegratedField
-        label="Editing fields of"
-        rtl={false}
-        type="text"
-        value={model().name}
-        onInput={(value) => setModel((model) => ({ ...model, name: value }))}
-      />
+  return {
+    el: (
+      <div class="flex min-h-full w-full flex-col gap-8">
+        <IntegratedField
+          label="Editing fields of"
+          rtl={false}
+          type="text"
+          value={model().name}
+          onInput={(value) => setModel((model) => ({ ...model, name: value }))}
+        />
 
-      <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
-        {FieldList()}
-        {SideActions()}
+        <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
+          {FieldList()}
+          {SideActions()}
+        </div>
+
+        {FieldOptions()}
+        {SaveChanges()}
       </div>
-
-      {FieldOptions()}
-      {SaveChanges()}
-    </div>
-  )
+    ),
+    // TODO: add a "save changes?" screen here
+    onForcePop: () => true,
+  }
 
   function SaveChanges() {
     return (
       <TwoBottomButtons>
-        <Action
-          icon={faCancel}
-          label="Cancel"
-          center
-          onClick={() => props.close(null)}
-          data-z-layer-pop
-        />
+        <Action icon={faCancel} label="Cancel" center onClick={() => pop()} />
         <Action
           icon={faCheck}
           label="Save changes"
           center
           onClick={() => {
             const m = model()
-
-            props.close({
+            props.save({
               ...m,
               tmpls: AppModels.renameFieldAccessesInTemplates(
                 props.model.fields,
@@ -104,6 +93,7 @@ export function EditModelFields(props: {
                 m.tmpls,
               ),
             })
+            pop()
           }}
         />
       </TwoBottomButtons>
@@ -411,4 +401,13 @@ export function EditModelFields(props: {
       </div>
     )
   }
-}
+}) satisfies Layerable<{
+  /** The model to edit the fields of. */
+  model: Model
+
+  /**
+   * Called to save the modal. If a `model` is passed, it is the updated model.
+   * If `null` is passed, it means that the edit action was canceled.
+   */
+  save: (model: Model) => void
+}>

@@ -5,6 +5,7 @@ import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import { createMemo, For } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import { Action } from "../el/BottomButtons"
+import { Layerable } from "../el/Layers"
 import { createExpr } from "../lib/expr"
 import { App } from "../lib/state"
 import * as Template from "../lib/template"
@@ -17,13 +18,23 @@ const grades: { grade: Grade; bg: string; text: string }[] = [
   { grade: Rating.Easy, bg: "bg-blue-300", text: "text-blue-900" },
 ]
 
-export function Debug({ app, close }: { app: App; close: () => void }) {
+export const Debug = (({ app }: { app: App }, pop) => {
   const [decks] = createExpr(() => app.decks)
   const tree = createMemo(() => decks().tree(Date.now()).tree)
   const [models] = createExpr(() => app.models.byId)
   const [notes] = createExpr(() => app.notes.byId)
   const [cards, reloadCards] = createExpr(() => app.cards.byNid)
   const [confs] = createExpr(() => app.confs.byId)
+
+  return {
+    el: (
+      <div class="flex flex-col gap-8">
+        <Action icon={faXmark} label="Exit" center onClick={pop} />
+        <RawInformation />
+      </div>
+    ),
+    onForcePop: () => true,
+  }
 
   function Card({ card }: { card: AnyCard }) {
     const info = app.cards.repeat(card, Date.now(), 0)
@@ -247,17 +258,4 @@ export function Debug({ app, close }: { app: App; close: () => void }) {
       </>
     )
   }
-
-  return (
-    <div class="flex flex-col gap-8">
-      <Action
-        icon={faXmark}
-        label="Exit"
-        center
-        onClick={close}
-        data-z-layer-pop
-      />
-      <RawInformation />
-    </div>
-  )
-}
+}) satisfies Layerable<{ app: App }>
