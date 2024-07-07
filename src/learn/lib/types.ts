@@ -440,6 +440,9 @@ export const Prefs = v.object({
   /** Whether to enable debug features */
   debug: v.boolean(),
 
+  /** The state of the sidebar during reviews */
+  sidebar_state: v.picklist(["auto", "open", "closed"]),
+
   /** Configuration relating to the browser */
   browser: v.object({
     /** Active columns in the browser */

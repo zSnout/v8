@@ -6,7 +6,6 @@ import {
   Response,
   ResponsesGrid,
   Shortcut,
-  SidebarSticky,
 } from "@/pages/quiz/layout"
 import { createMemo, createSignal } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
@@ -69,54 +68,60 @@ export function Study({
     <div class="flex min-h-full w-full flex-1 flex-col">
       <Full
         layer
-        responses={
-          <ResponsesGrid class="grid-cols-4">
-            <Button
-              class="bg-red-300 text-red-900"
-              rating={Rating.Again}
-              label="Again"
-              shortcut="1"
-            />
-
-            <Button
-              class="bg-[#ffcc91] text-yellow-900"
-              rating={Rating.Hard}
-              label="Hard"
-              shortcut="2"
-            />
-
-            <Button
-              class="bg-green-300 text-green-900"
-              rating={Rating.Good}
-              label="Good"
-              shortcut="3"
-            />
-
-            <Button
-              class="bg-blue-300 text-blue-900"
-              rating={Rating.Easy}
-              label="Easy"
-              shortcut="4"
-            />
-          </ResponsesGrid>
-        }
-        content={
-          <ContentCard
-            fullFront
-            source={info().source}
-            front={
-              <Template.Render
-                html={info().html}
-                css={info().css}
-                class="flex-1"
-              />
-            }
-          />
-        }
-        sidebar={<Sidebar />}
+        responses={Responses()}
+        content={Content()}
+        sidebar={Sidebar()}
+        sidebarState={app.prefs.prefs.sidebar_state}
+        onSidebarState={(state) => void (app.prefs.prefs.sidebar_state = state)}
       />
     </div>
   )
+
+  function Content() {
+    return (
+      <ContentCard
+        fullFront
+        source={info().source}
+        front={
+          <Template.Render html={info().html} css={info().css} class="flex-1" />
+        }
+      />
+    )
+  }
+
+  function Responses() {
+    return (
+      <ResponsesGrid class="grid-cols-4">
+        <Button
+          class="bg-red-300 text-red-900"
+          rating={Rating.Again}
+          label="Again"
+          shortcut="1"
+        />
+
+        <Button
+          class="bg-[#ffcc91] text-yellow-900"
+          rating={Rating.Hard}
+          label="Hard"
+          shortcut="2"
+        />
+
+        <Button
+          class="bg-green-300 text-green-900"
+          rating={Rating.Good}
+          label="Good"
+          shortcut="3"
+        />
+
+        <Button
+          class="bg-blue-300 text-blue-900"
+          rating={Rating.Easy}
+          label="Easy"
+          shortcut="4"
+        />
+      </ResponsesGrid>
+    )
+  }
 
   function answer(rating: Rating) {}
 
@@ -138,6 +143,6 @@ export function Study({
   }
 
   function Sidebar() {
-    return <div></div>
+    return <div class="w-full flex-1 bg-red-500">hello world</div>
   }
 }

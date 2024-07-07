@@ -303,6 +303,7 @@
     "last_unburied": 0,
     "day_start": 14400000,
     "debug": true,
+    "sidebar_state": "closed",
     "browser": {
       "active_cols": ["Sort Field", "Due", "Card", "Tags", "Deck"],
       "sort_field": "Sort Field",

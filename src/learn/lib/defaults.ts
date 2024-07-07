@@ -45,12 +45,14 @@ export function createPrefs(): Prefs {
     next_new_card_position: 0,
     last_unburied: 0,
     day_start: 1000 * 60 * 60 * 4,
+    debug: false,
+    show_deck_name: true,
+    sidebar_state: "closed",
     browser: {
       active_cols: ["Sort Field", "Due", "Card", "Tags", "Deck"],
       sort_field: "Sort Field",
       sort_backwards: false,
     },
-    debug: false,
   }
 }
 

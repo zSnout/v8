@@ -314,6 +314,8 @@ export function Shortcut(props: { key: string }) {
   )
 }
 
+export type SidebarState = "auto" | "open" | "closed"
+
 export function Full(props: {
   /** The main content, such as a quiz question. */
   content: JSX.Element
@@ -329,6 +331,12 @@ export function Full(props: {
 
   /** Whether the element is in a layer. */
   layer?: boolean
+
+  /** Initial value of sidebar state. */
+  sidebarState?: SidebarState
+
+  /** Called whenever the sidebar state is changed. */
+  onSidebarState?: (state: SidebarState) => void
 }) {
   const width = (() => {
     const [width, setWidth] = createSignal(1024)
@@ -341,9 +349,15 @@ export function Full(props: {
     return width
   })()
 
-  type SidebarState = "auto" | "open" | "closed"
+  const [sidebarState, rawSetSidebarState] = createSignal(
+    props.sidebarState ?? "auto",
+  )
 
-  const [sidebarState, setSidebarState] = createSignal<SidebarState>("auto")
+  const setSidebarState = function (this: any) {
+    const retval = rawSetSidebarState.apply(this, arguments as never)
+    props.onSidebarState?.(retval)
+    return retval
+  } as typeof rawSetSidebarState
 
   const sidebarOpen = createMemo(() => {
     if (width() < 640) {
@@ -387,7 +401,7 @@ export function Full(props: {
       <div
         class={
           props.layer
-            ? sidebarOpen()
+            ? sidebarOpen() && width() >= 640
               ? // TODO: this defn doesnt work on mobile
                 "grid flex-1 grid-cols-[auto,19.5rem] transition-[grid-template-columns]"
               : "grid flex-1 grid-cols-[auto,0] transition-[grid-template-columns]"
@@ -478,18 +492,23 @@ export function Full(props: {
           inert={!sidebarOpen()}
         >
           <div
-            class="fixed bottom-8 right-0 top-8 flex w-[19.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0"
+            class="fixed bottom-8 right-0 flex w-[19.5rem] flex-col overflow-y-auto border-l border-z px-4 py-10 sm:translate-x-0"
             classList={{
               "translate-x-0": sidebarOpen(),
               "translate-x-full": !sidebarOpen(),
+              "top-8": !props.layer,
+              "top-0": props.layer,
+              "sm:top-8": props.layer,
             }}
           />
 
           <div
-            class="fixed bottom-0 right-0 top-12 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 py-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[19.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none"
+            class="fixed bottom-0 right-0 flex w-full flex-col items-start overflow-y-auto border-l border-transparent bg-z-body px-4 py-8 transition xs:w-[19.5rem] xs:border-z sm:top-0 sm:w-[19.5rem] sm:translate-x-0 sm:border-transparent sm:bg-transparent sm:transition-none"
             classList={{
               "translate-x-0": sidebarOpen(),
               "translate-x-full": !sidebarOpen(),
+              "top-12": !props.layer,
+              "top-0": props.layer,
             }}
           >
             {props.sidebar}
