@@ -30,6 +30,7 @@ import {
   Notes,
   Prefs,
   RepeatInfo,
+  Review,
   RevLog,
 } from "./types"
 
@@ -729,4 +730,8 @@ export class AppNotes {
 
 export class AppRevLog {
   constructor(readonly log: RevLog, private app: App) {}
+
+  push(entry: Review) {
+    ;(this.log[entry.cid] ??= []).push(entry)
+  }
 }

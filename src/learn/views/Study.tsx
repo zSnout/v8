@@ -1,4 +1,4 @@
-import { notNull } from "@/components/pray"
+import { notNull, prayTruthy } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import {
   ContentCard,
@@ -9,7 +9,7 @@ import {
   Shortcut,
 } from "@/pages/quiz/layout"
 import { timestampDist } from "@/pages/quiz/shared"
-import { createMemo, createSignal, Show } from "solid-js"
+import { batch, createMemo, createSignal, Show } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
 import { Scheduler } from "../lib/scheduler"
 import { App } from "../lib/state"
@@ -27,11 +27,14 @@ export function Study({
   scheduler: Scheduler
   close: () => void
 }) {
-  const [card, setCard] = createSignal(scheduler.nextCard(Date.now()))
+  const [card, setCard] = createSignal({
+    card: scheduler.nextCard(Date.now()),
+    shownAt: Date.now(),
+  })
   const [answerShown, setAnswerShown] = createSignal(false)
 
   const tmpl = createMemo(() => {
-    const c = card()
+    const { card: c } = card()
     if (!c) {
       return { qhtml: "", ahtml: "", css: "", source: [] }
     }
@@ -66,7 +69,7 @@ export function Study({
     return { qhtml, ahtml, css: model.css, source: [deck.name] }
   })
 
-  const repeat = createMemo(() => card()?.repeat(Date.now(), 0))
+  const repeat = createMemo(() => card().card?.repeat(Date.now(), 0))
 
   return (
     <div class="flex min-h-full w-full flex-1 flex-col">
@@ -154,7 +157,16 @@ export function Study({
     )
   }
 
-  function answer(rating: Rating) {}
+  function answer(grade: Grade) {
+    const { card: c, shownAt } = card()
+    prayTruthy(c, "Cannot answer a `null` card.")
+    const now = Date.now()
+    unwrap(c.review(now, Math.max(0, now - shownAt), grade))
+    batch(() => {
+      setCard({ card: scheduler.nextCard(now), shownAt: now })
+      setAnswerShown(false)
+    })
+  }
 
   function Button(props: {
     class: string
@@ -184,6 +196,7 @@ export function Study({
     return (
       <div class="w-full flex-1">
         <h1 class="text-center">Quick Actions</h1>
+        <button onClick={close}>Exit</button>
       </div>
     )
   }

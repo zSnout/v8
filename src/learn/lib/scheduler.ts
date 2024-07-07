@@ -1,6 +1,6 @@
 import { pray } from "@/components/pray"
 import { ok } from "@/components/result"
-import { State } from "ts-fsrs"
+import { Grade, State } from "ts-fsrs"
 import { App } from "./state"
 import { AnyCard, Conf, Deck } from "./types"
 
@@ -172,14 +172,14 @@ export class Scheduler {
       }
 
       const index = this.learning.indexOf(card)
-      return new DueCard(card, this, 1, index)
+      return new DueCard(card, this, 0, index)
     } else {
       const card = this.new[0]
       if (!card) {
         return null
       }
 
-      return new DueCard(card, this, 1, 0)
+      return new DueCard(card, this, 0, 0)
     }
   }
 
@@ -251,6 +251,21 @@ export class DueCard {
     return this.scheduler.app.cards.repeat(this.card, now, repeatTime)
   }
 
+  review(now: number, repeatTime: number, grade: Grade) {
+    if (this.saved) {
+      throw new Error("A `DueCard` cannot be saved twice.")
+    }
+
+    const entry = this.repeat(now, repeatTime)[grade]
+    const result = this.set(entry.card)
+    if (!result.ok) {
+      return result
+    }
+    this.save(now)
+    this.scheduler.app.revLog.push(entry.log)
+    return ok()
+  }
+
   /**
    * Removes this card from its old bucket. Regathers. Returns true if
    * regathering happened.
@@ -298,7 +313,7 @@ export class DueCard {
    *
    * The `DueCard` should not be used after calling `.save()`.
    */
-  save(now: number) {
+  private save(now: number) {
     // TODO: this needs to update the properties of its corresponding deck
 
     if (this.saved) {
