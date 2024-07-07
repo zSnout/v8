@@ -164,3 +164,15 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
 }
 
 // TODO: properly unmount new layers once they're removed
+
+export interface LayerProps<T> {
+  base: T
+  pop(): void
+}
+
+export interface LayerOutput {
+  el: JSX.Element
+  onForcePop(): boolean | PromiseLike<boolean>
+}
+
+export type Layerable<T> = (props: LayerProps<T>) => LayerOutput
