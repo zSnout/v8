@@ -1,31 +1,25 @@
 ---
-import Navigation from "@/components/nav/Navigation.astro"
+import Navigation, {
+  type Props as NavProps,
+} from "@/components/nav/Navigation.astro"
 import Layout, { type Props as LayoutProps } from "./Layout.astro"
 
-export interface Props extends LayoutProps {
-  maxWidth: `max-w-${string}`
+export interface Props
+  extends LayoutProps,
+    Omit<NavProps, "floating" | "options"> {
   pt?: `pt-${number}`
   pb?: `pb-${number}`
-  shortLine?: boolean
 }
 ---
 
 <Layout {...Astro.props}>
   {
     Astro.slots.options ? (
-      <Navigation
-        floating={false}
-        maxWidth={Astro.props.maxWidth}
-        shortLine={Astro.props.shortLine}
-      >
+      <Navigation {...Astro.props} floating={false}>
         <slot name="options" slot="options" />
       </Navigation>
     ) : (
-      <Navigation
-        floating={false}
-        maxWidth={Astro.props.maxWidth}
-        shortLine={Astro.props.shortLine}
-      />
+      <Navigation {...Astro.props} floating={false} />
     )
   }
 

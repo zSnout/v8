@@ -11,10 +11,15 @@ declare module "solid-js" {
         | "group" // used on empty spaces which contains other symbols
 
       "data-latex-ignore"?: boolean // makes children not be considered targets
+
+      /** Element marked as able to pop the current layer. */
+      "data-z-layer-pop"?: true
     }
 
     interface CustomEventHandlersCamelCase<T> {
       onLatexTargetFind?: EventHandlerUnion<T, LatexTargetFindEvent>
+      onConsider?: EventHandlerUnion<T, DndEvent>
+      onFinalize?: EventHandlerUnion<T, DndEvent>
     }
 
     interface CustomEventHandlersLowerCase<T> {

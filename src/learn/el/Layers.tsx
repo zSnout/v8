@@ -114,6 +114,8 @@ function animateIn(prev: HTMLDivElement, next: HTMLDivElement) {
   prev.classList.add("overflow-clip")
   if (prev.classList.contains("z-layer-root")) {
     document.body.classList.add("overflow-clip")
+  } else {
+    prev.classList.remove("z-layer-active")
   }
   prev.inert = true
 
@@ -139,6 +141,8 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
   prev.classList.remove("overflow-clip")
   if (prev.classList.contains("z-layer-root")) {
     document.body.classList.remove("overflow-clip")
+  } else {
+    prev.classList.add("z-layer-active")
   }
   prev.inert = false
 

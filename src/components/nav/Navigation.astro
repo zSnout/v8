@@ -1,13 +1,16 @@
 ---
+import { Fa } from "@/components/Fa"
+import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { Options } from "./Options"
 import { ThemeSwitcher } from "./ThemeSwitcher"
 
-interface Props {
+export interface Props {
   floating: boolean
   maxWidth: `max-w-${string}`
   options?: any
   theme?: "light" | "dark"
   shortLine?: boolean
+  sublink?: { title: string; href: `/${string}` }
 }
 
 // TODO: make sure this doesn't disturb fractal explorer settings
@@ -19,9 +22,9 @@ interface Props {
 >
 </div>
 
-{/* This is _intentionally_ not a <nav /> element. */}
+{/* This is intentionally not a <nav /> element. */}
 {/* That is used in prose and other documents with internal nav links. */}
-<div
+<header
   class={"pointer-events-none fixed top-0 z-30 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden " +
     (Astro.props.floating
       ? "border-b-transparent"
@@ -38,13 +41,34 @@ interface Props {
       )
     }
 
-    <a
-      class={"pointer-events-auto mr-auto font-extralight text-2xl underline decoration-transparent decoration-1 underline-offset-2 transition hover:decoration-current text-z-heading z-20 relative border border-transparent focus-visible:border-z-focus ring-z-focus focus-visible:ring focus-visible:outline-none rounded-lg left-[calc(-0.5rem_-_1px)] px-2 py-0.5 " +
-        (Astro.props.floating ? "backdrop-blur-sm bg-z-body-partial" : "")}
-      href="/"
+    <div
+      class="pointer-events-auto relative left-[calc(-0.5rem_-_1px)] z-20 mr-auto flex items-baseline text-2xl font-extralight text-z-heading"
     >
-      zSnout
-    </a>
+      <a
+        class={"rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition hover:decoration-current focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring " +
+          (Astro.props.floating ? "backdrop-blur-sm bg-z-body-partial" : "")}
+        href="/">zSnout</a
+      >
+
+      {
+        Astro.props.sublink && (
+          <>
+            <Fa class="h-4 w-4" icon={faChevronRight} title="sublink" />
+            <a
+              class={
+                "z-sublink rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition hover:decoration-current focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring " +
+                (Astro.props.floating
+                  ? "bg-z-body-partial backdrop-blur-sm"
+                  : "")
+              }
+              href={Astro.props.sublink.href}
+            >
+              {Astro.props.sublink.title}
+            </a>
+          </>
+        )
+      }
+    </div>
 
     {
       Astro.slots.options ? (
@@ -58,4 +82,4 @@ interface Props {
 
     <ThemeSwitcher client:idle theme={Astro.props.theme} />
   </div>
-</div>
+</header>
