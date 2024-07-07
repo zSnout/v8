@@ -317,7 +317,7 @@ export function SidebarSticky(props: { children: JSX.Element }) {
 export function Shortcut(props: { key: string }) {
   return (
     <kbd
-      class="absolute bottom-0 right-1 hidden text-sm md:block"
+      class="absolute bottom-0 right-1 hidden text-sm xs:block"
       title={`Shortcut: key ${props.key}`}
     >
       {props.key}
