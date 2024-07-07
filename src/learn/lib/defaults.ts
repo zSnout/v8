@@ -38,7 +38,7 @@ export function createPrefs(): Prefs {
     last_model_used: undefined,
     active_decks: [],
     new_spread: 0,
-    collapse_time: 0,
+    collapse_time: 60 * 20,
     notify_after_time: 0,
     show_review_time_above_buttons: true,
     show_remaining_due_counts: true,
