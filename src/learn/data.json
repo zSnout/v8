@@ -162,7 +162,7 @@
   "models": {
     "1": {
       "id": 1,
-      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n}\n\n.dark {\n  color: red;\n}\n\n.light {\n  color: orange;\n}",
+      "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n}",
       "fields": {
         "4096856383636694": {
           "id": 4096856383636694,

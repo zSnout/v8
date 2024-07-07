@@ -9,7 +9,7 @@ import {
   Shortcut,
 } from "@/pages/quiz/layout"
 import { timestampDist } from "@/pages/quiz/shared"
-import { batch, createMemo, createSignal, Show } from "solid-js"
+import { batch, createMemo, createSignal, JSX, Show } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
 import { Scheduler } from "../lib/scheduler"
 import { App } from "../lib/state"
@@ -32,7 +32,6 @@ export function Study({
     shownAt: Date.now(),
   })
   const [answerShown, setAnswerShown] = createSignal(false)
-
   const tmpl = createMemo(() => {
     const { card: c } = card()
     if (!c) {
@@ -68,8 +67,9 @@ export function Study({
 
     return { qhtml, ahtml, css: model.css, source: [deck.name] }
   })
-
   const repeat = createMemo(() => card().card?.repeat(Date.now(), 0))
+  const [now, setNow] = createSignal(Date.now())
+  setInterval(() => setNow(Date.now()), 30_000)
 
   return (
     <div class="flex min-h-full w-full flex-1 flex-col">
@@ -86,18 +86,20 @@ export function Study({
 
   function Content() {
     return (
-      <ContentCard
-        fullFront
-        source={tmpl().source}
-        front={
-          <Template.Render
-            html={tmpl()[answerShown() ? "ahtml" : "qhtml"]}
-            css={tmpl().css}
-            class="flex-1"
-            theme="auto"
-          />
-        }
-      />
+      <Show fallback={<NullCard />} when={card().card}>
+        <ContentCard
+          fullFront
+          source={tmpl().source}
+          front={
+            <Template.Render
+              html={tmpl()[answerShown() ? "ahtml" : "qhtml"]}
+              css={tmpl().css}
+              class="flex-1"
+              theme="auto"
+            />
+          }
+        />
+      </Show>
     )
   }
 
@@ -108,11 +110,11 @@ export function Study({
       <Show
         fallback={
           <ResponseGray onClick={close}>
-            Close
+            Back to Decks
             <Shortcut key="0" />
           </ResponseGray>
         }
-        when={card()}
+        when={card().card}
       >
         <Show
           fallback={
@@ -198,6 +200,83 @@ export function Study({
         <h1 class="text-center">Quick Actions</h1>
         <button onClick={close}>Exit</button>
       </div>
+    )
+  }
+
+  function NullCard() {
+    return (
+      <div class="flex w-full flex-1 flex-col items-center justify-center gap-8">
+        <p class="text-8xl">🎉</p>
+        <h1 class="text-center text-xl font-semibold text-z-heading">
+          Congratulations! You have finished this deck for now.
+        </h1>
+        <div class="mx-auto flex w-full max-w-md flex-col gap-2">
+          <Show when={scheduler.new.length}>
+            <NullMoreNewAvailable />
+          </Show>
+          <Show when={scheduler.learning.length}>
+            <NullMoreLearningAvailable />
+          </Show>
+          <Show when={scheduler.review.length}>
+            <NullMoreReviewBacklogAvailable />
+          </Show>
+          <p>
+            If you wish to study outside of the regular schedule, you can use
+            the <InlineButton>custom study</InlineButton> feature.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  function NullMoreNewAvailable() {
+    return (
+      <p>
+        There are more new cards available, but the daily limit has been
+        reached. You may <InlineButton>increase today's limit</InlineButton> if
+        you wish, but beware that adding too many new cards will make your daily
+        reviews in the near future skyrocket.
+      </p>
+    )
+  }
+
+  function NullMoreLearningAvailable() {
+    const earliest = scheduler.learning.length
+      ? scheduler.learning.reduce((a, b) => (a.due < b.due ? a : b))
+      : undefined
+
+    return (
+      <p>
+        There are still some learning cards left, but they aren't due for{" "}
+        {earliest
+          ? timestampDist((earliest.due - now()) / 1000)
+          : "<unknown time>"}
+        .
+      </p>
+    )
+  }
+
+  function NullMoreReviewBacklogAvailable() {
+    return (
+      <p>
+        There are more review cards due today, but the daily limit has been
+        reached. You may <InlineButton>increase today's limit</InlineButton> if
+        you wish, which can help if you have a large backlog.
+      </p>
+    )
+  }
+
+  function InlineButton(props: {
+    children: JSX.Element
+    onClick?: () => void
+  }) {
+    return (
+      <button
+        class="whitespace-normal text-z-link underline underline-offset-2"
+        onClick={props.onClick}
+      >
+        {props.children}
+      </button>
     )
   }
 }

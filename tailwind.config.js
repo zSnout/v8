@@ -11,14 +11,16 @@ export default {
       rotate: { 60: "60deg" },
       spacing: { 4.5: "1.125rem" },
       fontFamily: {
-        sans: 'ui-sans-serif, system-ui, sans-serif, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", var(--font-sp)',
+        sans: 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", var(--font-sp)',
+        "sans-noto":
+          'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", var(--font-sp)',
         serif:
           'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif, var(--font-sp)',
         mono: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace, var(--font-sp)',
         mathnum: "Symbola, Times New Roman, serif, var(--font-sp)",
         mathvar: "Times New Roman, Symbols, serif, var(--font-sp)",
         "sp-sans":
-          'var(--font-sp), ui-sans-serif, system-ui, sans-serif, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+          'var(--font-sp), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
       },
     },
   },

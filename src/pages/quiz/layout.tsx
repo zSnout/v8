@@ -40,13 +40,24 @@ export function ContentGuide(props: {
   )
 }
 
-export function ContentError(props: { children: JSX.Element }) {
+export function ContentIcon(props: {
+  children: JSX.Element
+  icon: IconDefinition
+  title: string
+}) {
   return (
     <div class="flex w-full flex-1 flex-col items-center justify-center gap-4">
-      <Fa class="size-12" icon={faExclamationTriangle} title="error" />
-
+      <Fa class="size-12" icon={props.icon} title={props.title} />
       <p class="text-center">{props.children}</p>
     </div>
+  )
+}
+
+export function ContentError(props: { children: JSX.Element }) {
+  return (
+    <ContentIcon icon={faExclamationTriangle} title="error">
+      {props.children}
+    </ContentIcon>
   )
 }
 
