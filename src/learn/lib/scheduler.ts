@@ -117,8 +117,9 @@ export class Scheduler {
 
     const limit = this.main.custom_newcard_limit ?? this.conf.new.per_day
     const seen = this.newCardsSeenToday(now)
+    const count = this.new.length
 
-    return Math.max(0, limit - seen)
+    return Math.min(count, Math.max(0, limit - seen))
   }
 
   /**
@@ -184,6 +185,7 @@ export class Scheduler {
     )
   }
 
+  // TODO: limit number of reviews each day
   /** Picks the next card to show. */
   nextCard(now: number) {
     this.regather(now)

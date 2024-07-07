@@ -300,7 +300,7 @@ export class AppDecks {
 
     decks.unshift(deck)
 
-    return new Scheduler(deck, decks, structuredClone(conf), this.app, now)
+    return ok(new Scheduler(deck, decks, structuredClone(conf), this.app, now))
   }
 }
 
