@@ -250,8 +250,13 @@ export function Debug({ app, close }: { app: App; close: () => void }) {
 
   return (
     <div class="flex flex-col gap-8">
-      <Action icon={faXmark} label="Exit" center onClick={close} />
-
+      <Action
+        icon={faXmark}
+        label="Exit"
+        center
+        onClick={close}
+        data-z-layer-pop
+      />
       <RawInformation />
     </div>
   )

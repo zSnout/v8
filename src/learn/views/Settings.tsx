@@ -165,7 +165,13 @@ export function Settings({ app, close }: { app: App; close: () => void }) {
       </CheckboxContainer>
 
       <TwoBottomButtons>
-        <Action icon={faRightFromBracket} label="Exit" center onClick={exit} />
+        <Action
+          icon={faRightFromBracket}
+          label="Exit"
+          center
+          onClick={exit}
+          data-z-layer-pop
+        />
         <Action icon={faCheck} label="Save" center onClick={save} />
       </TwoBottomButtons>
     </div>

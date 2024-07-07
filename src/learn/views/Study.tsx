@@ -225,6 +225,7 @@ export function Study({
     label: string
     onClick?: () => void
     shortcut?: string
+    "data-z-layer-pop"?: true
   }) {
     const { shortcut = "" } = props
     const mods = shortcut.match(/[⇧⌘⌥⌫]/g)?.join("") ?? ""
@@ -235,6 +236,7 @@ export function Study({
         class="z-field mx-[calc(-0.5rem_-_1px)] flex items-center gap-2 border-transparent bg-transparent px-2 py-0.5 text-z shadow-none transition hover:enabled:bg-z-body-selected"
         onClick={props.onClick}
         disabled={!props.onClick}
+        data-z-layer-pop={props["data-z-layer-pop"]}
       >
         <Fa class="h-4 w-4" icon={props.icon} title={false} />
         <span class="flex-1 text-left">{props.label}</span>
@@ -260,6 +262,7 @@ export function Study({
           label="Exit Session"
           shortcut="Esc"
           onClick={close}
+          data-z-layer-pop
         />
         <QuickAction icon={faSync} label="Sync" shortcut="Y" />
         <QuickActionLine />

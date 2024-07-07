@@ -146,6 +146,7 @@ export function EditModelTemplates(props: {
           label="Cancel"
           center
           onClick={() => props.close(null, null)}
+          data-z-layer-pop
         />
         <Action
           icon={faCheck}
