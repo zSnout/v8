@@ -47,10 +47,12 @@ function SublinkHandler(): undefined {
     }
   })
 
-  createEventListener(window, "beforeunload", (event) => {
-    event.returnValue = true
-    return false
-  })
+  if (!import.meta.env.DEV) {
+    createEventListener(window, "beforeunload", (event) => {
+      event.returnValue = true
+      return false
+    })
+  }
 }
 
 export function Main() {
