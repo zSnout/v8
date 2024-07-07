@@ -326,6 +326,9 @@ export function Full(props: {
 
   /** Quick actions such as saving data available in the sidebar. */
   actions?: JSX.Element
+
+  /** Whether the element is in a layer. */
+  layer?: boolean
 }) {
   const width = (() => {
     const [width, setWidth] = createSignal(1024)
@@ -381,11 +384,26 @@ export function Full(props: {
 
   return (
     <>
-      <div class="relative z-10 flex flex-1 items-start">
+      <div
+        class={
+          props.layer
+            ? sidebarOpen()
+              ? // TODO: this defn doesnt work on mobile
+                "grid flex-1 grid-cols-[auto,19.5rem] transition-[grid-template-columns]"
+              : "grid flex-1 grid-cols-[auto,0] transition-[grid-template-columns]"
+            : "flex flex-1 items-start"
+        }
+      >
         <div class="flex h-full w-full flex-1 flex-col items-start">
           {props.content}
 
-          <div class="sticky bottom-0 -mb-8 flex w-full flex-col pb-8">
+          <div
+            class="sticky bottom-0 flex w-full flex-col"
+            classList={{
+              "-mb-8": !props.layer,
+              "pb-8": !props.layer,
+            }}
+          >
             <div class="h-4 w-full bg-gradient-to-b from-transparent to-z-bg-body" />
 
             <div class="-mb-8 w-full bg-z-body pb-8 text-center">
@@ -394,7 +412,13 @@ export function Full(props: {
           </div>
         </div>
 
-        <div class="fixed right-4 top-16 z-10 flex flex-col gap-2">
+        <div
+          class="fixed right-4 z-10 flex flex-col gap-2"
+          classList={{
+            "top-16": !props.layer,
+            "top-4": props.layer,
+          }}
+        >
           <button
             class="z-field overflow-clip p-1 active:translate-y-0 md:translate-x-[min(0px,-50vw_+_512px+1rem)]"
             onClick={toggleSidebar}

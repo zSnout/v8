@@ -425,6 +425,9 @@ export const Prefs = v.object({
   /** Whether to show the remaining due counts */
   show_remaining_due_counts: v.boolean(),
 
+  /** Whether to show deck names */
+  show_deck_name: v.boolean(),
+
   /** Highest due value of a new card. Next note created should be higher than this */
   next_new_card_position: v.number(),
 
@@ -433,6 +436,9 @@ export const Prefs = v.object({
 
   /** When the day is considered to start, in milliseconds after midnight */
   day_start: v.number(),
+
+  /** Whether to enable debug features */
+  debug: v.boolean(),
 
   /** Configuration relating to the browser */
   browser: v.object({
@@ -445,9 +451,6 @@ export const Prefs = v.object({
     /** Whether to sort backwards */
     sort_backwards: v.boolean(),
   }),
-
-  /** Whether to enable debug features */
-  debug: v.boolean(),
 })
 
 export interface Core extends v.InferOutput<typeof Core> {}

@@ -25,6 +25,7 @@ export function ModalConfirm(props: {
   return (
     <button
       // class="z-field rounded-md border-transparent bg-z-text-heading text-sm text-z-bg-body shadow-none hover:bg-z-text"
+      // TODO: the hover style on light mode is too dark
       class="z-field rounded-md border-transparent bg-z-body-selected text-sm text-z shadow-none dark:hover:bg-z-field-selected hover:bg-z-text hover:text-z-bg-body dark:hover:border-transparent dark:hover:text-z"
       onClick={props.onClick}
     >

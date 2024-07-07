@@ -1,5 +1,6 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { ModalDescription, prompt } from "@/components/Modal"
+import { unwrap } from "@/components/result"
 import { NodeProps } from "@/components/tree"
 import {
   faChartBar,
@@ -13,12 +14,14 @@ import {
 import { createMemo, createSignal, getOwner, Show } from "solid-js"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { Icon, Icons } from "../el/IconButton"
+import { useLayers } from "../el/Layers"
 import { createExpr } from "../lib/expr"
 import { App, AppDecks } from "../lib/state"
 import { Deck } from "../lib/types"
 import { CreateNote } from "./CreateNote"
 import { Debug } from "./Debug"
 import { Settings } from "./Settings"
+import { Study } from "./Study"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -29,6 +32,7 @@ export function Home({ app }: { app: App }) {
   const [decks, reloadDecks] = createExpr(() => app.decks.tree(Date.now()))
   const [now, setNow] = createSignal(Date.now())
   const owner = getOwner()
+  const layers = useLayers()
 
   // TODO: add decks to icon list and put all of them in the navbar when any
   // layers are active
@@ -154,24 +158,33 @@ export function Home({ app }: { app: App }) {
   function DeckEl({ data, subtree }: NodeProps<Deck, Deck>) {
     const s = createMemo(() => {
       const n = now()
-      const result = app.decks.scheduler(data, n)
-      if (!result.ok) {
-        return { new: 0, learning: 0, review: 0 }
-      } else {
-        const { value: v } = result
-        return {
-          new: v.newCardsLeft(n),
-          learning: v.learning.length,
-          review: v.review.length,
-        }
+      const scheduler = unwrap(app.decks.scheduler(data, n))
+      return {
+        scheduler,
+        new: scheduler.newCardsLeft(n),
+        learning: scheduler.learning.length,
+        review: scheduler.review.length,
       }
     })
 
     return (
-      <div
+      <button
         class={
-          "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg pl-8 pr-4 text-z-subtitle" +
+          "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg pl-8 pr-4 text-left text-z-subtitle" +
           (subtree ? " -ml-6" : "")
+        }
+        onClick={() =>
+          layers.push((close) => (
+            <Study
+              app={app}
+              scheduler={s().scheduler}
+              close={() => {
+                reloadDecks()
+                reloadPrefs()
+                close()
+              }}
+            />
+          ))
         }
       >
         <p class="text-z">{data.name.split("::").at(-1)}</p>
@@ -202,7 +215,7 @@ export function Home({ app }: { app: App }) {
         >
           {s().review}
         </p>
-      </div>
+      </button>
     )
   }
 }

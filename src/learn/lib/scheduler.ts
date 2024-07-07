@@ -3,6 +3,8 @@ import { State } from "ts-fsrs"
 import { App } from "./state"
 import { AnyCard, Conf, Deck } from "./types"
 
+// TODO: handle unburying cards
+
 export class Scheduler {
   new!: AnyCard[]
   learning!: AnyCard[]
