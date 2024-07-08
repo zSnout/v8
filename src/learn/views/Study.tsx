@@ -379,7 +379,6 @@ export const Study = (({ app, scheduler }, pop) => {
     )
   }
 
-  // TODO: undo
   function Sidebar() {
     return (
       <div class="flex w-full flex-1 flex-col">

@@ -48,6 +48,7 @@ import {
 
 // TODO: invalidate all data saving when another tab is open
 // TODO: properly assign new cards a due index
+// TODO: undo/redo
 
 export class App {
   core!: AppCore

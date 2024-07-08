@@ -11,7 +11,13 @@ import {
   faTableCellsLarge,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { createMemo, createSignal, getOwner, Show } from "solid-js"
+import {
+  createMemo,
+  createResource,
+  createSignal,
+  getOwner,
+  Show,
+} from "solid-js"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
@@ -27,12 +33,23 @@ function nope(): never {
   throw new Error("this page doesn't exist yet")
 }
 
-export function Home({ app }: { app: App }) {
+function HomeLoaded({
+  app,
+  stream,
+}: {
+  app: App
+  stream: FileSystemWritableFileStream
+}) {
   const [prefs, reloadPrefs] = createExpr(() => app.prefs.prefs)
   const [decks, reloadDecks] = createExpr(() => app.decks.tree(Date.now()))
   const [now, setNow] = createSignal(Date.now())
   const owner = getOwner()
   const layers = useLayers()
+
+  setInterval(() => {
+    stream.truncate(0)
+    stream.write(JSON.stringify(app))
+  }, 5000)
 
   // TODO: add decks to icon list and put all of them in the navbar when any
   // layers are active
@@ -197,4 +214,20 @@ export function Home({ app }: { app: App }) {
       </button>
     )
   }
+}
+
+export function Home({ app }: { app: App }) {
+  const [stream] = createResource(async () => {
+    const dir = await navigator.storage.getDirectory()
+    const data = await dir.getFileHandle("data.json", { create: true })
+    void app.import(await (await data.getFile()).text())
+    const stream = await data.createWritable({ keepExistingData: false })
+    return stream
+  })
+
+  return (
+    <Show when={stream()} fallback={<p>loading</p>} keyed>
+      {(stream) => <HomeLoaded app={app} stream={stream} />}
+    </Show>
+  )
 }

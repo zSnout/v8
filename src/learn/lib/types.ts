@@ -144,7 +144,7 @@ export const Review = v.object({
   /** Number of days elapsed since the last review */
   elapsed_days: v.number(),
 
-  /** Number of dats between the last two reviews */
+  /** Number of days between the last two reviews */
   last_elapsed_days: v.number(),
 
   /** Number of days until the next review */
