@@ -106,7 +106,7 @@ export const Debug = (({ app }: { app: App }, pop) => {
                 <p class="col-span-3 mb-1 border-b border-z pb-1 text-base font-semibold text-z-heading">
                   {data.name.split("::").at(-1)}
                 </p>
-                <p>conf? {data.conf}</p>
+                <p>conf? {data.cfid}</p>
                 <p>custom_newcard_limit? {data.custom_newcard_limit}</p>
                 <p>custom_revcard_limit? {data.custom_revcard_limit}</p>
                 <p>desc? {data.desc}</p>

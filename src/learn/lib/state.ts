@@ -232,7 +232,7 @@ export class AppDecks {
       name,
       new_today: 0,
       reviews_today: 0,
-      conf: this.app.confs.default(now).id,
+      cfid: this.app.confs.default(now).id,
       today: now,
     }
   }
@@ -293,7 +293,7 @@ export class AppDecks {
       return error("The selected deck is not in the collection.")
     }
 
-    const conf = this.app.confs.byId[deck.conf]
+    const conf = this.app.confs.byId[deck.cfid]
 
     if (!conf) {
       return error("The selected deck isn't attached to a configuration.")
@@ -406,7 +406,7 @@ export class AppCards {
     )
 
     const conf = notNull(
-      confs.byId[deck.conf],
+      confs.byId[deck.cfid],
       "This card's deck is linked to a nonexistent configuration.",
     )
 
@@ -437,7 +437,7 @@ export class AppCards {
     )
 
     const conf = notNull(
-      confs.byId[deck.conf],
+      confs.byId[deck.cfid],
       "This card's deck is linked to a nonexistent configuration.",
     )
 

@@ -114,7 +114,7 @@ export const Note = v.object({
 
 export interface Review extends v.InferOutput<typeof Review> {}
 export const Review = v.object({
-  /** Timestamp of when review was done */
+  /** Unique id corresponding to review */
   id: Id,
 
   /** Card id */
@@ -151,7 +151,7 @@ export const Review = v.object({
   scheduled_days: v.number(),
 
   /** Date of the review */
-  review: v.optional(v.number()),
+  review: v.number(),
 })
 
 export interface ModelField extends v.InferOutput<typeof ModelField> {}
@@ -288,7 +288,7 @@ export const Deck = v.object({
   desc: v.string(),
 
   /** Conf id */
-  conf: Id,
+  cfid: Id,
 })
 
 export interface Conf extends v.InferOutput<typeof Conf> {}
@@ -494,9 +494,6 @@ export const Prefs = v.object({
 
 export interface Core extends v.InferOutput<typeof Core> {}
 export const Core = v.object({
-  /** Collection id */
-  id: Id,
-
   /** Creation timestamp of the collection */
   creation: v.number(),
 
@@ -537,6 +534,9 @@ export const RevLog = v.record(IdKey, v.array(Review))
 export interface Models extends v.InferOutput<typeof Models> {}
 export const Models = v.record(IdKey, Model)
 
+export interface Graves extends v.InferOutput<typeof Graves> {}
+export const Graves = v.array(Grave)
+
 export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
   /** The special `version` tag is updated whenever the data format changes */
@@ -546,7 +546,7 @@ export const Collection = v.object({
   cards: Cards,
 
   /** An array of graves */
-  graves: v.array(Grave),
+  graves: Graves,
 
   /** A record from note ids to their corresponding notes */
   notes: Notes,

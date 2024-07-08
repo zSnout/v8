@@ -23,7 +23,6 @@ const ID_MODEL_BASIC_AND_REVERSED = idOf(2)
 
 export function createCore(now: number): Core {
   return {
-    id: randomId(),
     creation: now,
     last_edited: now,
     last_schema_edit: now,
@@ -97,7 +96,7 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     last_edited: now,
     name,
     new_today: 0,
-    conf: ID_CONF_DEFAULT,
+    cfid: ID_CONF_DEFAULT,
     today: now,
     reviews_today: 0,
   }
