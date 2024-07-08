@@ -249,7 +249,8 @@ export const Model = v.object({
   /** 0=standard model, 1=cloze model */
   type: v.picklist([0, 1]),
 
-  // mod: "modification time in seconds",
+  /** Last time this model was edited */
+  last_edited: v.number(),
 })
 
 export interface Deck extends v.InferOutput<typeof Deck> {}
@@ -275,11 +276,11 @@ export const Deck = v.object({
   /** Last time this deck was edited */
   last_edited: v.number(),
 
-  /** Number of new cards seen today */
-  new_today: v.number(),
+  /** Ids of new cards seen today */
+  new_today: v.array(Id),
 
-  /** Number of reviews done today */
-  reviews_today: v.number(),
+  /** Ids of reviews done today */
+  reviews_today: v.array(Id),
 
   /** When `new_today` and the `..._limit` properties were last updated */
   today: v.number(),

@@ -230,8 +230,8 @@ export class AppDecks {
       is_filtered: false,
       last_edited: now,
       name,
-      new_today: 0,
-      reviews_today: 0,
+      new_today: [],
+      reviews_today: [],
       cfid: this.app.confs.default(now).id,
       today: now,
     }
@@ -579,7 +579,7 @@ export class AppModels {
       }
     }
 
-    const model = createBasicModel()
+    const model = createBasicModel(now)
     this.set(model, now)
     return model
   }

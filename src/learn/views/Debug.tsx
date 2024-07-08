@@ -113,7 +113,7 @@ export const Debug = (({ app }: { app: App }, pop) => {
                 <p>id? {data.id}</p>
                 <p>is_filtered? {data.is_filtered}</p>
                 <p>last_edited? {data.last_edited}</p>
-                <p>new_today? {data.new_today}</p>
+                <p>new_today? {data.new_today.length}</p>
               </div>
             )}
             sort={([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)}

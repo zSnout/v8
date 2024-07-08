@@ -95,10 +95,10 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     is_filtered: false,
     last_edited: now,
     name,
-    new_today: 0,
+    new_today: [],
     cfid: ID_CONF_DEFAULT,
     today: now,
-    reviews_today: 0,
+    reviews_today: [],
   }
 }
 
@@ -130,6 +130,7 @@ export function createModel(
   tmpls: ModelTemplate[],
   css: string,
   fields: ModelField[],
+  now: number,
 ): Model {
   return {
     id,
@@ -140,6 +141,7 @@ export function createModel(
     tags: "",
     type: 0,
     sort_field: fields[0]?.id,
+    last_edited: now,
   }
 }
 
@@ -155,7 +157,7 @@ hr {
   border-style: solid;
 }`
 
-export function createBasicModel(): Model {
+export function createBasicModel(now: number): Model {
   return createModel(
     ID_MODEL_BASIC,
     "Basic",
@@ -172,10 +174,11 @@ export function createBasicModel(): Model {
     ],
     DEFAULT_MODEL_CSS,
     [createField("Front"), createField("Back")],
+    now,
   )
 }
 
-export function createModels(): Models {
+export function createModels(now: number): Models {
   const basicAndReversed = createModel(
     ID_MODEL_BASIC_AND_REVERSED,
     "Basic and reversed",
@@ -201,8 +204,9 @@ export function createModels(): Models {
     ],
     DEFAULT_MODEL_CSS,
     [createField("Front"), createField("Back")],
+    now,
   )
-  return arrayToRecord([createBasicModel(), basicAndReversed])
+  return arrayToRecord([createBasicModel(now), basicAndReversed])
 }
 
 export function createCollection(now: number): Collection {
@@ -220,6 +224,6 @@ export function createCollection(now: number): Collection {
     },
     confs: { [ID_CONF_DEFAULT]: createConf(now) },
     prefs: createPrefs(),
-    models: createModels(),
+    models: createModels(now),
   }
 }
