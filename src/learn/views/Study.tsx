@@ -1,4 +1,13 @@
 import { Fa } from "@/components/Fa"
+import {
+  Modal,
+  ModalButtons,
+  ModalCancel,
+  ModalConfirm,
+  ModalDescription,
+  ModalRef,
+  ModalTitle,
+} from "@/components/Modal"
 import { notNull, prayTruthy } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import {
@@ -13,7 +22,6 @@ import { timestampDist } from "@/pages/quiz/shared"
 import {
   faBackward,
   faBook,
-  faBookmark,
   faBrain,
   faCalendar,
   faClock,
@@ -35,10 +43,21 @@ import {
   faTrash,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import { batch, createMemo, createSignal, JSX, Show } from "solid-js"
+import {
+  batch,
+  createMemo,
+  createSignal,
+  For,
+  getOwner,
+  JSX,
+  Owner,
+  runWithOwner,
+  Show,
+} from "solid-js"
 import { createStore, unwrap as unwrapSolid } from "solid-js/store"
 import { Grade, Rating } from "ts-fsrs"
 import { Layerable } from "../el/Layers"
+import * as Flags from "../lib/flags"
 import { Scheduler } from "../lib/scheduler"
 import { App } from "../lib/state"
 import * as Template from "../lib/template"
@@ -49,10 +68,20 @@ import * as Template from "../lib/template"
 // TODO: add an `onbeforeunload` handler
 
 export const Study = (({ app, scheduler }, pop) => {
-  const [card, setCard] = createSignal({
+  const owner = getOwner()
+  const [card, __unsafeRawSetCard] = createSignal({
     card: scheduler.nextCard(Date.now()),
     shownAt: Date.now(),
   })
+  function nextCard() {
+    __unsafeRawSetCard({
+      card: scheduler.nextCard(Date.now()),
+      shownAt: Date.now(),
+    })
+  }
+  function notifyOfCardUpdate() {
+    __unsafeRawSetCard((x) => ({ ...x }))
+  }
   const [answerShown, setAnswerShown] = createSignal(false)
   const tmpl = createMemo(() => {
     const { card: c } = card()
@@ -89,7 +118,10 @@ export const Study = (({ app, scheduler }, pop) => {
 
     return { qhtml, ahtml, css: model.css, source: [deck.name] }
   })
-  const repeat = createMemo(() => card().card?.repeat(Date.now(), 0))
+  const repeat = createMemo(() => {
+    const now = Date.now()
+    return { info: card().card?.repeat(now, 0), now }
+  })
   const [now, setNow] = createSignal(Date.now())
   const [prefs, _______unsafeRawSetPrefs] = createStore(app.prefs.prefs)
   const setPrefs = function (this: any) {
@@ -139,8 +171,6 @@ export const Study = (({ app, scheduler }, pop) => {
 
   function Responses() {
     return (
-      // TODO: this should change based on `answerShown`
-
       <Show
         fallback={
           <ResponseGray onClick={pop}>
@@ -199,7 +229,7 @@ export const Study = (({ app, scheduler }, pop) => {
     const now = Date.now()
     unwrap(c.review(now, Math.max(0, now - shownAt), grade))
     batch(() => {
-      setCard({ card: scheduler.nextCard(now), shownAt: now })
+      nextCard()
       setAnswerShown(false)
     })
   }
@@ -216,12 +246,12 @@ export const Study = (({ app, scheduler }, pop) => {
         <br />
         {(() => {
           const r = repeat()
-          if (!r) {
+          if (!r.info) {
             return "<null>"
           }
 
-          const q = r[props.rating]
-          return timestampDist((q.card.due - q.card.last_review) / 1000)
+          const q = r.info[props.rating]
+          return timestampDist((q.card.due - r.now) / 1000)
         })()}
         <Shortcut key={props.shortcut} />
       </Response>
@@ -233,6 +263,7 @@ export const Study = (({ app, scheduler }, pop) => {
     label: string
     onClick?: () => void
     shortcut?: string
+    disabled?: boolean
   }) {
     const { shortcut = "" } = props
     const mods = shortcut.match(/[⇧⌘⌥⌫]/g)?.join("") ?? ""
@@ -242,7 +273,7 @@ export const Study = (({ app, scheduler }, pop) => {
       <button
         class="z-field mx-[calc(-0.5rem_-_1px)] flex items-center gap-2 border-transparent bg-transparent px-2 py-0.5 text-z shadow-none transition hover:enabled:bg-z-body-selected"
         onClick={props.onClick}
-        disabled={!props.onClick}
+        disabled={props.disabled || !props.onClick}
       >
         <Fa class="h-4 w-4" icon={props.icon} title={false} />
         <span class="flex-1 text-left">{props.label}</span>
@@ -256,6 +287,96 @@ export const Study = (({ app, scheduler }, pop) => {
 
   function QuickActionLine() {
     return <hr class="my-2 border-z" />
+  }
+
+  function FlagsSelector() {
+    return (
+      <div class="mb-1 flex gap-2">
+        <For each={Flags.ALL_FLAGS}>
+          {(flag) => {
+            const checked = createMemo(() => {
+              const c = card().card?.card
+              if (!c) {
+                return false
+              }
+              return Flags.has(c.flags, flag)
+            })
+
+            return (
+              <button
+                class={`flex aspect-square flex-1 items-center justify-center rounded-lg border border-current ${flag.text} ${flag.bg} z-field p-0 shadow-none`}
+                classList={{ "opacity-30": !checked() }}
+                role="checkbox"
+                aria-checked={checked()}
+                aria-label={flag.color + " flag"}
+                onClick={() => {
+                  const c = card().card
+                  if (!c) {
+                    return
+                  }
+                  c.merge({ flags: Flags.toggle(c.card.flags, flag) })
+                  notifyOfCardUpdate()
+                }}
+              >
+                <Show when={checked()}>
+                  <Fa
+                    class="h-4 w-4 icon-current"
+                    icon={faFlag}
+                    title={false}
+                  />
+                </Show>
+              </button>
+            )
+          }}
+        </For>
+      </div>
+    )
+  }
+
+  function MarksSelector() {
+    return (
+      <div class="mb-1 flex gap-2">
+        <For each={Flags.ALL_MARKS}>
+          {(mark) => {
+            const checked = createMemo(() => {
+              const c = card().card?.note
+              if (!c) {
+                return false
+              }
+              return Flags.has(c.marks, mark)
+            })
+
+            return (
+              <button
+                class={`z-field flex aspect-square flex-1 items-center justify-center rounded-lg border p-0 shadow-none`}
+                classList={{
+                  "opacity-30": !checked(),
+                  "bg-z-body-selected": checked(),
+                  // "border-transparent": checked(),
+                }}
+                role="checkbox"
+                aria-checked={checked()}
+                aria-label={mark.shape + " mark"}
+                onClick={() => {
+                  const c = card().card
+                  if (!c) {
+                    return
+                  }
+                  c.note.marks = Flags.toggle(c.note.marks, mark)
+                  notifyOfCardUpdate()
+                }}
+              >
+                <Fa
+                  class="h-4 w-4 icon-current"
+                  icon={checked() ? mark.fill : mark.outline}
+                  title={false}
+                />
+              </button>
+            )
+          }}
+        </For>
+      </div>
+    )
   }
 
   // TODO: undo
@@ -286,11 +407,52 @@ export const Study = (({ app, scheduler }, pop) => {
         />
         <QuickAction icon={faForward} label="Auto Advance" shortcut="⇧A" />
         <QuickActionLine />
-        <QuickAction icon={faFlag} label="Flag Card..." />
-        <QuickAction icon={faPersonDigging} label="Bury Card" shortcut="-" />
-        <QuickAction icon={faBrain} label="Forget Card..." shortcut="⌥⌘N" />
+        {/* <Show when={prefs.show_flags_in_sidebar}> */}
+        <FlagsSelector />
+        {/* </Show> */}
+        {/* <QuickAction
+          icon={faFlag}
+          label="Toggle Flags in Sidebar"
+          onClick={() => setPrefs("show_flags_in_sidebar", (x) => !x)}
+        /> */}
+        <QuickAction
+          icon={faPersonDigging}
+          label="Bury Card"
+          shortcut="-"
+          onClick={() => {
+            card().card?.bury(Date.now())
+            nextCard()
+          }}
+          disabled={!card().card}
+        />
+        <QuickAction
+          icon={faBrain}
+          label="Forget Card..."
+          shortcut="⌥⌘N"
+          onClick={async () => {
+            const mode = await selectForgetMode(owner)
+            if (mode == null) {
+              return
+            }
+            card().card?.reviewForget(
+              Date.now(),
+              Math.max(0, Date.now() - card().shownAt),
+              mode,
+            )
+            nextCard()
+          }}
+        />
         <QuickAction icon={faCalendar} label="Set Due Date..." shortcut="⇧⌘D" />
-        <QuickAction icon={faEyeSlash} label="Suspend Card" shortcut="@" />
+        <QuickAction
+          icon={faEyeSlash}
+          label="Suspend Card"
+          shortcut="@"
+          onClick={() => {
+            card().card?.suspend(Date.now())
+            nextCard()
+          }}
+          disabled={!card().card}
+        />
         <QuickAction icon={faInfoCircle} label="Card Info" shortcut="I" />
         <QuickAction
           icon={faInfoCircle}
@@ -298,9 +460,58 @@ export const Study = (({ app, scheduler }, pop) => {
           shortcut="⌥⌘I"
         />
         <QuickActionLine />
-        <QuickAction icon={faBookmark} label="Mark Note" shortcut="*" />
-        <QuickAction icon={faPersonDigging} label="Bury Note" shortcut="=" />
-        <QuickAction icon={faEyeSlash} label="Suspend Note" shortcut="!" />
+        {/* <Show when={prefs.show_marks_in_sidebar}> */}
+        <MarksSelector />
+        {/* </Show> */}
+        {/* <QuickAction
+          icon={faBookmark}
+          label="Toggle Marks in Sidebar"
+          shortcut="M"
+          onClick={() => setPrefs("show_marks_in_sidebar", (x) => !x)}
+        /> */}
+        <QuickAction
+          icon={faPersonDigging}
+          label="Bury Note"
+          shortcut="="
+          onClick={() => {
+            const c = card().card
+            if (!c) {
+              return
+            }
+            const all = app.cards.byNid[c.card.nid]
+            if (!all) {
+              return
+            }
+            for (const card of all) {
+              // don't bury suspended cards
+              if (card.queue == 0) {
+                card.queue = 1
+              }
+            }
+            nextCard()
+          }}
+          disabled={!card().card}
+        />
+        <QuickAction
+          icon={faEyeSlash}
+          label="Suspend Note"
+          shortcut="!"
+          onClick={() => {
+            const c = card().card
+            if (!c) {
+              return
+            }
+            const all = app.cards.byNid[c.card.nid]
+            if (!all) {
+              return
+            }
+            for (const card of all) {
+              card.queue = 2
+            }
+            nextCard()
+          }}
+          disabled={!card().card}
+        />
         <QuickAction icon={faCopy} label="Create Copy..." shortcut="⌥⌘E" />
         <QuickAction icon={faTrash} label="Delete Note" shortcut="⌘⌫" />
         <QuickAction icon={faPen} label="Edit Note" shortcut="E" />
@@ -401,3 +612,38 @@ export const Study = (({ app, scheduler }, pop) => {
   app: App
   scheduler: Scheduler
 }>
+
+async function selectForgetMode(owner: Owner | null) {
+  return await new Promise<null | boolean>((resolve) => {
+    let modal: ModalRef
+    let portal: HTMLDivElement
+
+    runWithOwner(owner, () => (
+      <Modal
+        ref={(e) => (modal = e)}
+        refPortal={(e) => (portal = e)}
+        onClose={(value) => {
+          resolve(value == "false" ? false : value == "true" ? true : null)
+          portal.ontransitionend = () => portal.remove()
+        }}
+      >
+        <ModalTitle>Reset review and lapse counts?</ModalTitle>
+        <ModalDescription>
+          By the way, forgetting a card means that it will be treated as a new
+          card.
+        </ModalDescription>
+        <ModalButtons>
+          <ModalCancel onClick={() => modal.close("null")}>Cancel</ModalCancel>
+          <ModalCancel onClick={() => modal.close("false")}>
+            Yes, reset
+          </ModalCancel>
+          <ModalConfirm onClick={() => modal.close("true")}>
+            No, keep them
+          </ModalConfirm>
+        </ModalButtons>
+      </Modal>
+    ))
+
+    setTimeout(() => modal!.showModal(), 1)
+  })
+}

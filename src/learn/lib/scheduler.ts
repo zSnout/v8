@@ -1,8 +1,8 @@
-import { pray } from "@/components/pray"
+import { notNull, pray } from "@/components/pray"
 import { ok } from "@/components/result"
 import { Grade, State } from "ts-fsrs"
 import { App } from "./state"
-import { AnyCard, Conf, Deck } from "./types"
+import { AnyCard, Conf, Deck, Note } from "./types"
 
 // TODO: handle unburying cards
 
@@ -227,15 +227,25 @@ const BUCKETS = ["new", "learning", "review"] as const
 
 export class DueCard {
   private saved = false
+  readonly note: Note
 
   constructor(
     public card: AnyCard,
     private scheduler: Scheduler,
     private bucket: CardBucket,
     private index: number,
-  ) {}
+  ) {
+    this.note = notNull(
+      this.scheduler.app.notes.byId[card.nid],
+      "Card is not attached to a note.",
+    )
+  }
 
-  set(card: AnyCard) {
+  merge(card: Omit<Partial<AnyCard>, "id">) {
+    Object.assign(this.card, card)
+  }
+
+  private set(card: AnyCard) {
     const result = this.scheduler.app.cards.set(card)
     if (!result.ok) {
       return result
@@ -244,6 +254,18 @@ export class DueCard {
     if (this.bucket != null) {
       this.scheduler[BUCKETS[this.bucket]][this.index] = card
     }
+    return ok()
+  }
+
+  suspend(now: number) {
+    this.merge({ queue: 2 })
+    this.save(now)
+    return ok()
+  }
+
+  bury(now: number) {
+    this.merge({ queue: 1 })
+    this.save(now)
     return ok()
   }
 
@@ -257,6 +279,26 @@ export class DueCard {
     }
 
     const entry = this.repeat(now, repeatTime)[grade]
+    const result = this.set(entry.card)
+    if (!result.ok) {
+      return result
+    }
+    this.save(now)
+    this.scheduler.app.revLog.push(entry.log)
+    return ok()
+  }
+
+  reviewForget(now: number, repeatTime: number, reset_count: boolean) {
+    if (this.saved) {
+      throw new Error("A `DueCard` cannot be saved twice.")
+    }
+
+    const entry = this.scheduler.app.cards.forget(
+      this.card,
+      now,
+      repeatTime,
+      reset_count,
+    )
     const result = this.set(entry.card)
     if (!result.ok) {
       return result

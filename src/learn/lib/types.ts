@@ -53,6 +53,9 @@ export function makeCard<
     /** Number of lapses or mistakes */
     lapses: v.number(),
 
+    /** Flags bitmask */
+    flags: v.number(),
+
     /** Card state */
     state,
   })
@@ -104,6 +107,9 @@ export const Note = v.object({
 
   /** Checksum used for duplicate check */
   csum: v.number(),
+
+  /** Mark bitflag for the note, as opposed to its specific cards */
+  marks: v.number(),
 })
 
 export interface Review extends v.InferOutput<typeof Review> {}
@@ -145,7 +151,7 @@ export const Review = v.object({
   scheduled_days: v.number(),
 
   /** Date of the review */
-  review: v.number(),
+  review: v.optional(v.number()),
 })
 
 export interface ModelField extends v.InferOutput<typeof ModelField> {}
@@ -467,6 +473,12 @@ export const Prefs = v.object({
   /** Options used when editing templates */
   template_edit_style: TemplateEditStyle,
 
+  /** Whether to show flags in the sidebar */
+  show_flags_in_sidebar: v.boolean(),
+
+  /** Whether to show marks in the sidebar */
+  show_marks_in_sidebar: v.boolean(),
+
   /** Configuration relating to the browser */
   browser: v.object({
     /** Active columns in the browser */
@@ -551,7 +563,7 @@ export const Collection = v.object({
 })
 
 export interface RepeatItem {
-  card: ReviewedCard
+  card: AnyCard
   log: Review
 }
 

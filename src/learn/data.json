@@ -15,7 +15,8 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0
+      "state": 0,
+      "flags": 0
     },
     "2063382813401290": {
       "id": 2063382813401290,
@@ -31,7 +32,8 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0
+      "state": 0,
+      "flags": 0
     },
     "5734422099908702": {
       "id": 5734422099908702,
@@ -47,7 +49,8 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0
+      "state": 0,
+      "flags": 0
     },
     "7238877290637024": {
       "id": 7238877290637024,
@@ -63,7 +66,8 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0
+      "state": 0,
+      "flags": 0
     },
     "8398679779461476": {
       "id": 8398679779461476,
@@ -79,7 +83,8 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0
+      "state": 0,
+      "flags": 0
     },
     "2642866645644228": {
       "id": 2642866645644228,
@@ -95,7 +100,8 @@
       "scheduled_days": 0,
       "reps": 0,
       "lapses": 0,
-      "state": 0
+      "state": 0,
+      "flags": 0
     }
   },
   "graves": [],
@@ -108,7 +114,8 @@
       "tags": "",
       "fields": { "4096856383636694": "hello", "534487732448064": "world" },
       "sort_field": "hello",
-      "csum": 0
+      "csum": 0,
+      "marks": 0
     },
     "7932316006989038": {
       "id": 7932316006989038,
@@ -121,7 +128,8 @@
         "534487732448064": "subdeck"
       },
       "sort_field": "this card is in a",
-      "csum": 0
+      "csum": 0,
+      "marks": 0
     },
     "6567690942011160": {
       "id": 6567690942011160,
@@ -134,7 +142,8 @@
         "5884895011942428": "2"
       },
       "sort_field": "this card has how many sides?",
-      "csum": 0
+      "csum": 0,
+      "marks": 0
     },
     "8857918559806406": {
       "id": 8857918559806406,
@@ -147,7 +156,8 @@
         "5884895011942428": "and the back has <b>almost zero</b>&nbsp;<i>information???</i>"
       },
       "sort_field": "and now we're just in the wrong deck altogether",
-      "csum": 0
+      "csum": 0,
+      "marks": 0
     }
   },
   "rev_log": {},
@@ -389,6 +399,8 @@
     "day_start": 14400000,
     "debug": true,
     "sidebar_state": "auto",
+    "show_flags_in_sidebar": true,
+    "show_marks_in_sidebar": true,
     "template_edit_style": {
       "row": "inline",
       "template": { "front": false, "back": false, "styling": false },

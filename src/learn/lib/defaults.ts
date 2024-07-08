@@ -48,6 +48,8 @@ export function createPrefs(): Prefs {
     debug: false,
     show_deck_name: true,
     sidebar_state: "closed",
+    show_flags_in_sidebar: true,
+    show_marks_in_sidebar: true,
     template_edit_style: {
       row: "inline",
       template: { front: true, back: true, styling: true },

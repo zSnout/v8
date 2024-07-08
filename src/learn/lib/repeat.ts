@@ -1,15 +1,16 @@
-import { notNull, pray } from "@/components/pray"
+import { pray } from "@/components/pray"
 import { FSRS, Rating, RecordLogItem, State } from "ts-fsrs"
 import { randomId } from "./id"
 import { AppPrefs } from "./state"
-import { AnyCard, Conf, RepeatInfo, RepeatItem, ReviewedCard } from "./types"
+import { AnyCard, Conf, RepeatInfo, RepeatItem } from "./types"
 
 function createRepeatItem(
   prev: AnyCard,
   rating: Rating,
   time: number,
   prefs: AppPrefs,
-  next: ReviewedCard,
+  next: AnyCard,
+  review: number,
 ): RepeatItem {
   return {
     card: next,
@@ -21,7 +22,7 @@ function createRepeatItem(
       state: next.state,
       id: randomId(),
       rating,
-      review: next.last_review,
+      review,
       last_elapsed_days: prev.elapsed_days,
       elapsed_days: prefs.daysBetween(prev.last_review, next.last_review),
       scheduled_days: prefs.daysBetween(next.due, next.last_review),
@@ -37,24 +38,27 @@ function merge(
   { card: fsrsCard }: RecordLogItem,
   time: number,
   prefs: AppPrefs,
+  review: number,
 ) {
-  const lastReview = notNull(
-    fsrsCard.last_review,
-    "last_review cannot be null directly after a review",
-  ).getTime()
-
-  return createRepeatItem(prev, rating, time, prefs, {
-    ...prev,
-    due: fsrsCard.due.getTime(),
-    last_review: lastReview,
-    reps: fsrsCard.reps,
-    state: fsrsCard.state,
-    elapsed_days: fsrsCard.elapsed_days,
-    scheduled_days: fsrsCard.scheduled_days,
-    stability: fsrsCard.stability,
-    difficulty: fsrsCard.difficulty,
-    lapses: fsrsCard.lapses,
-  })
+  return createRepeatItem(
+    prev,
+    rating,
+    time,
+    prefs,
+    {
+      ...prev,
+      due: fsrsCard.due.getTime(),
+      last_review: fsrsCard.last_review?.getTime(),
+      reps: fsrsCard.reps,
+      state: fsrsCard.state,
+      elapsed_days: fsrsCard.elapsed_days,
+      scheduled_days: fsrsCard.scheduled_days,
+      stability: fsrsCard.stability,
+      difficulty: fsrsCard.difficulty,
+      lapses: fsrsCard.lapses,
+    },
+    review,
+  )
 }
 
 function setDue(card: AnyCard, now: number): AnyCard {
@@ -83,10 +87,32 @@ function repeatFsrs(
       byFsrs[Rating.Again],
       time,
       prefs,
+      now,
     ),
-    [Rating.Hard]: merge(card, Rating.Hard, byFsrs[Rating.Hard], time, prefs),
-    [Rating.Good]: merge(card, Rating.Good, byFsrs[Rating.Good], time, prefs),
-    [Rating.Easy]: merge(card, Rating.Easy, byFsrs[Rating.Easy], time, prefs),
+    [Rating.Hard]: merge(
+      card,
+      Rating.Hard,
+      byFsrs[Rating.Hard],
+      time,
+      prefs,
+      now,
+    ),
+    [Rating.Good]: merge(
+      card,
+      Rating.Good,
+      byFsrs[Rating.Good],
+      time,
+      prefs,
+      now,
+    ),
+    [Rating.Easy]: merge(
+      card,
+      Rating.Easy,
+      byFsrs[Rating.Easy],
+      time,
+      prefs,
+      now,
+    ),
   }
 }
 
@@ -134,45 +160,66 @@ function repeatLearning(
       now + learningSteps[learningSteps.length - 1]! * 1000
 
   return {
-    [Rating.Again]: createRepeatItem(card, Rating.Again, time, prefs, {
-      ...card,
-      due: dueAgain,
-      last_review: now,
-      reps: card.reps + 1,
-      state: State.Learning,
-      elapsed_days: prefs.daysBetween(card.last_review, now),
-      scheduled_days: 0,
-      stability: byFsrs[Rating.Again].card.stability,
-      difficulty: byFsrs[Rating.Again].card.difficulty,
-      lapses: byFsrs[Rating.Again].card.lapses,
-    }),
+    [Rating.Again]: createRepeatItem(
+      card,
+      Rating.Again,
+      time,
+      prefs,
+      {
+        ...card,
+        due: dueAgain,
+        last_review: now,
+        reps: card.reps + 1,
+        state: State.Learning,
+        elapsed_days: prefs.daysBetween(card.last_review, now),
+        scheduled_days: 0,
+        stability: byFsrs[Rating.Again].card.stability,
+        difficulty: byFsrs[Rating.Again].card.difficulty,
+        lapses: byFsrs[Rating.Again].card.lapses,
+      },
+      now,
+    ),
 
-    [Rating.Hard]: createRepeatItem(card, Rating.Hard, time, prefs, {
-      ...card,
-      due: dueHard,
-      last_review: now,
-      reps: card.reps + 1,
-      state: State.Learning,
-      elapsed_days: prefs.daysBetween(card.last_review, now),
-      scheduled_days: 0,
-      stability: byFsrs[Rating.Hard].card.stability,
-      difficulty: byFsrs[Rating.Hard].card.difficulty,
-      lapses: byFsrs[Rating.Hard].card.lapses,
-    }),
+    [Rating.Hard]: createRepeatItem(
+      card,
+      Rating.Hard,
+      time,
+      prefs,
+      {
+        ...card,
+        due: dueHard,
+        last_review: now,
+        reps: card.reps + 1,
+        state: State.Learning,
+        elapsed_days: prefs.daysBetween(card.last_review, now),
+        scheduled_days: 0,
+        stability: byFsrs[Rating.Hard].card.stability,
+        difficulty: byFsrs[Rating.Hard].card.difficulty,
+        lapses: byFsrs[Rating.Hard].card.lapses,
+      },
+      now,
+    ),
 
     [Rating.Good]: areLearningStepsLeft
-      ? createRepeatItem(card, Rating.Good, time, prefs, {
-          ...card,
-          due: dueGood,
-          last_review: now,
-          reps: card.reps + 1,
-          state: State.Learning,
-          elapsed_days: prefs.daysBetween(card.last_review, now),
-          scheduled_days: 0,
-          stability: byFsrs[Rating.Good].card.stability,
-          difficulty: byFsrs[Rating.Good].card.difficulty,
-          lapses: byFsrs[Rating.Good].card.lapses,
-        })
+      ? createRepeatItem(
+          card,
+          Rating.Good,
+          time,
+          prefs,
+          {
+            ...card,
+            due: dueGood,
+            last_review: now,
+            reps: card.reps + 1,
+            state: State.Learning,
+            elapsed_days: prefs.daysBetween(card.last_review, now),
+            scheduled_days: 0,
+            stability: byFsrs[Rating.Good].card.stability,
+            difficulty: byFsrs[Rating.Good].card.difficulty,
+            lapses: byFsrs[Rating.Good].card.lapses,
+          },
+          now,
+        )
       : byFsrs[Rating.Good],
 
     [Rating.Easy]: byFsrs[Rating.Easy],
@@ -203,4 +250,28 @@ export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepe
   // TODO: handle relearning
 
   return repeatFsrs(card, conf, prefs, f, now, time)
+}
+
+/**
+ * This should really only be available in `state.ts`, but it's nice to break up
+ * the code into multiple modules. So this function is given a very long name to
+ * dissuade it from being used in other areas of the code.
+ */
+export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget(
+  card: AnyCard,
+  conf: Conf,
+  prefs: AppPrefs,
+  f: FSRS,
+  now: number,
+  time: number,
+  reset_count: boolean,
+): RepeatItem {
+  return merge(
+    card,
+    Rating.Manual,
+    f.forget(card, now, reset_count),
+    time,
+    prefs,
+    now,
+  )
 }

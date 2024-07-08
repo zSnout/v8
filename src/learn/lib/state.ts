@@ -8,7 +8,10 @@ import { parse } from "valibot"
 import { createBasicModel, createConf, createDeck } from "./defaults"
 import { Id, idOf, randomId } from "./id"
 import { arrayToRecord } from "./record"
-import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "./repeat"
+import {
+  __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget,
+  __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered,
+} from "./repeat"
 import { Scheduler } from "./scheduler"
 import * as Template from "./template"
 import {
@@ -30,6 +33,7 @@ import {
   Notes,
   Prefs,
   RepeatInfo,
+  RepeatItem,
   Review,
   RevLog,
 } from "./types"
@@ -43,6 +47,7 @@ import {
 // FIXME: online deck shares
 
 // TODO: invalidate all data saving when another tab is open
+// TODO: properly assign new cards a due index
 
 export class App {
   core!: AppCore
@@ -417,6 +422,38 @@ export class AppCards {
     )
   }
 
+  forget(
+    card: AnyCard,
+    now: number,
+    reviewTime: number,
+    reset_count: boolean,
+  ): RepeatItem {
+    const { decks, confs, prefs } = this.app
+
+    const deck = notNull(
+      decks.byId[card.did],
+      "This card is linked to a nonexistent deck.",
+    )
+
+    const conf = notNull(
+      confs.byId[deck.conf],
+      "This card's deck is linked to a nonexistent configuration.",
+    )
+
+    return __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget(
+      card,
+      conf,
+      prefs,
+      new FSRS({
+        enable_fuzz: conf.review.enable_fuzz,
+        maximum_interval: conf.review.max_review_interval,
+      }),
+      now,
+      reviewTime,
+      reset_count,
+    )
+  }
+
   private __unsafeForceSet(card: AnyCard) {
     const old = this.byId[card.id]
     if (old) {
@@ -640,6 +677,7 @@ export class AppNotes {
         last_review: undefined,
         queue: 0,
         state: State.New,
+        flags: 0,
       }
       cards.push(card)
     }
@@ -711,6 +749,7 @@ export class AppNotes {
       last_edited: now,
       sort_field: sortField,
       tags,
+      marks: 0,
     }
 
     const cards = AppNotes.createAssociatedCards(
