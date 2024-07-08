@@ -21,6 +21,68 @@ export class DBDatabase {
   ): DBTransaction {
     return new DBTransaction(this.db.transaction(storeNames, mode, options))
   }
+
+  get name() {
+    return this.db.name
+  }
+
+  get objectStoreNames() {
+    return this.db.objectStoreNames
+  }
+
+  get version() {
+    return this.db.version
+  }
+
+  close() {
+    this.db.close()
+  }
+
+  createObjectStore(name: string, options?: IDBObjectStoreParameters) {
+    return new DBObjectStore(this.db.createObjectStore(name, options))
+  }
+
+  deleteObjectStore(name: string) {
+    this.db.deleteObjectStore(name)
+  }
+}
+
+export class DBOpenRequest extends Promise<DBDatabase> {
+  constructor(
+    name: string,
+    version: number,
+    handlers?: {
+      onupgradeneeded?: (db: DBDatabase, oldVersion: number) => void
+      onblocked?: (db: DBDatabase) => void
+      onversionchange?: (db: DBDatabase) => void
+    },
+  ) {
+    const req = indexedDB.open(name, version)
+
+    if (handlers?.onupgradeneeded) {
+      const h = handlers.onupgradeneeded
+      req.onupgradeneeded = ({ oldVersion }) =>
+        h(new DBDatabase(req.result), oldVersion)
+    }
+
+    if (handlers?.onblocked) {
+      const h = handlers.onblocked
+      req.onblocked = () => h(new DBDatabase(req.result))
+    }
+
+    const vc = handlers?.onversionchange
+
+    super((resolve, reject) => {
+      req.onsuccess = () => {
+        const db = new DBDatabase(req.result)
+        if (vc) {
+          db.db.addEventListener("versionchange", () => vc(db))
+        }
+        resolve(db)
+      }
+      req.onerror = () => reject(req.error)
+    })
+  }
 }
 
 export class DBTransaction extends Promise<void> {
