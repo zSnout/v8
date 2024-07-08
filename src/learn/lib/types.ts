@@ -24,7 +24,7 @@ export function makeCard<
     odid: v.optional(Id),
 
     /** Timestamp of last edit */
-    last_edit: v.number(),
+    last_edited: v.number(),
 
     /** 0 = normal, 1 = buried, 2 = suspended */
     queue: v.picklist([0, 1, 2]),

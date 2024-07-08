@@ -674,7 +674,7 @@ export class AppNotes {
         tid: tmpl.id,
         id: randomId(),
         due: base.due.getTime(),
-        last_edit: now,
+        last_edited: now,
         last_review: undefined,
         queue: 0,
         state: State.New,
