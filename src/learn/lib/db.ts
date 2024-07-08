@@ -1,17 +1,4 @@
 export class DBDatabase {
-  static async of(
-    name: string,
-    version: number,
-    onUpgradeNeeded: (db: DBDatabase) => void,
-  ): Promise<DBDatabase> {
-    const req = indexedDB.open(name, version)
-    req.onupgradeneeded = () => {
-      onUpgradeNeeded(new DBDatabase(req.result))
-    }
-    const idb = await new DBRequest(req)
-    return new DBDatabase(idb)
-  }
-
   constructor(readonly db: IDBDatabase) {}
 
   transaction(
@@ -363,10 +350,20 @@ export class DBRequest<T> extends Promise<T> {
   }
 }
 
-DBDatabase.of("Main:world", 2, ({ db }) => {
-  const objectStore = db.createObjectStore("customers", { keyPath: "ssn" })
-
-  objectStore.createIndex("name", "name", { unique: false })
-
-  objectStore.createIndex("email", "email", { unique: true })
+const db = await new DBOpenRequest("Main:world", 2, {
+  onblocked(db) {
+    const objectStore = db.createObjectStore("customers", { keyPath: "ssn" })
+    objectStore.createIndex("name", "name", { unique: false })
+    objectStore.createIndex("email", "email", { unique: true })
+  },
 })
+
+const tx = db.transaction("customers")
+const store = tx.objectStore("customers")
+for (const c of [
+  { name: "hi", email: "a", ssn: 23 },
+  { name: "nope", email: "world", ssn: 4454 },
+]) {
+  store.add(c)
+}
+await tx
