@@ -31,8 +31,9 @@ export function createCore(now: number): Core {
   }
 }
 
-export function createPrefs(): Prefs {
+export function createPrefs(now: number): Prefs {
   return {
+    last_edit: now,
     current_deck: undefined,
     last_model_used: undefined,
     active_decks: [],
@@ -223,7 +224,7 @@ export function createCollection(now: number): Collection {
       [ID_DECK_DEFAULT]: createDeck(now, "Default::wow", ID_DECK_DEFAULT),
     },
     confs: { [ID_CONF_DEFAULT]: createConf(now) },
-    prefs: createPrefs(),
+    prefs: createPrefs(now),
     models: createModels(now),
   }
 }

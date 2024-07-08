@@ -429,6 +429,9 @@ export const TemplateEditStyle = v.object({
 
 export interface Prefs extends v.InferOutput<typeof Prefs> {}
 export const Prefs = v.object({
+  /** Last edit timestamp */
+  last_edit: v.number(),
+
   /** Current deck id */
   current_deck: v.optional(Id),
 

@@ -387,6 +387,7 @@
     }
   },
   "prefs": {
+    "last_edit": 0,
     "active_decks": [],
     "new_spread": 0,
     "collapse_time": 1200,
