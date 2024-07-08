@@ -38,7 +38,7 @@ function HomeLoaded({
   stream,
 }: {
   app: App
-  stream: FileSystemWritableFileStream
+  stream: FileSystemFileHandle
 }) {
   const [prefs, reloadPrefs] = createExpr(() => app.prefs.prefs)
   const [decks, reloadDecks] = createExpr(() => app.decks.tree(Date.now()))
@@ -46,10 +46,15 @@ function HomeLoaded({
   const owner = getOwner()
   const layers = useLayers()
 
-  setInterval(() => {
-    stream.truncate(0)
-    stream.write(JSON.stringify(app))
-  }, 5000)
+  async function save() {
+    console.time("saving")
+    const s = await stream.createWritable({ keepExistingData: false })
+    await s.write(JSON.stringify(app))
+    await s.close()
+    setTimeout(save, 5000)
+    console.timeEnd("saving")
+  }
+  setTimeout(save, 5000)
 
   // TODO: add decks to icon list and put all of them in the navbar when any
   // layers are active
@@ -221,8 +226,7 @@ export function Home({ app }: { app: App }) {
     const dir = await navigator.storage.getDirectory()
     const data = await dir.getFileHandle("data.json", { create: true })
     void app.import(await (await data.getFile()).text())
-    const stream = await data.createWritable({ keepExistingData: false })
-    return stream
+    return data
   })
 
   return (
