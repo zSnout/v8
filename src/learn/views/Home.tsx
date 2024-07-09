@@ -20,6 +20,7 @@ import { useLayers } from "../el/Layers"
 import { AppDecks } from "../lib/state"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
+import { Study } from "./Study"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -175,13 +176,10 @@ export function Home({ db }: { db: DB }) {
           "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg py-0.5 pl-8 pr-4 text-left text-z-subtitle dhover:bg-z-body" +
           (subtree ? " -ml-6" : "")
         }
-        // TODO: onClick={() =>
-        //   layers.push(
-        //     Study,
-        //     { app: db, scheduler },
-        //     () => (reloadDecks(), reloadPrefs()),
-        //   )
-        // }
+        onClick={() => {
+          // TODO:
+          layers.push(Study, { db, did }, () => (reloadDecks(), reloadPrefs()))
+        }}
       >
         <p class="text-z">{key}</p>
         <p
