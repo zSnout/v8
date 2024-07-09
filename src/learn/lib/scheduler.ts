@@ -109,7 +109,7 @@ export class Scheduler {
 
     for (const deck of this.decks) {
       if (this.app.prefs.isSameDay(deck.today, now)) {
-        seen += deck.reviews_today
+        seen += deck.reviews_today.length
       }
     }
 

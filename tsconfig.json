@@ -9,8 +9,9 @@
     "module": "ESNext",
     "target": "ES2022",
     "paths": {
-      "~/assets/*": ["src/assets/*"],
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@db/*": ["src/learn/db/*"],
+      "@db": ["src/learn/db/index"]
     },
     "skipLibCheck": true
   }

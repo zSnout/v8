@@ -1,6 +1,5 @@
-import { IDBPDatabase, openDB } from "idb"
-import type { Sendable } from "../message"
-import { Id } from "./id"
+import { IDBPDatabase, IDBPObjectStore, openDB, StoreNames } from "idb"
+import { Id } from "../lib/id"
 import type {
   AnyCard,
   Conf,
@@ -11,7 +10,8 @@ import type {
   Note,
   Prefs,
   Review,
-} from "./types"
+} from "../lib/types"
+import type { Sendable } from "../message"
 
 export interface DBSchema {
   [s: string]: {
@@ -34,6 +34,35 @@ export interface DBCollection extends DBSchema {
 }
 
 export type DB = IDBPDatabase<DBCollection>
+
+type IDBPTransactionExtends = Omit<
+  IDBTransaction,
+  "db" | "objectStore" | "objectStoreNames"
+>
+
+export interface TxWith<
+  T extends StoreNames<DBCollection>,
+  Mode extends IDBTransactionMode = "readonly",
+> extends IDBPTransactionExtends {
+  /**
+   * The transaction's mode.
+   */
+  readonly mode: Mode
+  /**
+   * The transaction's connection.
+   */
+  readonly db: IDBPDatabase<DBCollection>
+  /**
+   * Promise for the completion of this transaction.
+   */
+  readonly done: Promise<void>
+  /**
+   * Returns an IDBObjectStore in the transaction's scope.
+   */
+  objectStore<StoreName extends T>(
+    name: StoreName,
+  ): IDBPObjectStore<DBCollection, any, StoreName, Mode>
+}
 
 export async function open(name: string) {
   return await openDB<DBCollection>(name, 2, {
