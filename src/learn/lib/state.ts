@@ -231,7 +231,7 @@ export class AppDecks {
       last_edited: now,
       name,
       new_today: [],
-      reviews_today: [],
+      revcards_today: [],
       cfid: this.app.confs.default(now).id,
       today: now,
     }

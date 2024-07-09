@@ -99,7 +99,7 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     new_today: [],
     cfid: ID_CONF_DEFAULT,
     today: now,
-    reviews_today: [],
+    revcards_today: [],
   }
 }
 

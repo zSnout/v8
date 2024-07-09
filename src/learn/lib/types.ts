@@ -273,14 +273,26 @@ export const Deck = v.object({
   /** Custom limit on new cards for today */
   custom_newcard_limit: v.optional(v.number()),
 
-  /** Last time this deck was edited */
+  /** Custom limit on review cards for all days. Defaults to limit in `conf`. */
+  default_revcard_limit: v.optional(v.number()),
+
+  /** Custom limit on new cards for all days. Defaults to limit in `conf`. */
+  default_newcard_limit: v.optional(v.number()),
+
+  /**
+   * Last time this deck was edited. WILL ALWAYS BE AS RECENT OR MORE THAN
+   * `today`. DO NOT USE AS A REPLACEMENT FOR `today`.
+   */
   last_edited: v.number(),
 
-  /** Ids of new cards seen today */
+  /** Ids of new cards seen today (each entry is unique) */
   new_today: v.array(Id),
 
-  /** Ids of reviews done today */
-  reviews_today: v.array(Id),
+  /** Ids of reviewed cards done today (each entry is unique) */
+  revcards_today: v.array(Id),
+
+  /** Ids of review logs done today (each entry is unique) */
+  revlogs_today: v.array(Id),
 
   /** When `new_today` and the `..._limit` properties were last updated */
   today: v.number(),
