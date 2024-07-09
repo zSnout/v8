@@ -1,17 +1,16 @@
 import { notNull } from "@/components/pray"
-import { Id } from "@/learn/lib/id"
-import { AnyCard } from "@/learn/lib/types"
+import { Id, ID_ZERO } from "@/learn/lib/id"
+import { AnyCard, Conf, Prefs } from "@/learn/lib/types"
 import { IDBPTransaction } from "idb"
 import { DB, DBCollection } from ".."
 import { bucketOf } from "../bucket"
 import { dayStartOffset, startOfDaySync } from "../day"
 
+type GatherCols = ("cards" | "decks" | "prefs" | "confs")[]
+type Tx = IDBPTransaction<DBCollection, GatherCols, "readonly">
+
 async function cardsTx(
-  tx: IDBPTransaction<
-    DBCollection,
-    ("cards" | "decks" | "prefs" | "confs")[],
-    "readonly"
-  >,
+  tx: Tx,
   dids: Id[],
   dayStart: number,
   today: number,
@@ -46,11 +45,7 @@ async function cardsTx(
 }
 
 async function studiedTx(
-  tx: IDBPTransaction<
-    DBCollection,
-    ("cards" | "decks" | "prefs" | "confs")[],
-    "readonly"
-  >,
+  tx: Tx,
   dids: Id[],
   dayStart: number,
   today: number,
@@ -77,11 +72,7 @@ async function studiedTx(
 }
 
 async function limitsTx(
-  tx: IDBPTransaction<
-    DBCollection,
-    ("cards" | "decks" | "prefs" | "confs")[],
-    "readonly"
-  >,
+  tx: Tx,
   main: Id,
   dayStart: number,
   today: number,
@@ -117,7 +108,15 @@ async function limitsTx(
         deck.default_revcard_limit ??
         conf.review.per_day,
     },
+    conf,
   }
+}
+
+async function prefsTx(tx: Tx) {
+  return notNull(
+    await tx.objectStore("prefs").get(ID_ZERO),
+    "This collection does not have a preferences table.",
+  )
 }
 
 export interface Cards {
@@ -143,26 +142,34 @@ export interface Limit<T extends number | undefined> {
 export interface Limits {
   new: Limit<number>
   review: Limit<number | undefined>
+  conf: Conf
 }
 
 export interface GatherInfo {
   cards: Cards
   studied: Studied
   limits: Limits
+  prefs: Prefs
 }
 
-export async function gather(db: DB, main: Id, dids: Id[], now: number) {
+export async function gather(
+  db: DB,
+  main: Id,
+  dids: Id[],
+  now: number,
+): Promise<GatherInfo> {
   const tx = db.transaction(["cards", "decks", "prefs", "confs"])
   const dayStart = await dayStartOffset(tx)
   const today = startOfDaySync(dayStart, now)
 
-  const [cards, studied, limits] = await Promise.all([
+  const [cards, studied, limits, prefs] = await Promise.all([
     cardsTx(tx, dids, dayStart, today),
     studiedTx(tx, dids, dayStart, today),
     limitsTx(tx, main, dayStart, today),
+    prefsTx(tx),
   ])
 
-  return { cards, studied, limits }
+  return { cards, studied, limits, prefs }
 }
 
 export async function regather(
@@ -171,17 +178,19 @@ export async function regather(
   dids: Id[],
   now: number,
   info: GatherInfo,
-) {
+): Promise<void> {
   const tx = db.transaction(["cards", "decks", "prefs", "confs"])
   const dayStart = await dayStartOffset(tx)
   const today = startOfDaySync(dayStart, now)
 
-  const [cards, studied, limits] = await Promise.all([
+  const [cards, studied, limits, prefs] = await Promise.all([
     today != info.cards.today && (await cardsTx(tx, dids, dayStart, today)),
     studiedTx(tx, dids, dayStart, today),
     limitsTx(tx, main, dayStart, today),
+    prefsTx(tx),
   ])
   if (cards) info.cards = cards
   info.studied = studied
   info.limits = limits
+  info.prefs = prefs
 }
