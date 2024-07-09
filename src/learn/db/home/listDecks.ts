@@ -1,40 +1,66 @@
 import { Tree } from "@/components/tree"
-import { Id } from "@/learn/lib/id"
+import { arrayToRecord } from "@/learn/lib/record"
 import { Deck } from "@/learn/lib/types"
 import { DB } from ".."
 import { bucketOf } from "../bucket"
 import { dayStartOffset, startOfDaySync } from "../day"
 
-export type BucketCounts = [new: number, lrn: number, rev: number]
-export type DeckAndBucket = { deck: Deck; buckets: BucketCounts | undefined }
-export type DeckAndBucketTree = Tree<DeckAndBucket | undefined, DeckAndBucket>
+export type Buckets = [new: number, lrn: number, rev: number]
+export type DeckHomeInfo = { deck: Deck; self: Buckets; sub: Buckets }
+export type DeckHomeTree = Tree<DeckHomeInfo | undefined, DeckHomeInfo>
 
 export async function listDecks(db: DB, now: number) {
   const tx = db.transaction(["cards", "decks", "prefs"], "readonly")
   const dayStart = await dayStartOffset(tx)
   const today = startOfDaySync(dayStart, now)
 
+  const decks = tx.objectStore("decks")
+  const idToName = arrayToRecord(await decks.getAll())
+
   const cards = tx.objectStore("cards")
-  const counts = new Map<Id, BucketCounts>()
+  const self = new Map<string, Buckets>()
 
   for (const card of await cards.getAll()) {
     const bucket = bucketOf(today, card, dayStart)
     if (bucket == null) continue
 
-    let count = counts.get(card.did)
+    const deckName = idToName[card.did]?.name
+    if (deckName == null) continue // TODO: throw because deck doesn't exist
+
+    let count = self.get(deckName)
     if (count == null) {
       count = [0, 0, 0]
-      counts.set(card.did, count)
+      self.set(deckName, count)
     }
 
     count[bucket]++
   }
 
-  const decks = tx.objectStore("decks")
-  const tree: DeckAndBucketTree = new Tree()
+  const sub = new Map<string, Buckets>()
 
-  for (const deck of await decks.getAll()) {
-    const info = { deck, buckets: counts.get(deck.id) }
+  for (const [name, buckets] of self) {
+    const segments = name.split("::")
+    for (let index = 0; index < segments.length; index++) {
+      const deckName = segments.slice(0, index).join("::")
+      let count = sub.get(deckName)
+      if (count == null) {
+        count = [0, 0, 0]
+        sub.set(deckName, count)
+      }
+      count[0] += buckets[0]
+      count[1] += buckets[1]
+      count[2] += buckets[2]
+    }
+  }
+
+  const tree: DeckHomeTree = new Tree()
+
+  for (const deck of Object.values(idToName)) {
+    const info: DeckHomeInfo = {
+      deck,
+      self: self.get(deck.name) || [0, 0, 0],
+      sub: sub.get(deck.name) || [0, 0, 0],
+    }
 
     tree.set(
       deck.name.split("::"),
@@ -47,5 +73,5 @@ export async function listDecks(db: DB, now: number) {
   }
 
   await tx.done
-  return tree
+  return { tree, global: sub.get("") ?? [0, 0, 0] }
 }

@@ -11,7 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { createResource, createSignal, getOwner, Show } from "solid-js"
 import { DB } from "../db"
-import { DeckAndBucket, listDecks } from "../db/home/listDecks"
+import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
 import { getPrefs } from "../db/prefs"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
@@ -104,10 +104,10 @@ export function Home({ db }: { db: DB }) {
 
         <Show when={decks()} keyed>
           {(decks) => (
-            <MonotypeExpandableTree<DeckAndBucket | undefined, DeckAndBucket>
+            <MonotypeExpandableTree<DeckHomeInfo | undefined, DeckHomeInfo>
               z={10}
               shift
-              tree={decks.tree}
+              tree={decks.tree.tree}
               isExpanded={({ data }) => !data?.deck.collapsed}
               setExpanded={async ({ data, parent, key }, expanded) => {
                 await setDeckExpanded(
@@ -160,12 +160,14 @@ export function Home({ db }: { db: DB }) {
     )
   }
 
-  function DeckEl({
-    data,
-    subtree,
-    key,
-  }: NodeProps<DeckAndBucket | undefined>) {
-    const buckets = data?.buckets ?? [0, 0, 0]
+  function DeckEl({ data, subtree, key }: NodeProps<DeckHomeInfo | undefined>) {
+    let buckets: Buckets = [0, 0, 0]
+    if (data) {
+      buckets = data.self
+      buckets[0] += data.sub[0]
+      buckets[1] += data.sub[1]
+      buckets[2] += data.sub[2]
+    }
 
     return (
       <button
