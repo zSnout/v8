@@ -1,12 +1,14 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { error } from "@/components/result"
 import data from "@/learn/data.json"
+import { open } from "@/learn/db"
+import { resetIfInvalid } from "@/learn/db/init"
 import { Error } from "@/learn/el/Error"
 import { Layers, useLayers } from "@/learn/el/Layers"
 import { createCollection } from "@/learn/lib/defaults"
 import { App } from "@/learn/lib/state"
 import { Home } from "@/learn/views/Home"
-import { createSignal, JSX, onMount, Show } from "solid-js"
+import { createResource, createSignal, JSX, onMount, Show } from "solid-js"
 
 const app = new App(createCollection(Date.now()))
 app.importJSON(data)
@@ -56,11 +58,19 @@ function SublinkHandler(): undefined {
 }
 
 export function Main() {
+  const [db] = createResource(async () => {
+    const db = await open("main:Main")
+    await resetIfInvalid(db)
+    return db
+  })
+
   return (
     <ErrorHandler>
       <Layers.Root>
         <SublinkHandler />
-        <Home app={app} />
+        <Show when={db()} keyed fallback="loading...">
+          {(db) => <Home db={db} />}
+        </Show>
       </Layers.Root>
     </ErrorHandler>
   )

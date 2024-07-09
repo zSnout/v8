@@ -162,7 +162,6 @@
   },
   "rev_log": {},
   "core": {
-    "id": 7977855406517108,
     "creation": 1720314371175,
     "last_edited": 1720314371175,
     "last_schema_edit": 1720314371175,
@@ -172,6 +171,7 @@
   "models": {
     "1": {
       "id": 1,
+      "last_edited": 0,
       "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n}",
       "fields": {
         "4096856383636694": {
@@ -210,6 +210,7 @@
     },
     "2": {
       "id": 2,
+      "last_edited": 0,
       "css": ".card {\n  font-size: 1.5rem;\n  text-align: center;\n}\n\nhr {\n  border-width: 0;\n  border-top-width: 1px;\n  border-top-color: var(--z-border);\n  border-style: solid;\n}",
       "fields": {
         "1276515751035116": {

@@ -35,35 +35,6 @@ export interface DBCollection extends DBSchema {
 
 export type DB = IDBPDatabase<DBCollection>
 
-type IDBPTransactionExtends = Omit<
-  IDBTransaction,
-  "db" | "objectStore" | "objectStoreNames"
->
-
-export interface TxWith<
-  T extends StoreNames<DBCollection>,
-  Mode extends IDBTransactionMode = "readonly",
-> extends IDBPTransactionExtends {
-  /**
-   * The transaction's mode.
-   */
-  readonly mode: Mode
-  /**
-   * The transaction's connection.
-   */
-  readonly db: IDBPDatabase<DBCollection>
-  /**
-   * Promise for the completion of this transaction.
-   */
-  readonly done: Promise<void>
-  /**
-   * Returns an IDBObjectStore in the transaction's scope.
-   */
-  objectStore<StoreName extends T>(
-    name: StoreName,
-  ): IDBPObjectStore<DBCollection, any, StoreName, Mode>
-}
-
 export async function open(name: string) {
   return await openDB<DBCollection>(name, 2, {
     async upgrade(db, oldVersion) {
@@ -86,3 +57,58 @@ export async function open(name: string) {
     },
   })
 }
+
+// a lot of really stupid typescript stuff because typescript sucks
+
+export type TxWithExtends = Omit<
+  IDBTransaction,
+  "db" | "objectStore" | "objectStoreNames"
+>
+
+export interface TxWith<
+  T extends StoreNames<DBCollection>,
+  Mode extends IDBTransactionMode = "readonly",
+> extends TxWithExtends {
+  /**
+   * The transaction's mode.
+   */
+  readonly mode: Mode
+  /**
+   * Promise for the completion of this transaction.
+   */
+  readonly done: Promise<void>
+  /**
+   * Returns an IDBObjectStore in the transaction's scope.
+   */
+  objectStore<StoreName extends T>(
+    name: StoreName,
+  ): ObjectStoreWith<DBCollection, T[], StoreName, Mode>
+}
+
+export type ObjectStoreExtends<
+  DBTypes extends DBSchema | unknown = unknown,
+  TxStores extends ArrayLike<StoreNames<DBTypes>> = ArrayLike<
+    StoreNames<DBTypes>
+  >,
+  StoreName extends StoreNames<DBTypes> = StoreNames<DBTypes>,
+  Mode extends IDBTransactionMode = "readonly",
+> = Omit<
+  IDBPObjectStore<DBTypes, TxStores, StoreName, Mode>,
+  // TODO: type these properly
+  | "transaction"
+  | "indexNames"
+  | "index"
+  | typeof Symbol.asyncIterator
+  | "openCursor"
+  | "openKeyCursor"
+  | "iterate"
+>
+
+export interface ObjectStoreWith<
+  DBTypes extends DBSchema | unknown = unknown,
+  TxStores extends ArrayLike<StoreNames<DBTypes>> = ArrayLike<
+    StoreNames<DBTypes>
+  >,
+  StoreName extends StoreNames<DBTypes> = StoreNames<DBTypes>,
+  Mode extends IDBTransactionMode = "readonly",
+> extends ObjectStoreExtends<DBTypes, TxStores, StoreName, Mode> {}

@@ -1,60 +1,38 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { ModalDescription, prompt } from "@/components/Modal"
-import { unwrap } from "@/components/result"
 import { NodeProps } from "@/components/tree"
 import {
   faChartBar,
-  faCode,
   faPlus,
   faSliders,
   faSync,
   faTableCellsLarge,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import {
-  createMemo,
-  createResource,
-  createSignal,
-  getOwner,
-  Show,
-} from "solid-js"
+import { createResource, createSignal, getOwner, Show } from "solid-js"
+import { DB } from "../db"
+import { DeckAndBucket, listDecks } from "../db/home/listDecks"
+import { setDeckExpanded } from "../db/home/setDeckExpanded"
+import { getPrefs } from "../db/prefs"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
-import { createExpr } from "../lib/expr"
-import { App, AppDecks } from "../lib/state"
-import { Deck } from "../lib/types"
+import { AppDecks } from "../lib/state"
 import { CreateNote } from "./CreateNote"
-import { Debug } from "./Debug"
 import { Settings } from "./Settings"
-import { Study } from "./Study"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
 }
 
-function HomeLoaded({
-  app,
-  stream,
-}: {
-  app: App
-  stream: FileSystemFileHandle
-}) {
-  const [prefs, reloadPrefs] = createExpr(() => app.prefs.prefs)
-  const [decks, reloadDecks] = createExpr(() => app.decks.tree(Date.now()))
+export function Home({ db }: { db: DB }) {
+  const [prefs, { refetch: reloadPrefs }] = createResource(() => getPrefs(db))
+  const [decks, { refetch: reloadDecks }] = createResource(() =>
+    listDecks(db, Date.now()),
+  )
   const [now, setNow] = createSignal(Date.now())
   const owner = getOwner()
   const layers = useLayers()
-
-  async function save() {
-    console.time("saving")
-    const s = await stream.createWritable({ keepExistingData: false })
-    await s.write(JSON.stringify(app))
-    await s.close()
-    setTimeout(save, 5000)
-    console.timeEnd("saving")
-  }
-  setTimeout(save, 5000)
 
   // TODO: add decks to icon list and put all of them in the navbar when any
   // layers are active
@@ -78,7 +56,7 @@ function HomeLoaded({
           onClick={() =>
             layers.push(
               CreateNote,
-              { app },
+              { app: db },
               () => (reloadPrefs(), reloadDecks()),
             )
           }
@@ -89,19 +67,27 @@ function HomeLoaded({
           icon={faSliders}
           label="Settings"
           onClick={() =>
-            layers.push(Settings, { app }, () => (reloadPrefs(), reloadDecks()))
+            layers.push(
+              Settings,
+              { app: db },
+              () => (reloadPrefs(), reloadDecks()),
+            )
           }
         />
         <Icon icon={faSync} label="Sync" onClick={nope} />
-        <Show when={prefs().debug}>
+        {/* TODO: <Show when={prefs()?.debug}>
           <Icon
             icon={faCode}
             label="Debug"
             onClick={() =>
-              layers.push(Debug, { app }, () => (reloadPrefs(), reloadDecks()))
+              layers.push(
+                Debug,
+                { app: db },
+                () => (reloadPrefs(), reloadDecks()),
+              )
             }
           />
-        </Show>
+        </Show> */}
       </Icons>
     )
   }
@@ -116,16 +102,27 @@ function HomeLoaded({
           <p class="text-right text-sm text-z-subtitle">Due</p>
         </div>
 
-        <MonotypeExpandableTree<Deck, Deck>
-          z={10}
-          shift
-          tree={decks().tree}
-          isExpanded={({ data }) => !data.collapsed}
-          setExpanded={({ data }, expanded) => (data.collapsed = !expanded)}
-          node={DeckEl}
-          sort={([a], [b]) => AppDecks.compare(a, b)}
-          noGap
-        />
+        <Show when={decks()} keyed>
+          {(decks) => (
+            <MonotypeExpandableTree<DeckAndBucket | undefined, DeckAndBucket>
+              z={10}
+              shift
+              tree={decks.tree}
+              isExpanded={({ data }) => !data?.deck.collapsed}
+              setExpanded={async ({ data, parent, key }, expanded) => {
+                await setDeckExpanded(
+                  db,
+                  data?.deck.id ?? parent.map((x) => x + "::").join("") + key,
+                  expanded,
+                  Date.now(),
+                )
+              }}
+              node={DeckEl}
+              sort={([a], [b]) => AppDecks.compare(a, b)}
+              noGap
+            />
+          )}
+        </Show>
       </div>
     )
   }
@@ -154,7 +151,7 @@ function HomeLoaded({
               return
             }
 
-            app.decks.byNameOrCreate(name, Date.now())
+            db.decks.byNameOrCreate(name, Date.now())
             reloadDecks()
           }}
         />
@@ -163,16 +160,12 @@ function HomeLoaded({
     )
   }
 
-  function DeckEl({ data, subtree }: NodeProps<Deck, Deck>) {
-    const scheduler = unwrap(app.decks.scheduler(data, Date.now()))
-
-    const s = createMemo(() => {
-      return {
-        new: scheduler.newCardsLeft(now()),
-        learning: scheduler.learning.length,
-        review: scheduler.review.length,
-      }
-    })
+  function DeckEl({
+    data,
+    subtree,
+    key,
+  }: NodeProps<DeckAndBucket | undefined>) {
+    const buckets = data?.buckets ?? [0, 0, 0]
 
     return (
       <button
@@ -180,58 +173,43 @@ function HomeLoaded({
           "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg py-0.5 pl-8 pr-4 text-left text-z-subtitle dhover:bg-z-body" +
           (subtree ? " -ml-6" : "")
         }
-        onClick={() =>
-          layers.push(
-            Study,
-            { app, scheduler },
-            () => (reloadDecks(), reloadPrefs()),
-          )
-        }
+        // TODO: onClick={() =>
+        //   layers.push(
+        //     Study,
+        //     { app: db, scheduler },
+        //     () => (reloadDecks(), reloadPrefs()),
+        //   )
+        // }
       >
-        <p class="text-z">{data.name.split("::").at(-1)}</p>
+        <p class="text-z">{key}</p>
         <p
           class="text-right font-mono text-sm"
           classList={{
-            "text-[--z-text-learn-new]": s().new != 0,
-            "opacity-30": s().new == 0,
+            "text-[--z-text-learn-new]": buckets[0] != 0,
+            "opacity-30": buckets[0] == 0,
           }}
         >
-          {s().new}
+          {buckets[0]}
         </p>
         <p
           class="text-right font-mono text-sm"
           classList={{
-            "text-[--z-text-learn-learning]": s().learning != 0,
-            "opacity-30": s().learning == 0,
+            "text-[--z-text-learn-learning]": buckets[1] != 0,
+            "opacity-30": buckets[1] == 0,
           }}
         >
-          {s().learning}
+          {buckets[1]}
         </p>
         <p
           class="text-right font-mono text-sm"
           classList={{
-            "text-[--z-text-learn-review]": s().review != 0,
-            "opacity-30": s().review == 0,
+            "text-[--z-text-learn-review]": buckets[2] != 0,
+            "opacity-30": buckets[2] == 0,
           }}
         >
-          {s().review}
+          {buckets[2]}
         </p>
       </button>
     )
   }
-}
-
-export function Home({ app }: { app: App }) {
-  const [stream] = createResource(async () => {
-    const dir = await navigator.storage.getDirectory()
-    const data = await dir.getFileHandle("data.json", { create: true })
-    void app.import(await (await data.getFile()).text())
-    return data
-  })
-
-  return (
-    <Show when={stream()} fallback={<p>loading</p>} keyed>
-      {(stream) => <HomeLoaded app={app} stream={stream} />}
-    </Show>
-  )
 }
