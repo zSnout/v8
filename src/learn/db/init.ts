@@ -2,10 +2,11 @@ import { StoreNames } from "idb"
 import { parse } from "valibot"
 import { DB, DBCollection, TxWith } from "."
 import data from "../data.json"
+import { createConf, createPrefs } from "../lib/defaults"
 import { ID_ZERO } from "../lib/id"
 import { Collection } from "../lib/types"
 
-export async function setTx(
+async function setTx(
   tx: TxWith<StoreNames<DBCollection>, "readwrite">,
   collection: Collection,
 ) {
@@ -53,7 +54,7 @@ export async function setTx(
   await tx.done
 }
 
-export async function resetIfInvalid(db: DB) {
+export async function checkValidity(db: DB, now: number) {
   const tx = db.transaction(
     [
       "cards",
@@ -69,15 +70,32 @@ export async function resetIfInvalid(db: DB) {
     "readwrite",
   )
 
-  const [core, prefs] = await Promise.all([
+  const [core] = await Promise.all([
     tx.objectStore("core").get(ID_ZERO),
-    tx.objectStore("prefs").get(ID_ZERO),
-  ])
+    tx
+      .objectStore("prefs")
+      .get(ID_ZERO)
+      .then(async (x) => {
+        if (!x) {
+          await tx.objectStore("prefs").put(createPrefs(now), ID_ZERO)
+        }
+      }),
+    tx
+      .objectStore("confs")
+      .get(ID_ZERO)
+      .then(async (x) => {
+        if (!x) {
+          await tx.objectStore("confs").put(createConf(now), ID_ZERO)
+        }
+      }),
+  ] as const)
 
-  if (core && prefs) {
+  // TODO: don't clear *everything* if core doesn't exist
+  if (core) {
     await tx.done
     return
   }
 
   await setTx(tx, parse(Collection, data))
+  await tx.done
 }

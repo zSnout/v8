@@ -52,8 +52,8 @@ async function studiedTx(
 ): Promise<Studied> {
   const decks = tx.objectStore("decks")
 
-  let newToday = 0
-  let revcards = 0
+  let newToday: Id[] = []
+  let revcards: Id[] = []
   let revlogs = 0
 
   await Promise.all(
@@ -62,8 +62,8 @@ async function studiedTx(
       if (!deck) return
       if (startOfDaySync(dayStart, deck.today) != today) return
 
-      newToday += deck.new_today.length
-      revcards += deck.revcards_today.length
+      newToday.push(...deck.new_today)
+      revcards.push(...deck.revcards_today)
       revlogs += deck.revlogs_today.length
     }),
   )
@@ -71,12 +71,39 @@ async function studiedTx(
   return { new: newToday, revcards, revlogs }
 }
 
+async function defaultLimitsTx(tx: Tx): Promise<Limits> {
+  const conf = notNull(
+    await tx.objectStore("confs").get(ID_ZERO),
+    "The default configuration must not be deleted.",
+  )
+
+  return {
+    new: {
+      byConf: conf.new.per_day,
+      customGlobal: undefined,
+      customToday: undefined,
+      today: conf.new.per_day,
+    },
+    review: {
+      byConf: conf.review.per_day,
+      customGlobal: undefined,
+      customToday: undefined,
+      today: conf.review.per_day,
+    },
+    conf,
+  }
+}
+
 async function limitsTx(
   tx: Tx,
-  main: Id,
+  main: Id | undefined,
   dayStart: number,
   today: number,
 ): Promise<Limits> {
+  if (main == null) {
+    return await defaultLimitsTx(tx)
+  }
+
   const deck = notNull(
     await tx.objectStore("decks").get(main),
     "The main deck must exist.",
@@ -127,8 +154,8 @@ export interface Cards {
 }
 
 export interface Studied {
-  new: number
-  revcards: number
+  new: Id[]
+  revcards: Id[]
   revlogs: number
 }
 
@@ -154,7 +181,7 @@ export interface GatherInfo {
 
 export async function gather(
   db: DB,
-  main: Id,
+  main: Id | undefined,
   dids: Id[],
   now: number,
 ): Promise<GatherInfo> {
@@ -172,14 +199,13 @@ export async function gather(
   return { cards, studied, limits, prefs }
 }
 
-export async function regather(
-  db: DB,
-  main: Id,
+export async function regatherTx(
+  tx: Tx,
+  main: Id | undefined,
   dids: Id[],
   now: number,
   info: GatherInfo,
 ): Promise<void> {
-  const tx = db.transaction(["cards", "decks", "prefs", "confs"])
   const dayStart = await dayStartOffset(tx)
   const today = startOfDaySync(dayStart, now)
 
@@ -189,8 +215,11 @@ export async function regather(
     limitsTx(tx, main, dayStart, today),
     prefsTx(tx),
   ])
+
   if (cards) info.cards = cards
   info.studied = studied
   info.limits = limits
   info.prefs = prefs
 }
+
+export type { Tx as GatherTx }

@@ -1,14 +1,14 @@
 import { pray } from "@/components/pray"
 import { FSRS, Rating, RecordLogItem, State } from "ts-fsrs"
+import { daysBetweenSync } from "../db/day"
 import { randomId } from "./id"
-import { AppPrefs } from "./state"
 import { AnyCard, Conf, RepeatInfo, RepeatItem } from "./types"
 
 function createRepeatItem(
   prev: AnyCard,
   rating: Rating,
   time: number,
-  prefs: AppPrefs,
+  dayStart: number,
   next: AnyCard,
   review: number,
 ): RepeatItem {
@@ -24,8 +24,12 @@ function createRepeatItem(
       rating,
       review,
       last_elapsed_days: prev.elapsed_days,
-      elapsed_days: prefs.daysBetween(prev.last_review, next.last_review),
-      scheduled_days: prefs.daysBetween(next.due, next.last_review),
+      elapsed_days: daysBetweenSync(
+        dayStart,
+        prev.last_review,
+        next.last_review,
+      ),
+      scheduled_days: daysBetweenSync(dayStart, next.due, next.last_review),
       stability: next.stability,
       time,
     },
@@ -37,14 +41,14 @@ function merge(
   rating: Rating,
   { card: fsrsCard }: RecordLogItem,
   time: number,
-  prefs: AppPrefs,
+  dayStart: number,
   review: number,
 ) {
   return createRepeatItem(
     prev,
     rating,
     time,
-    prefs,
+    dayStart,
     {
       ...prev,
       due: fsrsCard.due.getTime(),
@@ -71,8 +75,7 @@ function setDue(card: AnyCard, now: number): AnyCard {
 
 function repeatFsrs(
   card: AnyCard,
-  _conf: Conf,
-  prefs: AppPrefs,
+  dayStart: number,
   f: FSRS,
   now: number,
   time: number,
@@ -86,7 +89,7 @@ function repeatFsrs(
       Rating.Again,
       byFsrs[Rating.Again],
       time,
-      prefs,
+      dayStart,
       now,
     ),
     [Rating.Hard]: merge(
@@ -94,7 +97,7 @@ function repeatFsrs(
       Rating.Hard,
       byFsrs[Rating.Hard],
       time,
-      prefs,
+      dayStart,
       now,
     ),
     [Rating.Good]: merge(
@@ -102,7 +105,7 @@ function repeatFsrs(
       Rating.Good,
       byFsrs[Rating.Good],
       time,
-      prefs,
+      dayStart,
       now,
     ),
     [Rating.Easy]: merge(
@@ -110,7 +113,7 @@ function repeatFsrs(
       Rating.Easy,
       byFsrs[Rating.Easy],
       time,
-      prefs,
+      dayStart,
       now,
     ),
   }
@@ -119,7 +122,7 @@ function repeatFsrs(
 function repeatLearning(
   card: AnyCard,
   conf: Conf,
-  prefs: AppPrefs,
+  dayStart: number,
   f: FSRS,
   now: number,
   time: number,
@@ -140,7 +143,7 @@ function repeatLearning(
     lastStepIndex = 0
   }
 
-  const byFsrs = repeatFsrs(card, conf, prefs, f, now, time)
+  const byFsrs = repeatFsrs(card, dayStart, f, now, time)
 
   const dueAgain = now + againStep * 1000
 
@@ -164,14 +167,14 @@ function repeatLearning(
       card,
       Rating.Again,
       time,
-      prefs,
+      dayStart,
       {
         ...card,
         due: dueAgain,
         last_review: now,
         reps: card.reps + 1,
         state: State.Learning,
-        elapsed_days: prefs.daysBetween(card.last_review, now),
+        elapsed_days: daysBetweenSync(dayStart, card.last_review, now),
         scheduled_days: 0,
         stability: byFsrs[Rating.Again].card.stability,
         difficulty: byFsrs[Rating.Again].card.difficulty,
@@ -184,14 +187,14 @@ function repeatLearning(
       card,
       Rating.Hard,
       time,
-      prefs,
+      dayStart,
       {
         ...card,
         due: dueHard,
         last_review: now,
         reps: card.reps + 1,
         state: State.Learning,
-        elapsed_days: prefs.daysBetween(card.last_review, now),
+        elapsed_days: daysBetweenSync(dayStart, card.last_review, now),
         scheduled_days: 0,
         stability: byFsrs[Rating.Hard].card.stability,
         difficulty: byFsrs[Rating.Hard].card.difficulty,
@@ -205,14 +208,14 @@ function repeatLearning(
           card,
           Rating.Good,
           time,
-          prefs,
+          dayStart,
           {
             ...card,
             due: dueGood,
             last_review: now,
             reps: card.reps + 1,
             state: State.Learning,
-            elapsed_days: prefs.daysBetween(card.last_review, now),
+            elapsed_days: daysBetweenSync(dayStart, card.last_review, now),
             scheduled_days: 0,
             stability: byFsrs[Rating.Good].card.stability,
             difficulty: byFsrs[Rating.Good].card.difficulty,
@@ -234,7 +237,7 @@ function repeatLearning(
 export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
   card: AnyCard,
   conf: Conf,
-  prefs: AppPrefs,
+  dayStart: number,
   f: FSRS,
   now: number,
   time: number,
@@ -244,12 +247,12 @@ export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepe
     card.state == State.New ||
     card.state == State.Learning
   ) {
-    return repeatLearning(card, conf, prefs, f, now, time)
+    return repeatLearning(card, conf, dayStart, f, now, time)
   }
 
   // TODO: handle relearning
 
-  return repeatFsrs(card, conf, prefs, f, now, time)
+  return repeatFsrs(card, dayStart, f, now, time)
 }
 
 /**
@@ -259,8 +262,8 @@ export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepe
  */
 export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget(
   card: AnyCard,
-  conf: Conf,
-  prefs: AppPrefs,
+  _conf: Conf,
+  dayStart: number,
   f: FSRS,
   now: number,
   time: number,
@@ -271,7 +274,7 @@ export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForg
     Rating.Manual,
     f.forget(card, now, reset_count),
     time,
-    prefs,
+    dayStart,
     now,
   )
 }

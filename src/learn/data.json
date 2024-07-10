@@ -266,7 +266,7 @@
       "revlogs_today": [],
       "today": 1720314371175,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "6770040695863264": {
       "id": 6770040695863264,
@@ -279,7 +279,7 @@
       "revlogs_today": [],
       "today": 1720314371176,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "8614011354630552": {
       "id": 8614011354630552,
@@ -292,7 +292,7 @@
       "revlogs_today": [],
       "today": 1720314371176,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "4785035627561216": {
       "id": 4785035627561216,
@@ -305,7 +305,7 @@
       "revlogs_today": [],
       "today": 1720314371176,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "5661882328403776": {
       "id": 5661882328403776,
@@ -318,7 +318,7 @@
       "revlogs_today": [],
       "today": 1720314371176,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "6041667734385822": {
       "id": 6041667734385822,
@@ -331,7 +331,7 @@
       "revlogs_today": [],
       "today": 1720314371176,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "7092786045316910": {
       "id": 7092786045316910,
@@ -344,7 +344,7 @@
       "revlogs_today": [],
       "today": 1720314371176,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "8449341597500966": {
       "id": 8449341597500966,
@@ -357,7 +357,7 @@
       "revlogs_today": [],
       "today": 1720314371177,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     },
     "2971470362961190": {
       "id": 2971470362961190,
@@ -370,12 +370,12 @@
       "revlogs_today": [],
       "today": 1720314371177,
       "desc": "",
-      "cfid": 1
+      "cfid": 0
     }
   },
   "confs": {
-    "1": {
-      "id": 1,
+    "0": {
+      "id": 0,
       "autoplay_audio": true,
       "last_edited": 1720314371175,
       "name": "Default",
@@ -391,7 +391,8 @@
         "enable_fuzz": true,
         "max_review_interval": 36500,
         "per_day": 9007199254740991,
-        "relearning_steps": [600]
+        "relearning_steps": [600],
+        "requested_retention": 0.9
       },
       "show_global_timer": false
     }

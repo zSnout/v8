@@ -1,6 +1,6 @@
 import { notNull } from "@/components/pray"
-import { DB } from "."
-import { ID_ZERO } from "../lib/id"
+import { DB } from ".."
+import { ID_ZERO } from "../../lib/id"
 
 export async function getPrefs(db: DB) {
   return notNull(

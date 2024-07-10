@@ -1,31 +1,62 @@
+import { notNull } from "@/components/pray"
 import { Id } from "@/learn/lib/id"
-import { AnyCard } from "@/learn/lib/types"
+import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "@/learn/lib/repeat"
+import {
+  AnyCard,
+  Deck,
+  Model,
+  ModelTemplate,
+  Note,
+  RepeatInfo,
+} from "@/learn/lib/types"
+import { FSRS, Grade } from "ts-fsrs"
 import { DB } from ".."
-import { CardBucket } from "../bucket"
-import { GatherInfo, regather } from "./gather"
+import { bucketOf, CardBucket } from "../bucket"
+import { startOfDaySync } from "../day"
+import { GatherInfo, GatherTx, regatherTx } from "./gather"
 
 export async function select(
   db: DB,
-  main: Id,
+  main: Id | undefined,
   dids: Id[],
   now: number,
   info: GatherInfo,
-): Promise<SelectedCard | null> {
-  await regather(db, main, dids, now, info)
+): Promise<SelectInfo | null> {
+  const tx = db.transaction([
+    "cards",
+    "decks",
+    "confs",
+    "prefs",
+    "notes",
+    "models",
+  ])
+
+  await regatherTx(
+    // TODO: type this better
+    tx as GatherTx,
+    main,
+    dids,
+    now,
+    info,
+  )
+
+  const newToday = info.studied.new.length
 
   const newLeft = Math.min(
     info.cards.b0.length,
-    Math.max(0, info.limits.new.today - info.studied.new),
+    Math.max(0, info.limits.new.today - newToday),
   )
 
-  const newTotal = newLeft + info.studied.new
+  const newTotal = newLeft + newToday
+
+  const reviewsToday = info.studied.revcards.length
 
   const reviewsLeft = Math.min(
-    Math.max(0, (info.limits.review.today ?? Infinity) - info.studied.revcards),
+    Math.max(0, (info.limits.review.today ?? Infinity) - reviewsToday),
     newLeft + info.cards.b1.length + info.cards.b2.length,
   )
 
-  const reviewsTotal = info.studied.revcards + reviewsLeft
+  const reviewsTotal = reviewsToday + reviewsLeft
 
   const preferNew =
     newLeft >= 0 && newLeft / newTotal >= reviewsLeft / reviewsTotal
@@ -73,11 +104,128 @@ export async function select(
     )
   }
 
-  return (preferNew && pickNew()) || pickNonNew() || pickNew()
+  const card = (preferNew && pickNew()) || pickNonNew() || pickNew()
+
+  if (!card) {
+    return null
+  }
+
+  const repeatInfo =
+    __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
+      card.card,
+      info.limits.conf,
+      info.prefs.day_start,
+      new FSRS({
+        enable_fuzz: info.limits.conf.review.enable_fuzz,
+        maximum_interval: info.limits.conf.review.max_review_interval,
+        request_retention: info.limits.conf.review.requested_retention,
+        w: info.limits.conf.review.w,
+      }),
+      now,
+      0,
+    )
+
+  const deck = notNull(
+    await tx.objectStore("decks").get(card.card.did),
+    "The card is linked to a nonexistent deck.",
+  )
+
+  const note = notNull(
+    await tx.objectStore("notes").get(card.card.nid),
+    "The card is linked to a nonexistent note.",
+  )
+
+  const model = notNull(
+    await tx.objectStore("models").get(note.mid),
+    "The card's note is linked to a nonexistent model.",
+  )
+
+  const tmpl = notNull(
+    model.tmpls[card.card.tid],
+    "The card is linked to a nonexistent template.",
+  )
+
+  await tx.done
+
+  return { ...card, repeatInfo, note, model, tmpl, deck }
 }
 
-export interface SelectedCard {
+interface SelectedCard {
   card: AnyCard
   index: number
   bucket: CardBucket
+}
+
+export interface SelectInfo extends SelectedCard {
+  repeatInfo: RepeatInfo
+  note: Note
+  model: Model
+  tmpl: ModelTemplate
+  deck: Deck
+}
+
+export async function saveReview(
+  db: DB,
+  main: Id | undefined,
+  dids: Id[],
+  selectInfo: SelectInfo,
+  gatherInfo: GatherInfo,
+  now: number,
+  repeatTime: number,
+  grade: Grade,
+) {
+  const info =
+    __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
+      selectInfo.card,
+      gatherInfo.limits.conf,
+      gatherInfo.prefs.day_start,
+      new FSRS({
+        enable_fuzz: gatherInfo.limits.conf.review.enable_fuzz,
+        maximum_interval: gatherInfo.limits.conf.review.max_review_interval,
+        request_retention: gatherInfo.limits.conf.review.requested_retention,
+        w: gatherInfo.limits.conf.review.w,
+      }),
+      now,
+      repeatTime,
+    )
+
+  const { card, log } = info[grade]
+
+  const tx = db.transaction(["cards", "rev_log"], "readwrite")
+
+  tx.objectStore("cards").put(card, card.id)
+  tx.objectStore("rev_log").put(log, log.id)
+
+  const prevBucket = selectInfo.bucket
+
+  if (prevBucket != null) {
+    gatherInfo.cards[`b${prevBucket}`].splice(selectInfo.index, 1)
+  }
+
+  const nextBucket = bucketOf(
+    startOfDaySync(gatherInfo.prefs.day_start, now),
+    card,
+    gatherInfo.prefs.day_start,
+  )
+
+  if (nextBucket != null) {
+    gatherInfo.cards[`b${nextBucket}`].push(card)
+    if (nextBucket == 0) {
+      gatherInfo.cards.b0.sort((a, b) => a.due - b.due)
+    }
+  }
+
+  if (prevBucket == 0) {
+    if (!gatherInfo.studied.new.includes(card.id)) {
+      gatherInfo.studied.new.push(card.id)
+    }
+  }
+
+  if (!gatherInfo.studied.revcards.includes(card.id)) {
+    gatherInfo.studied.revcards.push(card.id)
+  }
+
+  gatherInfo.studied.revlogs += 1
+
+  await tx.done
 }

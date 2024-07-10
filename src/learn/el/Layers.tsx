@@ -60,7 +60,14 @@ export class Layers {
     let onForcePop!: ForcePopHandler
     function inner() {
       const output = fn(props, pop)
-      onForcePop = output.onForcePop
+      const fp = output.onForcePop
+      onForcePop = async () => {
+        const retval = await fp()
+        if (retval) {
+          popHook()
+        }
+        return retval
+      }
       return output.el
     }
 
@@ -196,6 +203,7 @@ export interface LayerOutput {
   onForcePop: ForcePopHandler
 }
 
+/** Return `false` to stop this layer from being removed. */
 export type ForcePopHandler = () => boolean | PromiseLike<boolean>
 
 export type Layerable<T> = (props: T, pop: () => void) => LayerOutput

@@ -1,10 +1,9 @@
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { ModalDescription, prompt } from "@/components/Modal"
-import { NodeProps } from "@/components/tree"
+import { NodeProps, TreeOf } from "@/components/tree"
 import {
   faChartBar,
   faPlus,
-  faSliders,
   faSync,
   faTableCellsLarge,
   faUpload,
@@ -13,13 +12,12 @@ import { createResource, createSignal, getOwner, Show } from "solid-js"
 import { DB } from "../db"
 import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
-import { getPrefs } from "../db/prefs"
+import { getPrefs } from "../db/prefs/get"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
+import { Id } from "../lib/id"
 import { AppDecks } from "../lib/state"
-import { CreateNote } from "./CreateNote"
-import { Settings } from "./Settings"
 import { Study } from "./Study"
 
 function nope(): never {
@@ -46,35 +44,28 @@ export function Home({ db }: { db: DB }) {
     </div>
   )
 
+  function reload() {
+    reloadPrefs()
+    reloadDecks()
+  }
+
   function TopActions() {
-    const layers = useLayers()
+    // const layers = useLayers()
 
     return (
       <Icons>
-        <Icon
+        {/* TODO: <Icon
           icon={faPlus}
           label="Add"
-          onClick={() =>
-            layers.push(
-              CreateNote,
-              { app: db },
-              () => (reloadPrefs(), reloadDecks()),
-            )
-          }
-        />
+          onClick={() => layers.push(CreateNote, { app: db }, reload)}
+        /> */}
         <Icon icon={faTableCellsLarge} label="Browse" onClick={nope} />
         <Icon icon={faChartBar} label="Stats" onClick={nope} />
-        <Icon
+        {/* TODO: <Icon
           icon={faSliders}
           label="Settings"
-          onClick={() =>
-            layers.push(
-              Settings,
-              { app: db },
-              () => (reloadPrefs(), reloadDecks()),
-            )
-          }
-        />
+          onClick={() => layers.push(Settings, { app: db }, reload)}
+        /> */}
         <Icon icon={faSync} label="Sync" onClick={nope} />
         {/* TODO: <Show when={prefs()?.debug}>
           <Icon
@@ -177,8 +168,31 @@ export function Home({ db }: { db: DB }) {
           (subtree ? " -ml-6" : "")
         }
         onClick={() => {
-          // TODO:
-          layers.push(Study, { db, did }, () => (reloadDecks(), reloadPrefs()))
+          const main = data?.deck.id
+
+          const dids: Id[] = []
+          if (main != null) dids.push(main)
+          collectDeckIds(subtree)
+
+          layers.push(Study, { db, main, dids }, reload)
+
+          function collectDeckIds(
+            subtree:
+              | TreeOf<DeckHomeInfo | undefined, DeckHomeInfo | undefined>
+              | undefined,
+          ) {
+            if (subtree == null) return
+
+            for (const value of Object.values(subtree)) {
+              if (value.data) {
+                dids.push(value.data.deck.id)
+              }
+
+              if (value.subtree) {
+                collectDeckIds(value.subtree)
+              }
+            }
+          }
         }}
       >
         <p class="text-z">{key}</p>

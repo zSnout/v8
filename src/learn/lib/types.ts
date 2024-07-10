@@ -352,6 +352,12 @@ export const Conf = v.object({
 
     /** Relearning steps (in seconds) */
     relearning_steps: v.array(v.number()),
+
+    /** The requested retention value */
+    requested_retention: v.number(),
+
+    /** The w-array for FSRS */
+    w: v.optional(v.array(v.number())),
   }),
 
   /** Whether to show the global timer */

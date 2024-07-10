@@ -2,7 +2,7 @@ import { createEventListener } from "@/components/create-event-listener"
 import { error } from "@/components/result"
 import data from "@/learn/data.json"
 import { open } from "@/learn/db"
-import { resetIfInvalid } from "@/learn/db/init"
+import { checkValidity } from "@/learn/db/init"
 import { Error } from "@/learn/el/Error"
 import { Layers, useLayers } from "@/learn/el/Layers"
 import { createCollection } from "@/learn/lib/defaults"
@@ -59,8 +59,8 @@ function SublinkHandler(): undefined {
 
 export function Main() {
   const [db] = createResource(async () => {
-    const db = await open("main:Main")
-    await resetIfInvalid(db)
+    const db = await open("learn:Main")
+    await checkValidity(db, Date.now())
     return db
   })
 
