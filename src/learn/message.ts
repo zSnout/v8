@@ -1,26 +1,3 @@
-import { Result } from "@/components/result"
-import { MaybePromise } from "valibot"
-import type { Handlers } from "./worker"
-
-export type ToWorkerMsg = {
-  [K in keyof Handlers]: {
-    id: number
-    type: K
-    data: Parameters<Handlers[K]>
-  }
-}[keyof Handlers]
-
-export type ToMainMsg = {
-  [K in keyof Handlers]: {
-    id: number
-    data: Result<ReturnType<Handlers[K]>>
-  }
-}[keyof Handlers]
-
-export type WorkerMessageHandlers = {
-  [x: string]: (...data: Sendable[]) => MaybePromise<Sendable>
-}
-
 export type Sendable =
   | Array<Sendable>
   | ArrayBuffer
