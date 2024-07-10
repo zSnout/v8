@@ -1,65 +1,25 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { alert, confirm, ModalDescription } from "@/components/Modal"
-import { unwrap as unwrapResult } from "@/components/result"
 import {
   faCheck,
   faDownload,
-  faRightFromBracket,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { getOwner } from "solid-js"
-import { createStore, unwrap } from "solid-js/store"
-import { Action, TwoBottomButtons } from "../el/BottomButtons"
+import { parse } from "valibot"
+import { DB } from "../db"
+import { exportDb, importDb } from "../db/export"
+import { createPrefsStore } from "../db/prefs/store"
+import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
 import { Layerable } from "../el/Layers"
-import { App } from "../lib/state"
+import { DBCollection } from "../lib/types"
 
 // TODO: convert to layerable
-export const Settings = (({ app }, pop) => {
-  const [prefs, dangerousUnsafeRawSetPrefs] = createStore(
-    structuredClone(app.prefs.prefs),
-  )
+export const Settings = (({ db }, pop) => {
+  const [prefs, setPrefs] = createPrefsStore(db)
   const owner = getOwner()
-  let changed = false
-
-  const setPrefs = function (this: any) {
-    changed = true
-    return dangerousUnsafeRawSetPrefs.apply(this, arguments as never)
-  } as typeof dangerousUnsafeRawSetPrefs
-
-  function save() {
-    app.prefs.set(structuredClone(unwrap(prefs)))
-    changed = false
-    pop()
-  }
-
-  async function shouldExit() {
-    if (!changed) {
-      return true
-    }
-
-    const result = await confirm({
-      owner,
-      title: "Discard changes?",
-      description:
-        "You have some unsaved changes, and closing this window discards them. Continue?",
-      cancelText: "No, stay here",
-      okText: "Yes, exit",
-    })
-
-    if (result) {
-      return true
-    }
-
-    return false
-  }
-
-  async function exitSelf() {
-    if (await shouldExit()) {
-      pop()
-    }
-  }
 
   let filePicker!: HTMLInputElement
 
@@ -67,8 +27,7 @@ export const Settings = (({ app }, pop) => {
     el: (
       <div class="flex min-h-full w-full flex-col gap-8">
         <Icons>
-          <Icon icon={faRightFromBracket} label="Exit" onClick={exitSelf} />
-          <Icon icon={faCheck} label="Save" onClick={save} />
+          <Icon icon={faCheck} label="Save" onClick={pop} />
           <input
             type="file"
             class="sr-only"
@@ -101,7 +60,23 @@ export const Settings = (({ app }, pop) => {
                 return
               }
 
-              unwrapResult(app.import(await file.text()))
+              try {
+                var json = JSON.parse(await file.text())
+              } catch {
+                throw new Error(
+                  "Couldn't read file. Did you upload a .zl.json?",
+                )
+              }
+
+              try {
+                var data = parse(DBCollection, json)
+              } catch {
+                throw new Error(
+                  "Invalid file. Did you upload a proper .zl.json?",
+                )
+              }
+
+              await importDb(db, data)
 
               await alert({
                 owner,
@@ -122,12 +97,8 @@ export const Settings = (({ app }, pop) => {
           <Icon
             icon={faDownload}
             label="Export"
-            onClick={() => {
-              const file = new File(
-                [app.export()],
-                "zsnout-learn-" + new Date().toISOString() + ".json",
-              )
-
+            onClick={async () => {
+              const file = await exportDb(db, Date.now())
               const url = URL.createObjectURL(file)
               const a = document.createElement("a")
               a.style.display = "none"
@@ -135,6 +106,7 @@ export const Settings = (({ app }, pop) => {
               a.href = url
               a.download = file.name
               a.click()
+              a.remove()
             }}
           />
         </Icons>
@@ -146,7 +118,9 @@ export const Settings = (({ app }, pop) => {
             <Checkbox
               checked={prefs.show_review_time_above_buttons}
               onInput={(checked) =>
-                setPrefs("show_review_time_above_buttons", checked)
+                setPrefs(
+                  "Toggle whether due dates are shown above review buttons",
+                )("show_review_time_above_buttons", checked)
               }
             />
 
@@ -157,7 +131,10 @@ export const Settings = (({ app }, pop) => {
             <Checkbox
               checked={prefs.show_remaining_due_counts}
               onInput={(checked) =>
-                setPrefs("show_remaining_due_counts", checked)
+                setPrefs("Toggle whether due counts are shown during reviews")(
+                  "show_remaining_due_counts",
+                  checked,
+                )
               }
             />
 
@@ -167,24 +144,18 @@ export const Settings = (({ app }, pop) => {
           <label class="flex w-full gap-2">
             <Checkbox
               checked={prefs.debug}
-              onInput={(checked) => setPrefs("debug", checked)}
+              onInput={(checked) =>
+                setPrefs("Toggle debug features")("debug", checked)
+              }
             />
 
             <p>Enable debug features</p>
           </label>
         </CheckboxContainer>
 
-        <TwoBottomButtons>
-          <Action
-            icon={faRightFromBracket}
-            label="Exit"
-            center
-            onClick={exitSelf}
-          />
-          <Action icon={faCheck} label="Save" center onClick={save} />
-        </TwoBottomButtons>
+        <SingleBottomAction icon={faCheck} label="Save" center onClick={pop} />
       </div>
     ),
-    onForcePop: shouldExit,
+    onForcePop: () => true,
   }
-}) satisfies Layerable<{ app: App }>
+}) satisfies Layerable<{ db: DB }>

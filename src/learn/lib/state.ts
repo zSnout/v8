@@ -1,3 +1,4 @@
+// @ts-nocheck this file is deprecated. it is used as a temporary reference
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { notNull, pray } from "@/components/pray"
@@ -443,8 +444,7 @@ export class AppCards {
 
     return __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget(
       card,
-      conf,
-      prefs,
+      dayStart,
       new FSRS({
         enable_fuzz: conf.review.enable_fuzz,
         maximum_interval: conf.review.max_review_interval,

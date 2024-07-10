@@ -2,12 +2,12 @@ import { notNull } from "@/components/pray"
 import { Id, ID_ZERO } from "@/learn/lib/id"
 import { AnyCard, Conf, Prefs } from "@/learn/lib/types"
 import { IDBPTransaction } from "idb"
-import { DB, DBCollection } from ".."
+import { DB, DBTypes } from ".."
 import { bucketOf } from "../bucket"
 import { dayStartOffset, startOfDaySync } from "../day"
 
 type GatherCols = ("cards" | "decks" | "prefs" | "confs")[]
-type Tx = IDBPTransaction<DBCollection, GatherCols, "readonly">
+type Tx = IDBPTransaction<DBTypes, GatherCols, "readonly">
 
 async function cardsTx(
   tx: Tx,
@@ -185,7 +185,7 @@ export async function gather(
   dids: Id[],
   now: number,
 ): Promise<GatherInfo> {
-  const tx = db.transaction(["cards", "decks", "prefs", "confs"])
+  const tx = db.read(["cards", "decks", "prefs", "confs"])
   const dayStart = await dayStartOffset(tx)
   const today = startOfDaySync(dayStart, now)
 

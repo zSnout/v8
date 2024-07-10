@@ -10,7 +10,7 @@ export type DeckHomeInfo = { deck: Deck; self: Buckets; sub: Buckets }
 export type DeckHomeTree = Tree<DeckHomeInfo | undefined, DeckHomeInfo>
 
 export async function listDecks(db: DB, now: number) {
-  const tx = db.transaction(["cards", "decks", "prefs"], "readonly")
+  const tx = db.read(["cards", "decks", "prefs"])
   const dayStart = await dayStartOffset(tx)
   const today = startOfDaySync(dayStart, now)
 

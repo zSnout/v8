@@ -1,6 +1,9 @@
 import { notNull } from "@/components/pray"
 import { Id } from "@/learn/lib/id"
-import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "@/learn/lib/repeat"
+import {
+  __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget,
+  __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered,
+} from "@/learn/lib/repeat"
 import {
   AnyCard,
   Deck,
@@ -8,9 +11,11 @@ import {
   ModelTemplate,
   Note,
   RepeatInfo,
+  RepeatItem,
 } from "@/learn/lib/types"
-import { FSRS, Grade } from "ts-fsrs"
+import { FSRS, Grade, Rating } from "ts-fsrs"
 import { DB } from ".."
+import { Reason } from "../reason"
 import { bucketOf, CardBucket } from "../bucket"
 import { startOfDaySync } from "../day"
 import { GatherInfo, GatherTx, regatherTx } from "./gather"
@@ -22,14 +27,7 @@ export async function select(
   now: number,
   info: GatherInfo,
 ): Promise<SelectInfo | null> {
-  const tx = db.transaction([
-    "cards",
-    "decks",
-    "confs",
-    "prefs",
-    "notes",
-    "models",
-  ])
+  const tx = db.read(["cards", "decks", "confs", "prefs", "notes", "models"])
 
   await regatherTx(
     // TODO: type this better
@@ -164,34 +162,15 @@ export interface SelectInfo extends SelectedCard {
   deck: Deck
 }
 
-export async function saveReview(
+async function save(
   db: DB,
-  main: Id | undefined,
-  dids: Id[],
+  { card, log }: RepeatItem,
   selectInfo: SelectInfo,
   gatherInfo: GatherInfo,
   now: number,
-  repeatTime: number,
-  grade: Grade,
+  reason: Reason,
 ) {
-  const info =
-    __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
-      selectInfo.card,
-      gatherInfo.limits.conf,
-      gatherInfo.prefs.day_start,
-      new FSRS({
-        enable_fuzz: gatherInfo.limits.conf.review.enable_fuzz,
-        maximum_interval: gatherInfo.limits.conf.review.max_review_interval,
-        request_retention: gatherInfo.limits.conf.review.requested_retention,
-        w: gatherInfo.limits.conf.review.w,
-      }),
-      now,
-      repeatTime,
-    )
-
-  const { card, log } = info[grade]
-
-  const tx = db.transaction(["cards", "rev_log"], "readwrite")
+  const tx = db.readwrite(["cards", "rev_log"], reason)
 
   tx.objectStore("cards").put(card, card.id)
   tx.objectStore("rev_log").put(log, log.id)
@@ -215,6 +194,45 @@ export async function saveReview(
     }
   }
 
+  await tx.done
+  return prevBucket
+}
+
+export async function saveReview(
+  db: DB,
+  selectInfo: SelectInfo,
+  gatherInfo: GatherInfo,
+  now: number,
+  repeatTime: number,
+  grade: Grade,
+) {
+  const info =
+    __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
+      selectInfo.card,
+      gatherInfo.limits.conf,
+      gatherInfo.prefs.day_start,
+      new FSRS({
+        enable_fuzz: gatherInfo.limits.conf.review.enable_fuzz,
+        maximum_interval: gatherInfo.limits.conf.review.max_review_interval,
+        request_retention: gatherInfo.limits.conf.review.requested_retention,
+        w: gatherInfo.limits.conf.review.w,
+      }),
+      now,
+      repeatTime,
+    )
+
+  const item = info[grade]
+  const { card } = item
+
+  const prevBucket = await save(
+    db,
+    item,
+    selectInfo,
+    gatherInfo,
+    now,
+    `Review card as ${Rating[grade]}`,
+  )
+
   if (prevBucket == 0) {
     if (!gatherInfo.studied.new.includes(card.id)) {
       gatherInfo.studied.new.push(card.id)
@@ -226,6 +244,30 @@ export async function saveReview(
   }
 
   gatherInfo.studied.revlogs += 1
+}
 
-  await tx.done
+export async function saveForget(
+  db: DB,
+  selectInfo: SelectInfo,
+  gatherInfo: GatherInfo,
+  now: number,
+  repeatTime: number,
+  resetCount: boolean,
+) {
+  const item =
+    __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget(
+      selectInfo.card,
+      gatherInfo.prefs.day_start,
+      new FSRS({
+        enable_fuzz: gatherInfo.limits.conf.review.enable_fuzz,
+        maximum_interval: gatherInfo.limits.conf.review.max_review_interval,
+        request_retention: gatherInfo.limits.conf.review.requested_retention,
+        w: gatherInfo.limits.conf.review.w,
+      }),
+      now,
+      repeatTime,
+      resetCount,
+    )
+
+  await save(db, item, selectInfo, gatherInfo, now, "Forget card")
 }

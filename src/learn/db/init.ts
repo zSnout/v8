@@ -1,13 +1,13 @@
 import { StoreNames } from "idb"
 import { parse } from "valibot"
-import { DB, DBCollection, TxWith } from "."
+import { DB, DBTypes, TxWith } from "."
 import data from "../data.json"
 import { createConf, createPrefs } from "../lib/defaults"
 import { ID_ZERO } from "../lib/id"
 import { Collection } from "../lib/types"
 
 async function setTx(
-  tx: TxWith<StoreNames<DBCollection>, "readwrite">,
+  tx: TxWith<StoreNames<DBTypes>, "readwrite">,
   collection: Collection,
 ) {
   const cards = tx.objectStore("cards")
@@ -55,7 +55,7 @@ async function setTx(
 }
 
 export async function checkValidity(db: DB, now: number) {
-  const tx = db.transaction(
+  const tx = db.readwrite(
     [
       "cards",
       "graves",
@@ -67,7 +67,7 @@ export async function checkValidity(db: DB, now: number) {
       "confs",
       "prefs",
     ],
-    "readwrite",
+    "Check database validity",
   )
 
   const [core] = await Promise.all([

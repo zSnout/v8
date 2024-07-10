@@ -4,6 +4,7 @@ import { NodeProps, TreeOf } from "@/components/tree"
 import {
   faChartBar,
   faPlus,
+  faSliders,
   faSync,
   faTableCellsLarge,
   faUpload,
@@ -18,6 +19,7 @@ import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
 import { Id } from "../lib/id"
 import { AppDecks } from "../lib/state"
+import { Settings } from "./Settings"
 import { Study } from "./Study"
 
 function nope(): never {
@@ -50,7 +52,7 @@ export function Home({ db }: { db: DB }) {
   }
 
   function TopActions() {
-    // const layers = useLayers()
+    const layers = useLayers()
 
     return (
       <Icons>
@@ -61,11 +63,12 @@ export function Home({ db }: { db: DB }) {
         /> */}
         <Icon icon={faTableCellsLarge} label="Browse" onClick={nope} />
         <Icon icon={faChartBar} label="Stats" onClick={nope} />
-        {/* TODO: <Icon
+        TODO:{" "}
+        <Icon
           icon={faSliders}
           label="Settings"
-          onClick={() => layers.push(Settings, { app: db }, reload)}
-        /> */}
+          onClick={() => layers.push(Settings, { db }, reload)}
+        />
         <Icon icon={faSync} label="Sync" onClick={nope} />
         {/* TODO: <Show when={prefs()?.debug}>
           <Icon

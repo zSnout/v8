@@ -12,7 +12,6 @@
       "@/*": ["src/*"],
       "@db/*": ["src/learn/db/*"],
       "@db": ["src/learn/db/index"]
-    },
-    "skipLibCheck": true
+    }
   }
 }

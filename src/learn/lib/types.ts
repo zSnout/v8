@@ -584,6 +584,20 @@ export const Collection = v.object({
   prefs: Prefs,
 })
 
+export interface DBCollection extends v.InferOutput<typeof DBCollection> {}
+export const DBCollection = v.object({
+  version: v.literal(2),
+  cards: v.array(AnyCard),
+  graves: v.array(Grave),
+  notes: v.array(Note),
+  rev_log: v.array(Review),
+  core: Core,
+  models: v.array(Model),
+  decks: v.array(Deck),
+  confs: v.array(Conf),
+  prefs: Prefs,
+})
+
 export interface RepeatItem {
   card: AnyCard
   log: Review

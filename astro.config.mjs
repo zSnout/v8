@@ -91,7 +91,6 @@ export default defineConfig({
       esbuildOptions: {
         target: "esnext",
       },
-      exclude: ["@sqlite.org/sqlite-wasm"],
     },
     build: {
       target: "esnext",

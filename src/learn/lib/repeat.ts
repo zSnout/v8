@@ -262,7 +262,6 @@ export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepe
  */
 export function __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactForget(
   card: AnyCard,
-  _conf: Conf,
   dayStart: number,
   f: FSRS,
   now: number,

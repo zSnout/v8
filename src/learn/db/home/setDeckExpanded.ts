@@ -12,7 +12,7 @@ export async function setDeckExpanded(
   isExpanded: boolean,
   now: number,
 ) {
-  const tx = db.transaction("decks", "readwrite")
+  const tx = db.readwrite("decks", "Toggle whether deck is collapsed")
   const decks = tx.objectStore("decks")
 
   if (typeof id == "number") {
