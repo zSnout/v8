@@ -42,13 +42,6 @@ function SublinkHandler(): undefined {
       })
     }
   })
-
-  if (!import.meta.env.DEV) {
-    createEventListener(window, "beforeunload", (event) => {
-      event.returnValue = true
-      return false
-    })
-  }
 }
 
 const MainInner = createLoadingBase(
