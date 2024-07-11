@@ -1,4 +1,3 @@
-import { Fa } from "@/components/Fa"
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
 import { alert, confirm, ModalDescription, prompt } from "@/components/Modal"
@@ -7,15 +6,12 @@ import { error, ok, Result } from "@/components/result"
 import {
   faCancel,
   faCheck,
-  faGripVertical,
   faPencil,
   faPlus,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons"
-import { DndItem, dndzone } from "solid-dnd-directive"
 import {
   batch,
-  createEffect,
   createMemo,
   createSignal,
   For,
@@ -24,13 +20,12 @@ import {
   untrack,
 } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"
-import { array, parse } from "valibot"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { IntegratedField } from "../el/IntegratedField"
 import { Layerable } from "../el/Layers"
+import { SortableFieldList } from "../el/Sortable"
 import { createModelTemplate } from "../lib/defaults"
-import { Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
 import * as Template from "../lib/template"
 import {
@@ -42,17 +37,20 @@ import {
 
 // TODO: stop user from editing model name to potential ambiguity
 export const EditModelTemplates = ((props, pop) => {
-  const [model, setModel] = createSignal(props.model)
-  const [tmpls, setTemplates] = createSignal<DndItem[]>(
-    Object.values(model().tmpls),
+  const [model, setModel] = createSignal<Omit<Model, "tmpls">>(
+    structuredClone(props.model),
   )
-  createEffect(() => setTemplates(Object.values(model().tmpls)))
+  const [tmpls, setTemplates] = createSignal(Object.values(props.model.tmpls))
   const [selectedId, setSelectedId] = createSignal(
-    Object.values(model().tmpls)[0]?.id,
+    notNull(tmpls()[0], "A model must have at least one template.").id,
   )
   const selected = createMemo(() => {
-    const tmpl = model().tmpls[selectedId() ?? 0]
-    return notNull(tmpl, "There must be a template selected in the explorer.")
+    const t = tmpls()
+    const sid = selectedId()
+    return notNull(
+      t.find((x) => x.id == sid),
+      "There must be a template selected in the explorer.",
+    )
   })
   const [editStyle, setEditStyle] = createStore(
     structuredClone(props.editStyle),
@@ -136,8 +134,12 @@ export const EditModelTemplates = ((props, pop) => {
           label="Save changes"
           center
           onClick={() => {
-            const m = model()
-            props.save(m, structuredClone(unwrap(editStyle)))
+            const m = structuredClone(model())
+            const es = structuredClone(unwrap(editStyle))
+            props.save(
+              { ...m, tmpls: arrayToRecord(structuredClone(tmpls())) },
+              es,
+            )
             pop()
           }}
         />
@@ -151,11 +153,12 @@ export const EditModelTemplates = ((props, pop) => {
     if (typeof fn == "function") {
       fn = fn(untrack(selected))
     }
-    setModel((model) => {
-      return {
-        ...model,
-        tmpls: { ...model.tmpls, [fn.id]: fn },
-      }
+    const sid = selectedId()
+    setTemplates((tmpls) => {
+      const tmpl = tmpls.findIndex((x) => x.id == sid)
+      if (tmpl == -1) return tmpls
+      tmpls[tmpl] = fn
+      return [...tmpls]
     })
   }
 
@@ -200,7 +203,7 @@ export const EditModelTemplates = ((props, pop) => {
         return
       }
 
-      if (!Object.values(model().tmpls).some((x) => x.name == name)) {
+      if (!tmpls().some((x) => x.name == name)) {
         return name
       }
 
@@ -474,12 +477,10 @@ export const EditModelTemplates = ((props, pop) => {
               return
             }
 
-            setModel((model) => {
-              const next = createModelTemplate("", "", tmplName)
-              return {
-                ...model,
-                tmpls: { ...model.tmpls, [next.id]: next },
-              }
+            const next = createModelTemplate("", "", tmplName)
+            batch(() => {
+              setTemplates((model) => model.concat(next))
+              setSelectedId(next.id)
             })
           }}
         />
@@ -488,7 +489,7 @@ export const EditModelTemplates = ((props, pop) => {
           icon={faTrash}
           label="Delete"
           onClick={async () => {
-            if (Object.keys(model().tmpls).length <= 1) {
+            if (tmpls().length <= 1) {
               await alert({
                 owner,
                 title: "Unable to delete",
@@ -506,12 +507,20 @@ export const EditModelTemplates = ((props, pop) => {
             }
 
             batch(() => {
-              const model = setModel((model) => {
-                const { [selectedId() ?? 0]: _, ...tmpls } = model.tmpls
-                return { ...model, tmpls }
+              const sid = selectedId()
+
+              const tmpls = setTemplates((x) => {
+                const idx = x.findIndex((x) => x.id == sid)
+                if (idx == -1) return x
+                if (x.length <= 1)
+                  throw new Error("Models need at least one template.")
+                x.splice(idx, 1)
+                return [...x]
               })
 
-              setSelectedId(Object.values(model.tmpls)[0]!.id)
+              setSelectedId(
+                notNull(tmpls[0]?.id, "Models need at least one template."),
+              )
             })
           }}
         />
@@ -538,54 +547,13 @@ export const EditModelTemplates = ((props, pop) => {
 
   function TemplateList() {
     return (
-      <div
-        class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z pb-8"
-        ref={(el) => {
-          dndzone(el, () => ({
-            items: tmpls,
-            flipDurationMs: 0,
-            dropTargetClasses: ["!outline-none"],
-            zoneTabIndex: -1,
-          }))
-        }}
-        onconsider={({ detail: { items } }) => setTemplates(items)}
-        onfinalize={({ detail: { items } }) => {
-          const result = parse(array(ModelTemplate), items)
-          setTemplates(result)
-          setModel((model) => ({ ...model, tmpls: arrayToRecord(result) }))
-        }}
-      >
-        <For each={tmpls()}>
-          {(tmpl, index) => {
-            return (
-              <div
-                class="-mx-px -mt-px flex items-center border border-z"
-                classList={{
-                  "bg-z-body": tmpl.id != selectedId(),
-                  "bg-z-body-selected": tmpl.id == selectedId(),
-                }}
-              >
-                <div class="z-handle cursor-move py-1 pl-2 pr-1">
-                  <Fa
-                    class="h-4 w-4"
-                    icon={faGripVertical}
-                    title="drag to sort"
-                  />
-                </div>
-                <button
-                  class="flex-1 py-1 pl-1 pr-2 text-left"
-                  onClick={() => setSelectedId(+tmpl.id as Id)}
-                >
-                  {String(tmpl["name"])}
-                </button>
-                <div class="px-2 font-mono text-sm text-z-subtitle">
-                  {index() + 1}
-                </div>
-              </div>
-            )
-          }}
-        </For>
-      </div>
+      <SortableFieldList
+        get={tmpls()}
+        set={setTemplates}
+        selectedId={selectedId()}
+        setSelectedId={setSelectedId}
+        sortId={undefined}
+      />
     )
   }
 }) satisfies Layerable<{

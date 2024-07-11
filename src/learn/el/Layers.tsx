@@ -1,6 +1,5 @@
 import {
   createContext,
-  createResource,
   getOwner,
   JSX,
   Owner,
@@ -59,7 +58,7 @@ export class Layers {
     const previouslyFocused = document.activeElement
 
     let onForcePop!: ForcePopHandler
-    function inner() {
+    function Inner() {
       const output = fn(props, pop)
       const fp = output.onForcePop
       onForcePop = async () => {
@@ -74,7 +73,9 @@ export class Layers {
 
     const next = runWithOwner(this.owner, () => {
       const el = (
-        <LayerContext.Provider value={this}>{inner()}</LayerContext.Provider>
+        <LayerContext.Provider value={this}>
+          <Inner />
+        </LayerContext.Provider>
       )
 
       const next = (

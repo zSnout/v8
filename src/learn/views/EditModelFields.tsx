@@ -1,53 +1,48 @@
-import { Fa } from "@/components/Fa"
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import { alert, confirm, ModalDescription, prompt } from "@/components/Modal"
+import { confirm, ModalDescription, prompt } from "@/components/Modal"
 import { notNull } from "@/components/pray"
 import {
   faCancel,
   faCheck,
-  faGripVertical,
-  faKey,
   faPencil,
   faPlus,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons"
-import { DndItem, dndzone } from "solid-dnd-directive"
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  getOwner,
-  Show,
-  untrack,
-} from "solid-js"
-import { createStore } from "solid-js/store"
-import { array, parse } from "valibot"
+import { batch, createMemo, createSignal, getOwner, untrack } from "solid-js"
+import { createStore, unwrap } from "solid-js/store"
 import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { IntegratedField } from "../el/IntegratedField"
 import { Layerable } from "../el/Layers"
+import { SortableFieldList } from "../el/Sortable"
 import { createField } from "../lib/defaults"
-import { Id, idOf } from "../lib/id"
+import { idOf } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
 import { Model, ModelField } from "../lib/types"
 import { renameFieldAccessesInTemplates } from "../lib/updateModelTemplates"
 
 // TODO: stop user from editing model name to potential ambiguity
 export const EditModelFields = ((props, pop) => {
-  const [model, setModel] = createStore(props.model)
-  const [fields, setFields] = createSignal<DndItem[]>(
-    Object.values(model.fields),
+  const [model, setModel] = createStore<Omit<Model, "fields">>(
+    structuredClone(props.model),
   )
-  createEffect(() => setFields(Object.values(model.fields)))
+
+  const [fields, setFields] = createSignal(
+    Object.values(structuredClone(props.model.fields)),
+  )
+
   const [selectedId, setSelectedId] = createSignal(
-    Object.values(model.fields)[0]?.id,
+    notNull(fields()[0]?.id, "A model must have at least one field."),
   )
+
   const selected = createMemo(() => {
-    const field = model.fields[selectedId() ?? 0]
-    return notNull(field, "There must be a field selected in the explorer.")
+    const f = fields()
+    const id = selectedId()
+    return notNull(
+      f.find((x) => x.id == id),
+      "There must be a field selected in the explorer.",
+    )
   })
 
   const owner = getOwner()
@@ -64,7 +59,14 @@ export const EditModelFields = ((props, pop) => {
         />
 
         <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
-          {FieldList()}
+          <SortableFieldList
+            get={fields()}
+            set={setFields}
+            selectedId={selectedId()}
+            setSelectedId={setSelectedId}
+            sortId={model.sort_field}
+          />
+
           {SideActions()}
         </div>
 
@@ -85,15 +87,19 @@ export const EditModelFields = ((props, pop) => {
           label="Save changes"
           center
           onClick={() => {
-            const m = model
+            const m = unwrap(model)
+            const f = arrayToRecord(fields())
+
             props.save({
               ...m,
               tmpls: renameFieldAccessesInTemplates(
                 props.model.fields,
-                m.fields,
+                f,
                 m.tmpls,
               ),
+              fields: f,
             })
+
             pop()
           }}
         />
@@ -105,7 +111,13 @@ export const EditModelFields = ((props, pop) => {
     if (typeof fn == "function") {
       fn = fn(untrack(selected))
     }
-    setModel("fields", fn.id.toString(), fn)
+    const sid = selectedId()
+    setFields((fields) => {
+      const field = fields.findIndex((x) => x.id == sid)
+      if (field == -1) return fields
+      fields[field] = fn
+      return [...fields]
+    })
   }
 
   async function confirmImportantChange(ingVerb: string) {
@@ -131,22 +143,24 @@ export const EditModelFields = ((props, pop) => {
     let first = true
 
     while (true) {
-      const name = await prompt({
-        owner,
-        title,
-        description: first ? undefined : (
-          <ModalDescription>
-            That field name is already used. Please pick a different name, or
-            cancel the action.
-          </ModalDescription>
-        ),
-      })
+      const name = (
+        await prompt({
+          owner,
+          title,
+          description: first ? undefined : (
+            <ModalDescription>
+              That field name is already used. Please pick a different name, or
+              cancel the action.
+            </ModalDescription>
+          ),
+        })
+      )?.trim()
 
       if (name == null || name == cancelName) {
         return
       }
 
-      if (!Object.values(model.fields).some((x) => x.name == name)) {
+      if (!fields().some((x) => x.name == name)) {
         return name
       }
 
@@ -278,12 +292,11 @@ export const EditModelFields = ((props, pop) => {
               return
             }
 
-            setModel((model) => {
-              const next = createField(fieldName)
-              return {
-                ...model,
-                fields: { ...model.fields, [next.id]: next },
-              }
+            const next = createField(fieldName)
+
+            batch(() => {
+              setFields((fields) => fields.concat(next))
+              setSelectedId(next.id)
             })
           }}
         />
@@ -292,13 +305,13 @@ export const EditModelFields = ((props, pop) => {
           icon={faTrash}
           label="Delete"
           onClick={async () => {
-            if (Object.keys(model.fields).length <= 1) {
+            if (fields().length <= 1) {
               await alert({
                 owner,
                 title: "Unable to delete",
                 description: (
                   <ModalDescription>
-                    Card types need at least one field.
+                    Models need at least one field.
                   </ModalDescription>
                 ),
               })
@@ -310,12 +323,20 @@ export const EditModelFields = ((props, pop) => {
             }
 
             batch(() => {
-              setModel("fields", (fields) => {
-                const { [selectedId() ?? 0]: _, ...rest } = fields
-                return rest
+              const sid = selectedId()
+
+              const fields = setFields((x) => {
+                const idx = x.findIndex((x) => x.id == sid)
+                if (idx == -1) return x
+                if (x.length <= 1)
+                  throw new Error("Models need at least one field.")
+                x.splice(idx, 1)
+                return [...x]
               })
 
-              setSelectedId(Object.values(model.fields)[0]!.id)
+              setSelectedId(
+                notNull(fields[0]?.id, "Models need at least one field."),
+              )
             })
           }}
         />
@@ -336,64 +357,6 @@ export const EditModelFields = ((props, pop) => {
             setSelected((field) => ({ ...field, name: fieldName }))
           }}
         />
-      </div>
-    )
-  }
-
-  function FieldList() {
-    const sortId = createMemo(() => model.fields[model.sort_field ?? 0]?.id)
-
-    return (
-      <div
-        class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z pb-8"
-        ref={(el) => {
-          dndzone(el, () => ({
-            items: fields,
-            flipDurationMs: 0,
-            dropTargetClasses: ["!outline-none"],
-            zoneTabIndex: -1,
-          }))
-        }}
-        onconsider={({ detail: { items } }) => setFields(items)}
-        onfinalize={({ detail: { items } }) => {
-          const result = parse(array(ModelField), items)
-          setFields(result)
-          setModel((model) => ({ ...model, fields: arrayToRecord(result) }))
-        }}
-      >
-        <For each={fields()}>
-          {(field, index) => {
-            return (
-              <div
-                class="-mx-px -mt-px flex items-center border border-z"
-                classList={{
-                  "bg-z-body": field.id != selectedId(),
-                  "bg-z-body-selected": field.id == selectedId(),
-                }}
-              >
-                <div class="z-handle cursor-move py-1 pl-2 pr-1">
-                  <Fa
-                    class="h-4 w-4"
-                    icon={faGripVertical}
-                    title="drag to sort"
-                  />
-                </div>
-                <button
-                  class="flex-1 py-1 pl-1 pr-2 text-left"
-                  onClick={() => setSelectedId(+field.id as Id)}
-                >
-                  {String(field["name"])}
-                </button>
-                <Show when={field.id == sortId()}>
-                  <Fa class="h-3 w-3" icon={faKey} title="sort field" />
-                </Show>
-                <div class="px-2 font-mono text-sm text-z-subtitle">
-                  {index() + 1}
-                </div>
-              </div>
-            )
-          }}
-        </For>
       </div>
     )
   }
