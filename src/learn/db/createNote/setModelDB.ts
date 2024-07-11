@@ -4,6 +4,26 @@ import { Model, NoteFields, TemplateEditStyle } from "@/learn/lib/types"
 import { DB } from ".."
 import { Reason } from "../reason"
 
+export function requiresOneWaySync(prev: Model, next: Model) {
+  if (prev.sort_field != next.sort_field) {
+    return true
+  }
+
+  const pf = Object.keys(prev.fields).sort()
+  const nf = Object.keys(next.fields).sort()
+  if (pf.length != nf.length) {
+    return true
+  }
+
+  for (let i = 0; i < pf.length; i++) {
+    if (pf[i] != nf[i]) {
+      return true
+    }
+  }
+
+  return false
+}
+
 export async function setModelDB(
   db: DB,
   model: Model,
@@ -15,7 +35,8 @@ export async function setModelDB(
     throw new Error("Model name is empty.")
   }
 
-  const tx = db.readwrite(["models", "notes", "cards", "prefs"], reason)
+  // TODO: ensure last_edited is properly updated *everywhere*
+  const tx = db.readwrite(["models", "notes", "cards", "prefs", "core"], reason)
 
   if (editStyle) {
     const prefs = tx.objectStore("prefs")
@@ -36,7 +57,11 @@ export async function setModelDB(
 
   const notes = tx.objectStore("notes")
 
-  // TODO: note if model has been drastically altered (do we need a one-way sync)
+  if (requiresOneWaySync(prev, model)) {
+    const core = tx.objectStore("core")
+    const c = notNull(await core.get(ID_ZERO), "Core must exist.")
+    core.put({ ...c, last_schema_edit: Date.now(), last_edited: Date.now() })
+  }
 
   for (const note of await notes.getAll()) {
     if (note.mid != model.id) {

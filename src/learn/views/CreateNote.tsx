@@ -221,6 +221,7 @@ export const CreateNote = createLoading(
         </div>
       ),
       // TODO: detect if fields are nonempty
+      // TODO: ensure core.tags is updated
       onForcePop: () => true,
     }
 
