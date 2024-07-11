@@ -79,7 +79,7 @@ export async function importDb(db: DB, data: DBCollection) {
   await Promise.all([
     cards.clear().then(() => {
       for (const item of data.cards) {
-        cards.add(item, item.id)
+        cards.add(item)
       }
     }),
 
@@ -91,13 +91,13 @@ export async function importDb(db: DB, data: DBCollection) {
 
     notes.clear().then(() => {
       for (const item of data.notes) {
-        notes.add(item, item.id)
+        notes.add(item)
       }
     }),
 
     rev_log.clear().then(() => {
       for (const item of data.rev_log) {
-        rev_log.add(item, item.id)
+        rev_log.add(item)
       }
     }),
 
@@ -107,19 +107,19 @@ export async function importDb(db: DB, data: DBCollection) {
 
     models.clear().then(() => {
       for (const item of data.models) {
-        models.add(item, item.id)
+        models.add(item)
       }
     }),
 
     decks.clear().then(() => {
       for (const item of data.decks) {
-        decks.add(item, item.id)
+        decks.add(item)
       }
     }),
 
     confs.clear().then(() => {
       for (const item of data.confs) {
-        confs.add(item, item.id)
+        confs.add(item)
       }
     }),
 

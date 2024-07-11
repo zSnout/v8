@@ -20,12 +20,12 @@ export async function setDeckExpanded(
     if (!deck) {
       throw new Error("Cannot collapse a deck which doesn't exist.")
     }
-    await decks.put({ ...deck, collapsed: !isExpanded }, deck?.id)
+    await decks.put({ ...deck, collapsed: !isExpanded })
   } else {
     const did = randomId()
     const deck = createDeck(now, id, did)
     deck.collapsed = !isExpanded
-    await decks.put(deck, did)
+    await decks.put(deck)
   }
 
   await tx.done

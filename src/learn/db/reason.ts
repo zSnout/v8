@@ -14,3 +14,4 @@ export type Reason =
   | `Toggle ${string} mark`
   | `Update ${"fields" | "templates"} for model ${string}`
   | `Create note in ${string}`
+  | `Create deck ${string}`

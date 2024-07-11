@@ -221,7 +221,7 @@ export const Debug = (({ app }: { app: App }, pop) => {
                 <p>last_edited? {note.last_edited}</p>
                 <p>mid? {note.mid}</p>
                 <p>sort_field? {note.sort_field}</p>
-                <p>tags? {note.tags}</p>
+                <p>tags? {note.tags.join(", ")}</p>
                 <div class="col-span-3 mt-1 grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-2 overflow-x-auto border-t border-z pb-1 pt-2 text-base">
                   <For each={cards()[note.id]?.toSorted((a, b) => a.id - b.id)}>
                     {(card) => <Card card={card} />}

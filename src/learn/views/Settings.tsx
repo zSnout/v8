@@ -8,7 +8,7 @@ import {
 import { getOwner } from "solid-js"
 import { parse } from "valibot"
 import { DB } from "../db"
-import { exportDb, importDb } from "../db/export"
+import { exportDb, importDb } from "../db/save"
 import { createPrefsStore } from "../db/prefs/store"
 import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"

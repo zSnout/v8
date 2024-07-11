@@ -29,7 +29,7 @@ export async function setModelDB(
   const prev = await models.get(model.id)
 
   if (!prev) {
-    models.add(model, model.id)
+    models.add(model)
     await tx.done
     return
   }
@@ -54,10 +54,10 @@ export async function setModelDB(
     note.fields = fields
     note.last_edited = last_edited
     // TODO: update which cards exist and their corresponding templates
-    notes.put(note, note.id)
+    notes.put(note)
   }
 
-  models.put(model, model.id)
+  models.put(model)
   await tx.done
   return
 }

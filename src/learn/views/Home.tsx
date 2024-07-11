@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { createResource, createSignal, getOwner, Show } from "solid-js"
 import { DB } from "../db"
+import { createDeck } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
 import { getPrefs } from "../db/prefs/get"
@@ -18,7 +19,6 @@ import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
 import { Id } from "../lib/id"
-import { AppDecks } from "../lib/state"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
@@ -88,6 +88,17 @@ export function Home({ db }: { db: DB }) {
   }
 
   function DeckList() {
+    function compare([a]: [string, unknown], [b]: [string, unknown]) {
+      const al = a.toLowerCase()
+      const bl = b.toLowerCase()
+
+      if (al < bl) return -1
+      if (al > bl) return 1
+      if (a < b) return -1
+      if (a > b) return 1
+      return 0
+    }
+
     return (
       <div class="mx-auto w-full max-w-xl flex-1 rounded-lg bg-z-body-selected px-1 py-1">
         <div class="mb-1 grid grid-cols-[auto,4rem,4rem,4rem] items-baseline border-b border-z pb-1 pl-8 pr-4">
@@ -113,8 +124,8 @@ export function Home({ db }: { db: DB }) {
                 )
               }}
               node={DeckEl}
-              sort={([a], [b]) => AppDecks.compare(a, b)}
               noGap
+              sort={compare}
             />
           )}
         </Show>
@@ -146,7 +157,7 @@ export function Home({ db }: { db: DB }) {
               return
             }
 
-            db.decks.byNameOrCreate(name, Date.now())
+            await createDeck(db, name)
             reloadDecks()
           }}
         />

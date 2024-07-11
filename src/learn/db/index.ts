@@ -5,7 +5,13 @@ import {
   openDB,
   StoreNames,
 } from "idb"
-import { Id } from "../lib/id"
+import {
+  createConf,
+  createCore,
+  createDeck,
+  createPrefs,
+} from "../lib/defaults"
+import { Id, ID_ZERO } from "../lib/id"
 import type {
   AnyCard,
   Conf,
@@ -18,6 +24,7 @@ import type {
   Review,
 } from "../lib/types"
 import type { Sendable } from "../message"
+import { createBasicAndReversedModel, createBasicModel } from "../models/v3"
 import type { Reason } from "./reason"
 
 export interface DBSchema {
@@ -35,29 +42,55 @@ export interface DBTypes extends DBSchema {
   rev_log: { key: Id; value: Review; indexes: { cid: Id } }
   core: { key: Id; value: Core; indexes: {} }
   models: { key: Id; value: Model; indexes: {} }
-  decks: { key: Id; value: Deck; indexes: { cfid: Id } }
+  decks: { key: Id; value: Deck; indexes: { cfid: Id; name: string } }
   confs: { key: Id; value: Conf; indexes: {} }
   prefs: { key: Id; value: Prefs; indexes: {} }
 }
 
-export async function open(name: string): Promise<DB> {
-  const db = await openDB<DBTypes>(name, 2, {
+export async function open(name: string, now: number): Promise<DB> {
+  const db = await openDB<DBTypes>(name, 3, {
     async upgrade(db, oldVersion) {
-      if (oldVersion < 2) {
-        const cards = db.createObjectStore("cards")
+      // deletes version 2 databases
+      if (oldVersion == 2) {
+        for (const name of Array.from(db.objectStoreNames)) {
+          db.deleteObjectStore(name)
+        }
+      }
+
+      // create object stores, indices, default deck/conf/prefs/core, and models
+      if (oldVersion < 3) {
+        // SECTION: create object stores
+        const cards = db.createObjectStore("cards", { keyPath: "id" })
         cards.createIndex("did", "did")
         cards.createIndex("nid", "nid")
+
         db.createObjectStore("graves", { autoIncrement: true })
-        const notes = db.createObjectStore("notes")
+
+        const notes = db.createObjectStore("notes", { keyPath: "id" })
         notes.createIndex("mid", "mid")
-        const rev_log = db.createObjectStore("rev_log")
+
+        const rev_log = db.createObjectStore("rev_log", { keyPath: "id" })
         rev_log.createIndex("cid", "cid")
-        db.createObjectStore("core")
-        db.createObjectStore("models")
-        const decks = db.createObjectStore("decks")
+
+        const core = db.createObjectStore("core")
+
+        const models = db.createObjectStore("models", { keyPath: "id" })
+
+        const decks = db.createObjectStore("decks", { keyPath: "id" })
         decks.createIndex("cfid", "cfid")
-        db.createObjectStore("confs")
-        db.createObjectStore("prefs")
+        decks.createIndex("name", "name", { unique: true })
+
+        const confs = db.createObjectStore("confs", { keyPath: "id" })
+
+        const prefs = db.createObjectStore("prefs")
+
+        // SECTION: install default items
+        decks.put(createDeck(now, "Default", ID_ZERO))
+        core.put(createCore(now), ID_ZERO)
+        confs.put(createConf(now))
+        prefs.put(createPrefs(now), ID_ZERO)
+        models.add(createBasicModel(now))
+        models.add(createBasicAndReversedModel(now))
       }
     },
   })

@@ -96,8 +96,8 @@ export const Note = v.object({
   /** Last edited timestamp */
   last_edited: v.number(),
 
-  /** Space-separated list of tags */
-  tags: v.string(),
+  /** List of tags */
+  tags: v.array(v.string()),
 
   /** List of fields */
   fields: NoteFields,
@@ -244,7 +244,7 @@ export const Model = v.object({
   tmpls: ModelTemplates,
 
   /** Last tags used with this model */
-  tags: v.string(),
+  tags: v.array(v.string()),
 
   /** 0=standard model, 1=cloze model */
   type: v.picklist([0, 1]),

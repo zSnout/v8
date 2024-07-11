@@ -31,8 +31,8 @@ import { Layerable } from "../el/Layers"
 import { createField } from "../lib/defaults"
 import { Id, idOf } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
-import { AppModels } from "../lib/state"
 import { Model, ModelField } from "../lib/types"
+import { renameFieldAccessesInTemplates } from "../lib/updateModelTemplates"
 
 // TODO: stop user from editing model name to potential ambiguity
 export const EditModelFields = ((props, pop) => {
@@ -87,7 +87,7 @@ export const EditModelFields = ((props, pop) => {
             const m = model()
             props.save({
               ...m,
-              tmpls: AppModels.renameFieldAccessesInTemplates(
+              tmpls: renameFieldAccessesInTemplates(
                 props.model.fields,
                 m.fields,
                 m.tmpls,

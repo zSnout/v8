@@ -7,11 +7,11 @@ import { DB } from ".."
 import * as Template from "../../lib/template"
 
 export function nextModel(
-  tags: string,
+  tags: string[],
   fields: NoteFields,
   model: Model,
   sticky: Record<string, boolean>,
-) {
+): Model {
   return {
     ...model,
     tags,
@@ -24,12 +24,11 @@ export function nextModel(
 
 async function createNoteDB(
   db: DB,
-  tags: string,
+  tags: string[],
   fields: NoteFields,
   model: Model,
   deck: Deck,
   now: number,
-  sticky: Record<string, boolean>,
 ) {
   const sortField = fields[model.sort_field ?? 0] ?? ""
 
@@ -84,18 +83,18 @@ async function createNoteDB(
     `Create note in ${deck.name}`,
   )
 
-  tx.objectStore("notes").add(note, nid)
+  tx.objectStore("notes").add(note)
   for (const card of cards) {
-    tx.objectStore("cards").add(card, card.id)
+    tx.objectStore("cards").add(card)
   }
-  tx.objectStore("models").put(model, model.id)
+  tx.objectStore("models").put(model)
 
   await tx.done
 }
 
 export function createNote(
   db: DB,
-  tags: string,
+  tags: string[],
   fields: NoteFields,
   model: Model,
   deck: Deck,
@@ -105,6 +104,6 @@ export function createNote(
   const m2 = nextModel(tags, fields, model, sticky)
   return {
     model: m2,
-    done: createNoteDB(db, tags, fields, m2, deck, now, sticky),
+    done: createNoteDB(db, tags, fields, m2, deck, now),
   }
 }

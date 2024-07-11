@@ -45,7 +45,7 @@ export const CreateNote = createLoading(
 
     createEffect(() => {
       const current = untrack(tags)
-      if (current == "") {
+      if (current.length == 0) {
         setTags(model().tags)
       }
     })
@@ -205,8 +205,8 @@ export const CreateNote = createLoading(
           <IntegratedField
             type="tags"
             label="Tags"
-            value={model().tags}
-            onInput={(tags) => setTags(tags)}
+            value={model().tags.join(" ")}
+            onInput={(tags) => setTags(tags.split(/\s+/g).filter((x) => x))}
           />
 
           <TwoBottomButtons>

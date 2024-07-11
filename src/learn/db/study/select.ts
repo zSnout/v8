@@ -172,8 +172,8 @@ async function save(
 ) {
   const tx = db.readwrite(["cards", "rev_log"], reason)
 
-  tx.objectStore("cards").put(card, card.id)
-  tx.objectStore("rev_log").put(log, log.id)
+  tx.objectStore("cards").put(card)
+  tx.objectStore("rev_log").put(log)
 
   const prevBucket = selectInfo.bucket
 

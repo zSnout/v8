@@ -1,4 +1,5 @@
-import { Id, ID_ZERO, idOf, randomId } from "./id"
+import { createBasicAndReversedModel, createBasicModel } from "../models/v3"
+import { Id, ID_ZERO, randomId } from "./id"
 import { arrayToRecord } from "./record"
 import type {
   Collection,
@@ -12,12 +13,10 @@ import type {
   Prefs,
 } from "./types"
 
-const ID_MODEL_BASIC = idOf(1)
-const ID_MODEL_BASIC_AND_REVERSED = idOf(2)
-// const ID_MODEL_BASIC_OPTIONAL_REVERSED = idOf(3)
-// const ID_MODEL_BASIC_TYPE_ANSWER = idOf(4)
-// const ID_MODEL_BASIC_CLOZE = idOf(5)
-// const ID_MODEL_BASIC_IMAGE_OCCLUSION = idOf(5)
+// TODO: ID_MODEL_BASIC_OPTIONAL_REVERSED
+// TODO: ID_MODEL_BASIC_TYPE_ANSWER
+// TODO: ID_MODEL_BASIC_CLOZE
+// TODO: ID_MODEL_BASIC_IMAGE_OCCLUSION
 
 export function createCore(now: number): Core {
   return {
@@ -139,75 +138,18 @@ export function createModel(
     fields: arrayToRecord(fields),
     tmpls: arrayToRecord(tmpls),
     name,
-    tags: "",
+    tags: [],
     type: 0,
     sort_field: fields[0]?.id,
     last_edited: now,
   }
 }
 
-const DEFAULT_MODEL_CSS = `.card {
-  font-size: 1.5rem;
-  text-align: center;
-}
-
-hr {
-  border-width: 0;
-  border-top-width: 1px;
-  border-top-color: var(--z-border);
-  border-style: solid;
-}`
-
-export function createBasicModel(now: number): Model {
-  return createModel(
-    ID_MODEL_BASIC,
-    "Basic",
-    [
-      createModelTemplate(
-        "{{Front}}",
-        `{{FrontSide}}
-
-<hr id="answer" />
-
-{{Back}}`,
-        "Front --> Back",
-      ),
-    ],
-    DEFAULT_MODEL_CSS,
-    [createField("Front"), createField("Back")],
-    now,
-  )
-}
-
 export function createModels(now: number): Models {
-  const basicAndReversed = createModel(
-    ID_MODEL_BASIC_AND_REVERSED,
-    "Basic and reversed",
-    [
-      createModelTemplate(
-        "{{Front}}",
-        `{{FrontSide}}
-
-<hr id="answer" />
-
-{{Back}}`,
-        "Front --> Back",
-      ),
-      createModelTemplate(
-        "{{Back}}",
-        `{{FrontSide}}
-
-<hr id="answer" />
-
-{{Front}}`,
-        "Back --> Front",
-      ),
-    ],
-    DEFAULT_MODEL_CSS,
-    [createField("Front"), createField("Back")],
-    now,
-  )
-  return arrayToRecord([createBasicModel(now), basicAndReversed])
+  return arrayToRecord([
+    createBasicModel(now),
+    createBasicAndReversedModel(now),
+  ])
 }
 
 export function createCollection(now: number): Collection {

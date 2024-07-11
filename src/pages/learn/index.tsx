@@ -1,7 +1,6 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { error } from "@/components/result"
 import { open } from "@/learn/db"
-import { checkValidity } from "@/learn/db/init"
 import { Error } from "@/learn/el/Error"
 import { Layers, useLayers } from "@/learn/el/Layers"
 import { createLoadingBase } from "@/learn/el/Loading"
@@ -53,22 +52,14 @@ function SublinkHandler(): undefined {
 }
 
 const MainInner = createLoadingBase(
-  async (_, setMessage) => {
-    setMessage("Opening database...")
-    const db = await open("learn:Main")
-
-    setMessage("Checking validity...")
-    await checkValidity(db, Date.now())
-
-    setMessage("Done!")
-    return db
-  },
+  () => open("learn:Main", Date.now()),
   (_, db) => (
     <Layers.Root>
       <SublinkHandler />
       <Home db={db} />
     </Layers.Root>
   ),
+  "Opening database...",
 )
 
 export function Main() {
