@@ -112,7 +112,10 @@
       "mid": 1,
       "last_edited": 1720365946392,
       "tags": "",
-      "fields": { "4096856383636694": "hello", "534487732448064": "world" },
+      "fields": {
+        "4096856383636694": "hello",
+        "534487732448064": "world"
+      },
       "sort_field": "hello",
       "csum": 0,
       "marks": 0

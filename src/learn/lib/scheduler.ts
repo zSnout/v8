@@ -24,7 +24,7 @@ export class Scheduler {
 
   // keep in line with algorithm in `.gather()`
   bucketOf(today: number, card: AnyCard): CardBucket {
-    if (card.queue == 1 || card.queue == 2) {
+    if (card.queue != 0) {
       return null
     }
 
@@ -60,7 +60,7 @@ export class Scheduler {
       if (!cards) continue
 
       for (const card of cards) {
-        if (card.queue == 1 || card.queue == 2) {
+        if (card.queue != 0) {
           continue
         }
 

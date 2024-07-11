@@ -41,7 +41,7 @@ export interface DBTypes extends DBSchema {
 }
 
 export async function open(name: string): Promise<DB> {
-  const db = (await openDB<DBTypes>(name, 2, {
+  const db = await openDB<DBTypes>(name, 2, {
     async upgrade(db, oldVersion) {
       if (oldVersion < 2) {
         const cards = db.createObjectStore("cards")
@@ -60,12 +60,9 @@ export async function open(name: string): Promise<DB> {
         db.createObjectStore("prefs")
       }
     },
-  })) satisfies IDBPDatabase<DBTypes> as unknown as DB
+  })
 
-  db.read = read
-  db.readwrite = readwrite
-
-  return db
+  return Object.assign(db, { read, readwrite })
 }
 
 function read(

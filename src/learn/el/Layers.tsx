@@ -1,5 +1,6 @@
 import {
   createContext,
+  createResource,
   getOwner,
   JSX,
   Owner,

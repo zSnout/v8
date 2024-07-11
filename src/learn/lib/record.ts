@@ -10,6 +10,18 @@ export function arrayToRecord<T extends { id: Id }>(data: T[]): Record<Id, T> {
   return output
 }
 
+export function nameToRecord<T extends { name: string }>(
+  data: T[],
+): Record<string, T> {
+  const output = Object.create(null) as Record<string, T>
+
+  for (const el of data) {
+    output[el.name] = el
+  }
+
+  return output
+}
+
 export function mapRecord<K extends keyof any, T, U>(
   data: Record<K, T>,
   fn: (value: T, key: K) => U,

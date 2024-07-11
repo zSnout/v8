@@ -19,6 +19,7 @@ import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
 import { Id } from "../lib/id"
 import { AppDecks } from "../lib/state"
+import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
 
@@ -56,14 +57,13 @@ export function Home({ db }: { db: DB }) {
 
     return (
       <Icons>
-        {/* TODO: <Icon
+        <Icon
           icon={faPlus}
           label="Add"
-          onClick={() => layers.push(CreateNote, { app: db }, reload)}
-        /> */}
+          onClick={() => layers.push(CreateNote, db, reload)}
+        />
         <Icon icon={faTableCellsLarge} label="Browse" onClick={nope} />
         <Icon icon={faChartBar} label="Stats" onClick={nope} />
-        TODO:{" "}
         <Icon
           icon={faSliders}
           label="Settings"

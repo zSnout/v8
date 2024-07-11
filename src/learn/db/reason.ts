@@ -12,3 +12,5 @@ export type Reason =
   | `Review card as ${string}`
   | `Toggle ${string} flag`
   | `Toggle ${string} mark`
+  | `Update ${"fields" | "templates"} for model ${string}`
+  | `Create note in ${string}`
