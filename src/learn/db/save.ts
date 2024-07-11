@@ -1,7 +1,7 @@
 import { DB } from "."
 import { createCore, createPrefs } from "../lib/defaults"
 import { ID_ZERO } from "../lib/id"
-import { DBCollection } from "../lib/types"
+import { Collection } from "../lib/types"
 
 export async function exportDb(db: DB, now: number) {
   const tx = db.read([
@@ -29,8 +29,8 @@ export async function exportDb(db: DB, now: number) {
       tx.objectStore("prefs").get(ID_ZERO),
     ])
 
-  const collection: DBCollection = {
-    version: 2,
+  const collection: Collection = {
+    version: 3,
     cards,
     graves,
     notes,
@@ -50,7 +50,7 @@ export async function exportDb(db: DB, now: number) {
   )
 }
 
-export async function importDb(db: DB, data: DBCollection) {
+export async function importDb(db: DB, data: Collection) {
   const tx = db.readwrite(
     [
       "cards",

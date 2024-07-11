@@ -1,14 +1,11 @@
-import { createBasicAndReversedModel, createBasicModel } from "../models/v3"
 import { Id, ID_ZERO, randomId } from "./id"
 import { arrayToRecord } from "./record"
 import type {
-  Collection,
   Conf,
   Core,
   Deck,
   Model,
   ModelField,
-  Models,
   ModelTemplate,
   Prefs,
 } from "./types"
@@ -142,29 +139,5 @@ export function createModel(
     type: 0,
     sort_field: fields[0]?.id,
     last_edited: now,
-  }
-}
-
-export function createModels(now: number): Models {
-  return arrayToRecord([
-    createBasicModel(now),
-    createBasicAndReversedModel(now),
-  ])
-}
-
-export function createCollection(now: number): Collection {
-  return {
-    version: 1,
-
-    cards: {},
-    graves: [],
-    notes: {},
-    rev_log: {},
-
-    core: createCore(now),
-    decks: { [ID_ZERO]: createDeck(now, "Default::wow", ID_ZERO) },
-    confs: { [ID_ZERO]: createConf(now) },
-    prefs: createPrefs(now),
-    models: createModels(now),
   }
 }

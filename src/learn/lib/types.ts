@@ -537,56 +537,9 @@ export const Core = v.object({
   tags: v.string(),
 })
 
-export interface Decks extends v.InferOutput<typeof Decks> {}
-export const Decks = v.record(IdKey, Deck)
-
-export interface Confs extends v.InferOutput<typeof Confs> {}
-export const Confs = v.record(IdKey, Conf)
-
-export interface Cards extends v.InferOutput<typeof Cards> {}
-export const Cards = v.record(IdKey, AnyCard)
-
-export interface Notes extends v.InferOutput<typeof Notes> {}
-export const Notes = v.record(IdKey, Note)
-
-/** A map from card ids to arrays of reviews. */
-export interface RevLog extends v.InferOutput<typeof RevLog> {}
-export const RevLog = v.record(IdKey, v.array(Review))
-
-export interface Models extends v.InferOutput<typeof Models> {}
-export const Models = v.record(IdKey, Model)
-
-export interface Graves extends v.InferOutput<typeof Graves> {}
-export const Graves = v.array(Grave)
-
 export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
-  /** The special `version` tag is updated whenever the data format changes */
-  version: v.literal(1),
-
-  /** A record from card ids to their corresponding cards */
-  cards: Cards,
-
-  /** An array of graves */
-  graves: Graves,
-
-  /** A record from note ids to their corresponding notes */
-  notes: Notes,
-
-  /** A record from card ids to their corresponding reviews */
-  rev_log: RevLog,
-
-  // All things below are part of `collection` in Anki
-  core: Core,
-  models: Models,
-  decks: Decks,
-  confs: Confs,
-  prefs: Prefs,
-})
-
-export interface DBCollection extends v.InferOutput<typeof DBCollection> {}
-export const DBCollection = v.object({
-  version: v.literal(2),
+  version: v.literal(3),
   cards: v.array(AnyCard),
   graves: v.array(Grave),
   notes: v.array(Note),

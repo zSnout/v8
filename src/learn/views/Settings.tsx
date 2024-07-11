@@ -14,7 +14,7 @@ import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
 import { Layerable } from "../el/Layers"
-import { DBCollection } from "../lib/types"
+import { Collection } from "../lib/types"
 
 // TODO: convert to layerable
 export const Settings = (({ db }, pop) => {
@@ -69,7 +69,7 @@ export const Settings = (({ db }, pop) => {
               }
 
               try {
-                var data = parse(DBCollection, json)
+                var data = parse(Collection, json)
               } catch {
                 throw new Error(
                   "Invalid file. Did you upload a proper .zl.json?",

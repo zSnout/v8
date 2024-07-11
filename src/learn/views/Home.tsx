@@ -70,19 +70,6 @@ export function Home({ db }: { db: DB }) {
           onClick={() => layers.push(Settings, { db }, reload)}
         />
         <Icon icon={faSync} label="Sync" onClick={nope} />
-        {/* TODO: <Show when={prefs()?.debug}>
-          <Icon
-            icon={faCode}
-            label="Debug"
-            onClick={() =>
-              layers.push(
-                Debug,
-                { app: db },
-                () => (reloadPrefs(), reloadDecks()),
-              )
-            }
-          />
-        </Show> */}
       </Icons>
     )
   }

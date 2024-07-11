@@ -42,7 +42,7 @@ export type Sendable =
   | RTCCertificate
   | VideoFrame
 
-export type Transferrable =
+export type Transferable =
   | ArrayBuffer
   | MessagePort
   | ReadableStream
