@@ -22,6 +22,7 @@ import {
   Show,
   untrack,
 } from "solid-js"
+import { createStore } from "solid-js/store"
 import { array, parse } from "valibot"
 import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
@@ -36,16 +37,16 @@ import { renameFieldAccessesInTemplates } from "../lib/updateModelTemplates"
 
 // TODO: stop user from editing model name to potential ambiguity
 export const EditModelFields = ((props, pop) => {
-  const [model, setModel] = createSignal(props.model)
+  const [model, setModel] = createStore(props.model)
   const [fields, setFields] = createSignal<DndItem[]>(
-    Object.values(model().fields),
+    Object.values(model.fields),
   )
-  createEffect(() => setFields(Object.values(model().fields)))
+  createEffect(() => setFields(Object.values(model.fields)))
   const [selectedId, setSelectedId] = createSignal(
-    Object.values(model().fields)[0]?.id,
+    Object.values(model.fields)[0]?.id,
   )
   const selected = createMemo(() => {
-    const field = model().fields[selectedId() ?? 0]
+    const field = model.fields[selectedId() ?? 0]
     return notNull(field, "There must be a field selected in the explorer.")
   })
 
@@ -58,8 +59,8 @@ export const EditModelFields = ((props, pop) => {
           label="Editing fields of"
           rtl={false}
           type="text"
-          value={model().name}
-          onInput={(value) => setModel((model) => ({ ...model, name: value }))}
+          value={model.name}
+          onInput={(value) => setModel("name", value)}
         />
 
         <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
@@ -84,7 +85,7 @@ export const EditModelFields = ((props, pop) => {
           label="Save changes"
           center
           onClick={() => {
-            const m = model()
+            const m = model
             props.save({
               ...m,
               tmpls: renameFieldAccessesInTemplates(
@@ -104,12 +105,7 @@ export const EditModelFields = ((props, pop) => {
     if (typeof fn == "function") {
       fn = fn(untrack(selected))
     }
-    setModel((model) => {
-      return {
-        ...model,
-        fields: { ...model.fields, [fn.id]: fn },
-      }
-    })
+    setModel("fields", fn.id.toString(), fn)
   }
 
   async function confirmImportantChange(ingVerb: string) {
@@ -150,7 +146,7 @@ export const EditModelFields = ((props, pop) => {
         return
       }
 
-      if (!Object.values(model().fields).some((x) => x.name == name)) {
+      if (!Object.values(model.fields).some((x) => x.name == name)) {
         return name
       }
 
@@ -211,7 +207,7 @@ export const EditModelFields = ((props, pop) => {
           <label class="flex w-full gap-2">
             <Checkbox
               circular
-              checked={model().sort_field == selectedId()}
+              checked={model.sort_field == selectedId()}
               onInput={() =>
                 setModel((model) => ({
                   ...model,
@@ -296,7 +292,7 @@ export const EditModelFields = ((props, pop) => {
           icon={faTrash}
           label="Delete"
           onClick={async () => {
-            if (Object.keys(model().fields).length <= 1) {
+            if (Object.keys(model.fields).length <= 1) {
               await alert({
                 owner,
                 title: "Unable to delete",
@@ -314,9 +310,9 @@ export const EditModelFields = ((props, pop) => {
             }
 
             batch(() => {
-              const model = setModel((model) => {
-                const { [selectedId() ?? 0]: _, ...fields } = model.fields
-                return { ...model, fields }
+              setModel("fields", (fields) => {
+                const { [selectedId() ?? 0]: _, ...rest } = fields
+                return rest
               })
 
               setSelectedId(Object.values(model.fields)[0]!.id)
@@ -345,7 +341,7 @@ export const EditModelFields = ((props, pop) => {
   }
 
   function FieldList() {
-    const sortId = createMemo(() => model().fields[model().sort_field ?? 0]?.id)
+    const sortId = createMemo(() => model.fields[model.sort_field ?? 0]?.id)
 
     return (
       <div
