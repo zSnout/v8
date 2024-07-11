@@ -1,4 +1,3 @@
-import { DndEvent, SHADOW_ITEM_MARKER_PROPERTY_NAME } from "solid-dnd-directive"
 import { LatexTargetFindEvent } from "./components/graph/latex"
 
 declare module "solid-js" {
@@ -25,17 +24,4 @@ declare module "solid-js" {
       onfinalize?: EventHandlerUnion<T, DndEvent>
     }
   }
-}
-
-declare module "solid-dnd-directive" {
-  type DndItemExtends = Partial<
-    Record<typeof SHADOW_ITEM_MARKER_PROPERTY_NAME, boolean | undefined>
-  >
-
-  interface DndItem extends DndItemExtends {
-    id: number | string
-    [x: string]: unknown
-  }
-
-  type DndEvent = CustomEvent<{ items: DndItem[] }>
 }

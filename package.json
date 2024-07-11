@@ -46,7 +46,6 @@
     "pdfjs-dist": "^4.2.67",
     "rehype-katex": "^6.0.2",
     "remark-math": "^5.1.1",
-    "solid-dnd-directive": "^0.2.0",
     "solid-js": "^1.6.12",
     "solid-monaco": "^0.2.0",
     "sortablejs": "^1.15.2",
