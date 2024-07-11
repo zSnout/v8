@@ -175,7 +175,7 @@ export type ObjectStoreExtends<
   Mode extends IDBTransactionMode = "readonly",
 > = Omit<
   IDBPObjectStore<DBTypes, TxStores, StoreName, Mode>,
-  // TODO: type these properly
+  // FIXME: type these properly
   | "transaction"
   | "indexNames"
   | "index"

@@ -35,7 +35,6 @@ import {
   TemplateEditStyle,
 } from "../lib/types"
 
-// TODO: stop user from editing model name to potential ambiguity
 export const EditModelTemplates = ((props, pop) => {
   const [model, setModel] = createSignal<Omit<Model, "tmpls">>(
     structuredClone(props.model),
@@ -79,13 +78,10 @@ export const EditModelTemplates = ((props, pop) => {
   return {
     el: (
       <div class="flex min-h-full w-full flex-col gap-8">
-        <IntegratedField
-          label="Editing templates of"
-          rtl={false}
-          type="text"
-          value={model().name}
-          onInput={(value) => setModel((model) => ({ ...model, name: value }))}
-        />
+        <div class="w-full rounded-lg bg-z-body-selected px-2 py-1 text-center">
+          {model().name}{" "}
+          <span class="text-z-subtitle">— editing templates</span>
+        </div>
 
         <div class="grid w-full gap-x-6 gap-y-8 sm:grid-cols-[auto,16rem]">
           {TemplateList()}

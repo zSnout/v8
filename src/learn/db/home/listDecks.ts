@@ -25,7 +25,7 @@ export async function listDecks(db: DB, now: number) {
     if (bucket == null) continue
 
     const deckName = idToName[card.did]?.name
-    if (deckName == null) continue // TODO: throw because deck doesn't exist
+    if (deckName == null) continue // FEAT: throw because deck doesn't exist
 
     let count = self.get(deckName)
     if (count == null) {

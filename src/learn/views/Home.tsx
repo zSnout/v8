@@ -9,7 +9,7 @@ import {
   faTableCellsLarge,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { createResource, createSignal, getOwner, Show } from "solid-js"
+import { createResource, getOwner, Show } from "solid-js"
 import { DB } from "../db"
 import { createDeck } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
@@ -32,7 +32,6 @@ export function Home({ db }: { db: DB }) {
   const [decks, { refetch: reloadDecks }] = createResource(() =>
     listDecks(db, Date.now()),
   )
-  const [now, setNow] = createSignal(Date.now())
   const owner = getOwner()
   const layers = useLayers()
 

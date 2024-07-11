@@ -1,14 +1,15 @@
-// TODO: ban `:` `#` `^` `/` `$` `@` `{` `}` `\s` from field names
-// TODO: {{Tags, Type, Deck, Subdeck, CardFlag, Card, FrontSide}}
-// TODO: match hint content, css, and css classes to anki
-// TODO: img
-// TODO: audio
-// TODO: video
-// TODO: latex
-// TODO: {{type:fieldname}} (these inherit the font of fields)
-// TODO: ignore card when front is empty
-// TODO: clozes
-// TODO: `learn-tts` and `learn-hint` custom elements
+// FEAT: add all template features from anki
+// ban `:` `#` `^` `/` `$` `@` `{` `}` `\s` from field names
+// {{Tags, Type, Deck, Subdeck, CardFlag, Card, FrontSide}}
+// match hint content, css, and css classes to anki
+// img
+// audio
+// video
+// latex
+// {{type:fieldname}} (these inherit the font of fields)
+// ignore card when front is empty
+// clozes
+// `learn-tts` and `learn-hint` custom elements
 
 import { error, ok, Result } from "@/components/result"
 import { isDark } from "@/stores/theme"

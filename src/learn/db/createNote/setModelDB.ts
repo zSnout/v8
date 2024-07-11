@@ -49,7 +49,7 @@ export async function setModelDB(
       fields[key] = note.fields[key] ?? ""
     }
     const last_edited = now
-    // TODO: update csum
+    // FEAT: checksums
     note.sort_field = sort_field
     note.fields = fields
     note.last_edited = last_edited

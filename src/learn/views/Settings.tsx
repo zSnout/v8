@@ -16,7 +16,6 @@ import { Icon, Icons } from "../el/IconButton"
 import { Layerable } from "../el/Layers"
 import { Collection } from "../lib/types"
 
-// TODO: convert to layerable
 export const Settings = (({ db }, pop) => {
   const [prefs, setPrefs] = createPrefsStore(db)
   const owner = getOwner()

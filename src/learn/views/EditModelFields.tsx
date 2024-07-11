@@ -22,7 +22,6 @@ import { arrayToRecord } from "../lib/record"
 import { Model, ModelField } from "../lib/types"
 import { renameFieldAccessesInTemplates } from "../lib/updateModelTemplates"
 
-// TODO: stop user from editing model name to potential ambiguity
 export const EditModelFields = ((props, pop) => {
   const [model, setModel] = createStore<Omit<Model, "fields">>(
     structuredClone(props.model),
@@ -50,13 +49,9 @@ export const EditModelFields = ((props, pop) => {
   return {
     el: (
       <div class="flex min-h-full w-full flex-col gap-8">
-        <IntegratedField
-          label="Editing fields of"
-          rtl={false}
-          type="text"
-          value={model.name}
-          onInput={(value) => setModel("name", value)}
-        />
+        <div class="w-full rounded-lg bg-z-body-selected px-2 py-1 text-center">
+          {model.name} <span class="text-z-subtitle">— editing fields</span>
+        </div>
 
         <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
           <SortableFieldList

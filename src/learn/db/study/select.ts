@@ -30,7 +30,7 @@ export async function select(
   const tx = db.read(["cards", "decks", "confs", "prefs", "notes", "models"])
 
   await regatherTx(
-    // TODO: type this better
+    // FIXME: type this better
     tx as GatherTx,
     main,
     dids,

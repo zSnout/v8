@@ -38,7 +38,7 @@ async function createNoteDB(
     creation: now,
     fields: fields,
     mid: model.id,
-    csum: 0, // TODO: make checksums work
+    csum: 0, // FEAT: checksums
     id: nid,
     last_edited: now,
     sort_field: sortField,

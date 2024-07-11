@@ -17,8 +17,7 @@ import { Model } from "../lib/types"
 import { EditModelFields } from "./EditModelFields"
 import { EditModelTemplates } from "./EditModelTemplates"
 
-// TODO: pressing cmd+enter should bring you back to the first field
-// TODO: fields can be collapsed
+// FEAT: fields can be collapsed
 
 export const CreateNote = createLoading(
   load,

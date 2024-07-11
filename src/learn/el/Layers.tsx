@@ -197,7 +197,7 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
   })
 }
 
-// TODO: properly unmount new layers once they're removed
+// FEAT: properly unmount new layers once they're removed
 
 export interface LayerOutput {
   /** The element to be shown in the layer. */

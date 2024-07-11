@@ -71,9 +71,8 @@ import * as Template from "../lib/template"
 import { AnyCard, Note } from "../lib/types"
 
 // TODO: keyboard shortcuts should have `keydown` listeners
-// TODO: screen for when no cards are left
 // TODO: adjust shortcuts for mac/windows
-// TODO: add an `onbeforeunload` handler
+// FEAT: improve screen for when no cards are left
 
 export const Study = (({ db, main, dids }, pop) => {
   const owner = getOwner()

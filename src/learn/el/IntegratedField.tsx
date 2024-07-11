@@ -125,7 +125,7 @@ const dark = [
   ),
 ]
 
-// TODO: undo/redo seems to behave very strangely
+// FIXME: undo/redo seems to behave very strangely
 function IntegratedCodeField(
   props: {
     value?: string | undefined
