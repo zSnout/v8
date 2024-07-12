@@ -49,26 +49,6 @@ export const CreateNote = createLoading(
       }
     })
 
-    async function addCard() {
-      const lastTags = tags()
-      const lastFields = untrack(() => ({ ...fields }))
-      const lastSticky = untrack(() => ({ ...sticky }))
-
-      const result = createNote(
-        db,
-        lastTags,
-        lastFields,
-        model(),
-        deck(),
-        Date.now(),
-        lastSticky,
-      )
-
-      onExternalModelUpdate(result.model)
-      fieldsEl.querySelector<HTMLElement>("[contenteditable]")?.focus()
-      await result.done
-    }
-
     return {
       el: (
         <div
@@ -85,9 +65,9 @@ export const CreateNote = createLoading(
             addCard()
           }}
         >
-          <div class="grid gap-4 gap-y-3 sm:grid-cols-2">
-            <div class="grid grid-cols-2 gap-1">
-              <div class="col-span-2">
+          <div class="grid gap-4 gap-y-4 sm:grid-cols-2">
+            <div class="grid grid-cols-3 gap-1">
+              <div class="col-span-3">
                 <AutocompleteBox
                   label="Model"
                   options={Object.keys(modelsByName).sort()}
@@ -128,14 +108,14 @@ export const CreateNote = createLoading(
                   )
                 }}
               >
-                Edit fields...
+                Fields...
               </button>
 
               <button
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
                 onClick={() =>
                   layers.push(
-                    EditModelTemplates,
+                    /*TODO:*/ EditModelTemplates,
                     {
                       model: model(),
                       fieldsInitial: fieldRecord(model().fields, { ...fields }),
@@ -157,7 +137,36 @@ export const CreateNote = createLoading(
                   )
                 }
               >
-                Edit templates...
+                Cards...
+              </button>
+
+              <button
+                class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+                // TODO: add manage models onClick={() =>
+                //   layers.push(
+                //     EditModelTemplates,
+                //     {
+                //       model: model(),
+                //       fieldsInitial: fieldRecord(model().fields, { ...fields }),
+                //       editStyle: prefs.template_edit_style,
+                //       async save(model, editStyle) {
+                //         if (model != null) {
+                //           onExternalModelUpdate(model)
+                //           await setModelDB(
+                //             db,
+                //             model,
+                //             Date.now(),
+                //             `Update templates for model ${model.name}`,
+                //             editStyle,
+                //           )
+                //         }
+                //       },
+                //     },
+                //     () => {},
+                //   )
+                // }
+              >
+                Manage...
               </button>
             </div>
 
@@ -223,6 +232,26 @@ export const CreateNote = createLoading(
       // TODO: detect if fields are nonempty
       // TODO: ensure core.tags is updated
       onForcePop: () => true,
+    }
+
+    async function addCard() {
+      const lastTags = tags()
+      const lastFields = untrack(() => ({ ...fields }))
+      const lastSticky = untrack(() => ({ ...sticky }))
+
+      const result = createNote(
+        db,
+        lastTags,
+        lastFields,
+        model(),
+        deck(),
+        Date.now(),
+        lastSticky,
+      )
+
+      onExternalModelUpdate(result.model)
+      fieldsEl.querySelector<HTMLElement>("[contenteditable]")?.focus()
+      await result.done
     }
 
     function onExternalModelUpdate(model: Model) {

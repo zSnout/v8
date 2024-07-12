@@ -60,7 +60,10 @@ export async function setModelDB(
   if (requiresOneWaySync(prev, model)) {
     const core = tx.objectStore("core")
     const c = notNull(await core.get(ID_ZERO), "Core must exist.")
-    core.put({ ...c, last_schema_edit: Date.now(), last_edited: Date.now() })
+    core.put(
+      { ...c, last_schema_edit: Date.now(), last_edited: Date.now() },
+      ID_ZERO,
+    )
   }
 
   for (const note of await notes.getAll()) {

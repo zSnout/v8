@@ -21,11 +21,19 @@ type LayerInfo = [
   layer: HTMLDivElement,
   previouslyFocused: Element | null,
   onForcePop: ForcePopHandler,
+  onReturn: ReturnHandler,
 ]
 
 export class Layers {
-  static Root(props: { children: JSX.Element }) {
+  static Root<T>(root: RootLayerable<T>, props: T) {
     const layers = new Layers(getOwner())
+
+    function Inner() {
+      console.warn("rendering root layer")
+      const { el, onReturn } = root(props)
+      layers.onRootReturn = onReturn
+      return el
+    }
 
     return (
       <LayerContext.Provider value={layers}>
@@ -34,7 +42,7 @@ export class Layers {
             class="z-layer-root flex min-h-full w-full transform flex-col opacity-100 transition"
             ref={(el) => (layers.root = el)}
           >
-            {props.children}
+            <Inner />
           </div>
         </div>
       </LayerContext.Provider>
@@ -44,11 +52,11 @@ export class Layers {
   constructor(private owner: Owner | null) {}
 
   private root!: HTMLDivElement
+  private onRootReturn!: ReturnHandler
   private layers: LayerInfo[] = []
 
   push<T>(fn: Layerable<T>, props: T, popHook: () => void) {
     const prev = this.layers[this.layers.length - 1]?.[0] ?? this.root
-
     const idx = this.layers.length
     const pop = () => {
       this.pop(idx)
@@ -58,6 +66,7 @@ export class Layers {
     const previouslyFocused = document.activeElement
 
     let onForcePop!: ForcePopHandler
+    let onReturn!: ReturnHandler
     function Inner() {
       const output = fn(props, pop)
       const fp = output.onForcePop
@@ -68,6 +77,7 @@ export class Layers {
         }
         return retval
       }
+      onReturn = output.onReturn
       return output.el
     }
 
@@ -82,10 +92,8 @@ export class Layers {
         <div
           class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
           ref={(el) => {
-            this.layers.push([el, previouslyFocused, onForcePop])
-            setTimeout(() => {
-              animateIn(prev, el)
-            })
+            this.layers.push([el, previouslyFocused, onForcePop, onReturn])
+            setTimeout(() => animateIn(prev, el))
           }}
         >
           <div class="mx-auto w-full max-w-5xl flex-1">{el}</div>
@@ -101,6 +109,7 @@ export class Layers {
 
   private pop(idx: number): boolean {
     const prev = this.layers[idx - 1]?.[0] ?? this.root
+    const onReturn = this.layers[idx - 1]?.[3] ?? this.onRootReturn
     const current = this.layers[idx]
     if (!current) {
       return false
@@ -111,6 +120,7 @@ export class Layers {
     }
     this.layers.splice(idx, 1)
     animateOut(prev, next)
+    onReturn()
     if (
       previouslyFocused instanceof HTMLElement ||
       previouslyFocused instanceof SVGElement
@@ -200,12 +210,24 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
 // FEAT: properly unmount new layers once they're removed
 
 export interface LayerOutput {
-  /** The element to be shown in the layer. */
   el: JSX.Element
   onForcePop: ForcePopHandler
+  onReturn: ReturnHandler
+}
+
+export interface RootLayerOutput {
+  el: JSX.Element
+  onReturn: ReturnHandler
 }
 
 /** Return `false` to stop this layer from being removed. */
 export type ForcePopHandler = () => boolean | PromiseLike<boolean>
 
+/** This callback should reload all data on the page. */
+export type ReturnHandler = () => void
+
+/** A thing which can be a layer. */
 export type Layerable<T> = (props: T, pop: () => void) => LayerOutput
+
+/** A thing which can be a root layer. */
+export type RootLayerable<T> = (props: T) => RootLayerOutput

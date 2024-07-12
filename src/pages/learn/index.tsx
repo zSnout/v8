@@ -1,8 +1,8 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { error } from "@/components/result"
-import { open } from "@/learn/db"
+import { DB, open } from "@/learn/db"
 import { Error } from "@/learn/el/Error"
-import { Layers, useLayers } from "@/learn/el/Layers"
+import { Layers } from "@/learn/el/Layers"
 import { createLoadingBase } from "@/learn/el/Loading"
 import { Home } from "@/learn/views/Home"
 import { createSignal, JSX, onMount, Show } from "solid-js"
@@ -29,29 +29,9 @@ function ErrorHandler(props: { children: JSX.Element }) {
   )
 }
 
-function SublinkHandler(): undefined {
-  const layers = useLayers()
-
-  onMount(() => {
-    const el = document.getElementsByClassName("z-sublink")[0]
-
-    if (el && el instanceof HTMLElement) {
-      createEventListener(el, "click", (event) => {
-        event.preventDefault()
-        layers.forcePopAll()
-      })
-    }
-  })
-}
-
-const MainInner = createLoadingBase(
+const MainInner = createLoadingBase<void, DB>(
   () => open("learn:Main", Date.now()),
-  (_, db) => (
-    <Layers.Root>
-      <SublinkHandler />
-      <Home db={db} />
-    </Layers.Root>
-  ),
+  (_, db) => Layers.Root(Home, db),
   "Opening database...",
 )
 
@@ -60,9 +40,5 @@ export function Main() {
     document.getElementById("needsjavascript")?.remove()
   })
 
-  return (
-    <ErrorHandler>
-      <MainInner />
-    </ErrorHandler>
-  )
+  return <ErrorHandler>{MainInner().el}</ErrorHandler>
 }

@@ -3,9 +3,21 @@ import {
   faRightFromBracket,
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons"
-import { createResource, createSignal, JSX, Setter, Show } from "solid-js"
+import {
+  createResource,
+  createSignal,
+  JSX,
+  Setter,
+  Show,
+  untrack,
+} from "solid-js"
 import { Action } from "./BottomButtons"
-import { ForcePopHandler, Layerable, LayerOutput } from "./Layers"
+import {
+  ForcePopHandler,
+  Layerable,
+  LayerOutput,
+  RootLayerable,
+} from "./Layers"
 
 function Loading(props: { message: string; pop: (() => void) | undefined }) {
   return (
@@ -41,14 +53,17 @@ function Loading(props: { message: string; pop: (() => void) | undefined }) {
   )
 }
 
-export function createLoading<T, U>(
+export function createLoading<T, U extends {}>(
   load: (props: T, setMessage: Setter<string>) => Promise<U>,
-  render: (props: T, data: NonNullable<U>, pop: () => void) => LayerOutput,
+  render: (props: T, data: U, pop: () => void) => LoadingLayerOutput,
   initialMessage = "Loading...",
+  reload?: (props: T, lastData: U, setMessage: Setter<string>) => Promise<U>,
 ): Layerable<T> {
   return (props, pop) => {
     const [message, setMessage] = createSignal(initialMessage)
-    const [data] = createResource(() => load(props, setMessage))
+    const [data, { refetch, mutate }] = createResource(() =>
+      load(props, setMessage),
+    )
     let onForcePop: ForcePopHandler | undefined
 
     return {
@@ -65,28 +80,49 @@ export function createLoading<T, U>(
           }}
         </Show>
       ),
-      onForcePop: () => (onForcePop ? onForcePop() : true),
+      onForcePop() {
+        if (onForcePop) {
+          return onForcePop()
+        } else {
+          return true
+        }
+      },
+      async onReturn() {
+        const d = untrack(data)
+
+        mutate()
+        setMessage(initialMessage)
+        if (d != null && reload) {
+          const next = await reload?.(props, d, setMessage)
+          mutate(() => next)
+        } else {
+          refetch()
+        }
+      },
     }
   }
 }
 
-export function createLoadingBase<T, U>(
-  load: (props: T, setMessage: Setter<string>) => Promise<U>,
-  render: (props: T, data: NonNullable<U>) => JSX.Element,
-  initialMessage = "Loading...",
-): (props: T) => JSX.Element {
-  return (props) => {
-    const [message, setMessage] = createSignal(initialMessage)
-    const [data] = createResource(() => load(props, setMessage))
+type LoadingLayerExtend = Omit<LayerOutput, "onReturn">
+export interface LoadingLayerOutput extends LoadingLayerExtend {
+  onReturn?: undefined
+}
 
-    return (
-      <Show
-        when={data()}
-        keyed
-        fallback={<Loading message={message()} pop={undefined} />}
-      >
-        {(data) => render(props, data)}
-      </Show>
-    )
-  }
+export function createLoadingBase<T, U extends {}>(
+  load: (props: T, setMessage: Setter<string>) => Promise<U>,
+  render: (props: T, data: U) => JSX.Element,
+  initialMessage = "Loading...",
+  reload?: (props: T, data: U, setMessage: Setter<string>) => Promise<U>,
+): RootLayerable<T> {
+  const layerable = createLoading(
+    load,
+    (props, data) => ({
+      el: render(props, data),
+      onForcePop: () => true,
+    }),
+    initialMessage,
+    reload,
+  )
+
+  return (props) => layerable(props, () => {})
 }
