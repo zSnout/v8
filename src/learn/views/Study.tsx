@@ -13,11 +13,11 @@ import { unwrap } from "@/components/result"
 import {
   ContentCard,
   ContentIcon,
+  Shortcut as DisplayShortcut,
   Full,
   Response,
   ResponseGray,
   ResponsesGrid,
-  Shortcut as DisplayShortcut,
 } from "@/pages/quiz/layout"
 import { timestampDist } from "@/pages/quiz/shared"
 import {
@@ -68,9 +68,9 @@ import { checkBucket, saveForget, saveReview, select } from "../db/study/select"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
+import { Write, type Shortcut } from "../lib/shortcuts"
 import * as Template from "../lib/template"
 import { AnyCard, Note } from "../lib/types"
-import type { Shortcut } from "../lib/shortcuts"
 
 // TODO: keyboard shortcuts should have `keydown` listeners
 // TODO: adjust shortcuts for mac/windows
@@ -321,13 +321,9 @@ export const Study = createLoading(
       icon: IconDefinition
       label: string
       onClick?: () => void
-      shortcut?: string
+      shortcut: Shortcut
       disabled?: boolean
     }) {
-      const { shortcut = "" } = props
-      const mods = shortcut.match(/[⇧⌘⌥⌫]/g)?.join("") ?? ""
-      const keys = shortcut.match(/[^⇧⌘⌥⌫]/g)?.join("") ?? ""
-
       return (
         <button
           class="z-field mx-[calc(-0.5rem_-_1px)] flex items-center gap-2 border-transparent bg-transparent px-2 py-0.5 text-z shadow-none transition hover:enabled:bg-z-body-selected"
@@ -336,10 +332,7 @@ export const Study = createLoading(
         >
           <Fa class="h-4 w-4" icon={props.icon} title={false} />
           <span class="flex-1 text-left">{props.label}</span>
-          <span class="text-right text-sm text-z-subtitle">
-            {mods}
-            <span class="font-mono">{keys}</span>
-          </span>
+          <Write shortcut={props.shortcut} />
         </button>
       )
     }
@@ -399,16 +392,20 @@ export const Study = createLoading(
           <QuickAction
             icon={faRightFromBracket}
             label="Exit Session"
-            shortcut="Esc"
+            shortcut={{ key: "Escape" }}
             onClick={pop}
           />
-          <QuickAction icon={faSync} label="Sync" shortcut="Y" />
+          <QuickAction icon={faSync} label="Sync" shortcut={{ key: "Y" }} />
           <QuickActionLine />
-          <QuickAction icon={faSliders} label="Deck Options" shortcut="O" />
+          <QuickAction
+            icon={faSliders}
+            label="Deck Options"
+            shortcut={{ key: "O" }}
+          />
           <QuickAction
             icon={faBook}
             label="Toggle Deck Name"
-            shortcut="N"
+            shortcut={{ key: "N" }}
             onClick={() =>
               setPrefs("Toggle deck name visibility")(
                 "show_deck_name",
@@ -419,9 +416,13 @@ export const Study = createLoading(
           <QuickAction
             icon={faClock}
             label="Toggle Per-Card Timer"
-            shortcut="C"
+            shortcut={{ key: "C" }}
           />
-          <QuickAction icon={faForward} label="Auto Advance" shortcut="⇧A" />
+          <QuickAction
+            icon={faForward}
+            label="Auto Advance"
+            shortcut={{ key: "A", shift: true }}
+          />
           <QuickActionLine />
           <Show when={prefs.show_flags_in_sidebar}>
             <FlagsSelector />
@@ -435,11 +436,12 @@ export const Study = createLoading(
                 (x) => !x,
               )
             }
+            shortcut={{ key: "F" }}
           />
           <QuickAction
             icon={faPersonDigging}
             label="Bury Card"
-            shortcut="-"
+            shortcut={{ key: "-" }}
             onClick={async () => {
               await updateCurrentCard("Bury card", () => ({ queue: 1 }))
               batch(() => {
@@ -452,19 +454,19 @@ export const Study = createLoading(
           <QuickAction
             icon={faBrain}
             label="Forget Card..."
-            shortcut="⌥⌘N"
+            shortcut={{ key: "N", mod: "macctrl", alt: true }}
             onClick={answerForget}
             disabled={!getData()?.data?.card}
           />
           <QuickAction
             icon={faCalendar}
             label="Set Due Date..."
-            shortcut="⇧⌘D"
+            shortcut={{ key: "D", mod: "macctrl", shift: true }}
           />
           <QuickAction
             icon={faEyeSlash}
             label="Suspend Card"
-            shortcut="@"
+            shortcut={{ key: "@" }}
             onClick={async () => {
               await updateCurrentCard("Suspend card", () => ({ queue: 2 }))
               batch(() => {
@@ -474,22 +476,17 @@ export const Study = createLoading(
             }}
             disabled={!getData()?.data?.card}
           />
-          <QuickAction icon={faInfoCircle} label="Card Info" shortcut="I" />
+          <QuickAction
+            icon={faInfoCircle}
+            label="Card Info"
+            shortcut={{ key: "I" }}
+          />
           <QuickAction
             icon={faInfoCircle}
             label="Previous Card Info"
-            shortcut="⌥⌘I"
+            shortcut={{ key: "I", mod: "macctrl", alt: true }}
           />
           <QuickActionLine />
-          {/* <Show when={prefs.show_marks_in_sidebar}> */}
-          {/* <MarksSelector /> */}
-          {/* </Show> */}
-          {/* <QuickAction
-          icon={faBookmark}
-          label="Toggle Marks in Sidebar"
-          shortcut="M"
-          onClick={() => setPrefs("show_marks_in_sidebar", (x) => !x)}
-        /> */}
           <QuickAction
             icon={faMarker}
             label={getData()?.data?.note.marks ? "Unmark Note" : "Mark Note"}
@@ -499,12 +496,12 @@ export const Study = createLoading(
                 marks: note.marks ? 0 : 1,
               }))
             }
-            shortcut="M"
+            shortcut={{ key: "M" }}
           />
           <QuickAction
             icon={faPersonDigging}
             label="Bury Note"
-            shortcut="="
+            shortcut={{ key: "=" }}
             // TODO: onClick={() => {
             //   const c = getData().card
             //   if (!c) {
@@ -527,7 +524,7 @@ export const Study = createLoading(
           <QuickAction
             icon={faEyeSlash}
             label="Suspend Note"
-            shortcut="!"
+            shortcut={{ key: "!" }}
             // TODO: onClick={() => {
             //   const c = getData().card
             //   if (!c) {
@@ -544,25 +541,53 @@ export const Study = createLoading(
             // }}
             // disabled={!getData().card}
           />
-          <QuickAction icon={faCopy} label="Create Copy..." shortcut="⌥⌘E" />
-          <QuickAction icon={faTrash} label="Delete Note" shortcut="⌘⌫" />
-          <QuickAction icon={faPen} label="Edit Note" shortcut="E" />
-          <QuickAction icon={faTags} label="Edit Tags" shortcut="T" />
+          <QuickAction
+            icon={faCopy}
+            label="Create Copy..."
+            shortcut={{ key: "E", mod: "macctrl", alt: true }}
+          />
+          <QuickAction
+            icon={faTrash}
+            label="Delete Note"
+            shortcut={{ key: "Backspace", mod: "macctrl" }}
+          />
+          <QuickAction icon={faPen} label="Edit Note" shortcut={{ key: "E" }} />
+          <QuickAction
+            icon={faTags}
+            label="Edit Tags"
+            shortcut={{ key: "T" }}
+          />
           <QuickActionLine />
           {/* play audio should change to replay audio sometimes */}
-          <QuickAction icon={faPlay} label="Play Audio" shortcut="R" />
-          <QuickAction icon={faPause} label="Pause Audio" shortcut="5" />
-          <QuickAction icon={faBackward} label="Audio -5s" shortcut="6" />
-          <QuickAction icon={faForward} label="Audio +5s" shortcut="7" />
+          <QuickAction
+            icon={faPlay}
+            label="Play Audio"
+            shortcut={{ key: "R" }}
+          />
+          <QuickAction
+            icon={faPause}
+            label="Pause Audio"
+            shortcut={{ key: "5" }}
+          />
+          <QuickAction
+            icon={faBackward}
+            label="Audio -5s"
+            shortcut={{ key: "6" }}
+          />
+          <QuickAction
+            icon={faForward}
+            label="Audio +5s"
+            shortcut={{ key: "7" }}
+          />
           <QuickAction
             icon={faMicrophone}
             label="Record Own Voice"
-            shortcut="⇧V"
+            shortcut={{ key: "V", shift: true }}
           />
           <QuickAction
             icon={faEarListen}
             label="Replay Own Voice"
-            shortcut="V"
+            shortcut={{ key: "V", shift: false }}
           />
         </div>
       )
