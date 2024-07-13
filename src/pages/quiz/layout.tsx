@@ -1,4 +1,5 @@
 import { Fa } from "@/components/Fa"
+import { shortcutToString, type Shortcut } from "@/learn/lib/shortcuts"
 import {
   IconDefinition,
   faClose,
@@ -316,13 +317,22 @@ export function SidebarSticky(props: { children: JSX.Element }) {
   )
 }
 
-export function Shortcut(props: { key: string }) {
+export function Shortcut(props: { key: string | Shortcut }) {
+  const key = createMemo(() => {
+    const k = props.key
+    if (typeof k == "string") {
+      return k
+    } else {
+      return shortcutToString(k)
+    }
+  })
+
   return (
     <kbd
       class="absolute bottom-0 right-1 hidden text-sm xs:block"
-      title={`Shortcut: key ${props.key}`}
+      title={`Shortcut: key ${key()}`}
     >
-      {props.key}
+      {key()}
     </kbd>
   )
 }

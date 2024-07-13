@@ -17,7 +17,7 @@ import {
   Response,
   ResponseGray,
   ResponsesGrid,
-  Shortcut,
+  Shortcut as DisplayShortcut,
 } from "@/pages/quiz/layout"
 import { timestampDist } from "@/pages/quiz/shared"
 import {
@@ -70,6 +70,7 @@ import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
 import * as Template from "../lib/template"
 import { AnyCard, Note } from "../lib/types"
+import type { Shortcut } from "../lib/shortcuts"
 
 // TODO: keyboard shortcuts should have `keydown` listeners
 // TODO: adjust shortcuts for mac/windows
@@ -128,6 +129,26 @@ export const Study = createLoading(
     const [now, setNow] = createSignal(Date.now())
     setInterval(() => setNow(Date.now()), 30_000)
 
+    return {
+      el: (
+        <div class="flex min-h-full w-full flex-1 flex-col">
+          <Full
+            layer
+            responses={Responses()}
+            content={Content()}
+            sidebar={Sidebar()}
+            sidebarState={prefs.sidebar_state}
+            onSidebarState={(state) =>
+              setPrefs("Toggle sidebar")("sidebar_state", state)
+            }
+          />
+        </div>
+      ),
+      onForcePop() {
+        return true
+      },
+    }
+
     async function updateCurrentCard(
       reason: Reason,
       data: (card: AnyCard) => Partial<AnyCard>,
@@ -167,26 +188,6 @@ export const Study = createLoading(
       notifyOfDataUpdate()
     }
 
-    return {
-      el: (
-        <div class="flex min-h-full w-full flex-1 flex-col">
-          <Full
-            layer
-            responses={Responses()}
-            content={Content()}
-            sidebar={Sidebar()}
-            sidebarState={prefs.sidebar_state}
-            onSidebarState={(state) =>
-              setPrefs("Toggle sidebar")("sidebar_state", state)
-            }
-          />
-        </div>
-      ),
-      onForcePop() {
-        return true
-      },
-    }
-
     function Content() {
       return (
         <Show fallback={<Loading />} when={getData()}>
@@ -214,7 +215,7 @@ export const Study = createLoading(
           fallback={
             <ResponseGray onClick={pop}>
               Exit Session
-              <Shortcut key="0" />
+              <DisplayShortcut key="0" />
             </ResponseGray>
           }
           when={getData()?.data}
@@ -223,7 +224,7 @@ export const Study = createLoading(
             fallback={
               <ResponseGray onClick={() => setAnswerShown(true)}>
                 Reveal Answer
-                <Shortcut key="0" />
+                <DisplayShortcut key="0" />
               </ResponseGray>
             }
             when={answerShown()}
@@ -233,28 +234,28 @@ export const Study = createLoading(
                 class="bg-red-300 text-red-900"
                 rating={Rating.Again}
                 label="Again"
-                shortcut="1"
+                shortcut={{ key: "1" }}
               />
 
               <Button
                 class="bg-[#ffcc91] text-yellow-900"
                 rating={Rating.Hard}
                 label="Hard"
-                shortcut="2"
+                shortcut={{ key: "2" }}
               />
 
               <Button
                 class="bg-green-300 text-green-900"
                 rating={Rating.Good}
                 label="Good"
-                shortcut="3"
+                shortcut={{ key: "3" }}
               />
 
               <Button
                 class="bg-blue-300 text-blue-900"
                 rating={Rating.Easy}
                 label="Easy"
-                shortcut="4"
+                shortcut={{ key: "4" }}
               />
             </ResponsesGrid>
           </Show>
@@ -295,7 +296,7 @@ export const Study = createLoading(
     function Button(props: {
       class: string
       rating: Grade
-      shortcut: string
+      shortcut: Shortcut
       label: string
     }) {
       return (
@@ -311,7 +312,7 @@ export const Study = createLoading(
             const item = r[props.rating]
             return timestampDist((item.card.due - item.log.review) / 1000)
           })()}
-          <Shortcut key={props.shortcut} />
+          <DisplayShortcut key={props.shortcut} />
         </Response>
       )
     }

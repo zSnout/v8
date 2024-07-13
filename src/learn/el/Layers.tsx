@@ -1,9 +1,11 @@
 import {
   createContext,
+  createSignal,
   getOwner,
   JSX,
   Owner,
   runWithOwner,
+  Show,
   useContext,
 } from "solid-js"
 
@@ -17,11 +19,21 @@ export function useLayers() {
   return context
 }
 
-type LayerInfo = [
+export type LayerInfo = [
+  /** The element containing the actual layer. */
   layer: HTMLDivElement,
+
+  /** The previously focused element. */
   previouslyFocused: Element | null,
+
+  /** A function to call if this layer is forcibly removed. */
   onForcePop: ForcePopHandler,
+
+  /** A function to call if the layer immediately above this one is removed. */
   onReturn: ReturnHandler,
+
+  /** A function which unmounts the inner component. */
+  unmount: () => void,
 ]
 
 export class Layers {
@@ -77,9 +89,13 @@ export class Layers {
     }
 
     const next = runWithOwner(this.owner, () => {
+      const [shown, setShown] = createSignal(true)
+
       const el = (
         <LayerContext.Provider value={this}>
-          <Inner />
+          <Show when={shown()}>
+            <Inner />
+          </Show>
         </LayerContext.Provider>
       )
 
@@ -87,7 +103,15 @@ export class Layers {
         <div
           class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
           ref={(el) => {
-            this.layers.push([el, previouslyFocused, onForcePop, onReturn])
+            this.layers.push([
+              el,
+              previouslyFocused,
+              onForcePop,
+              onReturn,
+              () => {
+                setShown(false)
+              },
+            ])
             setTimeout(() => animateIn(prev, el))
           }}
         >
@@ -114,7 +138,7 @@ export class Layers {
       el.remove()
     }
     this.layers.splice(idx, 1)
-    animateOut(prev, next)
+    animateOut(prev, next, current[4])
     onReturn()
     if (
       previouslyFocused instanceof HTMLElement ||
@@ -170,7 +194,11 @@ function animateIn(prev: HTMLDivElement, next: HTMLDivElement) {
   next.inert = false
 }
 
-function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
+function animateOut(
+  prev: HTMLDivElement,
+  next: HTMLDivElement,
+  unmountNext: () => void,
+) {
   prev.classList.add("opacity-100")
   prev.classList.remove("opacity-0")
   prev.classList.remove("blur-lg")
@@ -199,6 +227,7 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
   next.inert = true
   next.addEventListener("transitionend", () => {
     next.remove()
+    unmountNext()
   })
 }
 
