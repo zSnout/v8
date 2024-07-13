@@ -391,49 +391,6 @@ export const Study = createLoading(
       )
     }
 
-    // function MarksSelector() {
-    //   return (
-    //     <div class="mb-1 flex gap-2">
-    //       <For each={Flags.ALL_MARKS}>
-    //         {(mark) => {
-    //           const checked = createMemo(() => {
-    //             const c = getData()?.data?.note
-    //             if (!c) {
-    //               return false
-    //             }
-    //             return Flags.has(c.marks, mark)
-    //           })
-
-    //           return (
-    //             <button
-    //               class={`z-field flex aspect-square flex-1 items-center justify-center rounded-lg border p-0 shadow-none`}
-    //               classList={{
-    //                 "opacity-30": !checked(),
-    //                 "bg-z-body-selected": checked(),
-    //                 // "border-transparent": checked(),
-    //               }}
-    //               role="checkbox"
-    //               aria-checked={checked()}
-    //               aria-label={mark.shape + " mark"}
-    //               onClick={() =>
-    //                 updateCurrentNote(`Toggle ${mark.shape} mark`, (note) => ({
-    //                   marks: Flags.toggle(note.marks, mark),
-    //                 }))
-    //               }
-    //             >
-    //               <Fa
-    //                 class="h-4 w-4 icon-current"
-    //                 icon={checked() ? mark.fill : mark.outline}
-    //                 title={false}
-    //               />
-    //             </button>
-    //           )
-    //         }}
-    //       </For>
-    //     </div>
-    //   )
-    // }
-
     function Sidebar() {
       return (
         <div class="flex w-full flex-1 flex-col">
