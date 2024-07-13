@@ -81,9 +81,14 @@ export const Study = createLoading(
     setMessage,
   ) => {
     setMessage("Gathering cards...")
-    return { info: await gather(db, main, dids, Date.now()) }
+    const [prefs, setPrefs, ready] = createPrefsStore(db)
+    const [info] = await Promise.all([
+      gather(db, main, dids, Date.now()),
+      ready,
+    ])
+    return { info, prefs, setPrefs }
   },
-  ({ db, main, dids }, { info }, pop) => {
+  ({ db, main, dids }, { info, prefs, setPrefs }, pop) => {
     const owner = getOwner()
 
     const [getData, { mutate, refetch }] = createResource(async () => {
@@ -123,8 +128,6 @@ export const Study = createLoading(
 
     const [now, setNow] = createSignal(Date.now())
     setInterval(() => setNow(Date.now()), 30_000)
-
-    const [prefs, setPrefs] = createPrefsStore(db)
 
     async function updateCurrentCard(
       reason: Reason,
@@ -174,10 +177,10 @@ export const Study = createLoading(
             responses={Responses()}
             content={Content()}
             sidebar={Sidebar()}
-            // sidebarState={app.prefs.prefs.sidebar_state}
-            // onSidebarState={(state) =>
-            //   void (app.prefs.prefs.sidebar_state = state)
-            // }
+            sidebarState={prefs.sidebar_state}
+            onSidebarState={(state) =>
+              setPrefs("Toggle sidebar")("sidebar_state", state)
+            }
           />
         </div>
       ),
@@ -485,6 +488,7 @@ export const Study = createLoading(
             label="Forget Card..."
             shortcut="⌥⌘N"
             onClick={answerForget}
+            disabled={!getData()?.data?.card}
           />
           <QuickAction
             icon={faCalendar}
@@ -603,7 +607,16 @@ export const Study = createLoading(
             </Show>
             <p>
               If you wish to study outside of the regular schedule, you can use
-              the <InlineButton>custom study</InlineButton> feature.
+              the{" "}
+              <InlineButton
+                onClick={() => {
+                  // FEAT:
+                  throw new Error("this doesn't do anything yet")
+                }}
+              >
+                custom study
+              </InlineButton>{" "}
+              feature.
             </p>
           </div>
         </div>
@@ -622,7 +635,15 @@ export const Study = createLoading(
       return (
         <p>
           There are more new cards available, but the daily limit has been
-          reached. You may <InlineButton>increase today's limit</InlineButton>{" "}
+          reached. You may{" "}
+          <InlineButton
+            onClick={() => {
+              // FEAT:
+              throw new Error("this doesn't do anything")
+            }}
+          >
+            increase today's limit
+          </InlineButton>{" "}
           if you wish, but beware that adding too many new cards will make your
           daily reviews in the near future skyrocket.
         </p>
@@ -649,7 +670,15 @@ export const Study = createLoading(
       return (
         <p>
           There are more review cards due today, but the daily limit has been
-          reached. You may <InlineButton>increase today's limit</InlineButton>{" "}
+          reached. You may{" "}
+          <InlineButton
+            onClick={() => {
+              // FEAT:
+              throw new Error("this doesn't do anything")
+            }}
+          >
+            increase today's limit
+          </InlineButton>{" "}
           if you wish, which can help if you have a large backlog.
         </p>
       )
@@ -657,7 +686,7 @@ export const Study = createLoading(
 
     function InlineButton(props: {
       children: JSX.Element
-      onClick?: () => void
+      onClick: () => void
     }) {
       return (
         <button
