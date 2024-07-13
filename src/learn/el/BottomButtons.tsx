@@ -24,12 +24,14 @@ export function Action(props: {
   onClick?: () => void
   shrinks?: boolean
   center?: boolean
+  disabled?: boolean
 }) {
   return (
     <button
       class="z-field flex w-full items-center gap-2 border-transparent bg-z-body-selected px-2 py-1 shadow-none"
       classList={{ "justify-center": props.center }}
-      onClick={props.onClick}
+      onClick={() => !props.disabled && props.onClick?.()}
+      disabled={props.disabled}
     >
       <div class="flex h-6 items-center justify-center">
         <Fa class="h-4 w-4" icon={props.icon} title={false} />

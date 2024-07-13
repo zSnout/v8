@@ -20,6 +20,7 @@ import {
   untrack,
 } from "solid-js"
 import { createStore, SetStoreFunction, Store, unwrap } from "solid-js/store"
+import { compareWithName } from "../lib/compare"
 import { Cloneable } from "../message"
 import { Action, TwoBottomButtons } from "./BottomButtons"
 import { Layerable } from "./Layers"
@@ -31,7 +32,7 @@ export function createListEditor<
   AsyncProps,
   Item,
   Data extends Cloneable & object,
-  Entry extends { id: Id; name: string },
+  Entry extends { id: Id; name: string; deleted?: boolean },
 >(
   load: (
     props: Props,
@@ -65,7 +66,8 @@ export function createListEditor<
     newFieldName: string
     initialMessage?: string
     full?: boolean
-    noSort?: boolean
+    noSort?: boolean | "by-name"
+    undeletable?: (entry: Entry) => boolean
   },
   Options: (props: {
     get: Store<Data>
@@ -140,8 +142,11 @@ export function createListEditor<
                 }
               >
                 <PlainFieldList
-                  get={entries()}
-                  set={setEntries}
+                  get={
+                    internalProps.noSort == "by-name"
+                      ? entries().toSorted(compareWithName)
+                      : entries()
+                  }
                   selectedId={selectedId()}
                   setSelectedId={setSelectedId}
                   sortId={sortId?.(data)}
@@ -319,6 +324,7 @@ export function createListEditor<
                   )
                 })
               }}
+              disabled={internalProps.undeletable?.(selected())}
             />
 
             <Action

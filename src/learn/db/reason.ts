@@ -15,3 +15,6 @@ export type Reason =
   | `Update ${"fields" | "templates"} for model ${string}`
   | `Create note in ${string}`
   | `Create deck ${string}`
+  | `Create model(s) ${string}`
+  | `Delete model(s) ${string}`
+  | `Create model(s) ${string} and delete ${string}`

@@ -1,21 +1,49 @@
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createResource } from "solid-js"
 import { DB } from "../db"
-import { saveManagedModels } from "../db/saveManagedModels"
+import { Reason } from "../db/reason"
+import {
+  AddedModel,
+  RemovedModel,
+  saveManagedModels,
+} from "../db/saveManagedModels"
 import { createListEditor } from "../el/EditList"
 import { LoadingSmall } from "../el/LoadingSmall"
-import { cloneModel } from "../lib/models"
+import { Id, randomId } from "../lib/id"
+import { BUILTIN_IDS } from "../lib/models"
 import { Model } from "../lib/types"
 
+export type Item =
+  | { type: "keep"; id: Id; name: string; model: Model }
+  | { type: "create"; id: Id; name: string; model: Model }
+
 // TODO: this ought to do things
-export const ManageModels = createListEditor<DB, number, Model[], {}, Model>(
+export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
   async (db) => {
     const models = await db.read("models").store.getAll()
+    const initial = models.map<RemovedModel>((x) => [x.id, x.name])
     return {
       async: 0,
-      item: models,
+      item: models.map((x) => ({
+        type: "keep",
+        id: x.id,
+        name: x.name,
+        model: x,
+      })),
       async save(models) {
-        saveManagedModels(db, models)
+        const added: AddedModel[] = []
+        const removed: RemovedModel[] = []
+        for (const m of models) {
+          if (m.type == "create") {
+            added.push({ id: m.id, name: m.name, cloned: m.model })
+          }
+        }
+        for (const i of initial) {
+          if (!models.some((x) => x.id == i[0])) {
+            removed.push(i)
+          }
+        }
+        await saveManagedModels(db, added, removed)
       },
       title: "Models",
       subtitle: "managing all",
@@ -24,7 +52,12 @@ export const ManageModels = createListEditor<DB, number, Model[], {}, Model>(
   ({ item }) => [{}, item] as const,
   ({ items }) => items,
   () => undefined,
-  cloneModel,
+  (name, selected) => ({
+    type: "create",
+    id: randomId(),
+    name,
+    model: selected.model,
+  }),
   {
     add: "Clone",
     addIcon: faClone,
@@ -33,7 +66,10 @@ export const ManageModels = createListEditor<DB, number, Model[], {}, Model>(
     needAtLeastOne: "A collection needs at least one model.",
     newFieldName: "New model name",
     full: true,
-    noSort: true,
+    noSort: "by-name",
+    undeletable(item: Item) {
+      return BUILTIN_IDS.includes(item.id)
+    },
   },
   (props) => {
     const [data, { mutate }] = createResource(

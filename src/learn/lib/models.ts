@@ -1,5 +1,5 @@
 import { createField, createModelTemplate } from "./defaults"
-import { Id, idOf, randomId } from "./id"
+import { Id, idOf } from "./id"
 import { arrayToRecord } from "./record"
 import { Model, ModelField, ModelTemplate } from "./types"
 
@@ -24,10 +24,10 @@ function createModel(
   }
 }
 
-export function cloneModel(name: string, model: Model): Model {
+export function cloneModel(id: Id, name: string, model: Model): Model {
   return {
     ...structuredClone(model),
-    id: randomId(),
+    id,
     name,
     last_edited: Date.now(),
   }
@@ -111,3 +111,7 @@ export function createBuiltinV3(now: number) {
 export function createBuiltin(now: number) {
   return createBuiltinV3(now)
 }
+
+export const BUILTIN_IDS = Object.freeze([
+  3166958980394845, 3323968114672263,
+]) as readonly Id[]

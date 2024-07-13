@@ -75,8 +75,8 @@ export const Grave = v.object({
   /** The original id of the item to delete */
   oid: Id,
 
-  /** The type of item to delete: 0 for card, 1 for note, and 2 for deck */
-  type: v.picklist([0, 1, 2]),
+  /** The type of item to delete: 0=card, 1=note, 2=deck, 3=model */
+  type: v.picklist([0, 1, 2, 3]),
 })
 
 export interface NoteFields extends v.InferOutput<typeof NoteFields> {}

@@ -14,7 +14,6 @@ import { For, Ref, Setter, Show, createSignal, mapArray } from "solid-js"
 
 export function PlainFieldList<T extends { id: Id; name: string }>(props: {
   get: T[]
-  set: Setter<T[]>
   selectedId: Id | undefined
   setSelectedId: (id: Id) => void
   sortId: Id | undefined
