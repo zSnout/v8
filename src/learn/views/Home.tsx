@@ -5,6 +5,7 @@ import { NodeProps, TreeOf } from "@/components/tree"
 import {
   faChartBar,
   faPlus,
+  faShareFromSquare,
   faSliders,
   faSync,
   faTableCellsLarge,
@@ -15,8 +16,7 @@ import { DB } from "../db"
 import { createDeck } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
-import { Action, TwoBottomButtons } from "../el/BottomButtons"
-import { Icon, Icons } from "../el/IconButton"
+import { Action, BottomButtons } from "../el/BottomButtons"
 import { useLayers } from "../el/Layers"
 import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
@@ -59,7 +59,7 @@ export const Home = createLoadingBase(
     // layers are active
 
     return (
-      <div class="flex min-h-full flex-1 flex-col gap-8">
+      <div class="flex min-h-full flex-1 flex-col gap-4">
         <SublinkHandler />
         <TopActions />
         <DeckList />
@@ -71,21 +71,29 @@ export const Home = createLoadingBase(
       const layers = useLayers()
 
       return (
-        <Icons>
-          <Icon
+        <div class="mx-auto grid w-full max-w-xl grid-cols-2 justify-center gap-1 xs:grid-cols-3 sm:grid-cols-5">
+          <Action
+            class="col-span-2 xs:col-span-1 xs:row-span-2 sm:row-span-1"
+            center
             icon={faPlus}
             label="Add"
             onClick={() => layers.push(CreateNote, db)}
           />
-          <Icon icon={faTableCellsLarge} label="Browse" onClick={nope} />
-          <Icon icon={faChartBar} label="Stats" onClick={nope} />
-          <Icon
+          <Action
+            center
+            icon={faTableCellsLarge}
+            label="Browse"
+            onClick={nope}
+          />
+          <Action center icon={faChartBar} label="Stats" onClick={nope} />
+          <Action
+            center
             icon={faSliders}
             label="Settings"
             onClick={() => layers.push(Settings, db)}
           />
-          <Icon icon={faSync} label="Sync" onClick={nope} />
-        </Icons>
+          <Action center icon={faSync} label="Sync" onClick={nope} />
+        </div>
       )
     }
 
@@ -103,10 +111,12 @@ export const Home = createLoadingBase(
 
       return (
         <div class="mx-auto w-full max-w-xl flex-1 rounded-lg bg-z-body-selected px-1 py-1">
-          <div class="mb-1 grid grid-cols-[auto,4rem,4rem,4rem] items-baseline border-b border-z pb-1 pl-8 pr-4">
+          <div class="mb-1 grid grid-cols-[auto,3rem,3rem] items-baseline border-b border-z pb-1 pl-8 pr-4 xs:grid-cols-[auto,3rem,3rem,3rem] sm:grid-cols-[auto,4rem,4rem,4rem]">
             <p>Deck</p>
             <p class="text-right text-sm text-z-subtitle">New</p>
-            <p class="text-right text-sm text-z-subtitle">Learn</p>
+            <p class="hidden text-right text-sm text-z-subtitle xs:block">
+              Learn
+            </p>
             <p class="text-right text-sm text-z-subtitle">Due</p>
           </div>
 
@@ -133,8 +143,9 @@ export const Home = createLoadingBase(
 
     function BottomActions() {
       return (
-        <TwoBottomButtons>
+        <BottomButtons class="grid w-full max-w-xl grid-cols-2 gap-1 sm:grid-cols-3">
           <Action
+            class="col-span-2 sm:col-auto"
             icon={faPlus}
             label="Create Deck"
             center
@@ -159,8 +170,14 @@ export const Home = createLoadingBase(
               reloadDecks()
             }}
           />
-          <Action icon={faUpload} label="Import Deck" center onClick={nope} />
-        </TwoBottomButtons>
+          <Action
+            icon={faShareFromSquare}
+            label="Shared"
+            center
+            onClick={nope}
+          />
+          <Action icon={faUpload} label="Import" center onClick={nope} />
+        </BottomButtons>
       )
     }
 
@@ -180,7 +197,7 @@ export const Home = createLoadingBase(
       return (
         <button
           class={
-            "grid flex-1 grid-cols-[auto,4rem,4rem,4rem] items-baseline rounded-lg py-0.5 pl-8 pr-4 text-left text-z-subtitle dhover:bg-z-body" +
+            "grid flex-1 grid-cols-[auto,3rem,3rem] items-baseline rounded-lg py-0.5 pl-8 pr-4 text-left text-z-subtitle xs:grid-cols-[auto,3rem,3rem,3rem] dhover:bg-z-body sm:grid-cols-[auto,4rem,4rem,4rem]" +
             (subtree ? " -ml-6" : "")
           }
           onClick={() => {
@@ -222,7 +239,16 @@ export const Home = createLoadingBase(
             {buckets[0]}
           </p>
           <p
-            class="text-right font-mono text-sm"
+            class="block text-right font-mono text-sm xs:hidden"
+            classList={{
+              "text-[--z-text-learn-review]": buckets[1] + buckets[2] != 0,
+              "opacity-30": buckets[1] + buckets[2] == 0,
+            }}
+          >
+            {buckets[1] + buckets[2]}
+          </p>
+          <p
+            class="hidden text-right font-mono text-sm xs:block"
             classList={{
               "text-[--z-text-learn-learning]": buckets[1] != 0,
               "opacity-30": buckets[1] == 0,
@@ -231,7 +257,7 @@ export const Home = createLoadingBase(
             {buckets[1]}
           </p>
           <p
-            class="text-right font-mono text-sm"
+            class="hidden text-right font-mono text-sm xs:block"
             classList={{
               "text-[--z-text-learn-review]": buckets[2] != 0,
               "opacity-30": buckets[2] == 0,
