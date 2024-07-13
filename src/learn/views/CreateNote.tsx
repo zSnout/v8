@@ -88,24 +88,20 @@ export const CreateNote = createLoading(
               <button
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
                 onClick={() => {
-                  layers.push(
-                    EditModelFields,
-                    {
-                      model: model(),
-                      async save(model) {
-                        if (model != null) {
-                          onExternalModelUpdate(model)
-                          await setModelDB(
-                            db,
-                            model,
-                            Date.now(),
-                            `Update fields for model ${model.name}`,
-                          )
-                        }
-                      },
+                  layers.push(EditModelFields, {
+                    model: model(),
+                    async save(model) {
+                      if (model != null) {
+                        onExternalModelUpdate(model)
+                        await setModelDB(
+                          db,
+                          model,
+                          Date.now(),
+                          `Update fields for model ${model.name}`,
+                        )
+                      }
                     },
-                    () => {},
-                  )
+                  })
                 }}
               >
                 Fields...
@@ -114,27 +110,23 @@ export const CreateNote = createLoading(
               <button
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
                 onClick={() =>
-                  layers.push(
-                    /*TODO:*/ EditModelTemplates,
-                    {
-                      model: model(),
-                      fields: fieldRecord(model().fields, { ...fields }),
-                      editStyle: prefs.template_edit_style,
-                      async save(model, editStyle) {
-                        if (model != null) {
-                          onExternalModelUpdate(model)
-                          await setModelDB(
-                            db,
-                            model,
-                            Date.now(),
-                            `Update templates for model ${model.name}`,
-                            editStyle,
-                          )
-                        }
-                      },
+                  layers.push(EditModelTemplates, {
+                    model: model(),
+                    fields: fieldRecord(model().fields, { ...fields }),
+                    editStyle: prefs.template_edit_style,
+                    async save(model, editStyle) {
+                      if (model != null) {
+                        onExternalModelUpdate(model)
+                        await setModelDB(
+                          db,
+                          model,
+                          Date.now(),
+                          `Update templates for model ${model.name}`,
+                          editStyle,
+                        )
+                      }
                     },
-                    () => {},
-                  )
+                  })
                 }
               >
                 Cards...

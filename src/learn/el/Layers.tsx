@@ -55,12 +55,11 @@ export class Layers {
   private onRootReturn!: ReturnHandler
   private layers: LayerInfo[] = []
 
-  push<T>(fn: Layerable<T>, props: T, popHook: () => void) {
+  push<T>(fn: Layerable<T>, props: T) {
     const prev = this.layers[this.layers.length - 1]?.[0] ?? this.root
     const idx = this.layers.length
     const pop = () => {
       this.pop(idx)
-      popHook()
     }
 
     const previouslyFocused = document.activeElement
@@ -72,9 +71,6 @@ export class Layers {
       const fp = output.onForcePop
       onForcePop = async () => {
         const retval = await fp()
-        if (retval) {
-          popHook()
-        }
         return retval
       }
       onReturn = output.onReturn

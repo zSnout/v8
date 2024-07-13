@@ -67,8 +67,6 @@ export const Home = createLoadingBase(
       </div>
     )
 
-    function reload() {}
-
     function TopActions() {
       const layers = useLayers()
 
@@ -77,14 +75,14 @@ export const Home = createLoadingBase(
           <Icon
             icon={faPlus}
             label="Add"
-            onClick={() => layers.push(CreateNote, db, reload)}
+            onClick={() => layers.push(CreateNote, db)}
           />
           <Icon icon={faTableCellsLarge} label="Browse" onClick={nope} />
           <Icon icon={faChartBar} label="Stats" onClick={nope} />
           <Icon
             icon={faSliders}
             label="Settings"
-            onClick={() => layers.push(Settings, db, reload)}
+            onClick={() => layers.push(Settings, db)}
           />
           <Icon icon={faSync} label="Sync" onClick={nope} />
         </Icons>
@@ -192,7 +190,7 @@ export const Home = createLoadingBase(
             if (main != null) dids.push(main)
             collectDeckIds(subtree)
 
-            layers.push(Study, { db, main, dids }, reload)
+            layers.push(Study, { db, main, dids })
 
             function collectDeckIds(
               subtree:
