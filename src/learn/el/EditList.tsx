@@ -67,6 +67,7 @@ export function createListEditor<
     initialMessage?: string
     full?: boolean
     noSort?: boolean | "by-name"
+    thisActionWillDeleteACard?: string
     undeletable?: (entry: Entry) => boolean
   },
   Options: (props: {
@@ -177,19 +178,26 @@ export function createListEditor<
         return true
       }
 
-      async function confirmOneWaySync() {
+      async function confirmOneWaySync(description?: string) {
         return await confirm({
           owner,
           title: "Are you sure you want to do this?",
           get description() {
             return (
-              <ModalDescription>
-                This action will require a full upload of the database when you
-                next synchronize your collection. If you have reviews or other
-                changes waiting on another device that haven't been synchronized
-                here yet, <u class="font-semibold text-z">they will be lost</u>.
-                Continue?
-              </ModalDescription>
+              <>
+                <Show when={description}>
+                  {(el) => <ModalDescription>{el()}</ModalDescription>}
+                </Show>
+
+                <ModalDescription>
+                  This action will require a full upload of the database when
+                  you next synchronize your collection. If you have reviews or
+                  other changes waiting on another device that haven't been
+                  synchronized here yet,{" "}
+                  <u class="font-semibold text-z">they will be lost</u>.
+                  Continue?
+                </ModalDescription>
+              </>
             )
           },
           cancelText: "No, cancel",
@@ -300,7 +308,11 @@ export function createListEditor<
                   return
                 }
 
-                if (!(await confirmOneWaySync())) {
+                if (
+                  !(await confirmOneWaySync(
+                    internalProps.thisActionWillDeleteACard,
+                  ))
+                ) {
                   return
                 }
 

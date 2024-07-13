@@ -1,5 +1,6 @@
+import { notNull } from "@/components/pray"
 import { DB } from "."
-import { Id } from "../lib/id"
+import { Id, ID_ZERO } from "../lib/id"
 import { cloneModel } from "../lib/models"
 import { Model } from "../lib/types"
 import { Reason } from "./reason"
@@ -21,16 +22,34 @@ export async function saveManagedModels(
       ? `Create model(s) ${added.map((x) => x.name).join(",")}`
       : `Delete model(s) ${removed.map((x) => x[1]).join(",")}`
 
-  const tx = db.readwrite(["notes", "cards", "graves", "models"], reason)
+  const tx = db.readwrite(
+    ["notes", "cards", "graves", "models", "core"],
+    reason,
+  )
   const notes = tx.objectStore("notes")
   const cards = tx.objectStore("cards")
   const graves = tx.objectStore("graves")
   const models = tx.objectStore("models")
+  const core = tx.objectStore("core")
   const notesMid = notes.index("mid")
   const cardsNid = cards.index("nid")
 
   for (const a of added) {
     models.put(cloneModel(a.id, a.name, a.cloned))
+  }
+
+  if (removed.length) {
+    core.put(
+      {
+        ...notNull(
+          await core.get(ID_ZERO),
+          "This collection does not have a core.",
+        ),
+        last_edited: Date.now(),
+        last_schema_edit: Date.now(),
+      },
+      ID_ZERO,
+    )
   }
 
   removed.map(async ([mid]) => {

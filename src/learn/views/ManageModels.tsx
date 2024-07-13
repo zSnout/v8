@@ -1,7 +1,6 @@
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createResource } from "solid-js"
 import { DB } from "../db"
-import { Reason } from "../db/reason"
 import {
   AddedModel,
   RemovedModel,
@@ -67,6 +66,8 @@ export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
     newFieldName: "New model name",
     full: true,
     noSort: "by-name",
+    thisActionWillDeleteACard:
+      "Deleting this model will delete all its corresponding cards and notes.",
     undeletable(item: Item) {
       return BUILTIN_IDS.includes(item.id)
     },
