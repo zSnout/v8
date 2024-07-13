@@ -1,6 +1,15 @@
 import { notNull } from "@/components/pray"
-import { ID_ZERO } from "@/learn/lib/id"
-import { Model, NoteFields, TemplateEditStyle } from "@/learn/lib/types"
+import { unwrapOr } from "@/components/result"
+import { Id, ID_ZERO, randomId } from "@/learn/lib/id"
+import * as Template from "@/learn/lib/template"
+import {
+  Model,
+  NewCard,
+  Note,
+  NoteFields,
+  TemplateEditStyle,
+} from "@/learn/lib/types"
+import { createEmptyCard, State } from "ts-fsrs"
 import { DB } from ".."
 import { Reason } from "../reason"
 
@@ -24,6 +33,40 @@ export function requiresOneWaySync(prev: Model, next: Model) {
   return false
 }
 
+export function diffTmpls(prev: Model, next: Model) {
+  const p = Object.values(prev.tmpls)
+  const n = Object.values(next.tmpls)
+
+  return {
+    add: n.filter((n) => !p.some((p) => p.id == n.id)), // things in n but not p
+    del: p.filter((p) => !n.some((n) => n.id == p.id)), // things in p but not n
+  }
+}
+
+export function mostPopularId(dids: Id[]) {
+  if (dids.length == 0) {
+    return null
+  }
+
+  const ids = new Map<Id, number>()
+
+  for (const id of dids) {
+    ids.set(id, (ids.get(id) ?? 0) + 1)
+  }
+
+  let id = ID_ZERO
+  let count = 0
+
+  for (const [k, v] of ids) {
+    if (v > count) {
+      id = k
+      count = v
+    }
+  }
+
+  return id
+}
+
 export async function setModelDB(
   db: DB,
   model: Model,
@@ -36,7 +79,10 @@ export async function setModelDB(
   }
 
   // TODO: ensure last_edited is properly updated *everywhere*
-  const tx = db.readwrite(["models", "notes", "cards", "prefs", "core"], reason)
+  const tx = db.readwrite(
+    ["models", "notes", "cards", "prefs", "core", "graves"],
+    reason,
+  )
 
   if (editStyle) {
     const prefs = tx.objectStore("prefs")
@@ -46,6 +92,9 @@ export async function setModelDB(
   }
 
   const models = tx.objectStore("models")
+  const cards = tx.objectStore("cards")
+  const graves = tx.objectStore("graves")
+  const cardsByNid = cards.index("nid")
 
   const prev = await models.get(model.id)
 
@@ -54,6 +103,8 @@ export async function setModelDB(
     await tx.done
     return
   }
+
+  const { add, del } = diffTmpls(prev, model)
 
   const notes = tx.objectStore("notes")
 
@@ -71,6 +122,14 @@ export async function setModelDB(
       continue
     }
 
+    inner(note)
+  }
+
+  models.put(model)
+  await tx.done
+  return
+
+  async function inner(note: Note) {
     const sort_field = note.fields[model.sort_field ?? 0] ?? ""
     const fields = Object.create(null) as NoteFields
     for (const key in model.fields) {
@@ -81,11 +140,53 @@ export async function setModelDB(
     note.sort_field = sort_field
     note.fields = fields
     note.last_edited = last_edited
-    // TODO: update which cards exist and their corresponding templates
     notes.put(note)
-  }
 
-  models.put(model)
-  await tx.done
-  return
+    if (!add.length && !del.length) {
+      return
+    }
+
+    const cs = await cardsByNid.getAll(note.id)
+
+    if (add.length) {
+      const fields = Template.fieldRecord(model.fields, note.fields)
+      const deckId = mostPopularId(cs.map((x) => x.odid ?? x.did))
+      if (deckId) {
+        for (const tmpl of add) {
+          const base = createEmptyCard(now)
+          const template = unwrapOr(Template.parse(tmpl.qfmt), [])
+          const isFilled = Template.isFilled(template, fields, {
+            FrontSide: undefined,
+          })
+          if (!isFilled) {
+            continue
+          }
+          const card: NewCard = {
+            ...base,
+            did: deckId,
+            nid: note.id,
+            tid: tmpl.id,
+            id: randomId(),
+            due: base.due.getTime(),
+            last_edited: now,
+            last_review: undefined,
+            queue: 0,
+            state: State.New,
+            flags: 0,
+          }
+          cards.add(card)
+        }
+      }
+    }
+
+    if (del.length) {
+      for (const { id } of del) {
+        const cid = cs.find((x) => x.nid == id)?.id
+        if (cid != null) {
+          cards.delete(cid)
+          graves.add({ oid: cid, type: 0 })
+        }
+      }
+    }
+  }
 }

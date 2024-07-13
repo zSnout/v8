@@ -65,6 +65,8 @@ export const EditModelTemplates = createListEditor<
     rename: "Rename",
     needAtLeastOne: "A model needs at least one template.",
     newFieldName: "New template name",
+    thisActionWillDeleteACard:
+      "This action will delete all the template's associated cards.",
   },
   (props) => {
     const layout = createMemo(() => {
