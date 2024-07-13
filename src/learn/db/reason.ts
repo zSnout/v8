@@ -10,6 +10,8 @@ export type Reason =
   | "Toggle whether due dates are shown above review buttons"
   | "Import collection"
   | "Toggle sidebar"
+  | "Toggle flag visibility in sidebar"
+  | "Toggle whether note is marked"
   | `Review card as ${string}`
   | `Toggle ${string} flag`
   | `Toggle ${string} mark`

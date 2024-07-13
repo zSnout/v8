@@ -15,9 +15,9 @@ import {
 } from "@/learn/lib/types"
 import { FSRS, Grade, Rating } from "ts-fsrs"
 import { DB } from ".."
-import { Reason } from "../reason"
 import { bucketOf, CardBucket } from "../bucket"
 import { startOfDaySync } from "../day"
+import { Reason } from "../reason"
 import { GatherInfo, GatherTx, regatherTx } from "./gather"
 
 export async function select(
@@ -162,19 +162,12 @@ export interface SelectInfo extends SelectedCard {
   deck: Deck
 }
 
-async function save(
-  db: DB,
-  { card, log }: RepeatItem,
+export function checkBucket(
+  card: AnyCard,
   selectInfo: SelectInfo,
   gatherInfo: GatherInfo,
   now: number,
-  reason: Reason,
 ) {
-  const tx = db.readwrite(["cards", "rev_log"], reason)
-
-  tx.objectStore("cards").put(card)
-  tx.objectStore("rev_log").put(log)
-
   const prevBucket = selectInfo.bucket
 
   if (prevBucket != null) {
@@ -194,6 +187,23 @@ async function save(
     }
   }
 
+  return prevBucket
+}
+
+async function save(
+  db: DB,
+  { card, log }: RepeatItem,
+  selectInfo: SelectInfo,
+  gatherInfo: GatherInfo,
+  now: number,
+  reason: Reason,
+) {
+  const tx = db.readwrite(["cards", "rev_log"], reason)
+
+  tx.objectStore("cards").put(card)
+  tx.objectStore("rev_log").put(log)
+
+  const prevBucket = checkBucket(card, selectInfo, gatherInfo, now)
   await tx.done
   return prevBucket
 }

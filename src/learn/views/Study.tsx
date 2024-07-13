@@ -32,6 +32,7 @@ import {
   faFlag,
   faForward,
   faInfoCircle,
+  faMarker,
   faMicrophone,
   faPause,
   faPen,
@@ -63,7 +64,7 @@ import { createPrefsStore } from "../db/prefs/store"
 import { Reason } from "../db/reason"
 import { gather } from "../db/study/gather"
 import { putCard, putNote } from "../db/study/merge"
-import { saveForget, saveReview, select } from "../db/study/select"
+import { checkBucket, saveForget, saveReview, select } from "../db/study/select"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
@@ -73,7 +74,6 @@ import { AnyCard, Note } from "../lib/types"
 // TODO: keyboard shortcuts should have `keydown` listeners
 // TODO: adjust shortcuts for mac/windows
 // FEAT: improve screen for when no cards are left
-// TODO: loading screen
 
 export const Study = createLoading(
   async (
@@ -90,18 +90,17 @@ export const Study = createLoading(
   },
   ({ db, main, dids }, { info, prefs, setPrefs }, pop) => {
     const owner = getOwner()
+    const [answerShown, setAnswerShown] = createSignal(false)
 
     const [getData, { mutate, refetch }] = createResource(async () => {
       const now = Date.now()
-
+      setAnswerShown(false)
       return { data: await select(db, main, dids, now, info), shownAt: now }
     })
 
     function notifyOfDataUpdate() {
       mutate((x) => (x ? { ...x } : undefined))
     }
-
-    const [answerShown, setAnswerShown] = createSignal(false)
 
     const tmpl = createMemo(() => {
       const data = getData()?.data
@@ -133,19 +132,17 @@ export const Study = createLoading(
       reason: Reason,
       data: (card: AnyCard) => Partial<AnyCard>,
     ) {
-      const info = getData()
-      if (!info) {
+      const selectInfo = getData()?.data
+      if (selectInfo == null) {
         return
       }
 
-      if (!info.data) {
-        return
-      }
-
-      const { card } = info.data
+      const { card } = selectInfo
       const merged = data(card)
       Object.assign(card, merged)
-      await putCard(db, card, reason)
+      const now = Date.now()
+      await putCard(db, card, reason, now)
+      checkBucket(card, selectInfo, info, now)
       notifyOfDataUpdate()
     }
 
@@ -165,7 +162,8 @@ export const Study = createLoading(
       const { note } = info.data
       const merged = data(note)
       Object.assign(note, merged)
-      await putNote(db, note, reason)
+      const now = Date.now()
+      await putNote(db, note, reason, now)
       notifyOfDataUpdate()
     }
 
@@ -371,7 +369,9 @@ export const Study = createLoading(
                   aria-label={flag.color + " flag"}
                   onClick={() => {
                     updateCurrentCard(`Toggle ${flag.color} flag`, (card) => ({
-                      flags: Flags.toggle(card.flags, flag),
+                      flags: Flags.has(card.flags, flag)
+                        ? 0
+                        : 1 << flag.valueOf(),
                     }))
                   }}
                 >
@@ -390,48 +390,48 @@ export const Study = createLoading(
       )
     }
 
-    function MarksSelector() {
-      return (
-        <div class="mb-1 flex gap-2">
-          <For each={Flags.ALL_MARKS}>
-            {(mark) => {
-              const checked = createMemo(() => {
-                const c = getData()?.data?.note
-                if (!c) {
-                  return false
-                }
-                return Flags.has(c.marks, mark)
-              })
+    // function MarksSelector() {
+    //   return (
+    //     <div class="mb-1 flex gap-2">
+    //       <For each={Flags.ALL_MARKS}>
+    //         {(mark) => {
+    //           const checked = createMemo(() => {
+    //             const c = getData()?.data?.note
+    //             if (!c) {
+    //               return false
+    //             }
+    //             return Flags.has(c.marks, mark)
+    //           })
 
-              return (
-                <button
-                  class={`z-field flex aspect-square flex-1 items-center justify-center rounded-lg border p-0 shadow-none`}
-                  classList={{
-                    "opacity-30": !checked(),
-                    "bg-z-body-selected": checked(),
-                    // "border-transparent": checked(),
-                  }}
-                  role="checkbox"
-                  aria-checked={checked()}
-                  aria-label={mark.shape + " mark"}
-                  onClick={() =>
-                    updateCurrentNote(`Toggle ${mark.shape} mark`, (note) => ({
-                      marks: Flags.toggle(note.marks, mark),
-                    }))
-                  }
-                >
-                  <Fa
-                    class="h-4 w-4 icon-current"
-                    icon={checked() ? mark.fill : mark.outline}
-                    title={false}
-                  />
-                </button>
-              )
-            }}
-          </For>
-        </div>
-      )
-    }
+    //           return (
+    //             <button
+    //               class={`z-field flex aspect-square flex-1 items-center justify-center rounded-lg border p-0 shadow-none`}
+    //               classList={{
+    //                 "opacity-30": !checked(),
+    //                 "bg-z-body-selected": checked(),
+    //                 // "border-transparent": checked(),
+    //               }}
+    //               role="checkbox"
+    //               aria-checked={checked()}
+    //               aria-label={mark.shape + " mark"}
+    //               onClick={() =>
+    //                 updateCurrentNote(`Toggle ${mark.shape} mark`, (note) => ({
+    //                   marks: Flags.toggle(note.marks, mark),
+    //                 }))
+    //               }
+    //             >
+    //               <Fa
+    //                 class="h-4 w-4 icon-current"
+    //                 icon={checked() ? mark.fill : mark.outline}
+    //                 title={false}
+    //               />
+    //             </button>
+    //           )
+    //         }}
+    //       </For>
+    //     </div>
+    //   )
+    // }
 
     function Sidebar() {
       return (
@@ -465,21 +465,29 @@ export const Study = createLoading(
           />
           <QuickAction icon={faForward} label="Auto Advance" shortcut="⇧A" />
           <QuickActionLine />
-          {/* <Show when={prefs.show_flags_in_sidebar}> */}
-          <FlagsSelector />
-          {/* </Show> */}
-          {/* <QuickAction
-          icon={faFlag}
-          label="Toggle Flags in Sidebar"
-          onClick={() => setPrefs("show_flags_in_sidebar", (x) => !x)}
-        /> */}
+          <Show when={prefs.show_flags_in_sidebar}>
+            <FlagsSelector />
+          </Show>
+          <QuickAction
+            icon={faFlag}
+            label={prefs.show_flags_in_sidebar ? "Hide Flags" : "Show Flags"}
+            onClick={() =>
+              setPrefs("Toggle flag visibility in sidebar")(
+                "show_flags_in_sidebar",
+                (x) => !x,
+              )
+            }
+          />
           <QuickAction
             icon={faPersonDigging}
             label="Bury Card"
             shortcut="-"
             onClick={async () => {
               await updateCurrentCard("Bury card", () => ({ queue: 1 }))
-              refetch()
+              batch(() => {
+                refetch()
+                setAnswerShown(false)
+              })
             }}
             disabled={!getData()?.data?.card}
           />
@@ -501,7 +509,10 @@ export const Study = createLoading(
             shortcut="@"
             onClick={async () => {
               await updateCurrentCard("Suspend card", () => ({ queue: 2 }))
-              refetch()
+              batch(() => {
+                refetch()
+                setAnswerShown(false)
+              })
             }}
             disabled={!getData()?.data?.card}
           />
@@ -513,7 +524,7 @@ export const Study = createLoading(
           />
           <QuickActionLine />
           {/* <Show when={prefs.show_marks_in_sidebar}> */}
-          <MarksSelector />
+          {/* <MarksSelector /> */}
           {/* </Show> */}
           {/* <QuickAction
           icon={faBookmark}
@@ -521,6 +532,17 @@ export const Study = createLoading(
           shortcut="M"
           onClick={() => setPrefs("show_marks_in_sidebar", (x) => !x)}
         /> */}
+          <QuickAction
+            icon={faMarker}
+            label={getData()?.data?.note.marks ? "Unmark Note" : "Mark Note"}
+            disabled={!getData()?.data?.card}
+            onClick={() =>
+              updateCurrentNote("Toggle whether note is marked", (note) => ({
+                marks: note.marks ? 0 : 1,
+              }))
+            }
+            shortcut="M"
+          />
           <QuickAction
             icon={faPersonDigging}
             label="Bury Note"
