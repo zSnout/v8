@@ -1,9 +1,9 @@
 import { notNull } from "@/components/pray"
-import { ID_ZERO } from "@/learn/lib/id"
+import { ID_ZERO, type Id } from "@/learn/lib/id"
 import { nameToRecord } from "@/learn/lib/record"
 import { DB } from ".."
 
-export async function load(db: DB) {
+export async function load(db: DB, _: unknown, state: { did?: Id; mid?: Id }) {
   const tx = db.read(["models", "decks", "prefs"])
 
   const prefs = notNull(
@@ -15,8 +15,8 @@ export async function load(db: DB) {
   const models = tx.objectStore("models")
 
   const [currentDeck, currentModel, allDecks, allModels] = await Promise.all([
-    decks.get(prefs.current_deck ?? ID_ZERO),
-    models.get(prefs.last_model_used ?? ID_ZERO),
+    decks.get(state.did ?? prefs.current_deck ?? ID_ZERO),
+    models.get(state.mid ?? prefs.last_model_used ?? ID_ZERO),
     decks.getAll(),
     models.getAll(),
   ])
@@ -30,10 +30,7 @@ export async function load(db: DB) {
       currentModel ?? allModels[0],
       "A collection must have at least one model.",
     ),
-    decks: allDecks,
-    models: allModels,
     decksByName: nameToRecord(allDecks),
     modelsByName: nameToRecord(allModels),
-    prefs,
   }
 }

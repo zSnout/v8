@@ -5,7 +5,6 @@ import { batch, createEffect, createSignal, For, untrack } from "solid-js"
 import { createStore } from "solid-js/store"
 import { createNote } from "../db/createNote/createNote"
 import { load } from "../db/createNote/load"
-import { setModelDB } from "../db/createNote/setModelDB"
 import { AutocompleteBox } from "../el/AutocompleteBox"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
@@ -24,8 +23,9 @@ export const CreateNote = createLoading(
   load,
   (
     db,
-    { deckCurrent, modelCurrent, prefs, decksByName, modelsByName },
+    { deckCurrent, modelCurrent, decksByName, modelsByName },
     pop,
+    state,
   ) => {
     const layers = useLayers()
     let fieldsEl!: HTMLDivElement
@@ -73,14 +73,13 @@ export const CreateNote = createLoading(
                   label="Model"
                   options={Object.keys(modelsByName).sort()}
                   onChange={(name) => {
-                    onExternalModelUpdate(
-                      setModel(
-                        notNull(
-                          modelsByName[name],
-                          "The selected model does not exist.",
-                        ),
-                      ),
+                    const model = notNull(
+                      modelsByName[name],
+                      "The selected model does not exist.",
                     )
+
+                    onExternalModelUpdate(setModel(model))
+                    state.mid = model.id
                   }}
                   value={model().name}
                 />
@@ -90,18 +89,8 @@ export const CreateNote = createLoading(
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
                 onClick={() => {
                   layers.push(EditModelFields, {
-                    model: model(),
-                    async save(model) {
-                      if (model != null) {
-                        onExternalModelUpdate(model)
-                        await setModelDB(
-                          db,
-                          model,
-                          Date.now(),
-                          `Update fields for model ${model.name}`,
-                        )
-                      }
-                    },
+                    db,
+                    mid: model().id,
                   })
                 }}
               >
@@ -112,21 +101,9 @@ export const CreateNote = createLoading(
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
                 onClick={() =>
                   layers.push(EditModelTemplates, {
-                    model: model(),
+                    db,
+                    mid: model().id,
                     fields: fieldRecord(model().fields, { ...fields }),
-                    editStyle: prefs.template_edit_style,
-                    async save(model, editStyle) {
-                      if (model != null) {
-                        onExternalModelUpdate(model)
-                        await setModelDB(
-                          db,
-                          model,
-                          Date.now(),
-                          `Update templates for model ${model.name}`,
-                          editStyle,
-                        )
-                      }
-                    },
                   })
                 }
               >
@@ -145,12 +122,12 @@ export const CreateNote = createLoading(
               label="Deck"
               options={Object.keys(decksByName).sort()}
               onChange={(name) => {
-                setDeck(
-                  notNull(
-                    decksByName[name],
-                    "The selected deck does not exist.",
-                  ),
+                const deck = notNull(
+                  decksByName[name],
+                  "The selected deck does not exist.",
                 )
+                setDeck(deck)
+                state.did = deck.id
               }}
               value={deck().name}
             />

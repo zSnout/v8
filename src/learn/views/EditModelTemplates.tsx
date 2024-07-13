@@ -1,22 +1,26 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
+import { prayTruthy } from "@/components/pray"
 import { error, ok, Result } from "@/components/result"
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createMemo, For, Show, untrack } from "solid-js"
 import { unwrap } from "solid-js/store"
+import type { DB } from "../db"
+import { setModelDB } from "../db/createNote/setModelDB"
+import { getEditModelTemplates } from "../db/getModelTemplates"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { createListEditor } from "../el/EditList"
 import { IntegratedField } from "../el/IntegratedField"
 import { createModelTemplate } from "../lib/defaults"
+import type { Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
 import * as Template from "../lib/template"
 import { Model, ModelTemplate, TemplateEditStyle } from "../lib/types"
 
 interface Props {
-  model: Model
+  db: DB
+  mid: Id
   fields: Template.FieldsRecord
-  editStyle: TemplateEditStyle
-  save(model: Model, editStyle: TemplateEditStyle): void
 }
 
 type Fields = Record<string, string>
@@ -36,18 +40,31 @@ export const EditModelTemplates = createListEditor<
   ModelTemplate
 >(
   async (props) => {
+    const { model, editStyle } = await getEditModelTemplates(
+      props.db,
+      props.mid,
+    )
+
+    prayTruthy(model, "The specified model does not exist.")
+
     return {
       async: 0 as const,
       item: {
-        editStyle: props.editStyle,
+        editStyle: editStyle,
         fields: props.fields,
-        model: props.model,
+        model: model,
         html: {},
       },
-      title: props.model.name,
+      title: model.name,
       subtitle: "editing templates",
-      save({ model, editStyle }) {
-        props.save(model, editStyle)
+      async save({ model, editStyle }) {
+        await setModelDB(
+          props.db,
+          model,
+          Date.now(),
+          `Update templates for model ${model.name}`,
+          editStyle,
+        )
       },
     }
   },

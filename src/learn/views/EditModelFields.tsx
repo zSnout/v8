@@ -1,28 +1,42 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
+import { notNull } from "@/components/pray"
+import { DB } from "../db"
+import { setModelDB } from "../db/createNote/setModelDB"
+import { getModel } from "../db/getModel"
 import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { createListEditor } from "../el/EditList"
 import { IntegratedField } from "../el/IntegratedField"
 import { createField } from "../lib/defaults"
-import { idOf } from "../lib/id"
+import { idOf, type Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
 import { Model, ModelField } from "../lib/types"
 
 export const EditModelFields = createListEditor<
-  { model: Model; save(model: Model): void },
+  { db: DB; mid: Id },
   0,
   Model,
   Omit<Model, "fields">,
   ModelField
 >(
   async (props) => {
+    const model = notNull(
+      await getModel(props.db, props.mid),
+      "The specified model does not exist.",
+    )
+
     return {
       async: 0 as const,
-      item: props.model,
-      title: props.model.name,
+      item: model,
+      title: model.name,
       subtitle: "editing fields",
-      save(item) {
-        props.save(item)
+      async save(item) {
+        await setModelDB(
+          props.db,
+          item,
+          Date.now(),
+          `Update fields for model ${item.name}`,
+        )
       },
     }
   },

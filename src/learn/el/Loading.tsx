@@ -53,16 +53,27 @@ function Loading(props: { message: string; pop: (() => void) | undefined }) {
   )
 }
 
-export function createLoading<T, U extends {}>(
-  load: (props: T, setMessage: Setter<string>) => Promise<U>,
-  render: (props: T, data: U, pop: () => void) => LoadingLayerOutput,
+export function createLoading<T, U extends {}, S>(
+  load: (props: T, setMessage: Setter<string>, state: Partial<S>) => Promise<U>,
+  render: (
+    props: T,
+    data: U,
+    pop: () => void,
+    state: Partial<S>,
+  ) => LoadingLayerOutput,
   initialMessage = "Loading...",
-  reload?: (props: T, lastData: U, setMessage: Setter<string>) => Promise<U>,
+  reload?: (
+    props: T,
+    lastData: U,
+    setMessage: Setter<string>,
+    state: Partial<S>,
+  ) => Promise<U>,
 ): Layerable<T> {
   return (props, pop) => {
+    const state: Partial<S> = Object.create(null)
     const [message, setMessage] = createSignal(initialMessage)
     const [data, { refetch, mutate }] = createResource(() =>
-      load(props, setMessage),
+      load(props, setMessage, state),
     )
     let onForcePop: ForcePopHandler | undefined
 
@@ -75,7 +86,7 @@ export function createLoading<T, U extends {}>(
         >
           {(data) => {
             let el
-            ;({ el, onForcePop } = render(props, data, pop))
+            ;({ el, onForcePop } = render(props, data, pop, state))
             return el
           }}
         </Show>
@@ -93,7 +104,7 @@ export function createLoading<T, U extends {}>(
         mutate()
         setMessage(initialMessage)
         if (d != null && reload) {
-          const next = await reload?.(props, d, setMessage)
+          const next = await reload(props, d, setMessage, state)
           mutate(() => next)
         } else {
           refetch()
