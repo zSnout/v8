@@ -151,7 +151,7 @@ export async function setModelDB(
     if (add.length) {
       const fields = Template.fieldRecord(model.fields, note.fields)
       const deckId = mostPopularId(cs.map((x) => x.odid ?? x.did))
-      if (deckId) {
+      if (deckId != null) {
         for (const tmpl of add) {
           const base = createEmptyCard(now)
           const template = unwrapOr(Template.parse(tmpl.qfmt), [])
