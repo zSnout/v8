@@ -24,7 +24,7 @@ import type {
   Review,
 } from "../lib/types"
 import type { Cloneable } from "../message"
-import { createBasicAndReversedModel, createBasicModel } from "../models/v3"
+import { createBasicAndReversedModel, createBasicModel } from "../lib/models"
 import type { Reason } from "./reason"
 
 export interface DBSchema {
@@ -115,7 +115,7 @@ function readwrite(
   return this.transaction(storeNames as any, "readwrite", options)
 }
 
-export interface DB extends Pick<IDBPDatabase<DBTypes>, "get"> {
+export interface DB {
   read<Name extends StoreNames<DBTypes>>(
     storeNames: Name,
     options?: IDBTransactionOptions,

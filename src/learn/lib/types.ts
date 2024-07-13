@@ -217,6 +217,11 @@ export const ModelTemplate = v.object({
 export interface ModelTemplates extends v.InferOutput<typeof ModelTemplates> {}
 export const ModelTemplates = v.record(IdKey, ModelTemplate)
 
+/** 0=standard, 1=cloze */
+export type ModelType = v.InferOutput<typeof ModelType>
+/** 0=standard, 1=cloze */
+export const ModelType = v.picklist([0, 1])
+
 export interface Model extends v.InferOutput<typeof Model> {}
 export const Model = v.object({
   /** Model id */
@@ -247,7 +252,7 @@ export const Model = v.object({
   tags: v.array(v.string()),
 
   /** 0=standard model, 1=cloze model */
-  type: v.picklist([0, 1]),
+  type: ModelType,
 
   /** Last time this model was edited */
   last_edited: v.number(),

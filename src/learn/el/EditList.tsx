@@ -22,7 +22,7 @@ import { createStore, SetStoreFunction, Store, unwrap } from "solid-js/store"
 import { Cloneable } from "../message"
 import { Action, TwoBottomButtons } from "./BottomButtons"
 import { Layerable } from "./Layers"
-import { createLoading as c } from "./Loading"
+import { createLoading } from "./Loading"
 import { SortableFieldList } from "./Sortable"
 
 export function createListEditor<
@@ -62,6 +62,7 @@ export function createListEditor<
     rename: string
     needAtLeastOne: string
     newFieldName: string
+    initialMessage?: string
   },
   Options: (props: {
     get: Store<Data>
@@ -72,235 +73,249 @@ export function createListEditor<
     async: AsyncProps
   }) => JSX.Element,
 ): Layerable<Props> {
-  return c(load, (props, { async, item, title, subtitle, save }, pop) => {
-    const [initialData, initialEntries] = split({
-      props,
-      async,
-      item: item,
-    })
-    const owner = getOwner()
-    const [data, rawSetData] = createStore(initialData)
-    console.log(initialData)
-    const [entries, setEntries] = createSignal(initialEntries)
-    const [selectedId, setSelectedId] = createSignal(
-      notNull(entries()[0]?.id, labels.needAtLeastOne as never),
-    )
-    const selectedIndex = createMemo(() => {
-      const e = entries()
-      const sid = selectedId()
-      return notNull(
-        e.findIndex((x) => x.id == sid),
-        "Selected id must exist.",
+  return createLoading(
+    load,
+    (props, { async, item, title, subtitle, save }, pop) => {
+      const [initialData, initialEntries] = split({
+        props,
+        async,
+        item: item,
+      })
+      const owner = getOwner()
+      const [data, rawSetData] = createStore(initialData)
+      console.log(initialData)
+      const [entries, setEntries] = createSignal(initialEntries)
+      const [selectedId, setSelectedId] = createSignal(
+        notNull(entries()[0]?.id, labels.needAtLeastOne as never),
       )
-    })
-    const selected = createMemo(() =>
-      notNull(
-        entries()[selectedIndex()],
-        "`selectedIndex` should return a valid index.",
-      ),
-    )
-    let changed = false // TODO: use this
-    const setData = function (this: any) {
-      ;(rawSetData as any).apply(this, arguments)
-      changed = true
-    } as SetStoreFunction<Data>
-    const setSelected = ((data: Entry | ((x: Entry) => Entry)) => {
-      const d = typeof data == "function" ? data(untrack(selected)) : data
-      setEntries((entries) => entries.with(selectedIndex(), d))
-      return d
-    }) as Setter<Entry>
+      const selectedIndex = createMemo(() => {
+        const e = entries()
+        const sid = selectedId()
+        return notNull(
+          e.findIndex((x) => x.id == sid),
+          "Selected id must exist.",
+        )
+      })
+      const selected = createMemo(() =>
+        notNull(
+          entries()[selectedIndex()],
+          "`selectedIndex` should return a valid index.",
+        ),
+      )
+      let changed = false // TODO: use this
+      const setData = function (this: any) {
+        ;(rawSetData as any).apply(this, arguments)
+        changed = true
+      } as SetStoreFunction<Data>
+      const setSelected = ((data: Entry | ((x: Entry) => Entry)) => {
+        const d = typeof data == "function" ? data(untrack(selected)) : data
+        setEntries((entries) => entries.with(selectedIndex(), d))
+        return d
+      }) as Setter<Entry>
 
-    return {
-      el: (
-        <div class="flex min-h-full w-full flex-col gap-8">
-          <div class="w-full rounded-lg bg-z-body-selected px-2 py-1 text-center">
-            {title} <span class="text-z-subtitle">— {subtitle}</span>
+      return {
+        el: (
+          <div class="flex min-h-full w-full flex-col gap-8">
+            <div class="w-full rounded-lg bg-z-body-selected px-2 py-1 text-center">
+              {title} <span class="text-z-subtitle">— {subtitle}</span>
+            </div>
+
+            <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
+              <SortableFieldList
+                get={entries()}
+                set={setEntries}
+                selectedId={selectedId()}
+                setSelectedId={setSelectedId}
+                sortId={sortId?.(data)}
+              />
+
+              {SideActions()}
+            </div>
+
+            <Options
+              async={async}
+              props={props}
+              get={data}
+              set={setData}
+              selected={selected()}
+              setSelected={setSelected}
+            />
+            <SaveChanges />
           </div>
+        ),
+        onForcePop,
+      }
 
-          <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
-            <SortableFieldList
-              get={entries()}
-              set={setEntries}
-              selectedId={selectedId()}
-              setSelectedId={setSelectedId}
-              sortId={sortId?.(data)}
+      async function onForcePop(): Promise<boolean> {
+        // TODO: this should do something
+        return true
+      }
+
+      async function confirmOneWaySync() {
+        return await confirm({
+          owner,
+          title: "Are you sure you want to do this?",
+          get description() {
+            return (
+              <ModalDescription>
+                This action will require a full upload of the database when you
+                next synchronize your collection. If you have reviews or other
+                changes waiting on another device that haven't been synchronized
+                here yet, <u class="font-semibold text-z">they will be lost</u>.
+                Continue?
+              </ModalDescription>
+            )
+          },
+          cancelText: "No, cancel",
+          okText: "Yes, continue",
+        })
+      }
+
+      async function pickName(title: string, cancelName?: string | undefined) {
+        let first = true
+
+        while (true) {
+          const name = (
+            await prompt({
+              owner,
+              title,
+              description: first ? undefined : (
+                <ModalDescription>
+                  That name is already used. Please pick a different name, or
+                  cancel the action.
+                </ModalDescription>
+              ),
+            })
+          )?.trim()
+
+          if (name == null || name == cancelName) {
+            return
+          }
+
+          if (!entries().some((x) => x.name.trim() == name)) {
+            return name
+          }
+
+          first = false
+        }
+      }
+
+      function SaveChanges() {
+        return (
+          <TwoBottomButtons>
+            <Action
+              icon={faCancel}
+              label="Cancel"
+              center
+              onClick={() => pop()}
+            />
+            <Action
+              icon={faCheck}
+              label="Save changes"
+              center
+              onClick={() => {
+                // TODO: saving is a possibly async operation
+                save(
+                  join({
+                    props,
+                    async,
+                    data: structuredClone(unwrap(data)),
+                    items: entries(),
+                  }),
+                )
+
+                pop()
+              }}
+            />
+          </TwoBottomButtons>
+        )
+      }
+
+      function SideActions() {
+        return (
+          <div class="flex flex-col gap-1">
+            <Action
+              icon={labels.addIcon ?? faPlus}
+              label={labels.add}
+              onClick={async () => {
+                if (!(await confirmOneWaySync())) {
+                  return
+                }
+
+                const name = await pickName(labels.newFieldName)
+
+                if (!name) {
+                  return
+                }
+
+                const next = create(name, untrack(selected))
+
+                batch(() => {
+                  setEntries((fields) => fields.concat(next))
+                  setSelectedId(next.id)
+                })
+              }}
             />
 
-            {SideActions()}
-          </div>
+            <Action
+              icon={faTrash}
+              label={labels.delete}
+              onClick={async () => {
+                if (entries().length <= 1) {
+                  await alert({
+                    owner,
+                    title: "Unable to delete",
+                    description: (
+                      <ModalDescription>
+                        {labels.needAtLeastOne}
+                      </ModalDescription>
+                    ),
+                  })
+                  return
+                }
 
-          <Options
-            async={async}
-            props={props}
-            get={data}
-            set={setData}
-            selected={selected()}
-            setSelected={setSelected}
-          />
-          <SaveChanges />
-        </div>
-      ),
-      onForcePop,
-    }
+                if (!(await confirmOneWaySync())) {
+                  return
+                }
 
-    async function onForcePop(): Promise<boolean> {
-      // TODO: this should do something
-      return true
-    }
+                batch(() => {
+                  const sid = selectedId()
 
-    async function confirmOneWaySync() {
-      return await confirm({
-        owner,
-        title: "Are you sure you want to do this?",
-        get description() {
-          return (
-            <ModalDescription>
-              This action will require a full upload of the database when you
-              next synchronize your collection. If you have reviews or other
-              changes waiting on another device that haven't been synchronized
-              here yet, <u class="font-semibold text-z">they will be lost</u>.
-              Continue?
-            </ModalDescription>
-          )
-        },
-        cancelText: "No, cancel",
-        okText: "Yes, continue",
-      })
-    }
+                  const fields = setEntries((x) => {
+                    const idx = x.findIndex((x) => x.id == sid)
+                    if (idx == -1) return x
+                    if (x.length <= 1) throw new Error(labels.needAtLeastOne)
+                    x.splice(idx, 1)
+                    return [...x]
+                  })
 
-    async function pickName(title: string, cancelName?: string | undefined) {
-      let first = true
-
-      while (true) {
-        const name = (
-          await prompt({
-            owner,
-            title,
-            description: first ? undefined : (
-              <ModalDescription>
-                That name is already used. Please pick a different name, or
-                cancel the action.
-              </ModalDescription>
-            ),
-          })
-        )?.trim()
-
-        if (name == null || name == cancelName) {
-          return
-        }
-
-        if (!entries().some((x) => x.name.trim() == name)) {
-          return name
-        }
-
-        first = false
-      }
-    }
-
-    function SaveChanges() {
-      return (
-        <TwoBottomButtons>
-          <Action icon={faCancel} label="Cancel" center onClick={() => pop()} />
-          <Action
-            icon={faCheck}
-            label="Save changes"
-            center
-            onClick={() => {
-              // TODO: saving is a possibly async operation
-              save(
-                join({
-                  props,
-                  async,
-                  data: structuredClone(unwrap(data)),
-                  items: entries(),
-                }),
-              )
-
-              pop()
-            }}
-          />
-        </TwoBottomButtons>
-      )
-    }
-
-    function SideActions() {
-      return (
-        <div class="flex flex-col gap-1">
-          <Action
-            icon={labels.addIcon ?? faPlus}
-            label={labels.add}
-            onClick={async () => {
-              if (!(await confirmOneWaySync())) {
-                return
-              }
-
-              const name = await pickName(labels.newFieldName)
-
-              if (!name) {
-                return
-              }
-
-              const next = create(name, untrack(selected))
-
-              batch(() => {
-                setEntries((fields) => fields.concat(next))
-                setSelectedId(next.id)
-              })
-            }}
-          />
-
-          <Action
-            icon={faTrash}
-            label={labels.delete}
-            onClick={async () => {
-              if (entries().length <= 1) {
-                await alert({
-                  owner,
-                  title: "Unable to delete",
-                  description: (
-                    <ModalDescription>{labels.needAtLeastOne}</ModalDescription>
-                  ),
+                  setSelectedId(
+                    notNull(fields[0]?.id, labels.needAtLeastOne as never),
+                  )
                 })
-                return
-              }
+              }}
+            />
 
-              if (!(await confirmOneWaySync())) {
-                return
-              }
-
-              batch(() => {
-                const sid = selectedId()
-
-                const fields = setEntries((x) => {
-                  const idx = x.findIndex((x) => x.id == sid)
-                  if (idx == -1) return x
-                  if (x.length <= 1) throw new Error(labels.needAtLeastOne)
-                  x.splice(idx, 1)
-                  return [...x]
-                })
-
-                setSelectedId(
-                  notNull(fields[0]?.id, labels.needAtLeastOne as never),
+            <Action
+              icon={faPencil}
+              label={labels.rename}
+              onClick={async () => {
+                const name = await pickName(
+                  labels.newFieldName,
+                  selected().name,
                 )
-              })
-            }}
-          />
 
-          <Action
-            icon={faPencil}
-            label={labels.rename}
-            onClick={async () => {
-              const name = await pickName(labels.newFieldName, selected().name)
+                if (!name) {
+                  return
+                }
 
-              if (!name) {
-                return
-              }
-
-              setSelected((field) => ({ ...field, name: name }))
-            }}
-          />
-        </div>
-      )
-    }
-  })
+                setSelected((field) => ({ ...field, name: name }))
+              }}
+            />
+          </div>
+        )
+      }
+    },
+    labels.initialMessage,
+  )
 }

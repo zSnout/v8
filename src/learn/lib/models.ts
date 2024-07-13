@@ -1,6 +1,37 @@
-import { createField, createModel, createModelTemplate } from "../lib/defaults"
-import { idOf } from "../lib/id"
-import { Model } from "../lib/types"
+import { createField, createModelTemplate } from "./defaults"
+import { Id, idOf, randomId } from "./id"
+import { arrayToRecord } from "./record"
+import { Model, ModelField, ModelTemplate } from "./types"
+
+function createModel(
+  id: Id,
+  name: string,
+  tmpls: ModelTemplate[],
+  css: string,
+  fields: ModelField[],
+  now: number,
+): Model {
+  return {
+    id,
+    css,
+    fields: arrayToRecord(fields),
+    tmpls: arrayToRecord(tmpls),
+    name,
+    tags: [],
+    type: 0,
+    sort_field: fields[0]?.id,
+    last_edited: now,
+  }
+}
+
+export function cloneModel(name: string, model: Model): Model {
+  return {
+    ...structuredClone(model),
+    id: randomId(),
+    name,
+    last_edited: Date.now(),
+  }
+}
 
 export function createBasicModel(now: number): Model {
   return createModel(

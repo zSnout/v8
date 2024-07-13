@@ -16,12 +16,14 @@ export function createPrefsStore(
   let resolve: () => void
   const ready = new Promise<void>((r) => (resolve = r))
 
-  db.get("prefs", ID_ZERO).then((prefs) => {
-    if (prefs) {
-      set(prefs)
-    }
-    resolve()
-  })
+  db.read("prefs")
+    .store.get(ID_ZERO)
+    .then((prefs) => {
+      if (prefs) {
+        set(prefs)
+      }
+      resolve()
+    })
 
   return [
     get,

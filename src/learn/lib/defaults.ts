@@ -1,10 +1,8 @@
 import { Id, ID_ZERO, randomId } from "./id"
-import { arrayToRecord } from "./record"
 import type {
   Conf,
   Core,
   Deck,
-  Model,
   ModelField,
   ModelTemplate,
   Prefs,
@@ -119,25 +117,4 @@ export function createModelTemplate(
 ): ModelTemplate {
   const id = randomId()
   return { id, qfmt, afmt, name }
-}
-
-export function createModel(
-  id: Id,
-  name: string,
-  tmpls: ModelTemplate[],
-  css: string,
-  fields: ModelField[],
-  now: number,
-): Model {
-  return {
-    id,
-    css,
-    fields: arrayToRecord(fields),
-    tmpls: arrayToRecord(tmpls),
-    name,
-    tags: [],
-    type: 0,
-    sort_field: fields[0]?.id,
-    last_edited: now,
-  }
 }
