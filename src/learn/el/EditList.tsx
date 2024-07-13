@@ -16,6 +16,7 @@ import {
   getOwner,
   JSX,
   Setter,
+  Show,
   untrack,
 } from "solid-js"
 import { createStore, SetStoreFunction, Store, unwrap } from "solid-js/store"
@@ -23,7 +24,7 @@ import { Cloneable } from "../message"
 import { Action, TwoBottomButtons } from "./BottomButtons"
 import { Layerable } from "./Layers"
 import { createLoading } from "./Loading"
-import { SortableFieldList } from "./Sortable"
+import { PlainFieldList, SortableFieldList } from "./Sortable"
 
 export function createListEditor<
   Props,
@@ -55,7 +56,7 @@ export function createListEditor<
   }) => Item,
   sortId: ((data: Data) => Id | undefined) | undefined,
   create: (name: string, selected: Entry) => Entry,
-  labels: {
+  internalProps: {
     add: string
     addIcon?: IconDefinition
     delete: string
@@ -63,6 +64,8 @@ export function createListEditor<
     needAtLeastOne: string
     newFieldName: string
     initialMessage?: string
+    full?: boolean
+    noSort?: boolean
   },
   Options: (props: {
     get: Store<Data>
@@ -83,10 +86,9 @@ export function createListEditor<
       })
       const owner = getOwner()
       const [data, rawSetData] = createStore(initialData)
-      console.log(initialData)
       const [entries, setEntries] = createSignal(initialEntries)
       const [selectedId, setSelectedId] = createSignal(
-        notNull(entries()[0]?.id, labels.needAtLeastOne as never),
+        notNull(entries()[0]?.id, internalProps.needAtLeastOne as never),
       )
       const selectedIndex = createMemo(() => {
         const e = entries()
@@ -120,16 +122,34 @@ export function createListEditor<
               {title} <span class="text-z-subtitle">— {subtitle}</span>
             </div>
 
-            <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
-              <SortableFieldList
-                get={entries()}
-                set={setEntries}
-                selectedId={selectedId()}
-                setSelectedId={setSelectedId}
-                sortId={sortId?.(data)}
-              />
+            <div
+              class="grid w-full gap-6 sm:grid-cols-[auto,16rem]"
+              classList={{ "flex-1": internalProps.full }}
+            >
+              <Show
+                when={internalProps.noSort}
+                fallback={
+                  <SortableFieldList
+                    get={entries()}
+                    set={setEntries}
+                    selectedId={selectedId()}
+                    setSelectedId={setSelectedId}
+                    sortId={sortId?.(data)}
+                    fullHeight={!!internalProps.full}
+                  />
+                }
+              >
+                <PlainFieldList
+                  get={entries()}
+                  set={setEntries}
+                  selectedId={selectedId()}
+                  setSelectedId={setSelectedId}
+                  sortId={sortId?.(data)}
+                  fullHeight={!!internalProps.full}
+                />
+              </Show>
 
-              {SideActions()}
+              <SideActions />
             </div>
 
             <Options
@@ -140,6 +160,7 @@ export function createListEditor<
               selected={selected()}
               setSelected={setSelected}
             />
+
             <SaveChanges />
           </div>
         ),
@@ -235,14 +256,14 @@ export function createListEditor<
         return (
           <div class="flex flex-col gap-1">
             <Action
-              icon={labels.addIcon ?? faPlus}
-              label={labels.add}
+              icon={internalProps.addIcon ?? faPlus}
+              label={internalProps.add}
               onClick={async () => {
                 if (!(await confirmOneWaySync())) {
                   return
                 }
 
-                const name = await pickName(labels.newFieldName)
+                const name = await pickName(internalProps.newFieldName)
 
                 if (!name) {
                   return
@@ -259,7 +280,7 @@ export function createListEditor<
 
             <Action
               icon={faTrash}
-              label={labels.delete}
+              label={internalProps.delete}
               onClick={async () => {
                 if (entries().length <= 1) {
                   await alert({
@@ -267,7 +288,7 @@ export function createListEditor<
                     title: "Unable to delete",
                     description: (
                       <ModalDescription>
-                        {labels.needAtLeastOne}
+                        {internalProps.needAtLeastOne}
                       </ModalDescription>
                     ),
                   })
@@ -284,13 +305,17 @@ export function createListEditor<
                   const fields = setEntries((x) => {
                     const idx = x.findIndex((x) => x.id == sid)
                     if (idx == -1) return x
-                    if (x.length <= 1) throw new Error(labels.needAtLeastOne)
+                    if (x.length <= 1)
+                      throw new Error(internalProps.needAtLeastOne)
                     x.splice(idx, 1)
                     return [...x]
                   })
 
                   setSelectedId(
-                    notNull(fields[0]?.id, labels.needAtLeastOne as never),
+                    notNull(
+                      fields[0]?.id,
+                      internalProps.needAtLeastOne as never,
+                    ),
                   )
                 })
               }}
@@ -298,10 +323,10 @@ export function createListEditor<
 
             <Action
               icon={faPencil}
-              label={labels.rename}
+              label={internalProps.rename}
               onClick={async () => {
                 const name = await pickName(
-                  labels.newFieldName,
+                  internalProps.newFieldName,
                   selected().name,
                 )
 
@@ -316,6 +341,6 @@ export function createListEditor<
         )
       }
     },
-    labels.initialMessage,
+    internalProps.initialMessage,
   )
 }

@@ -12,6 +12,7 @@ import {
   createPrefs,
 } from "../lib/defaults"
 import { Id, ID_ZERO } from "../lib/id"
+import { createBuiltinV3 } from "../lib/models"
 import type {
   AnyCard,
   Conf,
@@ -24,7 +25,6 @@ import type {
   Review,
 } from "../lib/types"
 import type { Cloneable } from "../message"
-import { createBasicAndReversedModel, createBasicModel } from "../lib/models"
 import type { Reason } from "./reason"
 
 export interface DBSchema {
@@ -89,8 +89,9 @@ export async function open(name: string, now: number): Promise<DB> {
         core.put(createCore(now), ID_ZERO)
         confs.put(createConf(now))
         prefs.put(createPrefs(now), ID_ZERO)
-        models.add(createBasicModel(now))
-        models.add(createBasicAndReversedModel(now))
+        for (const model of createBuiltinV3(Date.now())) {
+          models.add(model)
+        }
       }
     },
   })

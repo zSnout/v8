@@ -29,7 +29,6 @@ export class Layers {
     const layers = new Layers(getOwner())
 
     function Inner() {
-      console.warn("rendering root layer")
       const { el, onReturn } = root(props)
       layers.onRootReturn = onReturn
       return el

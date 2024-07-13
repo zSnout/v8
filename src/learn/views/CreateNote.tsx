@@ -16,6 +16,7 @@ import { fieldRecord } from "../lib/template"
 import { Model } from "../lib/types"
 import { EditModelFields } from "./EditModelFields"
 import { EditModelTemplates } from "./EditModelTemplates"
+import { ManageModels } from "./ManageModels"
 
 // FEAT: fields can be collapsed
 
@@ -134,29 +135,7 @@ export const CreateNote = createLoading(
 
               <button
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
-                // TODO: add manage models onClick={() =>
-                //   layers.push(
-                //     EditModelTemplates,
-                //     {
-                //       model: model(),
-                //       fieldsInitial: fieldRecord(model().fields, { ...fields }),
-                //       editStyle: prefs.template_edit_style,
-                //       async save(model, editStyle) {
-                //         if (model != null) {
-                //           onExternalModelUpdate(model)
-                //           await setModelDB(
-                //             db,
-                //             model,
-                //             Date.now(),
-                //             `Update templates for model ${model.name}`,
-                //             editStyle,
-                //           )
-                //         }
-                //       },
-                //     },
-                //     () => {},
-                //   )
-                // }
+                onClick={() => layers.push(ManageModels, db)}
               >
                 Manage...
               </button>

@@ -33,7 +33,7 @@ export function cloneModel(name: string, model: Model): Model {
   }
 }
 
-export function createBasicModel(now: number): Model {
+function createBasicModel(now: number): Model {
   return createModel(
     idOf(3166958980394845),
     "Basic",
@@ -64,7 +64,7 @@ hr {
   )
 }
 
-export function createBasicAndReversedModel(now: number): Model {
+function createBasicAndReversedModel(now: number): Model {
   return createModel(
     idOf(3323968114672263),
     "Basic and reversed",
@@ -102,4 +102,12 @@ hr {
     [createField("Front"), createField("Back")],
     now,
   )
+}
+
+export function createBuiltinV3(now: number) {
+  return [createBasicModel(now), createBasicAndReversedModel(now)]
+}
+
+export function createBuiltin(now: number) {
+  return createBuiltinV3(now)
 }
