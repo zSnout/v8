@@ -118,7 +118,7 @@ export const CreateNote = createLoading(
                     /*TODO:*/ EditModelTemplates,
                     {
                       model: model(),
-                      fieldsInitial: fieldRecord(model().fields, { ...fields }),
+                      fields: fieldRecord(model().fields, { ...fields }),
                       editStyle: prefs.template_edit_style,
                       async save(model, editStyle) {
                         if (model != null) {

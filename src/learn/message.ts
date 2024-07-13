@@ -1,15 +1,15 @@
-export type Sendable =
-  | Array<Sendable>
+export type Cloneable =
+  | Array<Cloneable>
   | ArrayBuffer
   | boolean
   | DataView
   | Date
   | Error
-  | Map<Sendable, Sendable>
+  | Map<Cloneable, Cloneable>
   | number
-  | { [x: string]: Sendable }
+  | { [x: string]: Cloneable }
   | RegExp
-  | Set<Sendable>
+  | Set<Cloneable>
   | string
   | Int8Array
   | Uint8Array
@@ -41,6 +41,8 @@ export type Sendable =
   | ImageData
   | RTCCertificate
   | VideoFrame
+  | null
+  | undefined
 
 export type Transferable =
   | ArrayBuffer

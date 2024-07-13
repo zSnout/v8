@@ -23,14 +23,14 @@ import type {
   Prefs,
   Review,
 } from "../lib/types"
-import type { Sendable } from "../message"
+import type { Cloneable } from "../message"
 import { createBasicAndReversedModel, createBasicModel } from "../models/v3"
 import type { Reason } from "./reason"
 
 export interface DBSchema {
   [s: string]: {
     key: IDBValidKey
-    value: Sendable
+    value: Cloneable
     indexes?: { [s: string]: IDBValidKey }
   }
 }
