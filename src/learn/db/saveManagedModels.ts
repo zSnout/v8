@@ -66,3 +66,18 @@ export async function saveManagedModels(
 
   await tx.done
 }
+
+export async function getCounts(db: DB, mid: Id) {
+  const tx = db.read(["cards", "notes"])
+  const notes = tx.objectStore("notes")
+  const cards = tx.objectStore("cards")
+  const nids = await notes.index("mid").getAllKeys(mid)
+  const cids = (
+    await Promise.all(nids.map((nid) => cards.index("nid").getAllKeys(nid)))
+  ).flat()
+  return { nids, cids }
+}
+
+export async function getModels(db: DB) {
+  return await db.read("models").store.getAll()
+}

@@ -3,6 +3,8 @@ import { createEffect, createResource } from "solid-js"
 import { DB } from "../db"
 import {
   AddedModel,
+  getCounts,
+  getModels,
   RemovedModel,
   saveManagedModels,
 } from "../db/saveManagedModels"
@@ -19,7 +21,7 @@ export type Item =
 // TODO: this ought to do things
 export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
   async (db) => {
-    const models = await db.read("models").store.getAll()
+    const models = await getModels(db)
     const initial = models.map<RemovedModel>((x) => [x.id, x.name])
     return {
       async: 0,
@@ -75,18 +77,7 @@ export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
   (props) => {
     const [data, { mutate }] = createResource(
       () => props.selected.id,
-      async (mid) => {
-        const tx = props.props.read(["cards", "notes"])
-        const notes = tx.objectStore("notes")
-        const cards = tx.objectStore("cards")
-        const nids = await notes.index("mid").getAllKeys(mid)
-        const cids = (
-          await Promise.all(
-            nids.map((nid) => cards.index("nid").getAllKeys(nid)),
-          )
-        ).flat()
-        return { nids, cids }
-      },
+      (mid) => getCounts(props.props, mid),
     )
 
     createEffect(() => {
