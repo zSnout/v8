@@ -4,10 +4,15 @@ import { For } from "solid-js"
 import { load } from "../db/browse/load"
 import { createLoading } from "../el/Loading"
 import { BrowserColumn } from "../lib/types"
+import { ShortcutManager } from "../lib/shortcuts"
+
+// TODO: add escape key to all pages
 
 export const Browse = createLoading(
   load,
-  (db, { columns, prefs, setPrefs }, pop) => {
+  (_, { columns, prefs, setPrefs }, pop) => {
+    new ShortcutManager().scoped({ key: "Escape" }, pop)
+
     return {
       el: (
         <Unmain class="flex min-h-full">
