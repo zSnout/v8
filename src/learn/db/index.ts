@@ -25,6 +25,7 @@ import type {
   Review,
 } from "../lib/types"
 import type { Cloneable } from "../message"
+import "./lastEditedHooks"
 import type { Reason } from "./reason"
 
 export interface DBSchema {
@@ -35,7 +36,7 @@ export interface DBSchema {
   }
 }
 
-export interface DBTypes extends DBSchema {
+export interface Ty extends DBSchema {
   cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
   graves: { key: number; value: Grave; indexes: {} }
   notes: { key: Id; value: Note; indexes: { mid: Id } }
@@ -48,7 +49,7 @@ export interface DBTypes extends DBSchema {
 }
 
 export async function open(name: string, now: number): Promise<DB> {
-  const db = await openDB<DBTypes>(name, 4, {
+  const db = await openDB<Ty>(name, 4, {
     async upgrade(db, oldVersion, _newVersion, tx) {
       // deletes version 2 databases
       if (oldVersion == 2) {
@@ -111,48 +112,48 @@ export async function open(name: string, now: number): Promise<DB> {
     },
   })
 
-  return Object.assign(db, { read, readwrite })
+  return new DB(db)
 }
 
-function read(
-  this: IDBPDatabase<DBTypes>,
-  storeNames: string | string[],
-  options?: IDBTransactionOptions,
-): any {
-  return this.transaction(storeNames as any, "readonly", options)
-}
+export class DB {
+  constructor(private db: IDBPDatabase<Ty>) {}
 
-function readwrite(
-  this: IDBPDatabase<DBTypes>,
-  storeNames: string | string[],
-  _reason: Reason,
-  options?: IDBTransactionOptions,
-): any {
-  return this.transaction(storeNames as any, "readwrite", options)
-}
-
-export interface DB {
-  read<Name extends StoreNames<DBTypes>>(
+  read<Name extends StoreNames<Ty>>(
     storeNames: Name,
     options?: IDBTransactionOptions,
-  ): IDBPTransaction<DBTypes, [Name], "readonly">
+  ): IDBPTransaction<Ty, [Name], "readonly">
 
-  read<Names extends ArrayLike<StoreNames<DBTypes>>>(
+  read<Names extends ArrayLike<StoreNames<Ty>>>(
     storeNames: Names,
     options?: IDBTransactionOptions,
-  ): IDBPTransaction<DBTypes, Names, "readonly">
+  ): IDBPTransaction<Ty, Names, "readonly">
 
-  readwrite<Name extends StoreNames<DBTypes>>(
+  read<Names extends StoreNames<Ty> | ArrayLike<StoreNames<Ty>>>(
+    storeNames: Names,
+    options?: IDBTransactionOptions,
+  ): any {
+    return this.db.transaction(storeNames as any, "readonly", options)
+  }
+
+  readwrite<Name extends StoreNames<Ty>>(
     storeNames: Name,
     reason: Reason,
     options?: IDBTransactionOptions,
-  ): IDBPTransaction<DBTypes, [Name], "readwrite">
+  ): IDBPTransaction<Ty, [Name], "readwrite">
 
-  readwrite<Names extends ArrayLike<StoreNames<DBTypes>>>(
+  readwrite<Names extends ArrayLike<StoreNames<Ty>>>(
     storeNames: Names,
     reason: Reason,
     options?: IDBTransactionOptions,
-  ): IDBPTransaction<DBTypes, Names, "readwrite">
+  ): IDBPTransaction<Ty, Names, "readwrite">
+
+  readwrite(
+    storeNames: string | string[],
+    _reason: Reason,
+    options?: IDBTransactionOptions,
+  ) {
+    return this.db.transaction(storeNames as any, "readwrite", options)
+  }
 }
 
 // a lot of really stupid typescript stuff because typescript sucks
@@ -163,7 +164,7 @@ export type TxWithExtends = Omit<
 >
 
 export interface TxWith<
-  T extends StoreNames<DBTypes>,
+  T extends StoreNames<Ty>,
   Mode extends IDBTransactionMode = "readonly",
 > extends TxWithExtends {
   /**
@@ -179,7 +180,7 @@ export interface TxWith<
    */
   objectStore<StoreName extends T>(
     name: StoreName,
-  ): ObjectStoreWith<DBTypes, T[], StoreName, Mode>
+  ): ObjectStoreWith<Ty, T[], StoreName, Mode>
 }
 
 export type ObjectStoreExtends<

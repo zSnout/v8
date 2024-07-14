@@ -2,12 +2,12 @@ import { notNull } from "@/components/pray"
 import { Id, ID_ZERO } from "@/learn/lib/id"
 import { AnyCard, Conf, Prefs } from "@/learn/lib/types"
 import { IDBPTransaction } from "idb"
-import { DB, DBTypes } from ".."
+import { DB, Ty } from ".."
 import { bucketOf } from "../bucket"
 import { dayStartOffset, startOfDaySync } from "../day"
 
 type GatherCols = ("cards" | "decks" | "prefs" | "confs")[]
-type Tx = IDBPTransaction<DBTypes, GatherCols, "readonly">
+type Tx = IDBPTransaction<Ty, GatherCols, "readonly">
 
 async function cardsTx(
   tx: Tx,
