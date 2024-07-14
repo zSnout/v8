@@ -26,3 +26,7 @@ export interface DBTypes extends DBSchema {
 - installs core, confs, and prefs
 - adds "basic" model
 - adds "basic and reversed" model
+
+# v4
+
+- cards and models now have a `creation` property

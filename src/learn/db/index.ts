@@ -48,8 +48,8 @@ export interface DBTypes extends DBSchema {
 }
 
 export async function open(name: string, now: number): Promise<DB> {
-  const db = await openDB<DBTypes>(name, 3, {
-    async upgrade(db, oldVersion) {
+  const db = await openDB<DBTypes>(name, 4, {
+    async upgrade(db, oldVersion, _newVersion, tx) {
       // deletes version 2 databases
       if (oldVersion == 2) {
         for (const name of Array.from(db.objectStoreNames)) {
@@ -91,6 +91,21 @@ export async function open(name: string, now: number): Promise<DB> {
         prefs.put(createPrefs(now), ID_ZERO)
         for (const model of createBuiltinV3(Date.now())) {
           models.add(model)
+        }
+      }
+
+      // in v4, cards and models got a `creation` property
+      if (oldVersion < 4) {
+        for await (const card of tx.objectStore("cards").iterate()) {
+          if (card.value.creation == null) {
+            card.update({ ...card.value, creation: card.value.last_edited })
+          }
+        }
+
+        for await (const model of tx.objectStore("models").iterate()) {
+          if (model.value.creation == null) {
+            model.update({ ...model.value, creation: model.value.last_edited })
+          }
         }
       }
     },

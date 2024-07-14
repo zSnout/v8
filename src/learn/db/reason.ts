@@ -12,6 +12,7 @@ export type Reason =
   | "Toggle sidebar"
   | "Toggle flag visibility in sidebar"
   | "Toggle whether note is marked"
+  | `Toggle ${string} column visibility in browser`
   | `Review card as ${string}`
   | `Toggle ${string} flag`
   | `Toggle ${string} mark`

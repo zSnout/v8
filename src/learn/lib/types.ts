@@ -23,6 +23,10 @@ export function makeCard<
     /** Original deck id (used when this card is part of a filtered deck) */
     odid: v.optional(Id),
 
+    // DB: new in v4
+    /** Timestamp of original creation */
+    creation: v.optional(v.number(), Date.now),
+
     /** Timestamp of last edit */
     last_edited: v.number(),
 
@@ -210,6 +214,12 @@ export const ModelTemplate = v.object({
   /** Format string for the answer */
   afmt: v.string(),
 
+  /** Template for displaying question in browser */
+  qb: v.optional(v.string()),
+
+  /** Template for displaying answer in browser */
+  ab: v.optional(v.string()),
+
   /** Name of the template */
   name: v.string(),
 })
@@ -253,6 +263,10 @@ export const Model = v.object({
 
   /** 0=standard model, 1=cloze model */
   type: ModelType,
+
+  // DB: new in v4
+  /** Creation timestamp of this model */
+  creation: v.optional(v.number(), Date.now),
 
   /** Last time this model was edited */
   last_edited: v.number(),
@@ -409,27 +423,11 @@ export const BrowserColumn = v.picklist([
   "Edited",
   "Due",
   "Interval",
-  "Ease",
+  "Difficulty",
   "Reviews",
   "Lapses",
   "Tags",
-  "Note",
-])
-
-export type SortableBrowserColumn = v.InferOutput<typeof SortableBrowserColumn>
-export const SortableBrowserColumn = v.picklist([
-  "Card",
-  "Deck",
-  "Sort Field",
-  "Created",
-  "Edited",
-  "Due",
-  "Interval",
-  "Ease",
-  "Reviews",
-  "Lapses",
-  "Tags",
-  "Note",
+  "Model",
 ])
 
 export type EditStyleRow = v.InferOutput<typeof EditStyleRow>
@@ -512,7 +510,7 @@ export const Prefs = v.object({
     active_cols: v.array(BrowserColumn),
 
     /** The field to sort by in the browser */
-    sort_field: SortableBrowserColumn,
+    sort_field: BrowserColumn,
 
     /** Whether to sort backwards */
     sort_backwards: v.boolean(),

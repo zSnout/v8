@@ -20,6 +20,7 @@ import { Action, BottomButtons } from "../el/BottomButtons"
 import { useLayers } from "../el/Layers"
 import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
+import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
@@ -83,7 +84,7 @@ export const Home = createLoadingBase(
             center
             icon={faTableCellsLarge}
             label="Browse"
-            onClick={nope}
+            onClick={() => layers.push(Browse, db)}
           />
           <Action center icon={faChartBar} label="Stats" onClick={nope} />
           <Action
