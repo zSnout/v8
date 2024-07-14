@@ -102,3 +102,5 @@ export function ContextMenuTrigger(props: { children: JSX.Element }) {
     </Portal>
   )
 }
+
+// TODO: context menus everywherew
