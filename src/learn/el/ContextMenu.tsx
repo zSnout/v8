@@ -84,8 +84,8 @@ export function ContextMenuTrigger(props: { children: JSX.Element }) {
   if (typeof document != "undefined") {
     createEventListener(document, "contextmenu", (event) => {
       event.preventDefault()
-      setX(event.screenX)
-      setY(event.screenY)
+      setX(event.clientX)
+      setY(event.clientY)
       setActive(true)
     })
 

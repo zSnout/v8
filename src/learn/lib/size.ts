@@ -24,8 +24,8 @@ export function createElementSize(el: () => HTMLElement) {
   const [size, setSize] = createStore({ width: 0, height: 0 })
 
   const observer = new ResizeObserver(() => {
-    setSize("width", el().clientWidth)
-    setSize("height", el().clientHeight)
+    setSize("width", el().offsetWidth)
+    setSize("height", el().offsetHeight)
   })
 
   onMount(() => observer.observe(el()))
