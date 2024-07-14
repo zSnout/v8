@@ -4,7 +4,7 @@ import { ID_ZERO } from "../../lib/id"
 
 export async function getPrefs(db: DB) {
   return notNull(
-    await db.get("prefs", ID_ZERO),
+    await db.read("prefs").store.get(ID_ZERO),
     "This collection doesn't have a preferences table.",
   )
 }

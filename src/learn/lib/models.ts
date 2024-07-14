@@ -13,6 +13,7 @@ function createModel(
 ): Model {
   return {
     id,
+    creation: now,
     css,
     fields: arrayToRecord(fields),
     tmpls: arrayToRecord(tmpls),

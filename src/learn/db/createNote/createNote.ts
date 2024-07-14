@@ -60,6 +60,7 @@ async function createNoteDB(
     }
     const card: NewCard = {
       ...base,
+      creation: now,
       did: deck.id,
       nid,
       tid: tmpl.id,

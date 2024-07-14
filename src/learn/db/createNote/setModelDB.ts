@@ -163,6 +163,7 @@ export async function setModelDB(
           }
           const card: NewCard = {
             ...base,
+            creation: now,
             did: deckId,
             nid: note.id,
             tid: tmpl.id,
