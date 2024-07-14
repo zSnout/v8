@@ -24,6 +24,11 @@ import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
+import {
+  ContextMenuItem,
+  ContextMenuLine,
+  ContextMenuTrigger,
+} from "../el/ContextMenu"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -61,6 +66,18 @@ export const Home = createLoadingBase(
 
     return (
       <div class="flex min-h-full flex-1 flex-col gap-4">
+        <ContextMenuTrigger>
+          <ContextMenuItem>hello</ContextMenuItem>
+          <ContextMenuItem>world</ContextMenuItem>
+          <ContextMenuItem>goodbye</ContextMenuItem>
+          <ContextMenuItem>other</ContextMenuItem>
+          <ContextMenuLine />
+          <ContextMenuItem>people</ContextMenuItem>
+          <ContextMenuItem>of</ContextMenuItem>
+          <ContextMenuItem>this</ContextMenuItem>
+          <ContextMenuItem>strange</ContextMenuItem>
+          <ContextMenuItem>dimension</ContextMenuItem>
+        </ContextMenuTrigger>
         <SublinkHandler />
         <TopActions />
         <DeckList />

@@ -101,7 +101,7 @@ export class Layers {
 
       const next = (
         <div
-          class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
+          class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition [.z-ctxmenu_&]:overflow-hidden"
           ref={(el) => {
             this.layers.push([
               el,
