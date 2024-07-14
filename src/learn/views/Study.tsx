@@ -13,8 +13,8 @@ import { unwrap } from "@/components/result"
 import {
   ContentCard,
   ContentIcon,
-  Shortcut as DisplayShortcut,
   Full,
+  ShortcutLabel,
   Response,
   ResponseGray,
   ResponsesGrid,
@@ -68,7 +68,7 @@ import { checkBucket, saveForget, saveReview, select } from "../db/study/select"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
-import { Write, type Shortcut } from "../lib/shortcuts"
+import { ShortcutManager, Write, type Shortcut } from "../lib/shortcuts"
 import * as Template from "../lib/template"
 import { AnyCard, Note } from "../lib/types"
 
@@ -90,6 +90,7 @@ export const Study = createLoading(
     return { info, prefs, setPrefs }
   },
   ({ db, main, dids }, { info, prefs, setPrefs }, pop) => {
+    const shortcuts = new ShortcutManager()
     const owner = getOwner()
     const [answerShown, setAnswerShown] = createSignal(false)
 
@@ -215,7 +216,7 @@ export const Study = createLoading(
           fallback={
             <ResponseGray onClick={pop}>
               Exit Session
-              <DisplayShortcut key="0" />
+              <ShortcutLabel shortcuts={shortcuts} key={{ key: "0" }} />
             </ResponseGray>
           }
           when={getData()?.data}
@@ -224,7 +225,7 @@ export const Study = createLoading(
             fallback={
               <ResponseGray onClick={() => setAnswerShown(true)}>
                 Reveal Answer
-                <DisplayShortcut key="0" />
+                <ShortcutLabel shortcuts={shortcuts} key={{ key: " " }} />
               </ResponseGray>
             }
             when={answerShown()}
@@ -312,7 +313,7 @@ export const Study = createLoading(
             const item = r[props.rating]
             return timestampDist((item.card.due - item.log.review) / 1000)
           })()}
-          <DisplayShortcut key={props.shortcut} />
+          <ShortcutLabel shortcuts={shortcuts} key={props.shortcut} />
         </Response>
       )
     }
@@ -324,6 +325,10 @@ export const Study = createLoading(
       shortcut: Shortcut
       disabled?: boolean
     }) {
+      if (props.onClick) {
+        shortcuts.scoped(props.shortcut, props.onClick)
+      }
+
       return (
         <button
           class="z-field mx-[calc(-0.5rem_-_1px)] flex items-center gap-2 border-transparent bg-transparent px-2 py-0.5 text-z shadow-none transition hover:enabled:bg-z-body-selected"

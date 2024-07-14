@@ -1,3 +1,6 @@
+import { createEventListener } from "@/components/create-event-listener"
+import { onCleanup, onMount } from "solid-js"
+
 type Key =
   | "A"
   | "B"
@@ -90,8 +93,8 @@ const SPECIAL_KEY_STRINGS: { [K in Key]?: string } = {
   Backspace: BACKSPACE,
 }
 
-let internalIsMac
-export function isMac() {
+let internalIsMac: boolean | undefined
+export function isMac(): boolean {
   return (internalIsMac ??= /(Mac|iPhone|iPod|iPad)/i.test(navigator.userAgent))
 }
 
@@ -161,4 +164,39 @@ export function Write(props: { shortcut: Shortcut }) {
       </span>
     </span>
   )
+}
+
+export class ShortcutManager {
+  private map = new Map<string, [Shortcut, () => void]>()
+
+  constructor() {
+    if (typeof window != "undefined") {
+      createEventListener(window, "keydown", (event) => {
+        for (const [shortcut, action] of this.map.values()) {
+          if (matchesShortcut(event, shortcut)) {
+            event.preventDefault()
+            action()
+            return
+          }
+        }
+      })
+    }
+  }
+
+  private set(shortcut: Shortcut, action: () => void) {
+    const str = shortcutToString(shortcut)
+    this.map.set(str, [shortcut, action])
+  }
+
+  private unset(shortcut: Shortcut, action: () => void) {
+    const str = shortcutToString(shortcut)
+    if (this.map.get(str)?.[1] == action) {
+      this.map.delete(str)
+    }
+  }
+
+  scoped(shortcut: Shortcut, action: () => void) {
+    onMount(() => this.set(shortcut, action))
+    onCleanup(() => this.unset(shortcut, action))
+  }
 }
