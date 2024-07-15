@@ -47,6 +47,7 @@ function createBasicModel(now: number): Model {
 
 {{Back}}`,
         "Front --> Back",
+        idOf(5579263327527826),
       ),
     ],
     `.card {
@@ -81,6 +82,7 @@ function createBasicAndReversedModel(now: number): Model {
 
 {{Back}}`,
         "Front --> Back",
+        idOf(2514636513529782),
       ),
       createModelTemplate(
         "{{Back}}",
@@ -90,6 +92,7 @@ function createBasicAndReversedModel(now: number): Model {
 
 {{Front}}`,
         "Back --> Front",
+        idOf(8831569598485816),
       ),
     ],
     `.card {

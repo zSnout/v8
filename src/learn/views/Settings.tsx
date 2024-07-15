@@ -8,14 +8,12 @@ import {
 import { getOwner } from "solid-js"
 import { parse } from "valibot"
 import { DB } from "../db"
-import { createNote } from "../db/createNote/createNote"
 import { createPrefsStore } from "../db/prefs/store"
 import { exportDb, importDb } from "../db/save"
 import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
 import { createLoading } from "../el/Loading"
-import { ID_ZERO, idOf } from "../lib/id"
 import { Collection } from "../lib/types"
 
 export const Settings = createLoading(

@@ -114,7 +114,7 @@ export function createModelTemplate(
   qfmt: string,
   afmt: string,
   name: string,
+  id = randomId(),
 ): ModelTemplate {
-  const id = randomId()
   return { id, qfmt, afmt, name }
 }
