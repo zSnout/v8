@@ -65,7 +65,14 @@ export class DB {
     this.last = {
       reason: last.reason,
       redo: !last.redo,
-      undo: async () => (await redo)(),
+      undo: async () => {
+        const r = await redo
+        if (typeof r == "function") {
+          return r()
+        } else {
+          return false
+        }
+      },
     }
     return { last, done: redo.then(() => {}) }
   }

@@ -5,7 +5,7 @@ type PastStateRecord = Record<string, Map<IDBValidKey, any>>
 
 const states = new WeakMap<IDBTransaction, PastStateRecord>()
 
-export type UndoFunction = () => Promise<UndoFunction>
+export type UndoFunction = () => Promise<false | UndoFunction>
 
 export function createUndoable(tx: IDBPTransaction<Ty, any, "readwrite">) {
   const raw = unwrap(tx)
@@ -13,6 +13,7 @@ export function createUndoable(tx: IDBPTransaction<Ty, any, "readwrite">) {
   states.set(raw, data)
   return async () => {
     await tx.done
+    if (!states.has(raw)) return false
     const next = tx.db.transaction(Object.keys(data) as any[], "readwrite")
     const redo = createUndoable(next)
     for (const key in data) {
@@ -120,9 +121,8 @@ set(
         return fn.apply(this, arguments as any)
       }
 
-      throw new Error(
-        "Cannot clear an object store in an undoable transaction.",
-      )
+      states.delete(this.transaction)
+      return fn.apply(this, arguments as any)
     },
 )
 
