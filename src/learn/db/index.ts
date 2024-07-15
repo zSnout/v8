@@ -20,6 +20,7 @@ import type {
 import type { Cloneable } from "../message"
 import "./lastEditedHooks"
 import type { Reason } from "./reason"
+import { createUndoable, type UndoFunction } from "./undoHistoryHooks"
 import { upgrade, VERSION } from "./upgrade"
 
 /** Like the schema type in idb, but uses `Cloneable` to ensure type safety. */
@@ -49,7 +50,25 @@ export async function open(name: string, now: number): Promise<DB> {
 }
 
 export class DB {
+  private last?: {
+    reason: Reason
+    undo: UndoFunction
+    redo: boolean
+  }
+
   constructor(private db: IDBPDatabase<Ty>) {}
+
+  undo() {
+    const { last } = this
+    if (!last) return
+    const redo = last.undo()
+    this.last = {
+      reason: last.reason,
+      redo: !last.redo,
+      undo: async () => (await redo)(),
+    }
+    return last
+  }
 
   read<Name extends StoreNames<Ty>>(
     storeNames: Name,
@@ -82,10 +101,17 @@ export class DB {
 
   readwrite(
     storeNames: string | string[],
-    _reason: Reason,
+    reason: Reason,
     options?: IDBTransactionOptions,
   ) {
-    return this.db.transaction(storeNames as any, "readwrite", options)
+    const tx = this.db.transaction(storeNames as any, "readwrite", options)
+    const undo = createUndoable(tx)
+    this.last = {
+      reason,
+      redo: false,
+      undo,
+    }
+    return tx
   }
 }
 

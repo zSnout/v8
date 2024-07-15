@@ -17,6 +17,11 @@ import { createDeck } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
 import { Action, BottomButtons } from "../el/BottomButtons"
+import {
+  ContextMenuItem,
+  ContextMenuLine,
+  ContextMenuTrigger,
+} from "../el/ContextMenu"
 import { useLayers } from "../el/Layers"
 import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
@@ -24,11 +29,6 @@ import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
-import {
-  ContextMenuItem,
-  ContextMenuLine,
-  ContextMenuTrigger,
-} from "../el/ContextMenu"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")

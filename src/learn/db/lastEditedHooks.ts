@@ -11,8 +11,6 @@ IDBCursor.prototype.update = function (value: unknown) {
 }
 
 IDBObjectStore.prototype.add = function (value: unknown, key) {
-  console.log("hi")
-
   if (typeof value == "object" && value && "last_edited" in value) {
     value.last_edited = Date.now()
   }
