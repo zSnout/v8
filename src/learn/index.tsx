@@ -43,8 +43,10 @@ function UndoManager(db: DB) {
     if (!last) {
       toasts.create({ body: "Nothing to undo." })
     } else if (last.redo) {
+      document.body.dispatchEvent(new CustomEvent("z-db-redo"))
       toasts.create({ body: `Redid "${last.reason}"` })
     } else {
+      document.body.dispatchEvent(new CustomEvent("z-db-undo"))
       toasts.create({ body: `Undid "${last.reason}"` })
     }
   }
