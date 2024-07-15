@@ -25,7 +25,7 @@ export function createCore(now: number): Core {
 
 export function createPrefs(now: number): Prefs {
   return {
-    last_edit: now,
+    last_edited: now,
     current_deck: undefined,
     last_model_used: undefined,
     active_decks: [],

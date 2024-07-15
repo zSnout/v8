@@ -30,3 +30,7 @@ export interface DBTypes extends DBSchema {
 # v4
 
 - cards and models now have a `creation` property
+
+# v5
+
+- the `Prefs.last_edit` property is now `Prefs.last_edited`

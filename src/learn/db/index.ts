@@ -5,14 +5,7 @@ import {
   openDB,
   StoreNames,
 } from "idb"
-import {
-  createConf,
-  createCore,
-  createDeck,
-  createPrefs,
-} from "../lib/defaults"
-import { Id, ID_ZERO } from "../lib/id"
-import { createBuiltinV3 } from "../lib/models"
+import { Id } from "../lib/id"
 import type {
   AnyCard,
   Conf,
@@ -27,8 +20,10 @@ import type {
 import type { Cloneable } from "../message"
 import "./lastEditedHooks"
 import type { Reason } from "./reason"
+import { upgrade, VERSION } from "./upgrade"
 
-export interface DBSchema {
+/** Like the schema type in idb, but uses `Cloneable` to ensure type safety. */
+export interface RequiredSchema {
   [s: string]: {
     key: IDBValidKey
     value: Cloneable
@@ -36,7 +31,8 @@ export interface DBSchema {
   }
 }
 
-export interface Ty extends DBSchema {
+/** The types for the learn database. */
+export interface Ty extends RequiredSchema {
   cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
   graves: { key: number; value: Grave; indexes: {} }
   notes: { key: Id; value: Note; indexes: { mid: Id } }
@@ -49,70 +45,7 @@ export interface Ty extends DBSchema {
 }
 
 export async function open(name: string, now: number): Promise<DB> {
-  const db = await openDB<Ty>(name, 4, {
-    async upgrade(db, oldVersion, _newVersion, tx) {
-      // deletes version 2 databases
-      if (oldVersion == 2) {
-        for (const name of Array.from(db.objectStoreNames)) {
-          db.deleteObjectStore(name)
-        }
-      }
-
-      // create object stores, indices, default deck/conf/prefs/core, and models
-      if (oldVersion < 3) {
-        // SECTION: create object stores
-        const cards = db.createObjectStore("cards", { keyPath: "id" })
-        cards.createIndex("did", "did")
-        cards.createIndex("nid", "nid")
-
-        db.createObjectStore("graves", { autoIncrement: true })
-
-        const notes = db.createObjectStore("notes", { keyPath: "id" })
-        notes.createIndex("mid", "mid")
-
-        const rev_log = db.createObjectStore("rev_log", { keyPath: "id" })
-        rev_log.createIndex("cid", "cid")
-
-        const core = db.createObjectStore("core")
-
-        const models = db.createObjectStore("models", { keyPath: "id" })
-
-        const decks = db.createObjectStore("decks", { keyPath: "id" })
-        decks.createIndex("cfid", "cfid")
-        decks.createIndex("name", "name", { unique: true })
-
-        const confs = db.createObjectStore("confs", { keyPath: "id" })
-
-        const prefs = db.createObjectStore("prefs")
-
-        // SECTION: install default items
-        decks.put(createDeck(now, "Default", ID_ZERO))
-        core.put(createCore(now), ID_ZERO)
-        confs.put(createConf(now))
-        prefs.put(createPrefs(now), ID_ZERO)
-        for (const model of createBuiltinV3(Date.now())) {
-          models.add(model)
-        }
-      }
-
-      // in v4, cards and models got a `creation` property
-      if (oldVersion < 4) {
-        for await (const card of tx.objectStore("cards").iterate()) {
-          if (card.value.creation == null) {
-            card.update({ ...card.value, creation: card.value.last_edited })
-          }
-        }
-
-        for await (const model of tx.objectStore("models").iterate()) {
-          if (model.value.creation == null) {
-            model.update({ ...model.value, creation: model.value.last_edited })
-          }
-        }
-      }
-    },
-  })
-
-  return new DB(db)
+  return new DB(await openDB(name, VERSION, { upgrade: upgrade(now) }))
 }
 
 export class DB {
@@ -184,7 +117,7 @@ export interface TxWith<
 }
 
 export type ObjectStoreExtends<
-  DBTypes extends DBSchema | unknown = unknown,
+  DBTypes extends RequiredSchema | unknown = unknown,
   TxStores extends ArrayLike<StoreNames<DBTypes>> = ArrayLike<
     StoreNames<DBTypes>
   >,
@@ -203,7 +136,7 @@ export type ObjectStoreExtends<
 >
 
 export interface ObjectStoreWith<
-  DBTypes extends DBSchema | unknown = unknown,
+  DBTypes extends RequiredSchema | unknown = unknown,
   TxStores extends ArrayLike<StoreNames<DBTypes>> = ArrayLike<
     StoreNames<DBTypes>
   >,
