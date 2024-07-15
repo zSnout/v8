@@ -97,9 +97,9 @@ export function createDeck(now: number, name: string, id: Id): Deck {
   }
 }
 
-export function createField(name: string): ModelField {
+export function createField(name: string, id = randomId()): ModelField {
   return {
-    id: randomId(),
+    id,
     name,
     rtl: false,
     desc: "",

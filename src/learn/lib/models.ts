@@ -60,7 +60,10 @@ hr {
   border-top-color: var(--z-border);
   border-style: solid;
 }`,
-    [createField("Front"), createField("Back")],
+    [
+      createField("Front", idOf(2363625942040156)),
+      createField("Back", idOf(4176355055304650)),
+    ],
     now,
   )
 }
@@ -100,7 +103,10 @@ hr {
   border-top-color: var(--z-border);
   border-style: solid;
 }`,
-    [createField("Front"), createField("Back")],
+    [
+      createField("Front", idOf(8721063081413018)),
+      createField("Back", idOf(6867200239311358)),
+    ],
     now,
   )
 }
