@@ -33,4 +33,8 @@ export interface DBTypes extends DBSchema {
 
 # v5
 
-- the `Prefs.last_edit` property is now `Prefs.last_edited`
+- the `prefs.last_edit` property is now `prefs.last_edited`
+
+# v6
+
+- the `Review.type` property can now only be 0, 3, or 4

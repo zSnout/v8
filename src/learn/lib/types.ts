@@ -545,7 +545,7 @@ export const Core = v.object({
 
 export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
-  version: v.literal(3),
+  version: v.picklist([3, 6]),
   cards: v.array(AnyCard),
   graves: v.array(Grave),
   notes: v.array(Note),

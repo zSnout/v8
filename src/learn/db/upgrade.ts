@@ -10,7 +10,7 @@ import {
 import { ID_ZERO } from "../lib/id"
 import { createBuiltinV3 } from "../lib/models"
 
-export const VERSION = 5
+export const VERSION = 6
 
 export const upgrade = (now: number) =>
   (async (db, oldVersion, _newVersion, tx) => {
@@ -82,6 +82,15 @@ export const upgrade = (now: number) =>
         const { last_edit, ...next } = prefs
         next.last_edited = last_edit
         await store.put(next, ID_ZERO)
+      }
+    }
+
+    // in v6, Review.type values other than 3 and 4 collapse to 0
+    if (oldVersion < 6) {
+      for await (const review of tx.objectStore("rev_log").iterate()) {
+        if (!(review.value.type == 3 || review.value.type == 4)) {
+          review.update({ ...review.value, type: 0 })
+        }
       }
     }
   }) satisfies OpenDBCallbacks<Ty>["upgrade"]

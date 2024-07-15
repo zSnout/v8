@@ -31,7 +31,7 @@ export async function exportDb(db: DB, now: number) {
     ])
 
   const collection: Collection = {
-    version: 3,
+    version: 6, // FEAT: support 3, 4, 5, and 6 collections
     cards,
     graves,
     notes,
