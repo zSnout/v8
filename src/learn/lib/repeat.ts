@@ -17,7 +17,7 @@ function createRepeatItem(
     log: {
       cid: next.id,
       difficulty: next.difficulty,
-      type: (next.state - 1) as 0 | 1 | 2,
+      type: 0, // FEAT: filtered or manual
       due: next.due,
       state: next.state,
       id: randomId(),

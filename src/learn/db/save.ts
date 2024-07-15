@@ -1,3 +1,4 @@
+import { parse } from "valibot"
 import { DB } from "."
 import { createCore, createPrefs } from "../lib/defaults"
 import { ID_ZERO } from "../lib/id"
@@ -40,6 +41,13 @@ export async function exportDb(db: DB, now: number) {
     decks,
     confs,
     prefs: prefs || createPrefs(now),
+  }
+
+  try {
+    parse(Collection, collection)
+  } catch (err) {
+    console.error(err)
+    throw new Error("Your database is invalid and may not be exportable.")
   }
 
   const json = JSON.stringify(collection)

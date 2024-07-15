@@ -127,8 +127,11 @@ export const Review = v.object({
   /** The number of milliseconds taken in this review (max 60000) */
   time: v.number(),
 
-  /** 0=learn, 1=review, 2=relearn, 3=filtered, 4=manual */
-  type: v.picklist([0, 1, 2, 3, 4]),
+  /** 0=learn, 3=filtered, 4=manual */
+  type: v.pipe(
+    v.picklist([-1, 0, 1, 2, 3, 4]),
+    v.transform((x) => (x == 3 || x == 4 ? x : 0)),
+  ),
 
   /** Rating of the review */
   rating: v.enum(Rating),
