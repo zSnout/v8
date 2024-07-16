@@ -16,6 +16,7 @@ import { DB } from "../db"
 import { createDeckDB } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
+import "../db/sqlite"
 import { Action, BottomButtons } from "../el/BottomButtons"
 import {
   ContextMenuItem,
@@ -29,6 +30,7 @@ import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
+import { DB2 } from "../db/sqlite"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
