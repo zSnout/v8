@@ -4,7 +4,7 @@ import { createCore, createPrefs } from "../lib/defaults"
 import { ID_ZERO } from "../lib/id"
 import { Collection } from "../lib/types"
 
-export async function exportDb(db: DB, now: number) {
+export async function exportData(db: DB, now: number) {
   const tx = db.read([
     "cards",
     "graves",
@@ -50,12 +50,34 @@ export async function exportDb(db: DB, now: number) {
     throw new Error("Your database is invalid and may not be exportable.")
   }
 
-  const json = JSON.stringify(collection)
+  return collection
+}
+
+export async function exportDb(db: DB, now: number) {
+  const json = JSON.stringify(await exportData(db, now))
 
   return new File(
     [json],
     "zsnout-learn-" + new Date(now).toISOString() + ".zl.json",
   )
+}
+
+export async function importJson(db: DB, json: string) {
+  try {
+    var data = JSON.parse(json)
+  } catch (err) {
+    console.error(err)
+    throw new Error("The data is not a valid JSON file.")
+  }
+
+  try {
+    var collection = parse(Collection, data)
+  } catch (err) {
+    console.error(err)
+    throw new Error("The data is not a valid collection.")
+  }
+
+  await importDb(db, collection)
 }
 
 export async function importDb(db: DB, data: Collection) {

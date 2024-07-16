@@ -84,7 +84,7 @@ export function createConf(now: number): Conf {
 export function createDeck(now: number, name: string, id: Id): Deck {
   return {
     id,
-    collapsed: true,
+    collapsed: false,
     desc: "",
     is_filtered: false,
     last_edited: now,
