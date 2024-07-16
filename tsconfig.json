@@ -6,12 +6,13 @@
     "noUncheckedIndexedAccess": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "module": "ESNext",
+    "module": "ES2022",
     "target": "ES2022",
+    "lib": ["ES2022", "DOM", "WebWorker"],
     "paths": {
-      "~/assets/*": ["src/assets/*"],
-      "@/*": ["src/*"]
-    },
-    "skipLibCheck": true
+      "@/*": ["src/*"],
+      "@db/*": ["src/learn/db/*"],
+      "@db": ["src/learn/db/index"]
+    }
   }
 }

@@ -11,44 +11,44 @@ export interface FlagInfo {
 
 export const ALL_FLAGS: readonly FlagInfo[] = [
   {
-    valueOf: () => 1,
-    color: "Red",
+    valueOf: () => 0,
+    color: "red",
     bg: "bg-red-200 dark:bg-red-800",
     text: "text-red-500",
   },
   {
-    valueOf: () => 2,
-    color: "Orange",
+    valueOf: () => 1,
+    color: "orange",
     bg: "bg-orange-200 dark:bg-orange-800",
     text: "text-orange-500",
   },
   {
-    valueOf: () => 3,
-    color: "Green",
+    valueOf: () => 2,
+    color: "green",
     bg: "bg-green-200 dark:bg-green-800",
     text: "text-green-500",
   },
   {
-    valueOf: () => 4,
-    color: "Blue",
+    valueOf: () => 3,
+    color: "blue",
     bg: "bg-blue-200 dark:bg-blue-800",
     text: "text-blue-500",
   },
   {
-    valueOf: () => 5,
-    color: "Pink",
+    valueOf: () => 4,
+    color: "pink",
     bg: "bg-pink-200 dark:bg-pink-800",
     text: "text-pink-500",
   },
   {
-    valueOf: () => 6,
-    color: "Teal",
+    valueOf: () => 5,
+    color: "teal",
     bg: "bg-teal-200 dark:bg-teal-800",
     text: "text-teal-500",
   },
   {
-    valueOf: () => 7,
-    color: "Purple",
+    valueOf: () => 6,
+    color: "purple",
     bg: "bg-purple-200 dark:bg-purple-800",
     text: "text-purple-500",
   },
@@ -61,30 +61,63 @@ export interface MarkInfo {
   readonly shape: string
 }
 
-// TODO: remove prettier-ignore
-// prettier-ignore
 export const ALL_MARKS: readonly MarkInfo[] = [
-  {valueOf:()=>1, fill:solid.faSquare,outline:regular.faSquare,shape:"Square"},
-  {valueOf:()=>2, fill:solid.faCircle,outline:regular.faCircle,shape:"Circle"},
-  {valueOf:()=>3, fill:solid.faHeart,outline:regular.faHeart,shape:"Heart"},
-  {valueOf:()=>4, fill:solid.faStar,outline:regular.faStar,shape:"Star"},
-  {valueOf:()=>5, fill:solid.faComment,outline:regular.faComment,shape:"Comment"},
-  {valueOf:()=>6, fill:solid.faFile,outline:regular.faFile,shape:"File"},
-  {valueOf:()=>7, fill:solid.faBookmark,outline:regular.faBookmark,shape:"Bookmark"},
+  {
+    valueOf: () => 0,
+    fill: solid.faSquare,
+    outline: regular.faSquare,
+    shape: "square",
+  },
+  {
+    valueOf: () => 1,
+    fill: solid.faCircle,
+    outline: regular.faCircle,
+    shape: "circle",
+  },
+  {
+    valueOf: () => 2,
+    fill: solid.faHeart,
+    outline: regular.faHeart,
+    shape: "heart",
+  },
+  {
+    valueOf: () => 3,
+    fill: solid.faStar,
+    outline: regular.faStar,
+    shape: "star",
+  },
+  {
+    valueOf: () => 4,
+    fill: solid.faComment,
+    outline: regular.faComment,
+    shape: "comment",
+  },
+  {
+    valueOf: () => 5,
+    fill: solid.faFile,
+    outline: regular.faFile,
+    shape: "file",
+  },
+  {
+    valueOf: () => 6,
+    fill: solid.faBookmark,
+    outline: regular.faBookmark,
+    shape: "bookmark",
+  },
 ]
 
 export function add(last: number, flag: { valueOf(): number }) {
-  return last | (2 << flag.valueOf())
+  return last | (1 << flag.valueOf())
 }
 
 export function toggle(last: number, flag: { valueOf(): number }) {
-  return last ^ (2 << flag.valueOf())
+  return last ^ (1 << flag.valueOf())
 }
 
 export function remove(last: number, flag: { valueOf(): number }) {
-  return last & ~(2 << flag.valueOf())
+  return last & ~(1 << flag.valueOf())
 }
 
 export function has(flags: number, flag: { valueOf(): number }) {
-  return !!(flags & (2 << flag.valueOf()))
+  return !!(flags & (1 << flag.valueOf()))
 }

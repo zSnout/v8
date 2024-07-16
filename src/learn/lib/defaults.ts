@@ -1,25 +1,17 @@
-import { Id, idOf, randomId } from "./id"
-import { arrayToRecord } from "./record"
+import { Id, ID_ZERO, randomId } from "./id"
 import type {
-  Collection,
   Conf,
   Core,
   Deck,
-  Model,
   ModelField,
-  Models,
   ModelTemplate,
   Prefs,
 } from "./types"
 
-const ID_DECK_DEFAULT = idOf(1)
-const ID_CONF_DEFAULT = idOf(1)
-const ID_MODEL_BASIC = idOf(1)
-const ID_MODEL_BASIC_AND_REVERSED = idOf(2)
-// const ID_MODEL_BASIC_OPTIONAL_REVERSED = idOf(3)
-// const ID_MODEL_BASIC_TYPE_ANSWER = idOf(4)
-// const ID_MODEL_BASIC_CLOZE = idOf(5)
-// const ID_MODEL_BASIC_IMAGE_OCCLUSION = idOf(5)
+// FEAT: ID_MODEL_BASIC_OPTIONAL_REVERSED
+// FEAT: ID_MODEL_BASIC_TYPE_ANSWER
+// FEAT: ID_MODEL_BASIC_CLOZE
+// FEAT: ID_MODEL_BASIC_IMAGE_OCCLUSION
 
 export function createCore(now: number): Core {
   return {
@@ -31,8 +23,9 @@ export function createCore(now: number): Core {
   }
 }
 
-export function createPrefs(): Prefs {
+export function createPrefs(now: number): Prefs {
   return {
+    last_edited: now,
     current_deck: undefined,
     last_model_used: undefined,
     active_decks: [],
@@ -64,7 +57,7 @@ export function createPrefs(): Prefs {
 
 export function createConf(now: number): Conf {
   return {
-    id: ID_CONF_DEFAULT,
+    id: ID_ZERO,
     autoplay_audio: true,
     last_edited: now,
     name: "Default",
@@ -81,6 +74,7 @@ export function createConf(now: number): Conf {
       max_review_interval: 36500,
       per_day: Number.MAX_SAFE_INTEGER,
       relearning_steps: [10 * 60],
+      requested_retention: 0.9,
     },
     show_global_timer: false,
     timer_per_card: undefined,
@@ -95,16 +89,17 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     is_filtered: false,
     last_edited: now,
     name,
-    new_today: 0,
-    cfid: ID_CONF_DEFAULT,
+    new_today: [],
+    cfid: ID_ZERO,
     today: now,
-    reviews_today: 0,
+    revcards_today: [],
+    revlogs_today: [],
   }
 }
 
-export function createField(name: string): ModelField {
+export function createField(name: string, id = randomId()): ModelField {
   return {
-    id: randomId(),
+    id,
     name,
     rtl: false,
     desc: "",
@@ -119,107 +114,7 @@ export function createModelTemplate(
   qfmt: string,
   afmt: string,
   name: string,
+  id = randomId(),
 ): ModelTemplate {
-  const id = randomId()
   return { id, qfmt, afmt, name }
-}
-
-export function createModel(
-  id: Id,
-  name: string,
-  tmpls: ModelTemplate[],
-  css: string,
-  fields: ModelField[],
-): Model {
-  return {
-    id,
-    css,
-    fields: arrayToRecord(fields),
-    tmpls: arrayToRecord(tmpls),
-    name,
-    tags: "",
-    type: 0,
-    sort_field: fields[0]?.id,
-  }
-}
-
-const DEFAULT_MODEL_CSS = `.card {
-  font-size: 1.5rem;
-  text-align: center;
-}
-
-hr {
-  border-width: 0;
-  border-top-width: 1px;
-  border-top-color: var(--z-border);
-  border-style: solid;
-}`
-
-export function createBasicModel(): Model {
-  return createModel(
-    ID_MODEL_BASIC,
-    "Basic",
-    [
-      createModelTemplate(
-        "{{Front}}",
-        `{{FrontSide}}
-
-<hr id="answer" />
-
-{{Back}}`,
-        "Front --> Back",
-      ),
-    ],
-    DEFAULT_MODEL_CSS,
-    [createField("Front"), createField("Back")],
-  )
-}
-
-export function createModels(): Models {
-  const basicAndReversed = createModel(
-    ID_MODEL_BASIC_AND_REVERSED,
-    "Basic and reversed",
-    [
-      createModelTemplate(
-        "{{Front}}",
-        `{{FrontSide}}
-
-<hr id="answer" />
-
-{{Back}}`,
-        "Front --> Back",
-      ),
-      createModelTemplate(
-        "{{Back}}",
-        `{{FrontSide}}
-
-<hr id="answer" />
-
-{{Front}}`,
-        "Back --> Front",
-      ),
-    ],
-    DEFAULT_MODEL_CSS,
-    [createField("Front"), createField("Back")],
-  )
-  return arrayToRecord([createBasicModel(), basicAndReversed])
-}
-
-export function createCollection(now: number): Collection {
-  return {
-    version: 1,
-
-    cards: {},
-    graves: [],
-    notes: {},
-    rev_log: {},
-
-    core: createCore(now),
-    decks: {
-      [ID_DECK_DEFAULT]: createDeck(now, "Default::wow", ID_DECK_DEFAULT),
-    },
-    confs: { [ID_CONF_DEFAULT]: createConf(now) },
-    prefs: createPrefs(),
-    models: createModels(),
-  }
 }

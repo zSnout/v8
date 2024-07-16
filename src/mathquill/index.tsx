@@ -51,7 +51,7 @@ export abstract class IconLetter extends Letter {
     const iconEl = (
       <span class="mq-icon">
         <span>{letter}</span>
-        <Fa icon={icon} title={letter} />
+        <Fa class="" icon={icon} title={letter} />
       </span>
     )
     console.warn = oldConsoleWarn

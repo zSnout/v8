@@ -1,38 +1,15 @@
-import { Result } from "@/components/result"
-import { MaybePromise } from "valibot"
-import type { Handlers } from "./worker"
-
-export type ToWorkerMsg = {
-  [K in keyof Handlers]: {
-    id: number
-    type: K
-    data: Parameters<Handlers[K]>
-  }
-}[keyof Handlers]
-
-export type ToMainMsg = {
-  [K in keyof Handlers]: {
-    id: number
-    data: Result<ReturnType<Handlers[K]>>
-  }
-}[keyof Handlers]
-
-export type WorkerMessageHandlers = {
-  [x: string]: (...data: Sendable[]) => MaybePromise<Sendable>
-}
-
-export type Sendable =
-  | Array<Sendable>
+export type Cloneable =
+  | Array<Cloneable>
   | ArrayBuffer
   | boolean
   | DataView
   | Date
   | Error
-  | Map<Sendable, Sendable>
+  | Map<Cloneable, Cloneable>
   | number
-  | { [x: string]: Sendable }
+  | { [x: string]: Cloneable }
   | RegExp
-  | Set<Sendable>
+  | Set<Cloneable>
   | string
   | Int8Array
   | Uint8Array
@@ -64,8 +41,10 @@ export type Sendable =
   | ImageData
   | RTCCertificate
   | VideoFrame
+  | null
+  | undefined
 
-export type Transferrable =
+export type Transferable =
   | ArrayBuffer
   | MessagePort
   | ReadableStream

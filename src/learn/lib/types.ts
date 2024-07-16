@@ -23,8 +23,12 @@ export function makeCard<
     /** Original deck id (used when this card is part of a filtered deck) */
     odid: v.optional(Id),
 
+    // DB: new in v4
+    /** Timestamp of original creation */
+    creation: v.optional(v.number(), Date.now),
+
     /** Timestamp of last edit */
-    last_edit: v.number(),
+    last_edited: v.number(),
 
     /** 0 = normal, 1 = buried, 2 = suspended */
     queue: v.picklist([0, 1, 2]),
@@ -75,8 +79,8 @@ export const Grave = v.object({
   /** The original id of the item to delete */
   oid: Id,
 
-  /** The type of item to delete: 0 for card, 1 for note, and 2 for deck */
-  type: v.picklist([0, 1, 2]),
+  /** The type of item to delete: 0=card, 1=note, 2=deck, 3=model */
+  type: v.picklist([0, 1, 2, 3]),
 })
 
 export interface NoteFields extends v.InferOutput<typeof NoteFields> {}
@@ -96,8 +100,8 @@ export const Note = v.object({
   /** Last edited timestamp */
   last_edited: v.number(),
 
-  /** Space-separated list of tags */
-  tags: v.string(),
+  /** List of tags */
+  tags: v.array(v.string()),
 
   /** List of fields */
   fields: NoteFields,
@@ -123,8 +127,11 @@ export const Review = v.object({
   /** The number of milliseconds taken in this review (max 60000) */
   time: v.number(),
 
-  /** 0=learn, 1=review, 2=relearn, 3=filtered, 4=manual */
-  type: v.picklist([0, 1, 2, 3, 4]),
+  /** 0=learn, 3=filtered, 4=manual */
+  type: v.pipe(
+    v.picklist([-1, 0, 1, 2, 3, 4]),
+    v.transform((x) => (x == 3 || x == 4 ? x : 0)),
+  ),
 
   /** Rating of the review */
   rating: v.enum(Rating),
@@ -210,12 +217,23 @@ export const ModelTemplate = v.object({
   /** Format string for the answer */
   afmt: v.string(),
 
+  /** Template for displaying question in browser */
+  qb: v.optional(v.string()),
+
+  /** Template for displaying answer in browser */
+  ab: v.optional(v.string()),
+
   /** Name of the template */
   name: v.string(),
 })
 
 export interface ModelTemplates extends v.InferOutput<typeof ModelTemplates> {}
 export const ModelTemplates = v.record(IdKey, ModelTemplate)
+
+/** 0=standard, 1=cloze */
+export type ModelType = v.InferOutput<typeof ModelType>
+/** 0=standard, 1=cloze */
+export const ModelType = v.picklist([0, 1])
 
 export interface Model extends v.InferOutput<typeof Model> {}
 export const Model = v.object({
@@ -244,12 +262,17 @@ export const Model = v.object({
   tmpls: ModelTemplates,
 
   /** Last tags used with this model */
-  tags: v.string(),
+  tags: v.array(v.string()),
 
   /** 0=standard model, 1=cloze model */
-  type: v.picklist([0, 1]),
+  type: ModelType,
 
-  // mod: "modification time in seconds",
+  // DB: new in v4
+  /** Creation timestamp of this model */
+  creation: v.optional(v.number(), Date.now),
+
+  /** Last time this model was edited */
+  last_edited: v.number(),
 })
 
 export interface Deck extends v.InferOutput<typeof Deck> {}
@@ -272,14 +295,26 @@ export const Deck = v.object({
   /** Custom limit on new cards for today */
   custom_newcard_limit: v.optional(v.number()),
 
-  /** Last time this deck was edited */
+  /** Custom limit on review cards for all days. Defaults to limit in `conf`. */
+  default_revcard_limit: v.optional(v.number()),
+
+  /** Custom limit on new cards for all days. Defaults to limit in `conf`. */
+  default_newcard_limit: v.optional(v.number()),
+
+  /**
+   * Last time this deck was edited. WILL ALWAYS BE AS RECENT OR MORE THAN
+   * `today`. DO NOT USE AS A REPLACEMENT FOR `today`.
+   */
   last_edited: v.number(),
 
-  /** Number of new cards seen today */
-  new_today: v.number(),
+  /** Ids of new cards seen today (each entry is unique) */
+  new_today: v.array(Id),
 
-  /** Number of reviews done today */
-  reviews_today: v.number(),
+  /** Ids of reviewed cards done today (each entry is unique) */
+  revcards_today: v.array(Id),
+
+  /** Ids of review logs done today (each entry is unique) */
+  revlogs_today: v.array(Id),
 
   /** When `new_today` and the `..._limit` properties were last updated */
   today: v.number(),
@@ -339,6 +374,12 @@ export const Conf = v.object({
 
     /** Relearning steps (in seconds) */
     relearning_steps: v.array(v.number()),
+
+    /** The requested retention value */
+    requested_retention: v.number(),
+
+    /** The w-array for FSRS */
+    w: v.optional(v.array(v.number())),
   }),
 
   /** Whether to show the global timer */
@@ -385,27 +426,11 @@ export const BrowserColumn = v.picklist([
   "Edited",
   "Due",
   "Interval",
-  "Ease",
+  "Difficulty",
   "Reviews",
   "Lapses",
   "Tags",
-  "Note",
-])
-
-export type SortableBrowserColumn = v.InferOutput<typeof SortableBrowserColumn>
-export const SortableBrowserColumn = v.picklist([
-  "Card",
-  "Deck",
-  "Sort Field",
-  "Created",
-  "Edited",
-  "Due",
-  "Interval",
-  "Ease",
-  "Reviews",
-  "Lapses",
-  "Tags",
-  "Note",
+  "Model",
 ])
 
 export type EditStyleRow = v.InferOutput<typeof EditStyleRow>
@@ -428,6 +453,9 @@ export const TemplateEditStyle = v.object({
 
 export interface Prefs extends v.InferOutput<typeof Prefs> {}
 export const Prefs = v.object({
+  /** Last edit timestamp */
+  last_edited: v.number(),
+
   /** Current deck id */
   current_deck: v.optional(Id),
 
@@ -485,7 +513,7 @@ export const Prefs = v.object({
     active_cols: v.array(BrowserColumn),
 
     /** The field to sort by in the browser */
-    sort_field: SortableBrowserColumn,
+    sort_field: BrowserColumn,
 
     /** Whether to sort backwards */
     sort_backwards: v.boolean(),
@@ -497,7 +525,7 @@ export const Core = v.object({
   /** Creation timestamp of the collection */
   creation: v.number(),
 
-  /** Last time anything was modified */
+  /** Last time the core object was modified */
   last_edited: v.number(),
 
   /**
@@ -515,50 +543,17 @@ export const Core = v.object({
   tags: v.string(),
 })
 
-export interface Decks extends v.InferOutput<typeof Decks> {}
-export const Decks = v.record(IdKey, Deck)
-
-export interface Confs extends v.InferOutput<typeof Confs> {}
-export const Confs = v.record(IdKey, Conf)
-
-export interface Cards extends v.InferOutput<typeof Cards> {}
-export const Cards = v.record(IdKey, AnyCard)
-
-export interface Notes extends v.InferOutput<typeof Notes> {}
-export const Notes = v.record(IdKey, Note)
-
-/** A map from card ids to arrays of reviews. */
-export interface RevLog extends v.InferOutput<typeof RevLog> {}
-export const RevLog = v.record(IdKey, v.array(Review))
-
-export interface Models extends v.InferOutput<typeof Models> {}
-export const Models = v.record(IdKey, Model)
-
-export interface Graves extends v.InferOutput<typeof Graves> {}
-export const Graves = v.array(Grave)
-
 export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
-  /** The special `version` tag is updated whenever the data format changes */
-  version: v.literal(1),
-
-  /** A record from card ids to their corresponding cards */
-  cards: Cards,
-
-  /** An array of graves */
-  graves: Graves,
-
-  /** A record from note ids to their corresponding notes */
-  notes: Notes,
-
-  /** A record from card ids to their corresponding reviews */
-  rev_log: RevLog,
-
-  // All things below are part of `collection` in Anki
+  version: v.picklist([3, 6]),
+  cards: v.array(AnyCard),
+  graves: v.array(Grave),
+  notes: v.array(Note),
+  rev_log: v.array(Review),
   core: Core,
-  models: Models,
-  decks: Decks,
-  confs: Confs,
+  models: v.array(Model),
+  decks: v.array(Deck),
+  confs: v.array(Conf),
   prefs: Prefs,
 })
 

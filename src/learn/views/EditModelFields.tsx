@@ -1,172 +1,67 @@
-import { Fa } from "@/components/Fa"
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import { alert, confirm, ModalDescription, prompt } from "@/components/Modal"
 import { notNull } from "@/components/pray"
-import {
-  faCancel,
-  faCheck,
-  faGripVertical,
-  faKey,
-  faPencil,
-  faPlus,
-  faTrash,
-} from "@fortawesome/free-solid-svg-icons"
-import { DndItem, dndzone } from "solid-dnd-directive"
-import {
-  batch,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  getOwner,
-  Show,
-  untrack,
-} from "solid-js"
-import { array, parse } from "valibot"
+import { DB } from "../db"
+import { setModelDB } from "../db/createNote/setModelDB"
+import { getModel } from "../db/getModel"
 import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
-import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
+import { createListEditor } from "../el/EditList"
 import { IntegratedField } from "../el/IntegratedField"
-import { Layerable } from "../el/Layers"
 import { createField } from "../lib/defaults"
-import { Id, idOf } from "../lib/id"
+import { idOf, type Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
-import { AppModels } from "../lib/state"
 import { Model, ModelField } from "../lib/types"
 
-// TODO: stop user from editing model name to potential ambiguity
-export const EditModelFields = ((props, pop) => {
-  const [model, setModel] = createSignal(props.model)
-  const [fields, setFields] = createSignal<DndItem[]>(
-    Object.values(model().fields),
-  )
-  createEffect(() => setFields(Object.values(model().fields)))
-  const [selectedId, setSelectedId] = createSignal(
-    Object.values(model().fields)[0]?.id,
-  )
-  const selected = createMemo(() => {
-    const field = model().fields[selectedId() ?? 0]
-    return notNull(field, "There must be a field selected in the explorer.")
-  })
-
-  const owner = getOwner()
-
-  return {
-    el: (
-      <div class="flex min-h-full w-full flex-col gap-8">
-        <IntegratedField
-          label="Editing fields of"
-          rtl={false}
-          type="text"
-          value={model().name}
-          onInput={(value) => setModel((model) => ({ ...model, name: value }))}
-        />
-
-        <div class="grid w-full gap-6 sm:grid-cols-[auto,16rem]">
-          {FieldList()}
-          {SideActions()}
-        </div>
-
-        {FieldOptions()}
-        {SaveChanges()}
-      </div>
-    ),
-    // TODO: add a "save changes?" screen here
-    onForcePop: () => true,
-  }
-
-  function SaveChanges() {
-    return (
-      <TwoBottomButtons>
-        <Action icon={faCancel} label="Cancel" center onClick={() => pop()} />
-        <Action
-          icon={faCheck}
-          label="Save changes"
-          center
-          onClick={() => {
-            const m = model()
-            props.save({
-              ...m,
-              tmpls: AppModels.renameFieldAccessesInTemplates(
-                props.model.fields,
-                m.fields,
-                m.tmpls,
-              ),
-            })
-            pop()
-          }}
-        />
-      </TwoBottomButtons>
+export const EditModelFields = createListEditor<
+  { db: DB; mid: Id },
+  0,
+  Model,
+  Omit<Model, "fields">,
+  ModelField
+>(
+  async (props) => {
+    const model = notNull(
+      await getModel(props.db, props.mid),
+      "The specified model does not exist.",
     )
-  }
 
-  function setSelected(fn: ModelField | ((x: ModelField) => ModelField)) {
-    if (typeof fn == "function") {
-      fn = fn(untrack(selected))
-    }
-    setModel((model) => {
-      return {
-        ...model,
-        fields: { ...model.fields, [fn.id]: fn },
-      }
-    })
-  }
-
-  async function confirmImportantChange(ingVerb: string) {
-    return await confirm({
-      owner,
-      title: "Are you sure you want to do this?",
-      get description() {
-        return (
-          <ModalDescription>
-            {ingVerb} will require a full upload of the database when you next
-            synchronize your collection. If you have reviews or other changes
-            waiting on another device that haven't been synchronized here yet,{" "}
-            <u class="font-semibold text-z">they will be lost</u>. Continue?
-          </ModalDescription>
+    return {
+      async: 0 as const,
+      item: model,
+      title: model.name,
+      subtitle: "editing fields",
+      async save(item) {
+        await setModelDB(
+          props.db,
+          item,
+          Date.now(),
+          `Update fields for model ${item.name}`,
         )
       },
-      cancelText: "No, cancel",
-      okText: "Yes, continue",
-    })
-  }
-
-  async function pickFieldName(title: string, cancelName?: string | undefined) {
-    let first = true
-
-    while (true) {
-      const name = await prompt({
-        owner,
-        title,
-        description: first ? undefined : (
-          <ModalDescription>
-            That field name is already used. Please pick a different name, or
-            cancel the action.
-          </ModalDescription>
-        ),
-      })
-
-      if (name == null || name == cancelName) {
-        return
-      }
-
-      if (!Object.values(model().fields).some((x) => x.name == name)) {
-        return name
-      }
-
-      first = false
     }
-  }
+  },
+  ({ item }) => [item, Object.values(item.fields)] as const,
+  ({ data, items }) => ({ ...data, fields: arrayToRecord(items) }),
+  (data) => data.sort_field,
+  (name) => createField(name),
+  {
+    add: "Add",
+    delete: "Delete",
+    rename: "Rename",
+    needAtLeastOne: "Models need at least one field.",
+    newFieldName: "New field name",
+  },
+  (props) => {
+    const { setSelected } = props
 
-  function FieldOptions() {
     return (
       <div class="flex flex-col gap-1">
         <IntegratedField
           label="Description"
-          rtl={selected().rtl}
-          font={selected().font}
-          sizePx={selected().size}
-          value={selected().desc}
+          rtl={props.selected.rtl}
+          font={props.selected.font}
+          sizePx={props.selected.size}
+          value={props.selected.desc}
           onInput={(y) => {
             setSelected((x) => ({ ...x, desc: y }))
           }}
@@ -178,7 +73,7 @@ export const EditModelFields = ((props, pop) => {
           <AutocompleteFontFamily
             label="Editing Font"
             placeholder="(optional)"
-            value={selected().font}
+            value={props.selected.font}
             onChange={(font) => {
               setSelected((field) => ({ ...field, font }))
             }}
@@ -189,7 +84,7 @@ export const EditModelFields = ((props, pop) => {
             rtl={false}
             type="number"
             placeholder="(optional)"
-            value={selected().size?.toString() ?? ""}
+            value={props.selected.size?.toString() ?? ""}
             onInput={(value) =>
               setSelected((field) => {
                 if (value == "") {
@@ -211,13 +106,8 @@ export const EditModelFields = ((props, pop) => {
           <label class="flex w-full gap-2">
             <Checkbox
               circular
-              checked={model().sort_field == selectedId()}
-              onInput={() =>
-                setModel((model) => ({
-                  ...model,
-                  sort_field: idOf(selectedId()!),
-                }))
-              }
+              checked={props.get.sort_field == props.selected.id}
+              onInput={() => props.set("sort_field", idOf(props.selected.id))}
             />
 
             <p>Sort by this field in the browser</p>
@@ -225,7 +115,7 @@ export const EditModelFields = ((props, pop) => {
 
           <label class="flex w-full gap-2">
             <Checkbox
-              checked={selected().rtl}
+              checked={props.selected.rtl}
               onInput={(rtl) => setSelected((x) => ({ ...x, rtl }))}
             />
 
@@ -234,7 +124,7 @@ export const EditModelFields = ((props, pop) => {
 
           <label class="flex w-full gap-2">
             <Checkbox
-              checked={selected().html}
+              checked={props.selected.html}
               onInput={(html) => setSelected((x) => ({ ...x, html }))}
             />
 
@@ -243,7 +133,7 @@ export const EditModelFields = ((props, pop) => {
 
           <label class="flex w-full gap-2">
             <Checkbox
-              checked={selected().collapsed}
+              checked={props.selected.collapsed}
               onInput={(collapsed) => setSelected((x) => ({ ...x, collapsed }))}
             />
 
@@ -252,7 +142,7 @@ export const EditModelFields = ((props, pop) => {
 
           <label class="flex w-full gap-2">
             <Checkbox
-              checked={selected().excludeFromSearch}
+              checked={props.selected.excludeFromSearch}
               onInput={(excludeFromSearch) =>
                 setSelected((x) => ({ ...x, excludeFromSearch }))
               }
@@ -263,151 +153,5 @@ export const EditModelFields = ((props, pop) => {
         </CheckboxContainer>
       </div>
     )
-  }
-
-  function SideActions() {
-    return (
-      <div class="flex flex-col gap-1">
-        <Action
-          icon={faPlus}
-          label="Add"
-          onClick={async () => {
-            if (!(await confirmImportantChange("Adding a new field"))) {
-              return
-            }
-
-            const fieldName = await pickFieldName("New field name")
-
-            if (!fieldName) {
-              return
-            }
-
-            setModel((model) => {
-              const next = createField(fieldName)
-              return {
-                ...model,
-                fields: { ...model.fields, [next.id]: next },
-              }
-            })
-          }}
-        />
-
-        <Action
-          icon={faTrash}
-          label="Delete"
-          onClick={async () => {
-            if (Object.keys(model().fields).length <= 1) {
-              await alert({
-                owner,
-                title: "Unable to delete",
-                description: (
-                  <ModalDescription>
-                    Card types need at least one field.
-                  </ModalDescription>
-                ),
-              })
-              return
-            }
-
-            if (!(await confirmImportantChange("Removing this field"))) {
-              return
-            }
-
-            batch(() => {
-              const model = setModel((model) => {
-                const { [selectedId() ?? 0]: _, ...fields } = model.fields
-                return { ...model, fields }
-              })
-
-              setSelectedId(Object.values(model.fields)[0]!.id)
-            })
-          }}
-        />
-
-        <Action
-          icon={faPencil}
-          label="Rename"
-          onClick={async () => {
-            const fieldName = await pickFieldName(
-              "New field name",
-              selected().name,
-            )
-
-            if (!fieldName) {
-              return
-            }
-
-            setSelected((field) => ({ ...field, name: fieldName }))
-          }}
-        />
-      </div>
-    )
-  }
-
-  function FieldList() {
-    const sortId = createMemo(() => model().fields[model().sort_field ?? 0]?.id)
-
-    return (
-      <div
-        class="flex max-h-72 min-h-48 flex-col overflow-x-clip overflow-y-scroll rounded-lg border border-z pb-8"
-        ref={(el) => {
-          dndzone(el, () => ({
-            items: fields,
-            flipDurationMs: 0,
-            dropTargetClasses: ["!outline-none"],
-            zoneTabIndex: -1,
-          }))
-        }}
-        onconsider={({ detail: { items } }) => setFields(items)}
-        onfinalize={({ detail: { items } }) => {
-          const result = parse(array(ModelField), items)
-          setFields(result)
-          setModel((model) => ({ ...model, fields: arrayToRecord(result) }))
-        }}
-      >
-        <For each={fields()}>
-          {(field, index) => {
-            return (
-              <div
-                class="-mx-px -mt-px flex items-center border border-z"
-                classList={{
-                  "bg-z-body": field.id != selectedId(),
-                  "bg-z-body-selected": field.id == selectedId(),
-                }}
-              >
-                <div class="z-handle cursor-move py-1 pl-2 pr-1">
-                  <Fa
-                    class="h-4 w-4"
-                    icon={faGripVertical}
-                    title="drag to sort"
-                  />
-                </div>
-                <button
-                  class="flex-1 py-1 pl-1 pr-2 text-left"
-                  onClick={() => setSelectedId(+field.id as Id)}
-                >
-                  {String(field["name"])}
-                </button>
-                <Show when={field.id == sortId()}>
-                  <Fa class="h-3 w-3" icon={faKey} title="sort field" />
-                </Show>
-                <div class="px-2 font-mono text-sm text-z-subtitle">
-                  {index() + 1}
-                </div>
-              </div>
-            )
-          }}
-        </For>
-      </div>
-    )
-  }
-}) satisfies Layerable<{
-  /** The model to edit the fields of. */
-  model: Model
-
-  /**
-   * Called to save the modal. If a `model` is passed, it is the updated model.
-   * If `null` is passed, it means that the edit action was canceled.
-   */
-  save: (model: Model) => void
-}>
+  },
+)

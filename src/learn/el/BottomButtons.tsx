@@ -10,15 +10,53 @@ export function BottomButtons(props: { class: string; children: JSX.Element }) {
   )
 }
 
-export function TwoBottomButtons(props: { children: JSX.Element }) {
+export function TwoBottomButtons(props: {
+  children: JSX.Element
+  class?: string
+}) {
   return (
-    <BottomButtons class="grid w-full max-w-96 gap-1 xs:grid-cols-2">
+    <BottomButtons
+      class={
+        "grid w-full max-w-96 gap-1 xs:grid-cols-2" +
+        (props.class ? " " + props.class : "")
+      }
+    >
       {props.children}
     </BottomButtons>
   )
 }
 
 export function Action(props: {
+  class?: string
+  icon: IconDefinition
+  label: string
+  onClick?: () => void
+  shrinks?: boolean
+  center?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <button
+      class={
+        "z-field flex w-full items-center gap-2 border-transparent bg-z-body-selected px-2 py-1 shadow-none" +
+        (props.class ? " " + props.class : "")
+      }
+      classList={{ "justify-center": props.center }}
+      onClick={() => !props.disabled && props.onClick?.()}
+      disabled={props.disabled}
+    >
+      <div class="flex h-6 items-center justify-center">
+        <Fa class="h-4 w-4" icon={props.icon} title={false} />
+      </div>
+      <div
+        classList={{ "max-sm:sr-only": props.shrinks }}
+        textContent={props.label}
+      />
+    </button>
+  )
+}
+
+export function SingleBottomAction(props: {
   icon: IconDefinition
   label: string
   onClick?: () => void
@@ -26,15 +64,8 @@ export function Action(props: {
   center?: boolean
 }) {
   return (
-    <button
-      class="z-field flex w-full items-center gap-2 border-transparent bg-z-body-selected px-2 py-1 shadow-none"
-      classList={{ "justify-center": props.center }}
-      onClick={props.onClick}
-    >
-      <div class="flex h-6 items-center justify-center">
-        <Fa class="h-4 w-4" icon={props.icon} title={false} />
-      </div>
-      <div classList={{ "max-sm:sr-only": props.shrinks }}>{props.label}</div>
-    </button>
+    <BottomButtons class="grid w-full max-w-72 gap-1">
+      {Action(props)}
+    </BottomButtons>
   )
 }

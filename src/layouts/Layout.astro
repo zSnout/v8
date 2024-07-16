@@ -84,7 +84,9 @@ const { article } = og
     }
   </head>
 
-  <body class="flex flex-1 flex-col scroll-smooth bg-z-body transition">
+  <body
+    class="flex flex-1 flex-col scroll-smooth bg-z-body transition [.z-ctxmenu_&]:overflow-hidden"
+  >
     <div class="contents">
       <slot />
     </div>

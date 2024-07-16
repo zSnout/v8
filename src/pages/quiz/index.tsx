@@ -1,5 +1,6 @@
-import { CheckboxTree } from "@/components/fields/CheckboxGroup"
 import type { Json } from "@/components/basic-tree"
+import { CheckboxTree } from "@/components/fields/CheckboxGroup"
+import { ShortcutManager } from "@/learn/lib/shortcuts"
 import { createStorage } from "@/stores/local-storage-store"
 import { faDownload, faTrash } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -14,6 +15,7 @@ import {
 import {
   ActionExport,
   ActionImport,
+  ShortcutLabel,
   ContentAction,
   ContentCard,
   ContentGuide,
@@ -25,7 +27,6 @@ import {
   ResponseGray,
   ResponsesGrid,
   ResponsesSingleLink,
-  Shortcut,
   SidebarSticky,
   SidebarStickyLabel,
   SidebarStickyLabelAction,
@@ -243,6 +244,8 @@ function intervalLabel(
 }
 
 export function Main() {
+  const shortcuts = new ShortcutManager()
+
   const [storageTree, setStorageTree] = createStorage("quiz::tree", "{}")
 
   const [reviewsWithoutNew, setReviewsWithoutNew] = createStorage(
@@ -500,26 +503,6 @@ export function Main() {
     } catch {}
 
     setState("guide")
-
-    document.body.addEventListener("keydown", (event) => {
-      if (event.ctrlKey || event.altKey || event.metaKey) {
-        return
-      }
-
-      if (event.key == "0" || event.key == " ") {
-        if (state() == "ok") {
-          if (!card().answerShown) {
-            setCard((c) => ({ ...c, answerShown: true }))
-          }
-        } else {
-          nextCard()
-        }
-      } else if (event.key == "1" || event.key == "2" || event.key == "3") {
-        if (state() == "ok" && card().answerShown) {
-          answer(([, "again", "hard", "good"] as const)[event.key])
-        }
-      }
-    })
   })
 
   const [now, setNow] = createSignal(Date.now())
@@ -628,7 +611,7 @@ export function Main() {
             >
               <ResponseGray onClick={nextCard}>
                 Next Card
-                <Shortcut key="Space" />
+                <ShortcutLabel shortcuts={shortcuts} key={{ key: " " }} />
               </ResponseGray>
             </Show>
           }
@@ -640,7 +623,7 @@ export function Main() {
                 onClick={() => setCard((c) => ({ ...c, answerShown: true }))}
               >
                 Reveal Answer
-                <Shortcut key="Space" />
+                <ShortcutLabel shortcuts={shortcuts} key={{ key: " " }} />
               </ResponseGray>
             }
             when={card().answerShown}
@@ -653,7 +636,7 @@ export function Main() {
                 Again
                 <br />
                 {intervalLabel(card().lastInterval, "again")}
-                <Shortcut key="1" />
+                <ShortcutLabel shortcuts={shortcuts} key={{ key: "1" }} />
               </Response>
 
               <Response
@@ -663,7 +646,7 @@ export function Main() {
                 Hard
                 <br />
                 {intervalLabel(card().lastInterval, "hard")}
-                <Shortcut key="2" />
+                <ShortcutLabel shortcuts={shortcuts} key={{ key: "2" }} />
               </Response>
 
               <Response
@@ -673,7 +656,7 @@ export function Main() {
                 Good
                 <br />
                 {intervalLabel(card().lastInterval, "good")}
-                <Shortcut key="3" />
+                <ShortcutLabel shortcuts={shortcuts} key={{ key: "3" }} />
               </Response>
             </ResponsesGrid>
           </Show>

@@ -1,9 +1,11 @@
 import {
   createContext,
+  createSignal,
   getOwner,
   JSX,
   Owner,
   runWithOwner,
+  Show,
   useContext,
 } from "solid-js"
 
@@ -17,15 +19,32 @@ export function useLayers() {
   return context
 }
 
-type LayerInfo = [
+export type LayerInfo = [
+  /** The element containing the actual layer. */
   layer: HTMLDivElement,
+
+  /** The previously focused element. */
   previouslyFocused: Element | null,
+
+  /** A function to call if this layer is forcibly removed. */
   onForcePop: ForcePopHandler,
+
+  /** A function to call if the layer immediately above this one is removed. */
+  onReturn: ReturnHandler,
+
+  /** A function which unmounts the inner component. */
+  unmount: () => void,
 ]
 
 export class Layers {
-  static Root(props: { children: JSX.Element }) {
+  static Root<T>(root: RootLayerable<T>, props: T) {
     const layers = new Layers(getOwner())
+
+    function Inner() {
+      const { el, onReturn } = root(props)
+      layers.onRootReturn = onReturn
+      return el
+    }
 
     return (
       <LayerContext.Provider value={layers}>
@@ -34,7 +53,7 @@ export class Layers {
             class="z-layer-root flex min-h-full w-full transform flex-col opacity-100 transition"
             ref={(el) => (layers.root = el)}
           >
-            {props.children}
+            <Inner />
           </div>
         </div>
       </LayerContext.Provider>
@@ -44,39 +63,56 @@ export class Layers {
   constructor(private owner: Owner | null) {}
 
   private root!: HTMLDivElement
+  private onRootReturn!: ReturnHandler
   private layers: LayerInfo[] = []
 
-  push<T>(fn: Layerable<T>, props: T, popHook: () => void) {
+  push<T>(fn: Layerable<T>, props: T) {
     const prev = this.layers[this.layers.length - 1]?.[0] ?? this.root
-
     const idx = this.layers.length
     const pop = () => {
       this.pop(idx)
-      popHook()
     }
 
     const previouslyFocused = document.activeElement
 
     let onForcePop!: ForcePopHandler
-    function inner() {
+    let onReturn!: ReturnHandler
+    function Inner() {
       const output = fn(props, pop)
-      onForcePop = output.onForcePop
+      const fp = output.onForcePop
+      onForcePop = async () => {
+        const retval = await fp()
+        return retval
+      }
+      onReturn = output.onReturn
       return output.el
     }
 
     const next = runWithOwner(this.owner, () => {
+      const [shown, setShown] = createSignal(true)
+
       const el = (
-        <LayerContext.Provider value={this}>{inner()}</LayerContext.Provider>
+        <LayerContext.Provider value={this}>
+          <Show when={shown()}>
+            <Inner />
+          </Show>
+        </LayerContext.Provider>
       )
 
       const next = (
         <div
-          class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition"
+          class="fixed bottom-0 left-0 right-0 top-12 flex translate-x-16 transform flex-col overflow-y-auto bg-z-body-partial px-6 py-8 opacity-0 transition [.z-ctxmenu_&]:overflow-hidden"
           ref={(el) => {
-            this.layers.push([el, previouslyFocused, onForcePop])
-            setTimeout(() => {
-              animateIn(prev, el)
-            })
+            this.layers.push([
+              el,
+              previouslyFocused,
+              onForcePop,
+              onReturn,
+              () => {
+                setShown(false)
+              },
+            ])
+            setTimeout(() => animateIn(prev, el))
           }}
         >
           <div class="mx-auto w-full max-w-5xl flex-1">{el}</div>
@@ -92,6 +128,7 @@ export class Layers {
 
   private pop(idx: number): boolean {
     const prev = this.layers[idx - 1]?.[0] ?? this.root
+    const onReturn = this.layers[idx - 1]?.[3] ?? this.onRootReturn
     const current = this.layers[idx]
     if (!current) {
       return false
@@ -101,7 +138,8 @@ export class Layers {
       el.remove()
     }
     this.layers.splice(idx, 1)
-    animateOut(prev, next)
+    animateOut(prev, next, current[4])
+    onReturn()
     if (
       previouslyFocused instanceof HTMLElement ||
       previouslyFocused instanceof SVGElement
@@ -156,7 +194,11 @@ function animateIn(prev: HTMLDivElement, next: HTMLDivElement) {
   next.inert = false
 }
 
-function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
+function animateOut(
+  prev: HTMLDivElement,
+  next: HTMLDivElement,
+  unmountNext: () => void,
+) {
   prev.classList.add("opacity-100")
   prev.classList.remove("opacity-0")
   prev.classList.remove("blur-lg")
@@ -185,17 +227,31 @@ function animateOut(prev: HTMLDivElement, next: HTMLDivElement) {
   next.inert = true
   next.addEventListener("transitionend", () => {
     next.remove()
+    unmountNext()
   })
 }
 
-// TODO: properly unmount new layers once they're removed
+// FEAT: properly unmount new layers once they're removed
 
 export interface LayerOutput {
-  /** The element to be shown in the layer. */
   el: JSX.Element
   onForcePop: ForcePopHandler
+  onReturn: ReturnHandler
 }
 
+export interface RootLayerOutput {
+  el: JSX.Element
+  onReturn: ReturnHandler
+}
+
+/** Return `false` to stop this layer from being removed. */
 export type ForcePopHandler = () => boolean | PromiseLike<boolean>
 
+/** This callback should reload all data on the page. */
+export type ReturnHandler = () => void
+
+/** A thing which can be a layer. */
 export type Layerable<T> = (props: T, pop: () => void) => LayerOutput
+
+/** A thing which can be a root layer. */
+export type RootLayerable<T> = (props: T) => RootLayerOutput

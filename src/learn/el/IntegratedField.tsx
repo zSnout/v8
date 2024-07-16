@@ -20,7 +20,6 @@ import { createEffect, createSignal, For, JSX, Show } from "solid-js"
 import { randomId } from "../lib/id"
 import { sanitize } from "../lib/sanitize"
 
-// TODO: make tags deletable
 function IntegratedTagField(
   props: {
     placeholder?: string
@@ -51,13 +50,14 @@ function IntegratedTagField(
   return (
     <div class="flex flex-wrap gap-1 px-2 pb-2">
       <For each={tags()}>
-        {(word) => (
+        {(word, index) => (
           <div
             class="flex-1 rounded px-1 text-center"
             classList={{
               "bg-z-body": !props.emptyBg,
               "bg-z-body-selected": props.emptyBg,
             }}
+            onClick={() => setTags((t) => t.toSpliced(index(), 1))}
           >
             {word}
           </div>
@@ -125,7 +125,7 @@ const dark = [
   ),
 ]
 
-// TODO: undo/redo seems to behave very strangely
+// FIXME: undo/redo seems to behave very strangely
 function IntegratedCodeField(
   props: {
     value?: string | undefined

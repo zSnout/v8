@@ -1,5 +1,5 @@
-import { DndEvent } from "solid-dnd-directive"
 import { LatexTargetFindEvent } from "./components/graph/latex"
+import type { Reason } from "./learn/db/reason"
 
 declare module "solid-js" {
   namespace JSX {
@@ -27,12 +27,9 @@ declare module "solid-js" {
   }
 }
 
-declare module "solid-dnd-directive" {
-  interface DndItem {
-    id: number | string
-    isDndShadowItem?: boolean
-    [x: string]: unknown
+declare global {
+  interface WindowEventMap {
+    "z-db-beforeundo": CustomEvent<{ redo: boolean; reason: Reason }>
+    "z-db-undo": CustomEvent<{ redo: boolean; reason: Reason }>
   }
-
-  type DndEvent = CustomEvent<{ items: DndItem[] }>
 }

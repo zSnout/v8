@@ -1,9 +1,9 @@
 ---
 import PaddedLayout from "@/layouts/PaddedLayout.astro"
-import { Main } from "."
+import { NeedsJavascript } from "@/learn/el/NeedsJavascript"
+import { Main } from "../../learn./../learn"
 ---
 
-{/* max-w-xl [body:has(.z-layer-active)_&]:max-w-5xl transition-[max-width] */}
 <PaddedLayout
   maxWidth="max-w-5xl"
   description="TODO"
@@ -18,6 +18,7 @@ import { Main } from "."
   <div
     class="mx-auto flex w-[64rem] max-w-full flex-1 flex-col text-z transition"
   >
+    <NeedsJavascript />
     <Main client:only />
   </div>
 </PaddedLayout>

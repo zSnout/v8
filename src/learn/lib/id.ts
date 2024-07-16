@@ -18,6 +18,8 @@ export function idOf(id: string | number | bigint | Date): Id {
   }
 }
 
+export const ID_ZERO = idOf(0)
+
 export const IdKey = v.string()
 
 export const Id = v.pipe(

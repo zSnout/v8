@@ -231,7 +231,7 @@ export function ExpandableTree<T, U>(props: {
         expanded={expanded()}
         setExpanded={(value) => {
           rootSetExpanded(props, value)
-          setExpanded(isExpanded(props))
+          setExpanded(value)
         }}
         z={z}
         shift={shift}

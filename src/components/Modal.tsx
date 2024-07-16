@@ -85,7 +85,7 @@ export function Modal(props: {
     <Portal ref={props.refPortal}>
       <div class="pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-transparent from-z-bg-body to-z-bg-body transition [&:has(>[open])]:pointer-events-auto [&:has(>[open])]:bg-[--z-bg-modal]">
         <dialog
-          class="group pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-transparent transition open:pointer-events-auto [&:modal]:max-h-[100vh] [&:modal]:max-w-[100vw] [body:has(>*>*>&[open])]:overflow-hidden"
+          class="group pointer-events-none fixed bottom-0 left-0 right-0 top-0 z-30 m-0 flex h-screen w-screen bg-transparent p-4 transition open:pointer-events-auto [&:modal]:max-h-[100vh] [&:modal]:max-w-[100vw] [body:has(>*>*>&[open])]:overflow-hidden"
           ref={(el) => {
             setOpen(el.open)
 

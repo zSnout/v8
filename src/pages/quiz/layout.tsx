@@ -1,5 +1,10 @@
 import { Fa } from "@/components/Fa"
 import {
+  shortcutToString,
+  type Shortcut,
+  type ShortcutManager,
+} from "@/learn/lib/shortcuts"
+import {
   IconDefinition,
   faClose,
   faDownload,
@@ -316,13 +321,30 @@ export function SidebarSticky(props: { children: JSX.Element }) {
   )
 }
 
-export function Shortcut(props: { key: string }) {
+export function ShortcutLabel(props: {
+  key: Shortcut
+  shortcuts: ShortcutManager
+}) {
+  const key = createMemo(() => {
+    const k = props.key
+    if (typeof k == "string") {
+      return k
+    } else {
+      return shortcutToString(k)
+    }
+  })
+
+  let el: HTMLElement
+
+  props.shortcuts.scoped(props.key, () => el?.click())
+
   return (
     <kbd
       class="absolute bottom-0 right-1 hidden text-sm xs:block"
-      title={`Shortcut: key ${props.key}`}
+      title={`Shortcut: key ${key()}`}
+      ref={el!}
     >
-      {props.key}
+      {key()}
     </kbd>
   )
 }

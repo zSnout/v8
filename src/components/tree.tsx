@@ -67,7 +67,7 @@ export interface LeafProps<U> {
   subtree?: undefined
 }
 
-export interface NodeProps<T, U> {
+export interface NodeProps<T, U = T> {
   data: T | U
   key: string
   children?: JSX.Element | undefined
