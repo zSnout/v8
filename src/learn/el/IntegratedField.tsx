@@ -16,7 +16,7 @@ import {
   faCode,
   faBookmark as faSolidSticky,
 } from "@fortawesome/free-solid-svg-icons"
-import { createEffect, createSignal, For, JSX, Show } from "solid-js"
+import { createEffect, createSignal, For, JSX, Show, untrack } from "solid-js"
 import { randomId } from "../lib/id"
 import { sanitize } from "../lib/sanitize"
 
@@ -126,80 +126,87 @@ const dark = [
 ]
 
 // FIXME: undo/redo seems to behave very strangely
-function IntegratedCodeField(
+export function IntegratedCodeField(
   props: {
     value?: string | undefined
     onInput?: (value: string) => void
     emptyBg?: boolean
   },
-  moreProps?: { alone?: boolean; lang?: language.LanguageSupport },
+  moreProps?: {
+    alone?: boolean
+    lang?: language.LanguageSupport
+    exts?: state.Extension
+  },
 ) {
-  let editor: EditorView
+  return untrack(() => {
+    let editor: EditorView
 
-  const theme = new state.Compartment()
+    const theme = new state.Compartment()
 
-  return (
-    <div
-      class="flex flex-1 border-t border-z *:flex-1 focus-within:*:outline-none"
-      ref={(el) => {
-        editor = new EditorView({
-          doc: props.value,
-          extensions: [
-            view.highlightSpecialChars(),
-            commands.history(),
-            view.drawSelection(),
-            view.dropCursor(),
-            state.EditorState.allowMultipleSelections.of(true),
-            language.indentOnInput(),
-            language.syntaxHighlighting(language.defaultHighlightStyle, {
-              fallback: true,
-            }),
-            theme.of(isDark() ? dark : light),
-            language.bracketMatching(),
-            autocomplete.closeBrackets(),
-            autocomplete.autocompletion(),
-            view.rectangularSelection(),
-            view.crosshairCursor(),
-            search.highlightSelectionMatches(),
-            view.keymap.of([
-              ...autocomplete.closeBracketsKeymap,
-              ...commands.defaultKeymap,
-              ...search.searchKeymap,
-              ...commands.historyKeymap,
-              ...language.foldKeymap,
-              ...autocomplete.completionKeymap,
-              ...lint.lintKeymap,
-            ]),
-            moreProps?.lang || html(),
-            EditorView.updateListener.of((v) => {
-              if (v.docChanged) {
-                props.onInput?.(editor.state.doc.toString())
-              }
-            }),
-          ],
-          parent: el,
-        })
-
-        createEffect(() => {
-          editor.dispatch({
-            effects: theme.reconfigure(isDark() ? dark : light),
+    return (
+      <div
+        class="flex flex-1 border-t border-z *:flex-1 focus-within:*:outline-none"
+        ref={(el) => {
+          editor = new EditorView({
+            doc: props.value,
+            extensions: [
+              moreProps?.exts ?? [],
+              view.highlightSpecialChars(),
+              commands.history(),
+              view.drawSelection(),
+              view.dropCursor(),
+              state.EditorState.allowMultipleSelections.of(true),
+              language.indentOnInput(),
+              language.syntaxHighlighting(language.defaultHighlightStyle, {
+                fallback: true,
+              }),
+              theme.of(isDark() ? dark : light),
+              language.bracketMatching(),
+              autocomplete.closeBrackets(),
+              autocomplete.autocompletion(),
+              view.rectangularSelection(),
+              view.crosshairCursor(),
+              search.highlightSelectionMatches(),
+              view.keymap.of([
+                ...autocomplete.closeBracketsKeymap,
+                ...commands.defaultKeymap,
+                ...search.searchKeymap,
+                ...commands.historyKeymap,
+                ...language.foldKeymap,
+                ...autocomplete.completionKeymap,
+                ...lint.lintKeymap,
+              ]),
+              moreProps?.lang || html(),
+              EditorView.updateListener.of((v) => {
+                if (v.docChanged) {
+                  props.onInput?.(editor.state.doc.toString())
+                }
+              }),
+            ],
+            parent: el,
           })
-        })
 
-        createEffect(() => {
-          const v = props.value
-          if (editor.state.doc.toString() == v) {
-            return
-          }
-          editor.dispatch(
-            editor.state.update({
-              changes: { from: 0, to: editor.state.doc.length, insert: v },
-            }),
-          )
-        })
-      }}
-    />
-  )
+          createEffect(() => {
+            editor.dispatch({
+              effects: theme.reconfigure(isDark() ? dark : light),
+            })
+          })
+
+          createEffect(() => {
+            const v = props.value
+            if (editor.state.doc.toString() == v) {
+              return
+            }
+            editor.dispatch(
+              editor.state.update({
+                changes: { from: 0, to: editor.state.doc.length, insert: v },
+              }),
+            )
+          })
+        }}
+      />
+    )
+  })
 }
 
 interface IntegratedFieldPropsBase<T> {

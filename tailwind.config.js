@@ -35,7 +35,7 @@ export default {
 
       addVariant("scrollbar", "&::-webkit-scrollbar")
 
-      addVariant("dhover", ["&:hover", "button:hover + &"])
+      addVariant("dhover", ["&:hover", ".z-expand-checkbox-group:hover + &"])
 
       addVariant(
         "prose-details",

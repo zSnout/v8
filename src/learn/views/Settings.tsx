@@ -1,20 +1,22 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { alert, confirm, ModalDescription } from "@/components/Modal"
 import {
-  faCheck,
+  faDatabase,
   faDownload,
+  faRightFromBracket,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { getOwner } from "solid-js"
-import { parse } from "valibot"
+import { getOwner, Show } from "solid-js"
 import { DB } from "../db"
 import { createPrefsStore } from "../db/prefs/store"
-import { exportDb, importDb } from "../db/save"
+import { exportDb, importJson } from "../db/save"
 import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
+import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
-import { Collection } from "../lib/types"
+import { ShortcutManager } from "../lib/shortcuts"
+import { JsonData } from "./JsonData"
 
 export const Settings = createLoading(
   async (db: DB) => {
@@ -23,6 +25,9 @@ export const Settings = createLoading(
     return [prefs, setPrefs] as const
   },
   (db, [prefs, setPrefs], pop) => {
+    new ShortcutManager().scoped({ key: "Escape" }, pop)
+    const layers = useLayers()
+
     const owner = getOwner()
 
     let filePicker!: HTMLInputElement
@@ -31,7 +36,7 @@ export const Settings = createLoading(
       el: (
         <div class="flex min-h-full w-full flex-col gap-8">
           <Icons>
-            <Icon icon={faCheck} label="Save" onClick={pop} />
+            <Icon icon={faRightFromBracket} label="Back" onClick={pop} />
             <input
               type="file"
               class="sr-only"
@@ -64,23 +69,7 @@ export const Settings = createLoading(
                   return
                 }
 
-                try {
-                  var json = JSON.parse(await file.text())
-                } catch {
-                  throw new Error(
-                    "Couldn't read file. Did you upload a .zl.json?",
-                  )
-                }
-
-                try {
-                  var data = parse(Collection, json)
-                } catch {
-                  throw new Error(
-                    "Invalid file. Did you upload a proper .zl.json?",
-                  )
-                }
-
-                await importDb(db, data)
+                await importJson(db, await file.text())
 
                 await alert({
                   owner,
@@ -113,6 +102,13 @@ export const Settings = createLoading(
                 a.remove()
               }}
             />
+            <Show when={prefs.debug}>
+              <Icon
+                icon={faDatabase}
+                label="Internals"
+                onClick={() => layers.push(JsonData, db)}
+              />
+            </Show>
           </Icons>
 
           {/* TODO: show all available options, not just booleans */}
@@ -157,8 +153,8 @@ export const Settings = createLoading(
           </CheckboxContainer>
 
           <SingleBottomAction
-            icon={faCheck}
-            label="Save"
+            icon={faRightFromBracket}
+            label="Back"
             center
             onClick={pop}
           />
