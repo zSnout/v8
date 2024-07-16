@@ -58,6 +58,26 @@ export const Home = createLoadingBase(
     ] as const
   },
   (db, [decks, reloadDecks]) => {
+    Object.assign(globalThis, {
+      createTx() {
+        return db.tx(
+          [
+            "cards",
+            "graves",
+            "notes",
+            "rev_log",
+            "core",
+            "models",
+            "decks",
+            "confs",
+            "prefs",
+          ],
+          "readwrite",
+          "Experimental access",
+        )
+      },
+    })
+
     const owner = getOwner()
     const layers = useLayers()
 

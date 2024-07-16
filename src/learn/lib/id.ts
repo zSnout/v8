@@ -8,6 +8,8 @@ export function timestampId(now: number | Date): Id {
   return now.valueOf() satisfies number as Id
 }
 
+export function idOf(id: 0): IdZero
+export function idOf(id: string | number | bigint | Date): Id
 export function idOf(id: string | number | bigint | Date): Id {
   id = Number(id)
 
@@ -18,7 +20,9 @@ export function idOf(id: string | number | bigint | Date): Id {
   }
 }
 
-export const ID_ZERO = idOf(0)
+export type IdZero = Id & v.Brand<"idzero">
+
+export const ID_ZERO: IdZero = idOf(0)
 
 export const IdKey = v.string()
 

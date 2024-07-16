@@ -1,4 +1,17 @@
-// @ts-nocheck
-// Things that should be possible with the scripting API
+// Examples of using the scripting API
 
-tx.decks.where("name", "Default").update({ conf: such_and_so })
+import type { Tx } from "./script"
+
+declare const tx: Tx
+
+tx.decks
+  .by("name")
+  .withKey(IDBKeyRange.bound("Default::", "Default:;", true, true))
+  .cursor()
+  .filter((deck) => deck.collapsed)
+  .update((x) => {
+    x.name = x.name + "::wow"
+    return x
+  })
+
+tx.decks.cursor().each(console.log)
