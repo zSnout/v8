@@ -10,7 +10,7 @@ import {
 import { ID_ZERO } from "../lib/id"
 import { createBuiltinV3 } from "../lib/models"
 
-export const VERSION = 6
+export const VERSION = 7
 
 export const upgrade = (now: number) =>
   (async (db, oldVersion, _newVersion, tx) => {
@@ -90,6 +90,15 @@ export const upgrade = (now: number) =>
       for await (const review of tx.objectStore("rev_log").iterate()) {
         if (!(review.value.type == 3 || review.value.type == 4)) {
           review.update({ ...review.value, type: 0 })
+        }
+      }
+    }
+
+    // in v7, decks got a `creation` property
+    if (oldVersion < 7) {
+      for await (const deck of tx.objectStore("decks").iterate()) {
+        if (deck.value.creation == null) {
+          deck.update({ ...deck.value, creation: deck.value.last_edited })
         }
       }
     }

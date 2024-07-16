@@ -6,6 +6,7 @@ import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
 import type { Database } from "sql.js"
 import type { MaybePromise } from "valibot"
 import type { Cloneable } from "../../message"
+import schema from "./schema.sql?raw"
 
 const messages = {
   test() {
@@ -71,10 +72,7 @@ async function init() {
   prefs: { key: Id; value: Prefs; indexes: {} }
 }
    */
-  db.exec(`
-    PRAGMA journal_mode=MEMORY;
-    
-  `)
+  db.exec(schema)
 
   return db
 }

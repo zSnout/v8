@@ -38,3 +38,7 @@ export interface DBTypes extends DBSchema {
 # v6
 
 - the `Review.type` property can now only be 0, 3, or 4
+
+# v7
+
+- the `Deck` type now has `creation` property

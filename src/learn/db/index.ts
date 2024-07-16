@@ -34,14 +34,14 @@ export interface RequiredSchema {
 
 /** The types for the learn database. */
 export interface Ty extends RequiredSchema {
-  cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
-  graves: { key: number; value: Grave; indexes: {} }
-  notes: { key: Id; value: Note; indexes: { mid: Id } }
-  rev_log: { key: Id; value: Review; indexes: { cid: Id } }
   core: { key: Id; value: Core; indexes: {} }
-  models: { key: Id; value: Model; indexes: {} }
-  decks: { key: Id; value: Deck; indexes: { cfid: Id; name: string } }
+  graves: { key: number; value: Grave; indexes: {} }
   confs: { key: Id; value: Conf; indexes: {} }
+  decks: { key: Id; value: Deck; indexes: { cfid: Id; name: string } }
+  models: { key: Id; value: Model; indexes: {} }
+  notes: { key: Id; value: Note; indexes: { mid: Id } }
+  cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
+  rev_log: { key: Id; value: Review; indexes: { cid: Id } }
   prefs: { key: Id; value: Prefs; indexes: {} }
 }
 

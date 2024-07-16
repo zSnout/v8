@@ -324,6 +324,9 @@ export const Deck = v.object({
 
   /** Conf id */
   cfid: Id,
+
+  /** Creation timestamp */
+  creation: v.optional(v.number(), Date.now),
 })
 
 export interface Conf extends v.InferOutput<typeof Conf> {}
