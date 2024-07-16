@@ -1,12 +1,16 @@
 import { Tree } from "@/components/tree"
-import { arrayToRecord } from "@/learn/lib/record"
+import { arrayToRecord, doublyMapRecord } from "@/learn/lib/record"
 import { Deck } from "@/learn/lib/types"
 import { DB } from ".."
 import { bucketOf } from "../bucket"
 import { dayStartOffset, startOfDaySync } from "../day"
 
 export type Buckets = [new: number, lrn: number, rev: number]
-export type DeckHomeInfo = { deck: Deck; self: Buckets; sub: Buckets }
+export type DeckHomeInfo = {
+  deck: Deck | undefined
+  self: Buckets
+  sub: Buckets
+}
 export type DeckHomeTree = Tree<DeckHomeInfo | undefined, DeckHomeInfo>
 
 export async function listDecks(db: DB, now: number) {
@@ -15,7 +19,12 @@ export async function listDecks(db: DB, now: number) {
   const today = startOfDaySync(dayStart, now)
 
   const decks = tx.objectStore("decks")
-  const idToName = arrayToRecord(await decks.getAll())
+  const deckRecord = arrayToRecord(await decks.getAll())
+  const deckByName = doublyMapRecord(
+    deckRecord,
+    (v) => v.name,
+    (v) => v,
+  )
 
   const cards = tx.objectStore("cards")
   const self = new Map<string, Buckets>()
@@ -24,7 +33,7 @@ export async function listDecks(db: DB, now: number) {
     const bucket = bucketOf(today, card, dayStart)
     if (bucket == null) continue
 
-    const deckName = idToName[card.did]?.name
+    const deckName = deckRecord[card.did]?.name
     if (deckName == null) continue // FEAT: throw because deck doesn't exist
 
     let count = self.get(deckName)
@@ -55,15 +64,24 @@ export async function listDecks(db: DB, now: number) {
 
   const tree: DeckHomeTree = new Tree()
 
-  for (const deck of Object.values(idToName)) {
+  const next: Record<string, Deck | undefined> = deckByName
+  for (const key of sub.keys()) {
+    if (!(key in deckByName)) {
+      next[key] = undefined
+    }
+  }
+
+  delete next[""]
+
+  for (const name in deckByName) {
     const info: DeckHomeInfo = {
-      deck,
-      self: self.get(deck.name) || [0, 0, 0],
-      sub: sub.get(deck.name) || [0, 0, 0],
+      deck: next[name],
+      self: self.get(name) || [0, 0, 0],
+      sub: sub.get(name) || [0, 0, 0],
     }
 
     tree.set(
-      deck.name.split("::"),
+      name.split("::"),
       info,
       (x) => x,
       () => undefined,

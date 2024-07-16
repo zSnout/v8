@@ -142,11 +142,11 @@ export const Home = createLoadingBase(
             z={10}
             shift
             tree={decks().tree.tree}
-            isExpanded={({ data }) => !data?.deck.collapsed}
+            isExpanded={({ data }) => !data?.deck?.collapsed}
             setExpanded={async ({ data, parent, key }, expanded) => {
               await setDeckExpanded(
                 db,
-                data?.deck.id ?? parent.map((x) => x + "::").join("") + key,
+                data?.deck?.id ?? parent.map((x) => x + "::").join("") + key,
                 expanded,
                 Date.now(),
               )
@@ -219,7 +219,7 @@ export const Home = createLoadingBase(
             (subtree ? " -ml-6" : "")
           }
           onClick={() => {
-            const main = data?.deck.id
+            const main = data?.deck?.id
 
             const dids: Id[] = []
             if (main != null) dids.push(main)
@@ -235,7 +235,7 @@ export const Home = createLoadingBase(
               if (subtree == null) return
 
               for (const value of Object.values(subtree)) {
-                if (value.data) {
+                if (value.data?.deck) {
                   dids.push(value.data.deck.id)
                 }
 
