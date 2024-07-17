@@ -11,7 +11,7 @@ import { ID_ZERO, randomId } from "../lib/id"
 import { createBuiltinV3 } from "../lib/models"
 import type { Grave } from "../lib/types"
 
-export const VERSION = 7
+export const VERSION = 8
 
 export const upgrade = (now: number) =>
   (async (db, oldVersion, _newVersion, tx) => {

@@ -271,9 +271,11 @@ const messages = {
       await open("learn:Main", Date.now()),
       Date.now(),
     )
+
     db.exec("BEGIN TRANSACTION")
     db.exec(query_reset)
     db.exec(query_schema)
+    console.log(query_schema)
     inner(stmts.core, [data.core])
     inner(stmts.graves, data.graves)
     inner(stmts.confs, data.confs)
