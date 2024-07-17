@@ -6,6 +6,7 @@ import { Layers } from "@/learn/el/Layers"
 import { createLoadingBase } from "@/learn/el/Loading"
 import { Home } from "@/learn/views/Home"
 import { createSignal, JSX, onMount, Show } from "solid-js"
+import { SQL } from "./db/sqlite"
 import { Toasts, useToasts } from "./el/Toast"
 import { ShortcutManager } from "./lib/shortcuts"
 
@@ -31,7 +32,7 @@ function ErrorHandler(props: { children: JSX.Element }) {
   )
 }
 
-function UndoManager(db: DB) {
+function UndoManager([db, sql]: [DB, SQL]) {
   const undoFn = async () => {
     const undoData = db.undo()
     if (!undoData) {
@@ -54,11 +55,15 @@ function UndoManager(db: DB) {
   manager.scoped({ key: "Z" }, undoFn)
   manager.scoped({ key: "Z", mod: "macctrl" }, undoFn)
 
-  return Home(db)
+  return Home([db, sql])
 }
 
-const InsideErrorHandler = createLoadingBase<void, DB>(
-  () => open("learn:Main", Date.now()),
+const InsideErrorHandler = createLoadingBase(
+  (_: void) =>
+    Promise.all([
+      open("learn:Main", Date.now()),
+      new SQL().waitUntilReady(),
+    ] as const),
   (_, db) => {
     return <Toasts.Root>{Layers.Root(UndoManager, db)}</Toasts.Root>
   },

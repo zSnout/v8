@@ -3,11 +3,14 @@ import { randomId } from "../lib/id"
 import type { Handlers, ToScript, ToWorker } from "./worker"
 import Worker from "./worker/index?worker"
 
-export class DB2 {
-  worker
-  handlers = new Map<number, [(data: any) => void, (reason: any) => void]>()
-  ready
-  isReady = false
+export class SQL {
+  private worker
+  private handlers = new Map<
+    number,
+    [(data: any) => void, (reason: any) => void]
+  >()
+  private ready
+  private isReady = false
 
   constructor() {
     this.worker = new Worker()
@@ -43,6 +46,11 @@ export class DB2 {
       })
     })
     initBackend(this.worker)
+  }
+
+  async waitUntilReady() {
+    await this.ready
+    return this
   }
 
   private postNow<K extends keyof Handlers>(

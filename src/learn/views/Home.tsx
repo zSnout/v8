@@ -17,6 +17,7 @@ import { createDeckDB } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
 import "../db/sqlite"
+import { SQL } from "../db/sqlite"
 import { Action, BottomButtons } from "../el/BottomButtons"
 import {
   ContextMenuItem,
@@ -30,7 +31,6 @@ import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
-import { DB2 } from "../db/sqlite"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -52,16 +52,17 @@ function SublinkHandler(): undefined {
 }
 
 export const Home = createLoadingBase(
-  async (db: DB) => {
+  async ([db]: [DB, SQL]) => {
     const [decks, setDecks] = createSignal(await listDecks(db, Date.now()))
     return [
       decks,
       async () => setDecks(await listDecks(db, Date.now())),
     ] as const
   },
-  (db, [decks, reloadDecks]) => {
+  ([db, sql], [decks, reloadDecks]) => {
     const owner = getOwner()
     const layers = useLayers()
+    Object.assign(globalThis, { sql })
 
     // TODO: add decks to icon list and put all of them in the navbar when any
     // layers are active
@@ -110,7 +111,7 @@ export const Home = createLoadingBase(
             center
             icon={faSliders}
             label="Settings"
-            onClick={() => layers.push(Settings, db)}
+            onClick={() => layers.push(Settings, [db, sql])}
           />
           <Action center icon={faSync} label="Sync" onClick={nope} />
         </div>

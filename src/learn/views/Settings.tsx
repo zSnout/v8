@@ -10,6 +10,7 @@ import { getOwner, Show } from "solid-js"
 import { DB } from "../db"
 import { createPrefsStore } from "../db/prefs/store"
 import { exportDb, importJson } from "../db/save"
+import type { SQL } from "../db/sqlite"
 import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
@@ -19,12 +20,12 @@ import { ShortcutManager } from "../lib/shortcuts"
 import { JsonData } from "./JsonData"
 
 export const Settings = createLoading(
-  async (db: DB) => {
+  async ([db]: [DB, SQL]) => {
     const [prefs, setPrefs, ready] = createPrefsStore(db)
     await ready
     return [prefs, setPrefs] as const
   },
-  (db, [prefs, setPrefs], pop) => {
+  ([db, sql], [prefs, setPrefs], pop) => {
     new ShortcutManager().scoped({ key: "Escape" }, pop)
     const layers = useLayers()
 
@@ -105,8 +106,23 @@ export const Settings = createLoading(
             <Show when={prefs.debug}>
               <Icon
                 icon={faDatabase}
-                label="Internals"
+                label="IDB"
                 onClick={() => layers.push(JsonData, db)}
+              />
+              <Icon
+                icon={faDownload}
+                label="SQLite"
+                onClick={async () => {
+                  const file = await sql.post("export")
+                  const url = URL.createObjectURL(file)
+                  const a = document.createElement("a")
+                  a.style.display = "none"
+                  document.body.append(a)
+                  a.href = url
+                  a.download = file.name
+                  a.click()
+                  a.remove()
+                }}
               />
             </Show>
           </Icons>

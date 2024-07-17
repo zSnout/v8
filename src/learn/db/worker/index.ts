@@ -5,12 +5,21 @@ import { SQLiteFS } from "absurd-sql"
 import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
 import type { Database } from "sql.js"
 import type { MaybePromise } from "valibot"
+import { open } from ".."
 import type { Cloneable } from "../../message"
+import { exportData } from "../save"
 import schema from "./schema.sql?raw"
 
 const messages = {
-  test() {
-    return { a: 2 }
+  async "idb:import"(): Promise<undefined> {
+    const data = exportData(await open("learn:Main", Date.now()), Date.now())
+    // TODO: import the data
+  },
+  async export(): Promise<File> {
+    return new File(
+      [db.export()],
+      "zsnout-learn-" + new Date().toISOString() + ".zl.sqlite",
+    )
   },
 } satisfies BaseHandlers
 

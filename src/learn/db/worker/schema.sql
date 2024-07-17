@@ -69,9 +69,9 @@ CREATE TABLE IF NOT EXISTS
     FOREIGN KEY (cfid) REFERENCES confs (id) ON UPDATE CASCADE ON DELETE CASCADE
   );
 
-CREATE INDEX decks_name ON decks (name);
+CREATE INDEX IF NOT EXISTS decks_name ON decks (name);
 
-CREATE INDEX decks_cfid ON decks (cfid);
+CREATE INDEX IF NOT EXISTS decks_cfid ON decks (cfid);
 
 CREATE TABLE IF NOT EXISTS
   models (
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS
     FOREIGN KEY (mid) REFERENCES models (id) ON UPDATE CASCADE ON DELETE CASCADE
   );
 
-CREATE INDEX notes_mid ON notes (mid);
+CREATE INDEX IF NOT EXISTS notes_mid ON notes (mid);
 
 CREATE TABLE IF NOT EXISTS
   cards (
@@ -129,9 +129,9 @@ CREATE TABLE IF NOT EXISTS
     FOREIGN KEY (odid) REFERENCES decks (id) ON UPDATE CASCADE ON DELETE CASCADE
   );
 
-CREATE INDEX cards_nid ON cards (nid);
+CREATE INDEX IF NOT EXISTS cards_nid ON cards (nid);
 
-CREATE INDEX cards_did ON cards (did);
+CREATE INDEX IF NOT EXISTS cards_did ON cards (did);
 
 CREATE TABLE IF NOT EXISTS
   rev_log (
@@ -150,14 +150,14 @@ CREATE TABLE IF NOT EXISTS
     review INTEGER NOT NULL
   );
 
-CREATE INDEX rev_log_cid ON rev_log (cid);
+CREATE INDEX IF NOT EXISTS rev_log_cid ON rev_log (cid);
 
 CREATE TABLE IF NOT EXISTS
   prefs (
     id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
     last_edited INTEGER NOT NULL,
-    current_deck INTEGER, -- can be null. TODO: relation
-    last_model_used INTEGER, -- can be null. TODO: relation
+    current_deck INTEGER, -- can be null
+    last_model_used INTEGER, -- can be null
     active_decks INTEGER NOT NULL, -- FEAT: does this need to exist
     new_spread INTEGER NOT NULL,
     collapse_time INTEGER NOT NULL,
