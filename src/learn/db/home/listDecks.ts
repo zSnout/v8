@@ -1,12 +1,20 @@
 import { Tree } from "@/components/tree"
+import type { Id } from "@/learn/lib/id"
 import { arrayToRecord } from "@/learn/lib/record"
-import { Deck } from "@/learn/lib/types"
 import { DB } from ".."
 import { bucketOf } from "../bucket"
 import { dayStartOffset, startOfDaySync } from "../day"
 
 export type Buckets = [new: number, lrn: number, rev: number]
-export type DeckHomeInfo = { deck: Deck; self: Buckets; sub: Buckets }
+export type DeckHomeInfo = {
+  deck: {
+    collapsed: boolean
+    name: string
+    id: Id
+  }
+  self: Buckets
+  sub: Buckets
+}
 export type DeckHomeTree = Tree<DeckHomeInfo | undefined, DeckHomeInfo>
 
 export async function listDecks(db: DB, now: number) {

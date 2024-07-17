@@ -11,9 +11,8 @@ import type {
   Prefs,
   Review,
 } from "@/learn/lib/types"
-import "core-js/proposals/explicit-resource-management"
 import type { SqlValue } from "sql.js"
-import { db } from "."
+import { db } from "./db"
 
 export const VERSION = 8
 

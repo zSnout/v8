@@ -1,26 +1,45 @@
 import { Tree } from "@/components/tree"
-import { db } from ".."
-import { bucketOf } from "../../bucket"
+import type { Handler } from ".."
+import { bucketOfArray } from "../../bucket"
 import { startOfDaySync } from "../../day"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../../home/listDecks"
+import { bool, id, int, text } from "../checks"
+import { db } from "../db"
 
-export function home_list_decks() {
+export const home_list_decks = (() => {
   using tx = db.tx()
 
-  const dayStart = db.valn("SELECT day_start FROM prefs WHERE id = 0")
+  const dayStart = db.val("SELECT day_start FROM prefs WHERE id = 0", int)
   const today = startOfDaySync(dayStart, Date.now())
 
-  const decks = db.exec("SELECT id, collapsed, name FROM decks")[0]!
+  const decks = db.checked("SELECT id, collapsed, name FROM decks", [
+    id,
+    bool,
+    text,
+  ])
 
-  const cards = tx.objectStore("cards")
+  const idToName = Object.fromEntries(decks.values.map((x) => [x[0], x]))
+
+  const cards = db.checked(
+    "SELECT queue, state, last_edited, scheduled_days, due, did FROM cards",
+    [
+      (x) => x == 0 || x == 1 || x == 2,
+      (x) => x == 0 || x == 1 || x == 2 || x == 3,
+      int,
+      int,
+      int,
+      id,
+    ],
+  )
+
   const self = new Map<string, Buckets>()
 
-  for (const card of await cards.getAll()) {
-    const bucket = bucketOf(today, card, dayStart)
+  for (const card of cards.values) {
+    const bucket = bucketOfArray(today, card, dayStart)
     if (bucket == null) continue
 
-    const deckName = idToName[card.did]?.name
-    if (deckName == null) continue // FEAT: throw because deck doesn't exist
+    const deckName = idToName[card[5]]?.[2]
+    if (deckName == null) continue // FIXME: this should never be null
 
     let count = self.get(deckName)
     if (count == null) {
@@ -52,13 +71,13 @@ export function home_list_decks() {
 
   for (const deck of Object.values(idToName)) {
     const info: DeckHomeInfo = {
-      deck,
-      self: self.get(deck.name) || [0, 0, 0],
-      sub: sub.get(deck.name) || [0, 0, 0],
+      deck: { id: deck[0], collapsed: !!deck[1], name: deck[2] },
+      self: self.get(deck[2]) || [0, 0, 0],
+      sub: sub.get(deck[2]) || [0, 0, 0],
     }
 
     tree.set(
-      deck.name.split("::"),
+      deck[2].split("::"),
       info,
       (x) => x,
       () => undefined,
@@ -69,4 +88,4 @@ export function home_list_decks() {
 
   tx.commit()
   return { tree: tree.tree, global: sub.get("") ?? [0, 0, 0] }
-}
+}) satisfies Handler

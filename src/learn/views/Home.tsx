@@ -32,6 +32,13 @@ import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
 
+globalThis.Worker = class Hi extends Worker {
+  constructor() {
+    console.log("getting called", arguments)
+    super(...(arguments as any[]))
+  }
+}
+
 function nope(): never {
   throw new Error("this page doesn't exist yet")
 }
@@ -52,17 +59,19 @@ function SublinkHandler(): undefined {
 }
 
 export const Home = createLoadingBase(
-  async ([db]: [DB, SQL]) => {
-    const [decks, setDecks] = createSignal(await listDecks(db, Date.now()))
+  async ([db, sql]: [DB, SQL]) => {
+    const [decks, setDecks] = createSignal(
+      await sql.post("home_list_decks"),
+      // await listDecks(db, Date.now())
+    )
     return [
       decks,
-      async () => setDecks(await listDecks(db, Date.now())),
+      async () => setDecks(await sql.post("home_list_decks")),
     ] as const
   },
   ([db, sql], [decks, reloadDecks]) => {
     const owner = getOwner()
     const layers = useLayers()
-    Object.assign(globalThis, { sql })
 
     // TODO: add decks to icon list and put all of them in the navbar when any
     // layers are active
@@ -144,7 +153,7 @@ export const Home = createLoadingBase(
           <MonotypeExpandableTree<DeckHomeInfo | undefined, DeckHomeInfo>
             z={10}
             shift
-            tree={decks().tree.tree}
+            tree={decks().tree}
             isExpanded={({ data }) => !data?.deck.collapsed}
             setExpanded={async ({ data, parent, key }, expanded) => {
               await setDeckExpanded(

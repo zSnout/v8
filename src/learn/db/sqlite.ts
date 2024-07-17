@@ -13,16 +13,20 @@ export class SQL {
   private isReady = false
 
   constructor() {
+    console.log("creating worker")
     this.worker = new Worker()
+    console.log("created worker")
     this.ready = new Promise<void>((resolve, reject) => {
       this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
         if (data == "zdb:resolve") {
+          console.info("The worker has started successfully.")
           this.isReady = true
           resolve()
           return
         }
 
         if (data == "zdb:reject") {
+          console.error("The worker has failed successfully.")
           reject("The database failed to start.")
           return
         }
