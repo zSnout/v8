@@ -14,7 +14,7 @@ import {
 import { createSignal, getOwner, onMount } from "solid-js"
 import { DB } from "../db"
 import { createDeckDB } from "../db/home/createDeck"
-import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
+import { Buckets, DeckHomeInfo } from "../db/home/listDecks"
 import { setDeckExpanded } from "../db/home/setDeckExpanded"
 import "../db/sqlite"
 import { SQL } from "../db/sqlite"
@@ -31,13 +31,6 @@ import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
-
-globalThis.Worker = class Hi extends Worker {
-  constructor() {
-    console.log("getting called", arguments)
-    super(...(arguments as any[]))
-  }
-}
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -59,11 +52,8 @@ function SublinkHandler(): undefined {
 }
 
 export const Home = createLoadingBase(
-  async ([db, sql]: [DB, SQL]) => {
-    const [decks, setDecks] = createSignal(
-      await sql.post("home_list_decks"),
-      // await listDecks(db, Date.now())
-    )
+  async ([, sql]: [DB, SQL]) => {
+    const [decks, setDecks] = createSignal(await sql.post("home_list_decks"))
     return [
       decks,
       async () => setDecks(await sql.post("home_list_decks")),

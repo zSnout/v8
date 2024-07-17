@@ -59,11 +59,13 @@ function UndoManager([db, sql]: [DB, SQL]) {
 }
 
 const InsideErrorHandler = createLoadingBase(
-  (_: void) =>
-    Promise.all([
+  (_: void) => {
+    const sql = new SQL()
+    return Promise.all([
       open("learn:Main", Date.now()),
-      new SQL().waitUntilReady(),
-    ] as const),
+      sql.post("ready").then(() => sql),
+    ] as const)
+  },
   (_, db) => {
     return <Toasts.Root>{Layers.Root(UndoManager, db)}</Toasts.Root>
   },

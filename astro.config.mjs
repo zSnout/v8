@@ -90,11 +90,14 @@ export default defineConfig({
     ],
     optimizeDeps: {
       esbuildOptions: {
-        target: "esnext",
+        target: "es2022",
       },
     },
+    esbuild: {
+      target: "es2022",
+    },
     build: {
-      target: "esnext",
+      target: "es2022",
     },
     worker: {
       format: "es",

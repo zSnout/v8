@@ -4,24 +4,22 @@ import type { Handlers, ToScript, ToWorker } from "./worker"
 import Worker from "./worker/index?worker"
 
 export class SQL {
-  private worker
-  private handlers = new Map<
+  private readonly worker
+  private readonly handlers = new Map<
     number,
     [(data: any) => void, (reason: any) => void]
   >()
-  private ready
+  readonly ready
   private isReady = false
 
   constructor() {
-    console.log("creating worker")
     this.worker = new Worker()
-    console.log("created worker")
-    this.ready = new Promise<void>((resolve, reject) => {
+    this.ready = new Promise<this>((resolve, reject) => {
       this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
         if (data == "zdb:resolve") {
           console.info("The worker has started successfully.")
           this.isReady = true
-          resolve()
+          resolve(this)
           return
         }
 
@@ -48,13 +46,13 @@ export class SQL {
           handler[1](res.value)
         }
       })
+
+      this.worker.addEventListener("error", (event) => {
+        console.error("The database failed to load.")
+        reject(event.error)
+      })
     })
     initBackend(this.worker)
-  }
-
-  async waitUntilReady() {
-    await this.ready
-    return this
   }
 
   private postNow<K extends keyof Handlers>(

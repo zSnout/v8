@@ -3,6 +3,7 @@ import wasm from "@jlongster/sql.js/dist/sql-wasm.wasm?url"
 import { SQLiteFS } from "absurd-sql"
 import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
 import type { BindParams, Database, SqlValue } from "sql.js"
+import type { ToScript, ToWorker } from "."
 import type { Check, CheckResult } from "./checks"
 import query_schema from "./query/schema.sql?raw"
 
@@ -113,7 +114,7 @@ export class Tx {
   private done = false
 
   constructor() {
-    db.exec("TRANSACTION")
+    db.exec("BEGIN TRANSACTION")
   }
 
   commit() {
@@ -134,12 +135,51 @@ export class Tx {
     this.done = true
   }
 
+  dispose() {
+    if (!this.done) {
+      this.rollback()
+    }
+  }
+
   [Symbol.dispose]() {
     if (!this.done) {
       this.rollback()
     }
   }
 }
+
+const messagesImport = import("./messages")
+let messages: Awaited<typeof messagesImport> | undefined
+
+// message handler should be set up as early as possible
+addEventListener("message", async ({ data }: { data: unknown }) => {
+  console.time()
+  messages ??= await messagesImport
+  if (typeof data != "object" || data == null || !("zTag" in data)) {
+    return
+  }
+
+  if (data["zTag"] === 0) {
+    const req = data as unknown as ToWorker
+    try {
+      console.time("do the action")
+      const value = await (messages[req.type] as any)(...req.data)
+      console.timeEnd("do the action")
+      const res: ToScript = { zTag: 0, id: req.id, ok: true, value }
+      postMessage(res)
+    } catch (value) {
+      const res: ToScript = {
+        zTag: 0,
+        id: req.id,
+        ok: false,
+        value: String(value),
+      }
+      postMessage(res)
+    }
+    console.timeEnd()
+    return
+  }
+})
 
 // initialize the database and report the main thread on whether that worked
 export const db = await init().catch((err) => {

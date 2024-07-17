@@ -1,4 +1,3 @@
-import "core-js/proposals/explicit-resource-management"
 import type { SqlValue, Statement } from "sql.js"
 import type { Handler } from ".."
 import { open } from "../.."
@@ -25,17 +24,21 @@ export const idb_import = (async () => {
     Date.now(),
   )
 
-  using tx = db.tx()
-  db.exec(query_reset)
-  db.exec(query_schema)
-  inner(stmts.core, [data.core])
-  inner(stmts.graves, data.graves)
-  inner(stmts.confs, data.confs)
-  inner(stmts.decks, data.decks)
-  inner(stmts.models, data.models)
-  inner(stmts.notes, data.notes)
-  inner(stmts.cards, data.cards)
-  inner(stmts.rev_log, data.rev_log)
-  inner(stmts.prefs, [data.prefs])
-  tx.commit()
+  const tx = db.tx()
+  try {
+    db.exec(query_reset)
+    db.exec(query_schema)
+    inner(stmts.core, [data.core])
+    inner(stmts.graves, data.graves)
+    inner(stmts.confs, data.confs)
+    inner(stmts.decks, data.decks)
+    inner(stmts.models, data.models)
+    inner(stmts.notes, data.notes)
+    inner(stmts.cards, data.cards)
+    inner(stmts.rev_log, data.rev_log)
+    inner(stmts.prefs, [data.prefs])
+    tx.commit()
+  } finally {
+    tx.dispose()
+  }
 }) satisfies Handler
