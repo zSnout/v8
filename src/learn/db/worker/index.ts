@@ -3,7 +3,7 @@ import initSqlJs from "@jlongster/sql.js"
 import wasm from "@jlongster/sql.js/dist/sql-wasm.wasm?url"
 import { SQLiteFS } from "absurd-sql"
 import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
-import type { Database, SqlValue } from "sql.js"
+import type { Database, SqlValue, Statement } from "sql.js"
 import type { MaybePromise } from "valibot"
 import { open } from ".."
 import type { Cloneable } from "../../message"
@@ -256,17 +256,33 @@ const messages = {
   },
 
   async idb_import(): Promise<undefined> {
-    const data = exportData(await open("learn:Main", Date.now()), Date.now())
-    db.exec("BEGIN TRANSACTION")
-    db.exec(query_reset)
-    db.exec(query_schema)
-    {
-      const stmt = stmts.cards.prepareInsert()
-      for (const card of (await data).cards) {
-        stmt.run(stmts.cards.makeArgs(card))
+    function inner<T>(
+      meta: { prepareInsert(): Statement; makeArgs(item: T): SqlValue[] },
+      items: T[],
+    ) {
+      const stmt = meta.prepareInsert()
+      for (const item of items) {
+        stmt.run(meta.makeArgs(item))
       }
       stmt.free()
     }
+
+    const data = await exportData(
+      await open("learn:Main", Date.now()),
+      Date.now(),
+    )
+    db.exec("BEGIN TRANSACTION")
+    db.exec(query_reset)
+    db.exec(query_schema)
+    inner(stmts.core, [data.core])
+    inner(stmts.graves, data.graves)
+    inner(stmts.confs, data.confs)
+    inner(stmts.decks, data.decks)
+    inner(stmts.models, data.models)
+    inner(stmts.notes, data.notes)
+    inner(stmts.cards, data.cards)
+    inner(stmts.rev_log, data.rev_log)
+    inner(stmts.prefs, [data.prefs])
     db.exec("COMMIT")
   },
 } satisfies BaseHandlers
