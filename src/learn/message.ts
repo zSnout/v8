@@ -43,6 +43,7 @@ export type Cloneable =
   | VideoFrame
   | null
   | undefined
+  | void
 
 export type Transferable =
   | ArrayBuffer

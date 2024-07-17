@@ -244,12 +244,6 @@ const stmts = {
 }
 
 const messages = {
-  reset(): undefined {
-    db.exec("BEGIN TRANSACTION")
-    db.exec(query_reset)
-    db.exec(query_schema)
-    db.exec("COMMIT")
-  },
   export(): File {
     return new File(
       [db.export()],
@@ -286,6 +280,13 @@ const messages = {
     inner(stmts.cards, data.cards)
     inner(stmts.rev_log, data.rev_log)
     inner(stmts.prefs, [data.prefs])
+    db.exec("COMMIT")
+  },
+
+  volatile_reset() {
+    db.exec("BEGIN TRANSACTION")
+    db.exec(query_reset)
+    db.exec(query_schema)
     db.exec("COMMIT")
   },
 } satisfies BaseHandlers
@@ -334,20 +335,6 @@ async function init() {
   }
 
   const db = new SQL.Database(path, { filename: true }) as Database
-  // You might want to try `PRAGMA page_size=8192;` too!
-  /**
-   * export interface Ty extends RequiredSchema {
-  cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
-  graves: { key: number; value: Grave; indexes: {} }
-  notes: { key: Id; value: Note; indexes: { mid: Id } }
-  rev_log: { key: Id; value: Review; indexes: { cid: Id } }
-  core: { key: Id; value: Core; indexes: {} }
-  models: { key: Id; value: Model; indexes: {} }
-  decks: { key: Id; value: Deck; indexes: { cfid: Id; name: string } }
-  confs: { key: Id; value: Conf; indexes: {} }
-  prefs: { key: Id; value: Prefs; indexes: {} }
-}
-   */
   db.exec(query_schema)
 
   return db
