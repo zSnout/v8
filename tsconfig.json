@@ -6,13 +6,10 @@
     "noUncheckedIndexedAccess": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "module": "ES2022",
-    "target": "ES2022",
-    "lib": ["ES2022", "DOM", "WebWorker", "DOM.Iterable", "DOM.AsyncIterable"],
+    "module": "ESNext",
+    "target": "ESNext",
     "paths": {
-      "@/*": ["src/*"],
-      "@db/*": ["src/learn/db/*"],
-      "@db": ["src/learn/db/index"]
+      "@/*": ["src/*"]
     }
   }
 }

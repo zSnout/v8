@@ -1,4 +1,17 @@
 import { error } from "@/components/result"
+import { ID_ZERO } from "@/learn/lib/id"
+import { serializeSidebar } from "@/learn/lib/sidebar"
+import type {
+  AnyCard,
+  Conf,
+  Core,
+  Deck,
+  Grave,
+  Model,
+  Note,
+  Prefs,
+  Review,
+} from "@/learn/lib/types"
 import initSqlJs from "@jlongster/sql.js"
 import wasm from "@jlongster/sql.js/dist/sql-wasm.wasm?url"
 import { SQLiteFS } from "absurd-sql"
@@ -8,20 +21,6 @@ import type { MaybePromise } from "valibot"
 import { open } from ".."
 import type { Cloneable } from "../../message"
 import { exportData } from "../save"
-
-import { ID_ZERO } from "@/learn/lib/id"
-import { serializeSidebar } from "@/learn/lib/sidebar"
-import {
-  Model,
-  Note,
-  Prefs,
-  type AnyCard,
-  type Conf,
-  type Core,
-  type Deck,
-  type Grave,
-  type Review,
-} from "@/learn/lib/types"
 import query_reset from "./query/reset.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 

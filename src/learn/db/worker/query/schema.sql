@@ -126,6 +126,8 @@ CREATE INDEX IF NOT EXISTS cards_nid ON cards (nid);
 
 CREATE INDEX IF NOT EXISTS cards_did ON cards (did);
 
+CREATE INDEX IF NOT EXISTS cards_due ON cards (due);
+
 CREATE TABLE IF NOT EXISTS
   rev_log (
     id INTEGER PRIMARY KEY NOT NULL,
