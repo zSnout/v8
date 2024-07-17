@@ -3,23 +3,271 @@ import initSqlJs from "@jlongster/sql.js"
 import wasm from "@jlongster/sql.js/dist/sql-wasm.wasm?url"
 import { SQLiteFS } from "absurd-sql"
 import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
-import type { Database } from "sql.js"
+import type { Database, SqlValue } from "sql.js"
 import type { MaybePromise } from "valibot"
 import { open } from ".."
 import type { Cloneable } from "../../message"
 import { exportData } from "../save"
-import schema from "./schema.sql?raw"
+
+import { ID_ZERO } from "@/learn/lib/id"
+import { serializeSidebar } from "@/learn/lib/sidebar"
+import {
+  Model,
+  Note,
+  Prefs,
+  type AnyCard,
+  type Conf,
+  type Core,
+  type Deck,
+  type Grave,
+  type Review,
+} from "@/learn/lib/types"
+import query_reset from "./query/reset.sql?raw"
+import query_schema from "./query/schema.sql?raw"
+
+const VERSION = 8
+
+type INTEGER = number
+type BOOLEAN = number
+type TEXT = string
+
+const stmts = {
+  core: {
+    prepareInsert() {
+      return db.prepare("INSERT INTO core VALUES (?, ?, ?, ?, ?, ?, ?)")
+    },
+    makeArgs(core: Core): SqlValue[] {
+      return [
+        ID_ZERO satisfies INTEGER,
+        VERSION satisfies INTEGER,
+        core.creation satisfies INTEGER,
+        core.last_edited satisfies INTEGER,
+        core.last_schema_edit satisfies INTEGER,
+        core.last_sync satisfies INTEGER,
+        core.tags satisfies TEXT,
+      ]
+    },
+  },
+  graves: {
+    prepareInsert() {
+      return db.prepare("INSERT INTO graves VALUES (?, ?, ?)")
+    },
+    makeArgs(grave: Grave): SqlValue[] {
+      return [
+        grave.id satisfies INTEGER,
+        grave.oid satisfies INTEGER,
+        grave.type satisfies INTEGER,
+      ]
+    },
+  },
+  confs: {
+    prepareInsert() {
+      return db.prepare(
+        "INSERT INTO confs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+    },
+    makeArgs(conf: Conf): SqlValue[] {
+      return [
+        conf.id satisfies INTEGER,
+        +conf.autoplay_audio satisfies BOOLEAN,
+        conf.last_edited satisfies INTEGER,
+        conf.name satisfies TEXT,
+        +conf.new.bury_related satisfies BOOLEAN,
+        +conf.new.pick_at_random satisfies BOOLEAN,
+        conf.new.per_day satisfies INTEGER,
+        JSON.stringify(conf.new.learning_steps) satisfies TEXT,
+        +conf.replay_question_audio satisfies BOOLEAN,
+        +conf.review.bury_related satisfies BOOLEAN,
+        +conf.review.enable_fuzz satisfies BOOLEAN,
+        conf.review.max_review_interval satisfies INTEGER,
+        conf.review.per_day ?? (null satisfies INTEGER | null),
+        JSON.stringify(conf.review.relearning_steps) satisfies TEXT,
+        conf.review.requested_retention satisfies INTEGER,
+        (conf.review.w
+          ? JSON.stringify(conf.review.w)
+          : null) satisfies TEXT | null,
+        +conf.show_global_timer satisfies BOOLEAN,
+        conf.timer_per_card ?? (null satisfies INTEGER | null),
+      ]
+    },
+  },
+  decks: {
+    prepareInsert() {
+      return db.prepare(
+        "INSERT INTO decks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+    },
+    makeArgs(deck: Deck): SqlValue[] {
+      return [
+        deck.id satisfies INTEGER,
+        deck.name satisfies TEXT,
+        +deck.collapsed satisfies BOOLEAN,
+        +deck.is_filtered satisfies BOOLEAN,
+        (deck.custom_revcard_limit ?? null) satisfies INTEGER | null,
+        (deck.custom_newcard_limit ?? null) satisfies INTEGER | null,
+        (deck.default_revcard_limit ?? null) satisfies INTEGER | null,
+        (deck.default_newcard_limit ?? null) satisfies INTEGER | null,
+        deck.last_edited satisfies INTEGER,
+        JSON.stringify(deck.new_today) satisfies TEXT,
+        JSON.stringify(deck.revcards_today) satisfies TEXT,
+        deck.revlogs_today satisfies INTEGER,
+        deck.today satisfies INTEGER,
+        deck.desc satisfies TEXT,
+        deck.cfid satisfies INTEGER,
+      ]
+    },
+  },
+  models: {
+    prepareInsert() {
+      return db.prepare(
+        "INSERT INTO models VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+    },
+    makeArgs(model: Model): SqlValue[] {
+      return [
+        model.id satisfies INTEGER,
+        model.css satisfies TEXT,
+        JSON.stringify(model.fields) satisfies TEXT,
+        (model.latex
+          ? JSON.stringify(model.latex)
+          : null) satisfies TEXT | null,
+        model.name satisfies TEXT,
+        (model.sort_field ?? null) satisfies INTEGER | null,
+        JSON.stringify(model.tmpls) satisfies TEXT,
+        model.tags.join(" ") satisfies TEXT,
+        model.type satisfies INTEGER,
+        model.creation satisfies INTEGER,
+        model.last_edited satisfies INTEGER,
+      ]
+    },
+  },
+  notes: {
+    prepareInsert() {
+      return db.prepare("INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    },
+    makeArgs(note: Note): SqlValue[] {
+      return [
+        note.id satisfies INTEGER,
+        note.creation satisfies INTEGER,
+        note.mid satisfies INTEGER,
+        note.last_edited satisfies INTEGER,
+        note.tags.join(" ") satisfies TEXT,
+        JSON.stringify(note.fields) satisfies TEXT,
+        note.sort_field satisfies TEXT,
+        note.csum satisfies INTEGER,
+        note.marks satisfies INTEGER,
+      ]
+    },
+  },
+  cards: {
+    prepareInsert() {
+      return db.prepare(
+        "INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+    },
+    makeArgs(card: AnyCard): SqlValue[] {
+      return [
+        card.id satisfies INTEGER,
+        card.nid satisfies INTEGER,
+        card.tid satisfies INTEGER,
+        card.did satisfies INTEGER,
+        (card.odid ?? null) satisfies INTEGER | null,
+        card.creation satisfies INTEGER,
+        card.last_edited satisfies INTEGER,
+        card.queue satisfies INTEGER,
+        card.due satisfies INTEGER,
+        (card.last_review ?? null) satisfies INTEGER | null,
+        card.stability satisfies INTEGER,
+        card.difficulty satisfies INTEGER,
+        card.elapsed_days satisfies INTEGER,
+        card.scheduled_days satisfies INTEGER,
+        card.reps satisfies INTEGER,
+        card.lapses satisfies INTEGER,
+        card.flags satisfies INTEGER,
+        card.state satisfies INTEGER,
+      ]
+    },
+  },
+  rev_log: {
+    prepareInsert() {
+      return db.prepare(
+        "INSERT INTO rev_log VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+    },
+    makeArgs(review: Review) {
+      return [
+        review.id satisfies INTEGER,
+        review.cid satisfies INTEGER,
+        review.time satisfies INTEGER,
+        review.type satisfies INTEGER,
+        review.rating satisfies INTEGER,
+        review.state satisfies INTEGER,
+        review.due satisfies INTEGER,
+        review.stability satisfies INTEGER,
+        review.difficulty satisfies INTEGER,
+        review.elapsed_days satisfies INTEGER,
+        review.last_elapsed_days satisfies INTEGER,
+        review.scheduled_days satisfies INTEGER,
+        review.review satisfies INTEGER,
+      ]
+    },
+  },
+  prefs: {
+    prepareInsert() {
+      return db.prepare(
+        "INSERT INTO prefs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+    },
+    makeArgs(prefs: Prefs) {
+      return [
+        ID_ZERO satisfies INTEGER,
+        prefs.last_edited satisfies INTEGER,
+        (prefs.current_deck ?? null) satisfies INTEGER | null,
+        (prefs.last_model_used ?? null) satisfies INTEGER | null,
+        prefs.new_spread satisfies INTEGER,
+        prefs.collapse_time satisfies INTEGER,
+        prefs.notify_after_time satisfies INTEGER,
+        +prefs.show_review_time_above_buttons satisfies BOOLEAN,
+        +prefs.show_remaining_due_counts satisfies BOOLEAN,
+        +prefs.show_deck_name satisfies BOOLEAN,
+        prefs.next_new_card_position satisfies INTEGER,
+        (prefs.last_unburied ?? null) satisfies INTEGER | null,
+        prefs.day_start satisfies INTEGER,
+        +prefs.debug satisfies BOOLEAN,
+        serializeSidebar(prefs.sidebar_state) satisfies INTEGER,
+        JSON.stringify(prefs.template_edit_style) satisfies TEXT,
+        +prefs.show_flags_in_sidebar satisfies BOOLEAN,
+        +prefs.show_marks_in_sidebar satisfies BOOLEAN,
+        JSON.stringify(prefs.browser) satisfies TEXT,
+      ]
+    },
+  },
+}
 
 const messages = {
-  async "idb:import"(): Promise<undefined> {
-    const data = exportData(await open("learn:Main", Date.now()), Date.now())
-    // TODO: import the data
+  reset(): undefined {
+    db.exec(query_reset)
   },
-  async export(): Promise<File> {
+  export(): File {
     return new File(
       [db.export()],
       "zsnout-learn-" + new Date().toISOString() + ".zl.sqlite",
     )
+  },
+
+  async idb_import(): Promise<undefined> {
+    const data = exportData(await open("learn:Main", Date.now()), Date.now())
+    db.exec("BEGIN TRANSACTION")
+    db.exec(query_reset)
+    db.exec(query_schema)
+    {
+      const stmt = stmts.cards.prepareInsert()
+      for (const card of (await data).cards) {
+        stmt.run(stmts.cards.makeArgs(card))
+      }
+      stmt.free()
+    }
+    db.exec("COMMIT")
   },
 } satisfies BaseHandlers
 
@@ -81,7 +329,7 @@ async function init() {
   prefs: { key: Id; value: Prefs; indexes: {} }
 }
    */
-  db.exec(schema)
+  db.exec(query_schema)
 
   return db
 }
@@ -93,11 +341,13 @@ const db = await init().catch((err) => {
 })
 postMessage("zdb:resolve")
 
+export type Handler = (
+  this: unknown,
+  data: Cloneable,
+) => MaybePromise<Cloneable>
+
 // typescript stuff
-export type BaseHandlers = Record<
-  string,
-  (this: unknown, data: Cloneable) => MaybePromise<Cloneable>
->
+export type BaseHandlers = { [x: string]: Handler }
 
 export type Handlers = typeof messages
 

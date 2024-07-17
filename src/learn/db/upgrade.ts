@@ -7,8 +7,9 @@ import {
   createDeck,
   createPrefs,
 } from "../lib/defaults"
-import { ID_ZERO } from "../lib/id"
+import { ID_ZERO, randomId } from "../lib/id"
 import { createBuiltinV3 } from "../lib/models"
+import type { Grave } from "../lib/types"
 
 export const VERSION = 7
 
@@ -99,6 +100,31 @@ export const upgrade = (now: number) =>
       for await (const deck of tx.objectStore("decks").iterate()) {
         if (deck.value.creation == null) {
           deck.update({ ...deck.value, creation: deck.value.last_edited })
+        }
+      }
+    }
+
+    // in v8, graves got an `id` property
+    // in v8, `deck.revlogs_today` changed from an array to a number
+    if (oldVersion < 8) {
+      const last = (await tx.objectStore("graves").getAll()) as Omit<
+        Grave,
+        "id"
+      >[]
+
+      db.deleteObjectStore("graves")
+      const store = db.createObjectStore("graves", { keyPath: "id" })
+
+      for (const item of last) {
+        store.put({ ...item, id: randomId() })
+      }
+
+      for await (const deck of tx.objectStore("decks").iterate()) {
+        if (Array.isArray(deck.value.revlogs_today)) {
+          deck.update({
+            ...deck.value,
+            revlogs_today: deck.value.revlogs_today.length,
+          })
         }
       }
     }

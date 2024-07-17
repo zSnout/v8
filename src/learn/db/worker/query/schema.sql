@@ -2,7 +2,6 @@ PRAGMA journal_mode = MEMORY;
 
 PRAGMA foreign_keys = ON;
 
--- tables without relations
 CREATE TABLE IF NOT EXISTS
   core (
     id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
@@ -21,12 +20,6 @@ CREATE TABLE IF NOT EXISTS
     type INTEGER NOT NULL
   );
 
--- tables with relations, defined in the order of their relations
--- confs <-- decks
--- models <-- notes
--- decks <-- cards
--- notes <-- cards
--- cards <-- rev_log
 CREATE TABLE IF NOT EXISTS
   confs (
     id INTEGER PRIMARY KEY NOT NULL,
@@ -36,15 +29,15 @@ CREATE TABLE IF NOT EXISTS
     new_bury_related BOOLEAN NOT NULL,
     new_pick_at_random BOOLEAN NOT NULL,
     new_per_day INTEGER NOT NULL,
-    new_learning_steps TEXT NOT NULL,
+    new_learning_steps TEXT NOT NULL, -- json array
     replay_question_audio BOOLEAN NOT NULL,
     review_bury_related BOOLEAN NOT NULL,
     review_enable_fuzz BOOLEAN NOT NULL,
     review_max_review_interval INTEGER NOT NULL,
     review_per_day INTEGER, -- can be null
-    review_relearning_steps TEXT NOT NULL,
+    review_relearning_steps TEXT NOT NULL, -- json array
     review_requested_retention INTEGER NOT NULL,
-    review_w TEXT, -- can be null
+    review_w TEXT, -- json array; can be null
     show_global_timer BOOLEAN NOT NULL,
     timer_per_card INTEGER -- can be null
   );
@@ -158,7 +151,6 @@ CREATE TABLE IF NOT EXISTS
     last_edited INTEGER NOT NULL,
     current_deck INTEGER, -- can be null
     last_model_used INTEGER, -- can be null
-    active_decks INTEGER NOT NULL, -- FEAT: does this need to exist
     new_spread INTEGER NOT NULL,
     collapse_time INTEGER NOT NULL,
     notify_after_time INTEGER NOT NULL,

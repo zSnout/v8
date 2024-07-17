@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import { type Grade, Rating, State } from "ts-fsrs"
 import * as v from "valibot"
-import { Id, IdKey } from "./id"
+import { Id, IdKey, randomId } from "./id"
 
 export function makeCard<
   T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
@@ -76,6 +76,10 @@ export const AnyCard = makeCard(v.optional(v.number()), v.enum(State))
 
 export interface Grave extends v.InferOutput<typeof Grave> {}
 export const Grave = v.object({
+  /** The id of the grave */
+  // DB: added in v8
+  id: v.optional(Id, randomId),
+
   /** The original id of the item to delete */
   oid: Id,
 
@@ -314,7 +318,8 @@ export const Deck = v.object({
   revcards_today: v.array(Id),
 
   /** Ids of review logs done today (each entry is unique) */
-  revlogs_today: v.array(Id),
+  // DB: changed from id array to number in v8
+  revlogs_today: v.number(),
 
   /** When `new_today` and the `..._limit` properties were last updated */
   today: v.number(),
@@ -464,9 +469,6 @@ export const Prefs = v.object({
 
   /** Last model used */
   last_model_used: v.optional(Id),
-
-  /** Active decks */
-  active_decks: v.array(Id),
 
   /** 0 = mix new and review, 1 = new after review, 2 = new before review */
   new_spread: v.picklist([0, 1, 2]),

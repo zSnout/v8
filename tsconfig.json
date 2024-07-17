@@ -8,7 +8,7 @@
     "jsxImportSource": "solid-js",
     "module": "ES2022",
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "WebWorker"],
+    "lib": ["ES2022", "DOM", "WebWorker", "DOM.Iterable", "DOM.AsyncIterable"],
     "paths": {
       "@/*": ["src/*"],
       "@db/*": ["src/learn/db/*"],

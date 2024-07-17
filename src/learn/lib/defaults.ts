@@ -28,7 +28,6 @@ export function createPrefs(now: number): Prefs {
     last_edited: now,
     current_deck: undefined,
     last_model_used: undefined,
-    active_decks: [],
     new_spread: 0,
     collapse_time: 60 * 20,
     notify_after_time: 0,
@@ -84,6 +83,7 @@ export function createConf(now: number): Conf {
 export function createDeck(now: number, name: string, id: Id): Deck {
   return {
     id,
+    creation: now,
     collapsed: false,
     desc: "",
     is_filtered: false,
@@ -93,7 +93,7 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     cfid: ID_ZERO,
     today: now,
     revcards_today: [],
-    revlogs_today: [],
+    revlogs_today: 0,
   }
 }
 

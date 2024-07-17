@@ -1,6 +1,6 @@
 import { notNull } from "@/components/pray"
 import { DB } from "."
-import { Id, ID_ZERO } from "../lib/id"
+import { Id, ID_ZERO, randomId } from "../lib/id"
 import { cloneModel } from "../lib/models"
 import { Model } from "../lib/types"
 import { Reason } from "./reason"
@@ -19,8 +19,8 @@ export async function saveManagedModels(
           .map((x) => x.name)
           .join(",")} and delete ${removed.map((x) => x[1]).join(",")}`
       : added.length
-      ? `Create model(s) ${added.map((x) => x.name).join(",")}`
-      : `Delete model(s) ${removed.map((x) => x[1]).join(",")}`
+        ? `Create model(s) ${added.map((x) => x.name).join(",")}`
+        : `Delete model(s) ${removed.map((x) => x[1]).join(",")}`
 
   const tx = db.readwrite(
     ["notes", "cards", "graves", "models", "core"],
@@ -57,7 +57,7 @@ export async function saveManagedModels(
     nids.map(async (nid) => {
       const cids = await cardsNid.getAllKeys(nid)
       notes.delete(nid)
-      graves.add({ oid: nid, type: 1 })
+      graves.add({ id: randomId(), oid: nid, type: 1 })
       for (const cid of cids) {
         cards.delete(cid)
       }

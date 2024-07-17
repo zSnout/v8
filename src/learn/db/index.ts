@@ -35,7 +35,7 @@ export interface RequiredSchema {
 /** The types for the learn database. */
 export interface Ty extends RequiredSchema {
   core: { key: Id; value: Core; indexes: {} }
-  graves: { key: number; value: Grave; indexes: {} }
+  graves: { key: Id; value: Grave; indexes: {} }
   confs: { key: Id; value: Conf; indexes: {} }
   decks: { key: Id; value: Deck; indexes: { cfid: Id; name: string } }
   models: { key: Id; value: Model; indexes: {} }

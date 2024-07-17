@@ -64,7 +64,7 @@ async function studiedTx(
 
       newToday.push(...deck.new_today)
       revcards.push(...deck.revcards_today)
-      revlogs += deck.revlogs_today.length
+      revlogs += deck.revlogs_today
     }),
   )
 

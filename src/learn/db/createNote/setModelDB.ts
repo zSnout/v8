@@ -185,7 +185,7 @@ export async function setModelDB(
         const cid = cs.find((x) => x.nid == id)?.id
         if (cid != null) {
           cards.delete(cid)
-          graves.add({ oid: cid, type: 0 })
+          graves.add({ id: randomId(), oid: cid, type: 0 })
         }
       }
     }
