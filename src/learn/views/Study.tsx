@@ -126,7 +126,6 @@ export const Study = createLoading(
 
     const [getData, { mutate, refetch: unsafeRawRefetch }] = createResource(
       async () => {
-        console.log("run")
         const now = Date.now()
         setAnswerShown(false)
         return { data: await select(db, main, dids, now, info), shownAt: now }

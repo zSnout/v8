@@ -245,7 +245,10 @@ const stmts = {
 
 const messages = {
   reset(): undefined {
+    db.exec("BEGIN TRANSACTION")
     db.exec(query_reset)
+    db.exec(query_schema)
+    db.exec("COMMIT")
   },
   export(): File {
     return new File(
@@ -274,7 +277,6 @@ const messages = {
     db.exec("BEGIN TRANSACTION")
     db.exec(query_reset)
     db.exec(query_schema)
-    console.log(query_schema)
     inner(stmts.core, [data.core])
     inner(stmts.graves, data.graves)
     inner(stmts.confs, data.confs)
