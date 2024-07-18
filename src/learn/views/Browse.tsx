@@ -3,8 +3,8 @@ import { Unmain } from "@/components/Prose"
 import { For } from "solid-js"
 import { load } from "../db/browse/load"
 import { createLoading } from "../el/Loading"
-import { BrowserColumn } from "../lib/types"
 import { ShortcutManager } from "../lib/shortcuts"
+import { BrowserColumn } from "../lib/types"
 
 // TODO: add escape key to all pages
 

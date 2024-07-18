@@ -15,7 +15,6 @@ import { createSignal, getOwner, onMount } from "solid-js"
 import { DB } from "../db"
 import { createDeckDB } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo } from "../db/home/listDecks"
-import { setDeckExpanded } from "../db/home/setDeckExpanded"
 import "../db/sqlite"
 import { SQL } from "../db/sqlite"
 import { Action, BottomButtons } from "../el/BottomButtons"
@@ -146,11 +145,10 @@ export const Home = createLoadingBase(
             tree={decks().tree}
             isExpanded={({ data }) => !data?.deck.collapsed}
             setExpanded={async ({ data, parent, key }, expanded) => {
-              await setDeckExpanded(
-                db,
+              await sql.post(
+                "home_set_deck_expanded",
                 data?.deck.id ?? parent.map((x) => x + "::").join("") + key,
                 expanded,
-                Date.now(),
               )
             }}
             node={DeckEl}

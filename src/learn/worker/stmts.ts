@@ -14,8 +14,7 @@ import {
 import type { SqlValue } from "sql.js"
 import { parse } from "valibot"
 import { db } from "./db"
-
-export const VERSION = 1
+import { latest } from "./version"
 
 export type INTEGER = number
 export type BOOLEAN = number
@@ -29,7 +28,7 @@ export const stmts = {
     makeArgs(core: Core): SqlValue[] {
       return [
         ID_ZERO satisfies INTEGER,
-        VERSION satisfies INTEGER,
+        latest satisfies INTEGER,
         core.creation satisfies INTEGER,
         core.last_edited satisfies INTEGER,
         core.last_schema_edit satisfies INTEGER,

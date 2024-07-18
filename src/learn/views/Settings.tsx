@@ -1,8 +1,9 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import { alert, confirm, ModalDescription } from "@/components/Modal"
+import { alert, confirm, Modal, ModalDescription } from "@/components/Modal"
 import {
   faDatabase,
   faDownload,
+  faMoneyBillTransfer,
   faRightFromBracket,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
@@ -122,6 +123,45 @@ export const Settings = createLoading(
                   a.download = file.name
                   a.click()
                   a.remove()
+                }}
+              />
+              <Icon
+                icon={faMoneyBillTransfer}
+                label="Transfer"
+                onClick={async () => {
+                  if (
+                    !(await confirm({
+                      owner,
+                      title: "Do you want to transfer?",
+                      get description() {
+                        return (
+                          <ModalDescription>
+                            This will reset all your data stored in SQLite (the
+                            newer database system) with data purely taken from
+                            indexedDB (which is likely no longer in use). Are
+                            you sure?
+                          </ModalDescription>
+                        )
+                      },
+                      okText: "Yes, transfer",
+                      cancelText: "No, cancel",
+                    }))
+                  ) {
+                    return
+                  }
+
+                  try {
+                    await sql.post("idb_import")
+                    await alert({
+                      owner,
+                      title: "Imported indexedDB data into SQLite database.",
+                    })
+                  } catch {
+                    await alert({
+                      owner,
+                      title: "Failed to import indexedDB data.",
+                    })
+                  }
                 }}
               />
             </Show>

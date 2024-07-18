@@ -22,12 +22,16 @@ export class SQL {
           return
         }
 
-        if (data == "zdb:reject") {
-          reject("The database failed to start.")
+        if (typeof data != "object" || data == null) {
           return
         }
 
-        if (typeof data != "object" || data == null || !("zTag" in data)) {
+        if ("zdb:reject" in data) {
+          reject(data["zdb:reject"])
+          return
+        }
+
+        if (!("zTag" in data)) {
           return
         }
 
@@ -57,11 +61,7 @@ export class SQL {
     type: K,
     ...data: Parameters<Handlers[K]>
   ): Promise<ReturnType<Handlers[K]>> {
-    if (import.meta.env.DEV) {
-      console.time("main thread is sending query")
-      console.time("main thread is handling query")
-    }
-    const promise = new Promise<ReturnType<Handlers[K]>>((resolve, reject) => {
+    return new Promise<ReturnType<Handlers[K]>>((resolve, reject) => {
       const id = randomId()
       const req: ToWorker = {
         zTag: 0,
@@ -72,17 +72,6 @@ export class SQL {
       this.handlers.set(id, [resolve, reject])
       this.worker.postMessage(req)
     })
-    if (import.meta.env.DEV) {
-      console.timeEnd("main thread is sending query")
-      promise.then(
-        () => console.timeEnd("main thread is handling query"),
-        (err) => {
-          console.timeEnd("main thread is handling query")
-          throw err
-        },
-      )
-    }
-    return promise
   }
 
   async post<K extends keyof Handlers>(

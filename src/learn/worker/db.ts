@@ -1,4 +1,4 @@
-import "core-js/proposals/explicit-resource-management"
+// import "core-js/proposals/explicit-resource-management"
 
 import type { Cloneable } from "@/learn/message"
 import initSqlJs from "@jlongster/sql.js"
@@ -7,8 +7,10 @@ import { SQLiteFS } from "absurd-sql"
 import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
 import type { BindParams, Database, SqlValue } from "sql.js"
 import type { Handler, ToScript, ToWorker } from "."
-import type { Check, CheckResult } from "./checks"
+import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
+import { latest } from "./version"
+
 import query_schema from "./query/schema.sql?raw"
 
 const data = { initSqlJs, wasm, SQLiteFS, IndexedDBBackend, query_schema }
@@ -73,26 +75,31 @@ export class WorkerDB extends SQL.Database {
   } {
     // TODO: possibly disable in prod
 
-    const result = this.exec(sql, params)
-    if (result.length != 1) {
-      throw new Error("Expected exactly one statement to be executed.")
-    }
+    const stmt = this.prepare(sql)
+    try {
+      stmt.bind(params)
+      const columns = stmt.getColumnNames()
+      if (columns.length != checks.length) {
+        throw new Error("Invalid number of columns returned.")
+      }
+      const query: SqlValue[][] = []
+      while (stmt.step()) {
+        query.push(stmt.get())
+      }
 
-    const query = result[0]!
-    if (query.columns.length != checks.length) {
-      throw new Error("Query returned the wrong number of columns.")
-    }
-
-    const row = query.values[0]
-    if (row) {
-      for (let index = 0; index < row.length; index++) {
-        if (!checks[index]!(row[index]!)) {
-          throw new Error("Query returned the wrong type.")
+      const row = query[0]
+      if (row) {
+        for (let index = 0; index < row.length; index++) {
+          if (!checks[index]!(row[index]!)) {
+            throw new Error("Query returned the wrong type.")
+          }
         }
       }
-    }
 
-    return query as any
+      return { columns, values: query satisfies SqlValue[][] as any }
+    } finally {
+      stmt.free()
+    }
   }
 }
 
@@ -111,8 +118,40 @@ async function init() {
   }
 
   const db = new WorkerDB(path, { filename: true })
-  db.exec(query_schema)
+  checkVersion(db)
   return db
+}
+
+// this function cannot access external `db` since that variable isn't set yet
+// this upgrades similarly to indexedDB since indexedDB does upgrades well
+// this handles the meta of upgrading, while `upgrade` is the main script
+function checkVersion(db: WorkerDB) {
+  // no rollback logic since if upgrading fails, nothing good will happen
+  db.exec("BEGIN TRANSACTION")
+  db.exec(query_schema)
+  const current = db.val("SELECT EXISTS(SELECT 1 FROM core WHERE id = 0)", int)
+    ? db.val("SELECT version FROM core WHERE id = 0", int)
+    : 0
+  upgrade(db, current)
+  if (current != latest) {
+    db.exec("UPDATE core SET version = ? WHERE id = 0", [latest])
+  }
+  db.exec("COMMIT")
+}
+
+// this function cannot access external `db` since that variable isn't set yet
+// this handles the main part of upgrading, while `checkVersion` takes the meta
+function upgrade(db: WorkerDB, current: number) {
+  // if version < 1, we have no data
+  if (current < 1) {
+    db.exec(
+      `INSERT INTO core (id, version) VALUES (0, :version);
+INSERT INTO prefs (id) VALUES (0);
+INSERT INTO confs (id, name) VALUES (0, 'Default');
+INSERT INTO decks (id, name, is_filtered) VALUES (0, 'Default', 0);`,
+      { ":version": latest },
+    )
+  }
 }
 
 export class Tx {
@@ -145,20 +184,10 @@ export class Tx {
       this.rollback()
     }
   }
-
-  [Symbol.dispose]() {
-    this.dispose()
-  }
 }
 
 addEventListener("message", async ({ data }: { data: unknown }) => {
-  if (import.meta.env.DEV) {
-    console.time("worker is handling query")
-  }
   if (typeof data != "object" || data == null || !("zTag" in data)) {
-    if (import.meta.env.DEV) {
-      console.timeEnd("worker is handling query")
-    }
     return
   }
 
@@ -175,29 +204,27 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
       }
 
       postMessage(res)
-    } catch (value) {
+    } catch (err) {
+      console.error(err)
       const res: ToScript = {
         zTag: 0,
         id: req.id,
         ok: false,
-        value: String(value),
+        value: String(err),
       }
       postMessage(res)
     }
-    if (import.meta.env.DEV) {
-      console.timeEnd("worker is handling query")
-    }
     return
-  }
-  if (import.meta.env.DEV) {
-    console.timeEnd("worker is handling query")
   }
 })
 
 // initialize the database and report the main thread on whether that worked
 export const db = await init().catch((err) => {
-  postMessage("zdb:reject")
-  console.error(err)
+  try {
+    postMessage({ "zdb:reject": err })
+  } catch {
+    postMessage({ "zdb:reject": "Error is unable to be reported." })
+  }
   throw err
 })
 
