@@ -1,7 +1,7 @@
 import { initBackend } from "absurd-sql/dist/indexeddb-main-thread"
 import { randomId } from "../lib/id"
-import type { Handlers, ToScript, ToWorker } from "./worker"
-import Worker from "./worker/index?worker"
+import type { Handlers, ToScript, ToWorker } from "../worker"
+import Worker from "../worker?worker"
 
 export class SQL {
   private readonly worker

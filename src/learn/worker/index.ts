@@ -1,5 +1,5 @@
 import type { MaybePromise } from "valibot"
-import type { Cloneable } from "../../message"
+import type { Cloneable } from "../message"
 import type * as messages from "./messages"
 
 import "./db"

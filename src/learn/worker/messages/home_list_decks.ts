@@ -1,7 +1,11 @@
-import { Tree } from "@/components/tree"
-import { bucketOfArray } from "../../bucket"
-import { startOfDaySync } from "../../day"
-import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../../home/listDecks"
+import { Tree } from "@/components/tree-structure"
+import { bucketOfArray } from "@/learn/db/bucket"
+import { startOfDaySync } from "@/learn/db/day"
+import type {
+  Buckets,
+  DeckHomeInfo,
+  DeckHomeTree,
+} from "@/learn/db/home/listDecks"
 import { bool, id, int, text } from "../checks"
 import { db } from "../db"
 

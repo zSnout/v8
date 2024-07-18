@@ -1,6 +1,6 @@
+import { open } from "@/learn/db"
+import { exportData } from "@/learn/db/save"
 import type { SqlValue, Statement } from "sql.js"
-import { open } from "../.."
-import { exportData } from "../../save"
 import { db } from "../db"
 import query_reset from "../query/reset.sql?raw"
 import query_schema from "../query/schema.sql?raw"
