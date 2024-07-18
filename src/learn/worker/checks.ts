@@ -1,7 +1,12 @@
 import type { Id } from "@/learn/lib/id"
 import type { SqlValue } from "sql.js"
 
-export function int(value: SqlValue) {
+// manual argument because typescript's `x is ...` semantics are strange
+export function int(value: SqlValue): value is number {
+  return typeof value == "number" && Number.isSafeInteger(value)
+}
+
+export function real(value: SqlValue) {
   return typeof value == "number"
 }
 
@@ -17,7 +22,14 @@ export function id(value: SqlValue): value is Id {
   return typeof value == "number" && Number.isSafeInteger(value)
 }
 
-export function qint(value: SqlValue) {
+// manual argument because typescript's `x is ...` semantics are strange
+export function qint(value: SqlValue): value is number {
+  return (
+    value == null || (typeof value == "number" && Number.isSafeInteger(value))
+  )
+}
+
+export function qreal(value: SqlValue) {
   return value == null || typeof value == "number"
 }
 

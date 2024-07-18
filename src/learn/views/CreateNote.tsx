@@ -3,16 +3,16 @@ import { notNull } from "@/components/pray"
 import { faPlus, faRightFromBracket } from "@fortawesome/free-solid-svg-icons"
 import { batch, createEffect, createSignal, For, untrack } from "solid-js"
 import { createStore } from "solid-js/store"
-import { createNote } from "../db/createNote/createNote"
-import { load } from "../db/createNote/load"
+import type { Worker } from "../db/worker"
 import { AutocompleteBox } from "../el/AutocompleteBox"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { IntegratedField } from "../el/IntegratedField"
 import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
+import type { Id } from "../lib/id"
 import { mapRecord } from "../lib/record"
 import { fieldRecord } from "../lib/template"
-import { Model } from "../lib/types"
+import { Model, type Deck, type NoteFields } from "../lib/types"
 import { EditModelFields } from "./EditModelFields"
 import { EditModelTemplates } from "./EditModelTemplates"
 import { ManageModels } from "./ManageModels"
@@ -20,9 +20,10 @@ import { ManageModels } from "./ManageModels"
 // FEAT: fields can be collapsed
 
 export const CreateNote = createLoading(
-  load,
+  (worker: Worker, _, state: { did?: Id; mid?: Id }) =>
+    worker.post("create_note_load", state),
   (
-    db,
+    worker,
     { deckCurrent, modelCurrent, decksByName, modelsByName },
     pop,
     state,
@@ -89,7 +90,7 @@ export const CreateNote = createLoading(
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
                 onClick={() => {
                   layers.push(EditModelFields, {
-                    db,
+                    worker,
                     mid: model().id,
                   })
                 }}
@@ -101,7 +102,7 @@ export const CreateNote = createLoading(
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
                 onClick={() =>
                   layers.push(EditModelTemplates, {
-                    db,
+                    worker,
                     mid: model().id,
                     fields: fieldRecord(model().fields, { ...fields }),
                   })
@@ -112,7 +113,7 @@ export const CreateNote = createLoading(
 
               <button
                 class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
-                onClick={() => layers.push(ManageModels, db)}
+                onClick={() => layers.push(ManageModels, worker)}
               >
                 Manage...
               </button>
@@ -188,12 +189,11 @@ export const CreateNote = createLoading(
       const lastSticky = untrack(() => ({ ...sticky }))
 
       const result = createNote(
-        db,
+        worker,
         lastTags,
         lastFields,
         model(),
         deck(),
-        Date.now(),
         lastSticky,
       )
 
@@ -218,3 +218,34 @@ export const CreateNote = createLoading(
     }
   },
 )
+
+function nextModel(
+  tags: string[],
+  fields: NoteFields,
+  model: Model,
+  sticky: Record<string, boolean>,
+): Model {
+  return {
+    ...model,
+    tags,
+    fields: mapRecord(model.fields, (field) => ({
+      ...field,
+      sticky: (sticky[field.id] && fields[field.id]) || "",
+    })),
+  }
+}
+
+function createNote(
+  worker: Worker,
+  tags: string[],
+  fields: NoteFields,
+  model: Model,
+  deck: Deck,
+  sticky: Record<string, boolean>,
+) {
+  const m2 = nextModel(tags, fields, model, sticky)
+  return {
+    model: m2,
+    done: worker.post("create_note", tags, fields, m2, deck),
+  }
+}

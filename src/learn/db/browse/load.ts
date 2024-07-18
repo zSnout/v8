@@ -1,7 +1,5 @@
-import { notNull, prayTruthy } from "@/components/pray"
 import { compare } from "@/learn/lib/compare"
 import { type Id } from "@/learn/lib/id"
-import { arrayToRecord } from "@/learn/lib/record"
 import {
   AnyCard,
   BrowserColumn,
@@ -11,64 +9,16 @@ import {
   type Prefs,
 } from "@/learn/lib/types"
 import { timestampDist } from "@/pages/quiz/shared"
-import type { DB } from ".."
-import { createPrefsStore } from "../prefs/store"
+import { State } from "ts-fsrs"
 
 export interface BrowseData {
   cardsArray: AnyCard[]
-  cards: Record<Id, AnyCard>
+  cardsByCid: Record<Id, AnyCard>
   cardsByNid: Partial<Record<Id, AnyCard[]>>
   notes: Record<Id, Note>
   models: Record<Id, Model>
   decks: Record<Id, Deck>
   prefs: Prefs
-}
-
-export async function load(db: DB) {
-  const [prefs, setPrefs, ready] = createPrefsStore(db)
-  await ready
-
-  const tx = db.read(["cards", "notes", "models", "decks"])
-
-  const [cards, notes, models, decks] = await Promise.all([
-    tx.objectStore("cards").getAll(),
-    tx.objectStore("notes").getAll(),
-    tx.objectStore("models").getAll().then(arrayToRecord),
-    tx.objectStore("decks").getAll().then(arrayToRecord),
-  ])
-
-  prayTruthy(prefs, "This collection does not have a preferences object.")
-
-  const notesByNid = arrayToRecord(notes)
-
-  const data: BrowseData = {
-    cardsArray: cards,
-    cards: arrayToRecord(cards),
-    cardsByNid: Object.groupBy(cards, (item) => item.nid),
-    notes: notesByNid,
-    models,
-    decks,
-    prefs,
-  }
-
-  return {
-    ...data,
-    setPrefs,
-    columns: cards.map((card) => {
-      const note = notNull(
-        notesByNid[card.nid],
-        "Card must be associated with a valid note.",
-      )
-      return { card, note, columns: makeColumns(card, note, data) }
-    }),
-    noteColumns: notes.map((note) => {
-      return {
-        card: undefined,
-        note,
-        columns: makeColumns(undefined, note, data),
-      }
-    }),
-  }
 }
 
 export type ColumnValue = string | number | undefined
@@ -161,6 +111,13 @@ const columns: Record<BrowserColumn, ColumnGetter> = {
   },
   Reviews(card) {
     return card?.reps
+  },
+  Stability(card) {
+    return card?.stability
+  },
+  State(card) {
+    if (!card) return
+    return `${card.state}(${State[card.state]})`
   },
   Tags(_, note) {
     return note.tags.sort(compare).join(", ")

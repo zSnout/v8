@@ -12,9 +12,7 @@ import * as messages from "./messages"
 import { latest } from "./version"
 
 import query_schema from "./query/schema.sql?raw"
-
-const data = { initSqlJs, wasm, SQLiteFS, IndexedDBBackend, query_schema }
-Object.assign(globalThis, { data })
+import query_init from "./query/init.sql?raw"
 
 const SQL = (await initSqlJs({ locateFile: () => wasm })) as {
   Database: new (...args: any) => Database
@@ -127,6 +125,7 @@ async function init() {
   }
 
   const db = new WorkerDB(path, { filename: true })
+  db.exec(query_init)
   checkVersion(db)
   return db
 }

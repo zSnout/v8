@@ -12,7 +12,6 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, getOwner, onMount } from "solid-js"
-import { DB } from "../db"
 import { createDeckDB } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo } from "../db/home/listDecks"
 import "../db/worker"
@@ -51,14 +50,14 @@ function SublinkHandler(): undefined {
 }
 
 export const Home = createLoadingBase(
-  async ([, worker]: [DB, Worker]) => {
+  async (worker: Worker) => {
     const [decks, setDecks] = createSignal(await worker.post("home_list_decks"))
     return [
       decks,
       async () => setDecks(await worker.post("home_list_decks")),
     ] as const
   },
-  ([db, worker], [decks, reloadDecks]) => {
+  (worker, [decks, reloadDecks]) => {
     const owner = getOwner()
     const layers = useLayers()
 
@@ -96,7 +95,7 @@ export const Home = createLoadingBase(
             center
             icon={faPlus}
             label="Add"
-            onClick={() => layers.push(CreateNote, db)}
+            onClick={() => layers.push(CreateNote, worker)}
           />
           <Action
             center
@@ -109,7 +108,7 @@ export const Home = createLoadingBase(
             center
             icon={faSliders}
             label="Settings"
-            onClick={() => layers.push(Settings, [db, worker])}
+            onClick={() => layers.push(Settings, worker)}
           />
           <Action center icon={faSync} label="Sync" onClick={nope} />
         </div>

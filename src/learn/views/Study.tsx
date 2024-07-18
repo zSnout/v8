@@ -442,6 +442,7 @@ export const Study = createLoading(
             icon={faRightFromBracket}
             label="Exit Session"
             shortcut={{ key: "Escape" }}
+            noShortcut
             onClick={pop}
           />
           <QuickAction

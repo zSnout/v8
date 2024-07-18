@@ -1,10 +1,10 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { Unmain } from "@/components/Prose"
-import { For } from "solid-js"
+import { For, untrack } from "solid-js"
 import { createPrefsWithWorker } from "../db/prefs/store"
 import type { Worker } from "../db/worker"
 import { createLoading } from "../el/Loading"
-import { ShortcutManager } from "../lib/shortcuts"
+import { createExpr } from "../lib/expr"
 import { BrowserColumn } from "../lib/types"
 
 // TODO: add escape key to all pages
@@ -14,11 +14,10 @@ export const Browse = createLoading(
     const data = await worker.post("browse_load")
     const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
     await ready
-    return { ...data, prefs, setPrefs }
+    const [sorted, reloadSorted] = createExpr(() => data.cards)
+    return [data, { prefs, setPrefs, sorted, reloadSorted }] as const
   },
-  (_, { columns, prefs, setPrefs }, pop) => {
-    new ShortcutManager().scoped({ key: "Escape" }, pop)
-
+  (_, [, { prefs, setPrefs, sorted, reloadSorted }]) => {
     return {
       el: (
         <div class="-my-8">
@@ -49,7 +48,7 @@ export const Browse = createLoading(
                       setPrefs(`Toggle ${name} column visibility in browser`)(
                         "browser",
                         "active_cols",
-                        (x) => x.concat(name),
+                        (x: BrowserColumn[]) => x.concat(name),
                       )
                     } else {
                       const idx = cols.indexOf(name)
@@ -57,7 +56,7 @@ export const Browse = createLoading(
                       setPrefs(`Toggle ${name} column visibility in browser`)(
                         "browser",
                         "active_cols",
-                        (x) => x.toSpliced(idx, 1),
+                        (x: BrowserColumn[]) => x.toSpliced(idx, 1),
                       )
                     }
                   }}
@@ -79,7 +78,39 @@ export const Browse = createLoading(
               <tr>
                 <For each={prefs.browser.active_cols}>
                   {(x) => (
-                    <th class="sticky top-0 border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
+                    <th
+                      class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0"
+                      onClick={() => {
+                        untrack(sorted).sort((ad, bd) => {
+                          const a = ad.columns[x]
+                          const b = bd.columns[x]
+
+                          // nulls first
+                          if (a == null && b == null) return 0
+                          if (a == null) return -1
+                          if (b == null) return 1
+
+                          // then numbers
+                          if (typeof a == "number" && typeof b == "number") {
+                            return a - b
+                          }
+                          if (typeof a == "number") return -1
+                          if (typeof b == "number") return 1
+
+                          // then text
+                          const al = a.toLowerCase()
+                          const bl = b.toLowerCase()
+                          if (al < bl) return -1
+                          if (al > bl) return 1
+                          if (a < b) return -1
+                          if (a > b) return 1
+
+                          // then give up
+                          return 0
+                        })
+                        reloadSorted()
+                      }}
+                    >
                       {x}
                     </th>
                   )}
@@ -87,7 +118,7 @@ export const Browse = createLoading(
               </tr>
             </thead>
             <tbody>
-              <For each={columns}>
+              <For each={sorted()}>
                 {(data) => (
                   <tr class="odd:bg-[--z-table-row-alt]">
                     <For each={prefs.browser.active_cols}>

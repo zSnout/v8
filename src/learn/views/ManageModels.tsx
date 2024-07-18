@@ -1,13 +1,7 @@
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createResource } from "solid-js"
-import { DB } from "../db"
-import {
-  AddedModel,
-  getCounts,
-  getModels,
-  RemovedModel,
-  saveManagedModels,
-} from "../db/saveManagedModels"
+import type { AddedModel, RemovedModel } from "../db/saveManagedModels"
+import type { Worker } from "../db/worker"
 import { createListEditor } from "../el/EditList"
 import { LoadingSmall } from "../el/LoadingSmall"
 import { Id, randomId } from "../lib/id"
@@ -19,9 +13,9 @@ export type Item =
   | { type: "create"; id: Id; name: string; model: Model }
 
 // TODO: this ought to do things
-export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
-  async (db) => {
-    const models = await getModels(db)
+export const ManageModels = createListEditor<Worker, number, Item[], {}, Item>(
+  async (worker) => {
+    const models = await worker.post("manage_models_get")
     const initial = models.map<RemovedModel>((x) => [x.id, x.name])
     return {
       async: 0,
@@ -44,7 +38,7 @@ export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
             removed.push(i)
           }
         }
-        await saveManagedModels(db, added, removed)
+        await worker.post("manage_models_save", added, removed)
       },
       title: "Models",
       subtitle: "managing all",
@@ -77,7 +71,7 @@ export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
   (props) => {
     const [data, { mutate }] = createResource(
       () => props.selected.id,
-      (mid) => getCounts(props.props, mid),
+      (mid) => props.props.post("manage_models_count", mid),
     )
 
     createEffect(() => {
@@ -89,12 +83,12 @@ export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
       <div class="grid rounded-lg bg-z-body-selected px-4 py-3">
         <LoadingSmall>
           <div>
-            Used in <span>{data()?.nids.length ?? "<unknown>"}</span> note
-            {data()?.nids.length == 1 ? "" : "s"}.
+            Used in <span>{data()?.nids ?? "<unknown>"}</span> note
+            {data()?.nids == 1 ? "" : "s"}.
           </div>
           <div>
-            Used in <span>{data()?.cids.length ?? "<unknown>"}</span> card
-            {data()?.cids.length == 1 ? "" : "s"}.
+            Used in <span>{data()?.cids ?? "<unknown>"}</span> card
+            {data()?.cids == 1 ? "" : "s"}.
           </div>
         </LoadingSmall>
       </div>

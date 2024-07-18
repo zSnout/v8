@@ -31,17 +31,17 @@ export function browse_load() {
 
     const data: BrowseData = {
       cardsArray: cards,
-      cards: arrayToRecord(cards),
+      cardsByCid: arrayToRecord(cards),
       cardsByNid: Object.groupBy(cards, (item) => item.nid),
       notes: notesByNid,
-      models,
-      decks,
+      models: arrayToRecord(models),
+      decks: arrayToRecord(decks),
       prefs,
     }
 
-    return {
+    const result = {
       ...data,
-      columns: cards.map((card) => {
+      cards: cards.map((card) => {
         const note = notNull(
           notesByNid[card.nid],
           "Card must be associated with a valid note.",
@@ -56,6 +56,8 @@ export function browse_load() {
         }
       }),
     }
+    tx.commit()
+    return result
   } finally {
     tx.dispose()
   }

@@ -445,6 +445,8 @@ export const BrowserColumn = v.picklist([
   "Lapses",
   "Tags",
   "Model",
+  "Stability",
+  "State",
 ])
 
 export type EditStyleRow = v.InferOutput<typeof EditStyleRow>

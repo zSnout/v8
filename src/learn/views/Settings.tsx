@@ -1,45 +1,37 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { alert, confirm, ModalDescription } from "@/components/Modal"
 import {
-  faDatabase,
+  faArrowRightArrowLeft,
   faDownload,
-  faMoneyBillTransfer,
+  faMagnifyingGlassChart,
   faRightFromBracket,
-  faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { getOwner, Show } from "solid-js"
-import { DB } from "../db"
 import { createPrefsWithWorker } from "../db/prefs/store"
-import { exportDb, importJson } from "../db/save"
 import type { Worker } from "../db/worker"
 import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
-import { ShortcutManager } from "../lib/shortcuts"
 import { SqlData } from "./SqlData"
 
 export const Settings = createLoading(
-  async ([, sql]: [DB, Worker]) => {
-    const [prefs, setPrefs, ready] = createPrefsWithWorker(sql)
+  async (worker: Worker) => {
+    const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
     await ready
     return [prefs, setPrefs] as const
   },
-  ([db, worker], [prefs, setPrefs], pop) => {
-    new ShortcutManager().scoped({ key: "Escape" }, pop)
+  (worker, [prefs, setPrefs], pop) => {
     const layers = useLayers()
-
     const owner = getOwner()
-
-    let filePicker!: HTMLInputElement
 
     return {
       el: (
         <div class="flex min-h-full w-full flex-col gap-8">
           <Icons>
             <Icon icon={faRightFromBracket} label="Back" onClick={pop} />
-            <input
+            {/* <input
               type="file"
               class="sr-only"
               accept="application/json"
@@ -88,12 +80,12 @@ export const Settings = createLoading(
               icon={faUpload}
               label="Import"
               onClick={() => filePicker.click()}
-            />
+            /> */}
             <Icon
               icon={faDownload}
               label="Export"
               onClick={async () => {
-                const file = await exportDb(db, Date.now())
+                const file = await worker.post("sqlite_export")
                 const url = URL.createObjectURL(file)
                 const a = document.createElement("a")
                 a.style.display = "none"
@@ -106,27 +98,12 @@ export const Settings = createLoading(
             />
             <Show when={prefs.debug}>
               <Icon
-                icon={faDatabase}
+                icon={faMagnifyingGlassChart}
                 label="Query"
                 onClick={() => layers.push(SqlData, worker)}
               />
               <Icon
-                icon={faDownload}
-                label="SQLite"
-                onClick={async () => {
-                  const file = await worker.post("export_sqlite")
-                  const url = URL.createObjectURL(file)
-                  const a = document.createElement("a")
-                  a.style.display = "none"
-                  document.body.append(a)
-                  a.href = url
-                  a.download = file.name
-                  a.click()
-                  a.remove()
-                }}
-              />
-              <Icon
-                icon={faMoneyBillTransfer}
+                icon={faArrowRightArrowLeft}
                 label="Transfer"
                 onClick={async () => {
                   if (

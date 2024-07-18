@@ -16,6 +16,7 @@ import { parse } from "valibot"
 import { latest } from "./version"
 
 export type INTEGER = number
+export type REAL = number
 export type BOOLEAN = number
 export type TEXT = string
 
@@ -248,8 +249,8 @@ export const stmts = {
         card.queue satisfies INTEGER,
         card.due satisfies INTEGER,
         (card.last_review ?? null) satisfies INTEGER | null,
-        card.stability satisfies INTEGER,
-        card.difficulty satisfies INTEGER,
+        card.stability satisfies REAL,
+        card.difficulty satisfies REAL,
         card.elapsed_days satisfies INTEGER,
         card.scheduled_days satisfies INTEGER,
         card.reps satisfies INTEGER,
@@ -271,8 +272,8 @@ export const stmts = {
         review.rating satisfies INTEGER,
         review.state satisfies INTEGER,
         review.due satisfies INTEGER,
-        review.stability satisfies INTEGER,
-        review.difficulty satisfies INTEGER,
+        review.stability satisfies REAL,
+        review.difficulty satisfies REAL,
         review.elapsed_days satisfies INTEGER,
         review.last_elapsed_days satisfies INTEGER,
         review.scheduled_days satisfies INTEGER,

@@ -1,7 +1,3 @@
-PRAGMA journal_mode = MEMORY;
-
-PRAGMA foreign_keys = ON;
-
 CREATE TABLE IF NOT EXISTS
   core (
     id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
@@ -36,7 +32,7 @@ CREATE TABLE IF NOT EXISTS
     review_max_review_interval INTEGER NOT NULL DEFAULT 36500,
     review_per_day INTEGER, -- can be null
     review_relearning_steps TEXT NOT NULL DEFAULT '[600]', -- json array
-    review_requested_retention INTEGER NOT NULL DEFAULT 0.9,
+    review_requested_retention REAL NOT NULL DEFAULT 0.9,
     review_w TEXT, -- json array; can be null
     show_global_timer BOOLEAN NOT NULL DEFAULT 0,
     timer_per_card INTEGER -- can be null
@@ -110,8 +106,8 @@ CREATE TABLE IF NOT EXISTS
     queue INTEGER NOT NULL DEFAULT 0,
     due INTEGER NOT NULL,
     last_review INTEGER, -- can be null
-    stability INTEGER NOT NULL DEFAULT 0,
-    difficulty INTEGER NOT NULL DEFAULT 0,
+    stability REAL NOT NULL DEFAULT 0,
+    difficulty REAL NOT NULL DEFAULT 0,
     elapsed_days INTEGER NOT NULL DEFAULT 0,
     scheduled_days INTEGER NOT NULL DEFAULT 0,
     reps INTEGER NOT NULL DEFAULT 0,
@@ -138,8 +134,8 @@ CREATE TABLE IF NOT EXISTS
     rating INTEGER NOT NULL,
     state INTEGER NOT NULL,
     due INTEGER NOT NULL,
-    stability INTEGER NOT NULL,
-    difficulty INTEGER NOT NULL,
+    stability REAL NOT NULL,
+    difficulty REAL NOT NULL,
     elapsed_days INTEGER NOT NULL,
     last_elapsed_days INTEGER NOT NULL,
     scheduled_days INTEGER NOT NULL,

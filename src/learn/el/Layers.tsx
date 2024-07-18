@@ -149,6 +149,12 @@ export class Layers {
     return true
   }
 
+  popLatest() {
+    if (this.layers.length) {
+      this.pop(this.layers.length - 1)
+    }
+  }
+
   async forcePopAll() {
     for (let index = this.layers.length - 1; index >= 0; index--) {
       const data = this.layers[index]
@@ -226,8 +232,16 @@ function animateOut(
   next.classList.remove("z-layer-active")
   next.inert = true
   next.addEventListener("transitionend", () => {
+    try {
+      unmountNext()
+    } catch (err) {
+      // solid has some issues demounting some layer components
+      // so we'll just pretend the problem doesn't exist
+      if (!(err instanceof DOMException && err.name == "NotFoundError")) {
+        throw err
+      }
+    }
     next.remove()
-    unmountNext()
   })
 }
 
