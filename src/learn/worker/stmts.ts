@@ -86,6 +86,27 @@ export const stmts = {
         "INSERT INTO decks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
     },
+    /** Expects data from a `SELECT * FROM decks` statement. */
+    interpret(data: SqlValue[]): Deck {
+      return {
+        id: data[0],
+        name: data[1],
+        collapsed: !!data[2],
+        is_filtered: !!data[3],
+        custom_revcard_limit: data[4],
+        custom_newcard_limit: data[5],
+        default_revcard_limit: data[6],
+        default_newcard_limit: data[7],
+        last_edited: data[8],
+        new_today: JSON.parse(data[9] as string),
+        revcards_today: JSON.parse(data[10] as string),
+        revlogs_today: data[11],
+        today: data[12],
+        desc: data[13],
+        cfid: data[14],
+        creation: data[15],
+      } as Deck // TODO: verify type
+    },
     makeArgs(deck: Deck): SqlValue[] {
       return [
         deck.id satisfies INTEGER,
@@ -112,6 +133,21 @@ export const stmts = {
       return db.prepare(
         "INSERT INTO models VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
+    },
+    interpret(data: SqlValue[]): Model {
+      return {
+        id: data[0],
+        css: data[1],
+        fields: JSON.parse(data[2] as string),
+        latex: data[3] ? JSON.parse(data[3] as string) : null,
+        name: data[4],
+        sort_field: data[5],
+        tmpls: JSON.parse(data[6] as string),
+        tags: (data[7] as string).split(" ").filter((x) => x),
+        type: data[8],
+        creation: data[9],
+        last_edited: data[10],
+      } as Model
     },
     makeArgs(model: Model): SqlValue[] {
       return [

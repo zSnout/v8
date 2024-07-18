@@ -58,6 +58,28 @@ export class WorkerDB extends SQL.Database {
     return item
   }
 
+  single(
+    sql: string,
+    params?: BindParams,
+  ): {
+    columns: string[]
+    values: SqlValue[][]
+  } {
+    const stmt = this.prepare(sql)
+    try {
+      stmt.bind(params)
+      const columns = stmt.getColumnNames()
+      const query: SqlValue[][] = []
+      while (stmt.step()) {
+        query.push(stmt.get())
+      }
+
+      return { columns, values: query satisfies SqlValue[][] as any }
+    } finally {
+      stmt.free()
+    }
+  }
+
   /** Runs a query and checks the types of the first row of values. */
   checked<const T extends ((x: SqlValue) => boolean)[]>(
     sql: string,
@@ -73,33 +95,20 @@ export class WorkerDB extends SQL.Database {
         : SqlValue
     }[]
   } {
-    // TODO: possibly disable in prod
+    // TODO: possibly disable checks in prod
 
-    const stmt = this.prepare(sql)
-    try {
-      stmt.bind(params)
-      const columns = stmt.getColumnNames()
-      if (columns.length != checks.length) {
-        throw new Error("Invalid number of columns returned.")
-      }
-      const query: SqlValue[][] = []
-      while (stmt.step()) {
-        query.push(stmt.get())
-      }
+    const data = this.single(sql, params)
 
-      const row = query[0]
-      if (row) {
-        for (let index = 0; index < row.length; index++) {
-          if (!checks[index]!(row[index]!)) {
-            throw new Error("Query returned the wrong type.")
-          }
+    const row = data.values[0]
+    if (row) {
+      for (let index = 0; index < row.length; index++) {
+        if (!checks[index]!(row[index]!)) {
+          throw new Error("Query returned the wrong type.")
         }
       }
-
-      return { columns, values: query satisfies SqlValue[][] as any }
-    } finally {
-      stmt.free()
     }
+
+    return data as any
   }
 }
 
