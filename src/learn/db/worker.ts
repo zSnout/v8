@@ -1,9 +1,9 @@
 import { initBackend } from "absurd-sql/dist/indexeddb-main-thread"
 import { randomId } from "../lib/id"
 import type { Handlers, ToScript, ToWorker } from "../worker"
-import Worker from "../worker?worker"
+import ActualWorker from "../worker?worker"
 
-export class SQL {
+export class Worker {
   private readonly worker
   private readonly handlers = new Map<
     number,
@@ -13,7 +13,7 @@ export class SQL {
   private isReady = false
 
   constructor() {
-    this.worker = new Worker()
+    this.worker = new ActualWorker()
     this.ready = new Promise<this>((resolve, reject) => {
       this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
         if (data == "zdb:resolve") {

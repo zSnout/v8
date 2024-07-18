@@ -4,7 +4,7 @@ import { Prefs } from "@/learn/lib/types"
 import { createStore, SetStoreFunction, unwrap } from "solid-js/store"
 import { DB } from ".."
 import { Reason } from "../reason"
-import type { SQL } from "../sqlite"
+import type { Worker } from "../worker"
 
 export function createPrefsStore(
   db: DB,
@@ -40,8 +40,8 @@ export function createPrefsStore(
   ]
 }
 
-export function createPrefsSQL(
-  sql: SQL,
+export function createPrefsWithWorker(
+  worker: Worker,
 ): [
   get: Prefs,
   set: (reason: Reason) => SetStoreFunction<Prefs>,
@@ -51,7 +51,7 @@ export function createPrefsSQL(
   let resolve: () => void
   const ready = new Promise<void>((r) => (resolve = r))
 
-  sql.post("prefs_get").then((prefs) => {
+  worker.post("prefs_get").then((prefs) => {
     set(prefs)
     resolve()
   })
@@ -62,7 +62,7 @@ export function createPrefsSQL(
       function (this: any) {
         // TODO: implement undo-redo
         set.apply(this, arguments as never)
-        sql.post("prefs_set", unwrap(get))
+        worker.post("prefs_set", unwrap(get))
       } as SetStoreFunction<Prefs>,
     ready,
   ]

@@ -1,7 +1,8 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { Unmain } from "@/components/Prose"
 import { For } from "solid-js"
-import { load } from "../db/browse/load"
+import { createPrefsWithWorker } from "../db/prefs/store"
+import type { Worker } from "../db/worker"
 import { createLoading } from "../el/Loading"
 import { ShortcutManager } from "../lib/shortcuts"
 import { BrowserColumn } from "../lib/types"
@@ -9,7 +10,12 @@ import { BrowserColumn } from "../lib/types"
 // TODO: add escape key to all pages
 
 export const Browse = createLoading(
-  load,
+  async (worker: Worker) => {
+    const data = await worker.post("browse_load")
+    const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
+    await ready
+    return { ...data, prefs, setPrefs }
+  },
   (_, { columns, prefs, setPrefs }, pop) => {
     new ShortcutManager().scoped({ key: "Escape" }, pop)
 

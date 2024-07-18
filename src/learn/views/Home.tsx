@@ -15,8 +15,8 @@ import { createSignal, getOwner, onMount } from "solid-js"
 import { DB } from "../db"
 import { createDeckDB } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo } from "../db/home/listDecks"
-import "../db/sqlite"
-import { SQL } from "../db/sqlite"
+import "../db/worker"
+import { Worker } from "../db/worker"
 import { Action, BottomButtons } from "../el/BottomButtons"
 import {
   ContextMenuItem,
@@ -51,14 +51,14 @@ function SublinkHandler(): undefined {
 }
 
 export const Home = createLoadingBase(
-  async ([, sql]: [DB, SQL]) => {
-    const [decks, setDecks] = createSignal(await sql.post("home_list_decks"))
+  async ([, worker]: [DB, Worker]) => {
+    const [decks, setDecks] = createSignal(await worker.post("home_list_decks"))
     return [
       decks,
-      async () => setDecks(await sql.post("home_list_decks")),
+      async () => setDecks(await worker.post("home_list_decks")),
     ] as const
   },
-  ([db, sql], [decks, reloadDecks]) => {
+  ([db, worker], [decks, reloadDecks]) => {
     const owner = getOwner()
     const layers = useLayers()
 
@@ -102,14 +102,14 @@ export const Home = createLoadingBase(
             center
             icon={faTableCellsLarge}
             label="Browse"
-            onClick={() => layers.push(Browse, db)}
+            onClick={() => layers.push(Browse, worker)}
           />
           <Action center icon={faChartBar} label="Stats" onClick={nope} />
           <Action
             center
             icon={faSliders}
             label="Settings"
-            onClick={() => layers.push(Settings, [db, sql])}
+            onClick={() => layers.push(Settings, [db, worker])}
           />
           <Action center icon={faSync} label="Sync" onClick={nope} />
         </div>
@@ -145,7 +145,7 @@ export const Home = createLoadingBase(
             tree={decks().tree}
             isExpanded={({ data }) => !data?.deck.collapsed}
             setExpanded={async ({ data, parent, key }, expanded) => {
-              await sql.post(
+              await worker.post(
                 "home_set_deck_expanded",
                 data?.deck.id ?? parent.map((x) => x + "::").join("") + key,
                 expanded,

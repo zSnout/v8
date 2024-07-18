@@ -1,5 +1,9 @@
+import { notNull } from "@/components/pray"
+import { makeColumns, type BrowseData } from "@/learn/db/browse/load"
+import { arrayToRecord } from "@/learn/lib/record"
 import { db } from "../db"
 import { stmts } from "../stmts"
+import { prefs_get } from "./prefs_get"
 
 export function browse_load() {
   const tx = db.tx()
@@ -13,14 +17,15 @@ export function browse_load() {
       .single("SELECT * FROM models")
       .values.map(stmts.models.interpret)
 
-    const [cards, notes] = await Promise.all([
-      tx.objectStore("cards").getAll(),
-      tx.objectStore("notes").getAll(),
-      tx.objectStore("models").getAll().then(arrayToRecord),
-      tx.objectStore("decks").getAll().then(arrayToRecord),
-    ])
+    const notes = db
+      .single("SELECT * FROM notes")
+      .values.map(stmts.notes.interpret)
 
-    prayTruthy(prefs, "This collection does not have a preferences object.")
+    const cards = db
+      .single("SELECT * FROM cards")
+      .values.map(stmts.cards.interpret)
+
+    const prefs = prefs_get()
 
     const notesByNid = arrayToRecord(notes)
 
@@ -36,7 +41,6 @@ export function browse_load() {
 
     return {
       ...data,
-      setPrefs,
       columns: cards.map((card) => {
         const note = notNull(
           notesByNid[card.nid],

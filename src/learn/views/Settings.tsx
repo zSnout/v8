@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import { alert, confirm, Modal, ModalDescription } from "@/components/Modal"
+import { alert, confirm, ModalDescription } from "@/components/Modal"
 import {
   faDatabase,
   faDownload,
@@ -9,9 +9,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { getOwner, Show } from "solid-js"
 import { DB } from "../db"
-import { createPrefsSQL } from "../db/prefs/store"
+import { createPrefsWithWorker } from "../db/prefs/store"
 import { exportDb, importJson } from "../db/save"
-import type { SQL } from "../db/sqlite"
+import type { Worker } from "../db/worker"
 import { SingleBottomAction } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { Icon, Icons } from "../el/IconButton"
@@ -21,12 +21,12 @@ import { ShortcutManager } from "../lib/shortcuts"
 import { JsonData } from "./JsonData"
 
 export const Settings = createLoading(
-  async ([, sql]: [DB, SQL]) => {
-    const [prefs, setPrefs, ready] = createPrefsSQL(sql)
+  async ([, sql]: [DB, Worker]) => {
+    const [prefs, setPrefs, ready] = createPrefsWithWorker(sql)
     await ready
     return [prefs, setPrefs] as const
   },
-  ([db, sql], [prefs, setPrefs], pop) => {
+  ([db, worker], [prefs, setPrefs], pop) => {
     new ShortcutManager().scoped({ key: "Escape" }, pop)
     const layers = useLayers()
 
@@ -114,7 +114,7 @@ export const Settings = createLoading(
                 icon={faDownload}
                 label="SQLite"
                 onClick={async () => {
-                  const file = await sql.post("export_sqlite")
+                  const file = await worker.post("export_sqlite")
                   const url = URL.createObjectURL(file)
                   const a = document.createElement("a")
                   a.style.display = "none"
@@ -151,7 +151,7 @@ export const Settings = createLoading(
                   }
 
                   try {
-                    await sql.post("idb_import")
+                    await worker.post("idb_import")
                     await alert({
                       owner,
                       title: "Imported indexedDB data into SQLite database.",

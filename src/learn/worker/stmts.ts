@@ -147,7 +147,7 @@ export const stmts = {
         type: data[8],
         creation: data[9],
         last_edited: data[10],
-      } as Model
+      } as Model // TODO: maybe do some data validation
     },
     makeArgs(model: Model): SqlValue[] {
       return [
@@ -171,6 +171,19 @@ export const stmts = {
     prepareInsert() {
       return db.prepare("INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
     },
+    interpret(data: SqlValue[]): Note {
+      return {
+        id: data[0],
+        creation: data[1],
+        mid: data[2],
+        last_edited: data[3],
+        tags: (data[4] as string).split(" ").filter((x) => x),
+        fields: JSON.parse(data[5] as string),
+        sort_field: data[6],
+        csum: data[7],
+        marks: data[8],
+      } as Note // TODO: maybe do data checking
+    },
     makeArgs(note: Note): SqlValue[] {
       return [
         note.id satisfies INTEGER,
@@ -190,6 +203,28 @@ export const stmts = {
       return db.prepare(
         "INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
+    },
+    interpret(data: SqlValue[]): AnyCard {
+      return {
+        id: data[0],
+        nid: data[1],
+        tid: data[2],
+        did: data[3],
+        odid: data[4],
+        creation: data[5],
+        last_edited: data[6],
+        queue: data[7],
+        due: data[8],
+        last_review: data[9],
+        stability: data[10],
+        difficulty: data[11],
+        elapsed_days: data[12],
+        scheduled_days: data[13],
+        reps: data[14],
+        lapses: data[15],
+        flags: data[16],
+        state: data[17],
+      } as AnyCard
     },
     makeArgs(card: AnyCard): SqlValue[] {
       return [
