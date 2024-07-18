@@ -27,6 +27,7 @@ import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
 import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
+import { Query } from "./Query"
 import { Settings } from "./Settings"
 import { Study } from "./Study"
 
@@ -103,7 +104,13 @@ export const Home = createLoadingBase(
             label="Browse"
             onClick={() => layers.push(Browse, worker)}
           />
-          <Action center icon={faChartBar} label="Stats" onClick={nope} />
+          <Action
+            center
+            icon={faChartBar}
+            label="Query"
+            onClick={() => layers.push(Query, worker)}
+          />
+          {/* TODO: implement actual statistics page */}
           <Action
             center
             icon={faSliders}

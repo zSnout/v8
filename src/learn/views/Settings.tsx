@@ -16,7 +16,7 @@ import { Icon, IconGrid } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
 import { UploadButton } from "../el/upload"
-import { SqlData } from "./SqlData"
+import { Query } from "./Query"
 
 export const Settings = createLoading(
   async (worker: Worker) => {
@@ -152,39 +152,7 @@ export const Settings = createLoading(
           <Icon
             icon={faMagnifyingGlassChart}
             label="Query"
-            onClick={async () => {
-              const result = await confirm({
-                owner,
-                title: "Are you sure you want to use Query?",
-                description: (
-                  <>
-                    <ModalDescription>
-                      The Query tool lets you query your collection using
-                      arbitrary SQLite commands. If you don't know SQLite, this
-                      area is not for you.
-                    </ModalDescription>
-
-                    <ModalDescription>
-                      Anything you do in the Query tool
-                      <strong class="text-z underline">
-                        irreversibly
-                      </strong>{" "}
-                      replace your entire collection with data from the imported
-                      file. We highly recommend exporting your current data
-                      before you import, just in case.
-                    </ModalDescription>
-                  </>
-                ),
-                cancelText: "No, back",
-                okText: "Yes, let me query",
-              })
-
-              if (!result) {
-                return
-              }
-
-              layers.push(SqlData, worker)
-            }}
+            onClick={() => layers.push(Query, worker)}
           />
 
           <Icon
