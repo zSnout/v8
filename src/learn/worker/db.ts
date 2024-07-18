@@ -184,6 +184,8 @@ export class Tx {
       throw new Error("Cannot rollback a transaction after it is finished.")
     }
 
+    console.warn("Rolling back transaction.")
+
     db.exec("ROLLBACK")
     this.done = true
   }

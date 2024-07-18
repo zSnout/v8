@@ -8,12 +8,12 @@ import { stmts } from "../stmts"
 
 export async function idb_import() {
   function inner<T>(
-    meta: { insert: string; makeArgs(item: T): SqlValue[] },
+    meta: { insert: string; insertArgs(item: T): SqlValue[] },
     items: T[],
   ) {
     const stmt = db.prepare(meta.insert)
     for (const item of items) {
-      stmt.run(meta.makeArgs(item))
+      stmt.run(meta.insertArgs(item))
     }
     stmt.free()
   }

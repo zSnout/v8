@@ -22,7 +22,18 @@ export type TEXT = string
 export const stmts = {
   core: {
     insert: "INSERT INTO core VALUES (?, ?, ?, ?, ?, ?, ?)",
-    makeArgs(core: Core): SqlValue[] {
+    interpret(data: SqlValue[]): Core {
+      return {
+        // data[0] is id
+        // data[1] is version
+        creation: data[2],
+        last_edited: data[3],
+        last_schema_edit: data[4],
+        last_sync: data[5],
+        tags: data[6],
+      } as Core
+    },
+    insertArgs(core: Core): SqlValue[] {
       return [
         ID_ZERO satisfies INTEGER,
         latest satisfies INTEGER,
@@ -36,7 +47,7 @@ export const stmts = {
   },
   graves: {
     insert: "INSERT INTO graves VALUES (?, ?, ?)",
-    makeArgs(grave: Grave): SqlValue[] {
+    insertArgs(grave: Grave): SqlValue[] {
       return [
         grave.id satisfies INTEGER,
         grave.oid satisfies INTEGER,
@@ -47,7 +58,7 @@ export const stmts = {
   confs: {
     insert:
       "INSERT INTO confs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    makeArgs(conf: Conf): SqlValue[] {
+    insertArgs(conf: Conf): SqlValue[] {
       return [
         conf.id satisfies INTEGER,
         +conf.autoplay_audio satisfies BOOLEAN,
@@ -96,7 +107,7 @@ export const stmts = {
         creation: data[15],
       } as Deck // TODO: verify type
     },
-    makeArgs(deck: Deck): SqlValue[] {
+    insertArgs(deck: Deck): SqlValue[] {
       return [
         deck.id satisfies INTEGER,
         deck.name satisfies TEXT,
@@ -119,6 +130,8 @@ export const stmts = {
   },
   models: {
     insert: "INSERT INTO models VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    update:
+      "UPDATE models SET css = ?, fields = ?, latex = ?, name = ?, sort_field = ?, tmpls = ?, tags = ?, type = ?, creation = ?, last_edited = ? WHERE id = ?",
     interpret(data: SqlValue[]): Model {
       return {
         id: data[0],
@@ -134,7 +147,7 @@ export const stmts = {
         last_edited: data[10],
       } as Model // TODO: maybe do some data validation
     },
-    makeArgs(model: Model): SqlValue[] {
+    insertArgs(model: Model): SqlValue[] {
       return [
         model.id satisfies INTEGER,
         model.css satisfies TEXT,
@@ -149,6 +162,23 @@ export const stmts = {
         model.type satisfies INTEGER,
         model.creation satisfies INTEGER,
         model.last_edited satisfies INTEGER,
+      ]
+    },
+    updateArgs(model: Model): SqlValue[] {
+      return [
+        model.css satisfies TEXT,
+        JSON.stringify(model.fields) satisfies TEXT,
+        (model.latex
+          ? JSON.stringify(model.latex)
+          : null) satisfies TEXT | null,
+        model.name satisfies TEXT,
+        (model.sort_field ?? null) satisfies INTEGER | null,
+        JSON.stringify(model.tmpls) satisfies TEXT,
+        model.tags.join(" ") satisfies TEXT,
+        model.type satisfies INTEGER,
+        model.creation satisfies INTEGER,
+        model.last_edited satisfies INTEGER,
+        model.id satisfies INTEGER,
       ]
     },
   },
@@ -167,7 +197,7 @@ export const stmts = {
         marks: data[8],
       } as Note // TODO: maybe do data checking
     },
-    makeArgs(note: Note): SqlValue[] {
+    insertArgs(note: Note): SqlValue[] {
       return [
         note.id satisfies INTEGER,
         note.creation satisfies INTEGER,
@@ -206,7 +236,7 @@ export const stmts = {
         state: data[17],
       } as AnyCard
     },
-    makeArgs(card: AnyCard): SqlValue[] {
+    insertArgs(card: AnyCard): SqlValue[] {
       return [
         card.id satisfies INTEGER,
         card.nid satisfies INTEGER,
@@ -232,7 +262,7 @@ export const stmts = {
   rev_log: {
     insert:
       "INSERT INTO rev_log VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    makeArgs(review: Review) {
+    insertArgs(review: Review) {
       return [
         review.id satisfies INTEGER,
         review.cid satisfies INTEGER,
@@ -290,7 +320,7 @@ export const stmts = {
      *
      * Not compatiable with interpret.
      */
-    makeArgs(prefs: Prefs) {
+    insertArgs(prefs: Prefs) {
       return [
         prefs.last_edited satisfies INTEGER,
         (prefs.current_deck ?? null) satisfies INTEGER | null,

@@ -1,19 +1,42 @@
 import type { Id } from "@/learn/lib/id"
 import type { SqlValue } from "sql.js"
 
-export const int = (x: SqlValue) => typeof x == "number"
-export const bool = (x: SqlValue) => x == 0 || x == 1
-export const text = (x: SqlValue) => typeof x == "string"
-export const id = (x: SqlValue): x is Id =>
-  typeof x == "number" && Number.isSafeInteger(x)
+export function int(value: SqlValue) {
+  return typeof value == "number"
+}
 
-export const qint = (x: SqlValue) => x == null || typeof x == "number"
-export const qbool = (x: SqlValue) => x == null || x == 0 || x == 1
-export const qtext = (x: SqlValue) => x == null || typeof x == "string"
-export const qid = (x: SqlValue): x is Id | null =>
-  x == null || (typeof x == "number" && Number.isSafeInteger(x))
+export function bool(value: SqlValue) {
+  return value == 0 || value == 1
+}
+
+export function text(value: SqlValue) {
+  return typeof value == "string"
+}
+
+export function id(value: SqlValue): value is Id {
+  return typeof value == "number" && Number.isSafeInteger(value)
+}
+
+export function qint(value: SqlValue) {
+  return value == null || typeof value == "number"
+}
+
+export function qbool(value: SqlValue) {
+  return value == null || value == 0 || value == 1
+}
+
+export function qtext(value: SqlValue) {
+  return value == null || typeof value == "string"
+}
+
+export function qid(value: SqlValue): value is Id {
+  return (
+    value == null || (typeof value == "number" && Number.isSafeInteger(value))
+  )
+}
 
 export type Check = (x: SqlValue) => boolean
+
 export type CheckResult<T extends Check> = T extends ((
   x: SqlValue,
 ) => x is infer U extends SqlValue)

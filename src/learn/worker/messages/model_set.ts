@@ -1,18 +1,25 @@
-import { notNull } from "@/components/pray"
 import { unwrapOr } from "@/components/result"
 import { Id, ID_ZERO, randomId } from "@/learn/lib/id"
 import * as Template from "@/learn/lib/template"
 import {
   Model,
+  ModelFields,
+  ModelTemplates,
   NewCard,
   Note,
   NoteFields,
   TemplateEditStyle,
 } from "@/learn/lib/types"
 import { createEmptyCard, State } from "ts-fsrs"
+import { parse } from "valibot"
+import { id, qid, text } from "../checks"
 import { db } from "../db"
+import { stmts } from "../stmts"
 
-function requiresOneWaySync(prev: Model, next: Model) {
+function requiresOneWaySync(
+  prev: Pick<Model, "sort_field" | "fields">,
+  next: Model,
+) {
   if (prev.sort_field != next.sort_field) {
     return true
   }
@@ -32,9 +39,9 @@ function requiresOneWaySync(prev: Model, next: Model) {
   return false
 }
 
-function diffTmpls(prev: Model, next: Model) {
-  const p = Object.values(prev.tmpls)
-  const n = Object.values(next.tmpls)
+function diffTmpls(prev: ModelTemplates, next: ModelTemplates) {
+  const p = Object.values(prev)
+  const n = Object.values(next)
 
   return {
     add: n.filter((n) => !p.some((p) => p.id == n.id)), // things in n but not p
@@ -87,41 +94,41 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
     // const graves = tx.objectStore("graves")
     // const cardsByNid = cards.index("nid")
 
-    if (
-      db.single("SELECT 1 FROM models WHERE id = ?", [model.id]).values.length
-    ) {
-    }
-    const prev = await models.get(model.id)
+    const prevRaw = db.checked(
+      "SELECT tmpls, sort_field, fields FROM models WHERE id = ?",
+      [text, qid, text],
+      [model.id],
+    ).values[0]
 
-    if (!prev) {
-      models.add(model)
-      await tx.done
+    if (!prevRaw) {
+      db.exec(stmts.models.insert, stmts.models.insertArgs(model))
+      tx.commit()
       return
     }
 
-    const { add, del } = diffTmpls(prev, model)
+    const prev = {
+      tmpls: parse(ModelTemplates, JSON.parse(prevRaw[0])),
+      sort_field: prevRaw[1],
+      fields: parse(ModelFields, JSON.parse(prevRaw[2])),
+    }
 
-    const notes = tx.objectStore("notes")
+    const { add, del } = diffTmpls(prev.tmpls, model.tmpls)
 
     if (requiresOneWaySync(prev, model)) {
-      const core = tx.objectStore("core")
-      const c = notNull(await core.get(ID_ZERO), "Core must exist.")
-      core.put(
-        { ...c, last_schema_edit: Date.now(), last_edited: Date.now() },
-        ID_ZERO,
+      db.exec(
+        "UPDATE core SET last_schema_edit = :now, last_edited = :now WHERE id = 0",
+        { ":now": Date.now() },
       )
     }
 
-    for (const note of await notes.getAll()) {
-      if (note.mid != model.id) {
-        continue
-      }
-
-      inner(note)
+    for (const note of db.single("SELECT * FROM notes WHERE mid = ?", [
+      model.id,
+    ]).values) {
+      inner(stmts.notes.interpret(note))
     }
 
-    models.put(model)
-    await tx.done
+    db.exec(stmts.models.update, stmts.models.updateArgs(model))
+    tx.commit()
     return
 
     async function inner(note: Note) {
@@ -132,16 +139,22 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
       }
       const last_edited = now
       // FEAT: checksums
-      note.sort_field = sort_field
-      note.fields = fields
-      note.last_edited = last_edited
-      notes.put(note)
+      db.exec(
+        "UPDATE notes SET sort_field = ?, fields = ?, last_edited = ? WHERE id = ?",
+        [sort_field, JSON.stringify(fields), last_edited, note.id],
+      )
 
       if (!add.length && !del.length) {
         return
       }
 
-      const cs = await cardsByNid.getAll(note.id)
+      const cs = db
+        .checked(
+          "SELECT tid, odid, did, id FROM cards WHERE nid = ?",
+          [id, qid, id, id],
+          [note.id],
+        )
+        .values.map(([tid, odid, did, id]) => ({ tid, odid, did, id }))
 
       if (add.length) {
         const fields = Template.fieldRecord(model.fields, note.fields)
@@ -171,17 +184,20 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
               flags: 0,
               odid: null,
             }
-            cards.add(card)
+            db.exec(stmts.cards.insert, stmts.cards.insertArgs(card))
           }
         }
       }
 
       if (del.length) {
         for (const { id } of del) {
-          const cid = cs.find((x) => x.nid == id)?.id
+          const cid = cs.find((x) => x.tid == id)?.id
           if (cid != null) {
-            cards.delete(cid)
-            graves.add({ id: randomId(), oid: cid, type: 0 })
+            db.exec("DELETE FROM cards WHERE id = ?", [cid])
+            db.exec("INSERT INTO graves (id, oid, type) VALUES (?, ?, 0)", [
+              randomId(),
+              cid,
+            ])
           }
         }
       }
