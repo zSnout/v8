@@ -22,7 +22,7 @@ export function browse_load() {
       .values.map(stmts.notes.interpret)
 
     const cards = db
-      .single("SELECT * FROM cards")
+      .single("SELECT * FROM cards ORDER BY creation")
       .values.map(stmts.cards.interpret)
 
     const prefs = prefs_get()

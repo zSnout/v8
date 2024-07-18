@@ -21,12 +21,14 @@ export const Browse = createLoading(
 
     return {
       el: (
-        <Unmain class="flex min-h-full">
-          <div class="-my-8 flex min-h-full w-full">
-            <Sidebar />
-            <Grid />
-          </div>
-        </Unmain>
+        <div class="-my-8">
+          <Unmain class="flex h-[calc(100vh_-_3rem)]">
+            <div class="flex h-[calc(100vh_-_3rem)] w-full">
+              <Sidebar />
+              <Grid />
+            </div>
+          </Unmain>
+        </div>
       ),
       onForcePop: () => true,
     }
@@ -77,7 +79,7 @@ export const Browse = createLoading(
               <tr>
                 <For each={prefs.browser.active_cols}>
                   {(x) => (
-                    <th class="border-x border-z px-1 first:border-l-0 last:border-r-0">
+                    <th class="sticky top-0 border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
                       {x}
                     </th>
                   )}
