@@ -492,7 +492,7 @@ export const Prefs = v.object({
   next_new_card_position: v.number(),
 
   /** The last time any card was unburied. If not today, then buried notes need to be unburied */
-  last_unburied: v.nullish(v.number()),
+  last_unburied: v.nullish(v.number(), 0),
 
   /** When the day is considered to start, in milliseconds after midnight */
   day_start: v.number(),

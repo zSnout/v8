@@ -6,16 +6,22 @@ CREATE TABLE IF NOT EXISTS
   core (
     id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
     version INTEGER NOT NULL,
-    creation INTEGER NOT NULL,
-    last_edited INTEGER NOT NULL,
-    last_schema_edit INTEGER NOT NULL,
-    last_sync INTEGER NOT NULL,
-    tags TEXT NOT NULL
+    creation INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+    last_edited INTEGER NOT NULL DEFAULT (creation),
+    last_schema_edit INTEGER NOT NULL DEFAULT (last_edited),
+    last_sync INTEGER NOT NULL DEFAULT (creation),
+    tags TEXT NOT NULL DEFAULT ""
   );
 
 CREATE TABLE IF NOT EXISTS
   graves (
-    id INTEGER PRIMARY KEY NOT NULL,
+    id INTEGER PRIMARY KEY NOT NULL DEFAULT (
+      abs(
+        random() %
+        -- Number.MAX_SAFE_INTEGER
+        9007199254740991
+      )
+    ),
     oid INTEGER NOT NULL,
     type INTEGER NOT NULL
   );
@@ -23,22 +29,22 @@ CREATE TABLE IF NOT EXISTS
 CREATE TABLE IF NOT EXISTS
   confs (
     id INTEGER PRIMARY KEY NOT NULL,
-    autoplay_audio BOOLEAN NOT NULL,
-    last_edited INTEGER NOT NULL,
+    autoplay_audio BOOLEAN NOT NULL DEFAULT 1,
+    last_edited INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
     name TEXT NOT NULL UNIQUE,
-    new_bury_related BOOLEAN NOT NULL,
-    new_pick_at_random BOOLEAN NOT NULL,
-    new_per_day INTEGER NOT NULL,
-    new_learning_steps TEXT NOT NULL, -- json array
-    replay_question_audio BOOLEAN NOT NULL,
-    review_bury_related BOOLEAN NOT NULL,
-    review_enable_fuzz BOOLEAN NOT NULL,
-    review_max_review_interval INTEGER NOT NULL,
+    new_bury_related BOOLEAN NOT NULL DEFAULT 0,
+    new_pick_at_random BOOLEAN NOT NULL DEFAULT 0,
+    new_per_day INTEGER NOT NULL DEFAULT 20,
+    new_learning_steps TEXT NOT NULL DEFAULT "[60,600]", -- json array
+    replay_question_audio BOOLEAN NOT NULL DEFAULT 0,
+    review_bury_related BOOLEAN NOT NULL DEFAULT 0,
+    review_enable_fuzz BOOLEAN NOT NULL DEFAULT 0,
+    review_max_review_interval INTEGER NOT NULL DEFAULT 36500,
     review_per_day INTEGER, -- can be null
-    review_relearning_steps TEXT NOT NULL, -- json array
-    review_requested_retention INTEGER NOT NULL,
+    review_relearning_steps TEXT NOT NULL DEFAULT "[600]", -- json array
+    review_requested_retention INTEGER NOT NULL DEFAULT 0.9,
     review_w TEXT, -- json array; can be null
-    show_global_timer BOOLEAN NOT NULL,
+    show_global_timer BOOLEAN NOT NULL DEFAULT 0,
     timer_per_card INTEGER -- can be null
   );
 
@@ -46,19 +52,20 @@ CREATE TABLE IF NOT EXISTS
   decks (
     id INTEGER PRIMARY KEY NOT NULL,
     name TEXT NOT NULL UNIQUE,
-    collapsed BOOLEAN NOT NULL,
+    collapsed BOOLEAN NOT NULL DEFAULT 0,
     is_filtered BOOLEAN NOT NULL,
     custom_revcard_limit INTEGER, -- can be null
     custom_newcard_limit INTEGER, -- can be null
     default_revcard_limit INTEGER, -- can be null
     default_newcard_limit INTEGER, -- can be null
-    last_edited INTEGER NOT NULL,
-    new_today TEXT NOT NULL, -- json array
-    revcards_today TEXT NOT NULL, -- json array
-    revlogs_today INTEGER NOT NULL,
-    today INTEGER NOT NULL,
-    desc TEXT NOT NULL,
-    cfid INTEGER NOT NULL,
+    last_edited INTEGER NOT NULL DEFAULT (creation),
+    new_today TEXT NOT NULL DEFAULT "[]", -- json array
+    revcards_today TEXT NOT NULL DEFAULT "[]", -- json array
+    revlogs_today INTEGER NOT NULL DEFAULT 0,
+    today INTEGER NOT NULL DEFAULT (creation),
+    desc TEXT NOT NULL DEFAULT "",
+    cfid INTEGER NOT NULL DEFAULT 0,
+    creation INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
     FOREIGN KEY (cfid) REFERENCES confs (id) ON UPDATE CASCADE ON DELETE CASCADE
   );
 
@@ -69,29 +76,29 @@ CREATE INDEX IF NOT EXISTS decks_cfid ON decks (cfid);
 CREATE TABLE IF NOT EXISTS
   models (
     id INTEGER PRIMARY KEY NOT NULL,
-    css TEXT NOT NULL,
-    fields TEXT NOT NULL, -- json
+    css TEXT NOT NULL DEFAULT "",
+    fields TEXT NOT NULL DEFAULT "{}", -- json
     latex TEXT, -- json; can be null
     name TEXT NOT NULL UNIQUE,
     sort_field INTEGER, -- can be null
-    tmpls TEXT NOT NULL, -- json
-    tags TEXT NOT NULL, -- space-separated tags
+    tmpls TEXT NOT NULL DEFAULT "{}", -- json
+    tags TEXT NOT NULL DEFAULT "", -- space-separated tags
     type INTEGER NOT NULL, -- 0=standard, 1=cloze
-    creation INTEGER NOT NULL,
-    last_edited INTEGER NOT NULL
+    creation INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+    last_edited INTEGER NOT NULL DEFAULT (creation)
   );
 
 CREATE TABLE IF NOT EXISTS
   notes (
     id INTEGER PRIMARY KEY NOT NULL,
-    creation INTEGER NOT NULL,
+    creation INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
     mid INTEGER NOT NULL,
-    last_edited INTEGER NOT NULL,
-    tags TEXT NOT NULL, -- space-separated tags
+    last_edited INTEGER NOT NULL DEFAULT (creation),
+    tags TEXT NOT NULL DEFAULT "", -- space-separated tags
     fields TEXT NOT NULL, -- json fields data
     sort_field TEXT, -- can be null
-    csum INTEGER NOT NULL, -- FEAT: implement this
-    marks INTEGER NOT NULL,
+    csum INTEGER NOT NULL DEFAULT 0, -- FEAT: implement this
+    marks INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (mid) REFERENCES models (id) ON UPDATE CASCADE ON DELETE CASCADE
   );
 
@@ -104,19 +111,19 @@ CREATE TABLE IF NOT EXISTS
     tid INTEGER NOT NULL,
     did INTEGER NOT NULL,
     odid INTEGER,
-    creation INTEGER NOT NULL,
-    last_edited INTEGER NOT NULL,
-    queue INTEGER NOT NULL,
+    creation INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+    last_edited INTEGER NOT NULL DEFAULT (creation),
+    queue INTEGER NOT NULL DEFAULT 0,
     due INTEGER NOT NULL,
     last_review INTEGER, -- can be null
-    stability INTEGER NOT NULL,
-    difficulty INTEGER NOT NULL,
-    elapsed_days INTEGER NOT NULL,
-    scheduled_days INTEGER NOT NULL,
-    reps INTEGER NOT NULL,
-    lapses INTEGER NOT NULL,
-    flags INTEGER NOT NULL,
-    state INTEGER NOT NULL,
+    stability INTEGER NOT NULL DEFAULT 0,
+    difficulty INTEGER NOT NULL DEFAULT 0,
+    elapsed_days INTEGER NOT NULL DEFAULT 0,
+    scheduled_days INTEGER NOT NULL DEFAULT 0,
+    reps INTEGER NOT NULL DEFAULT 0,
+    lapses INTEGER NOT NULL DEFAULT 0,
+    flags INTEGER NOT NULL DEFAULT 0,
+    state INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (nid) REFERENCES notes (id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (did) REFERENCES decks (id) ON UPDATE CASCADE ON DELETE CASCADE,
     FOREIGN KEY (odid) REFERENCES decks (id) ON UPDATE CASCADE ON DELETE CASCADE
@@ -150,24 +157,24 @@ CREATE INDEX IF NOT EXISTS rev_log_cid ON rev_log (cid);
 CREATE TABLE IF NOT EXISTS
   prefs (
     id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
-    last_edited INTEGER NOT NULL,
+    last_edited INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
     current_deck INTEGER, -- can be null
     last_model_used INTEGER, -- can be null
-    new_spread INTEGER NOT NULL,
-    collapse_time INTEGER NOT NULL,
-    notify_after_time INTEGER NOT NULL,
-    show_review_time_above_buttons BOOLEAN NOT NULL,
-    show_remaining_due_counts BOOLEAN NOT NULL,
-    show_deck_name BOOLEAN NOT NULL,
-    next_new_card_position INTEGER NOT NULL,
-    last_unburied INTEGER, -- can be null
-    day_start INTEGER NOT NULL,
-    debug BOOLEAN NOT NULL,
-    sidebar_state INTEGER NOT NULL, -- auto=1, open=2, closed=3
-    template_edit_style TEXT NOT NULL, -- json data
-    show_flags_in_sidebar BOOLEAN NOT NULL,
-    show_marks_in_sidebar BOOLEAN NOT NULL,
-    browser TEXT NOT NULL, -- json data
+    new_spread INTEGER NOT NULL DEFAULT 0,
+    collapse_time INTEGER NOT NULL DEFAULT (60 * 20),
+    notify_after_time INTEGER NOT NULL DEFAULT 0,
+    show_review_time_above_buttons BOOLEAN NOT NULL DEFAULT 1,
+    show_remaining_due_counts BOOLEAN NOT NULL DEFAULT 1,
+    show_deck_name BOOLEAN NOT NULL DEFAULT 1,
+    next_new_card_position INTEGER NOT NULL DEFAULT 0,
+    last_unburied INTEGER NOT NULL DEFAULT (last_edited),
+    day_start INTEGER NOT NULL DEFAULT (1000 * 60 * 60 * 4),
+    debug BOOLEAN NOT NULL DEFAULT 0,
+    sidebar_state INTEGER NOT NULL DEFAULT 1, -- auto=1, open=2, closed=3
+    template_edit_style TEXT NOT NULL DEFAULT '{"row":"inline","template":{"front":true,"back":true,"styling":true},"theme":{"light":true,"dark":true}}', -- json data
+    show_flags_in_sidebar BOOLEAN NOT NULL DEFAULT 1,
+    show_marks_in_sidebar BOOLEAN NOT NULL DEFAULT 1,
+    browser TEXT NOT NULL DEFAULT '{"active_cols":["Sort Field","Due","Card","Tags","Deck"],"sort_field":"Sort Field","sort_backwards":false}', -- json data
     FOREIGN KEY (current_deck) REFERENCES decks (id) ON UPDATE SET NULL ON DELETE SET NULL,
     FOREIGN KEY (last_model_used) REFERENCES models (id) ON UPDATE SET NULL ON DELETE SET NULL
   );

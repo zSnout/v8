@@ -48,3 +48,7 @@ export interface DBTypes extends DBSchema {
 - the `Grave` type now has the `id` property
 - the `Deck.revlogs_today` property is now a number instead of an array
 - the `Prefs.active_decks` property has been removed
+
+# v9
+
+- the `Prefs.last_unburied` property is now required

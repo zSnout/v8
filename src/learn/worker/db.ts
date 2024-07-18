@@ -1,3 +1,5 @@
+import "core-js/proposals/explicit-resource-management"
+
 import type { Cloneable } from "@/learn/message"
 import initSqlJs from "@jlongster/sql.js"
 import wasm from "@jlongster/sql.js/dist/sql-wasm.wasm?url"
@@ -142,6 +144,10 @@ export class Tx {
     if (!this.done) {
       this.rollback()
     }
+  }
+
+  [Symbol.dispose]() {
+    this.dispose()
   }
 }
 

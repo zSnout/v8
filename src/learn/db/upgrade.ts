@@ -11,7 +11,7 @@ import { ID_ZERO, randomId } from "../lib/id"
 import { createBuiltinV3 } from "../lib/models"
 import type { Grave } from "../lib/types"
 
-export const VERSION = 8
+export const VERSION = 9
 
 export const upgrade = (now: number) =>
   (async (db, oldVersion, _newVersion, tx) => {
@@ -125,6 +125,15 @@ export const upgrade = (now: number) =>
             ...deck.value,
             revlogs_today: deck.value.revlogs_today.length,
           })
+        }
+      }
+    }
+
+    // in v9, the `Prefs.last_unburied` property is now required
+    if (oldVersion < 9) {
+      for await (const pref of tx.objectStore("prefs").iterate()) {
+        if (pref.value.last_unburied == null) {
+          pref.update({ ...pref.value, last_unburied: 0 })
         }
       }
     }

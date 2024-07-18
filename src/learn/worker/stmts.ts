@@ -15,7 +15,7 @@ import type { SqlValue } from "sql.js"
 import { parse } from "valibot"
 import { db } from "./db"
 
-export const VERSION = 8
+export const VERSION = 1
 
 export type INTEGER = number
 export type BOOLEAN = number
@@ -84,7 +84,7 @@ export const stmts = {
   decks: {
     prepareInsert() {
       return db.prepare(
-        "INSERT INTO decks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO decks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
     },
     makeArgs(deck: Deck): SqlValue[] {
@@ -104,6 +104,7 @@ export const stmts = {
         deck.today satisfies INTEGER,
         deck.desc satisfies TEXT,
         deck.cfid satisfies INTEGER,
+        deck.creation satisfies INTEGER,
       ]
     },
   },
@@ -260,7 +261,7 @@ export const stmts = {
         +prefs.show_remaining_due_counts satisfies BOOLEAN,
         +prefs.show_deck_name satisfies BOOLEAN,
         prefs.next_new_card_position satisfies INTEGER,
-        (prefs.last_unburied ?? null) satisfies INTEGER | null,
+        prefs.last_unburied satisfies INTEGER,
         prefs.day_start satisfies INTEGER,
         +prefs.debug satisfies BOOLEAN,
         serializeSidebar(prefs.sidebar_state) satisfies INTEGER,
