@@ -5,9 +5,7 @@ import { stmts } from "../stmts"
 export function prefs_set(prefs: Prefs) {
   const tx = db.tx()
   try {
-    const stmt = stmts.prefs.prepareUpdate()
-    stmt.bind(stmts.prefs.makeArgs(prefs))
-    stmt.free()
+    db.exec(stmts.prefs.update, stmts.prefs.makeArgs(prefs))
     tx.commit()
   } finally {
     tx.dispose()

@@ -52,7 +52,7 @@ export const ManageModels = createListEditor<DB, number, Item[], {}, Item>(
   },
   ({ item }) => [{}, item] as const,
   ({ items }) => items,
-  () => undefined,
+  () => null,
   (name, selected) => ({
     type: "create",
     id: randomId(),

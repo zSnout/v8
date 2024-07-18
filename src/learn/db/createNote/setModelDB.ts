@@ -170,10 +170,11 @@ export async function setModelDB(
             id: randomId(),
             due: base.due.getTime(),
             last_edited: now,
-            last_review: undefined,
+            last_review: null,
             queue: 0,
             state: State.New,
             flags: 0,
+            odid: null,
           }
           cards.add(card)
         }

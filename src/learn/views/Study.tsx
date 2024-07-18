@@ -78,6 +78,7 @@ import {
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
+import { Render } from "../lib/render"
 import { ShortcutManager, Write, type Shortcut } from "../lib/shortcuts"
 import * as Template from "../lib/template"
 import { AnyCard, Note } from "../lib/types"
@@ -235,7 +236,7 @@ export const Study = createLoading(
               fullFront
               source={prefs.show_deck_name && tmpl().source}
               front={
-                <Template.Render
+                <Render
                   html={tmpl()[answerShown() ? "ahtml" : "qhtml"]}
                   css={tmpl().css}
                   class="flex-1"

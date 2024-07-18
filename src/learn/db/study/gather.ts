@@ -80,14 +80,14 @@ async function defaultLimitsTx(tx: Tx): Promise<Limits> {
   return {
     new: {
       byConf: conf.new.per_day,
-      customGlobal: undefined,
-      customToday: undefined,
+      customGlobal: null,
+      customToday: null,
       today: conf.new.per_day,
     },
     review: {
       byConf: conf.review.per_day,
-      customGlobal: undefined,
-      customToday: undefined,
+      customGlobal: null,
+      customToday: null,
       today: conf.review.per_day,
     },
     conf,
@@ -120,18 +120,18 @@ async function limitsTx(
     new: {
       byConf: conf.new.per_day,
       customGlobal: deck.default_newcard_limit,
-      customToday: wasDeckUpdatedToday ? deck.custom_newcard_limit : undefined,
+      customToday: wasDeckUpdatedToday ? deck.custom_newcard_limit : null,
       today:
-        (wasDeckUpdatedToday ? deck.custom_newcard_limit : undefined) ??
+        (wasDeckUpdatedToday ? deck.custom_newcard_limit : null) ??
         deck.default_newcard_limit ??
         conf.new.per_day,
     },
     review: {
       byConf: conf.review.per_day,
       customGlobal: deck.default_revcard_limit,
-      customToday: wasDeckUpdatedToday ? deck.custom_revcard_limit : undefined,
+      customToday: wasDeckUpdatedToday ? deck.custom_revcard_limit : null,
       today:
-        (wasDeckUpdatedToday ? deck.custom_revcard_limit : undefined) ??
+        (wasDeckUpdatedToday ? deck.custom_revcard_limit : null) ??
         deck.default_revcard_limit ??
         conf.review.per_day,
     },
@@ -159,16 +159,16 @@ export interface Studied {
   revlogs: number
 }
 
-export interface Limit<T extends number | undefined> {
+export interface Limit<T extends number | null> {
   byConf: T
-  customToday: number | undefined
-  customGlobal: number | undefined
+  customToday: number | null
+  customGlobal: number | null
   today: T
 }
 
 export interface Limits {
   new: Limit<number>
-  review: Limit<number | undefined>
+  review: Limit<number | null>
   conf: Conf
 }
 

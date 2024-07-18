@@ -21,11 +21,11 @@ export function makeCard<
     did: Id,
 
     /** Original deck id (used when this card is part of a filtered deck) */
-    odid: v.nullish(Id),
+    odid: v.optional(v.nullable(Id), null),
 
     // DB: new in v4
     /** Timestamp of original creation */
-    creation: v.nullish(v.number(), Date.now),
+    creation: v.optional(v.nullable(v.number(), Date.now), null),
 
     /** Timestamp of last edit */
     last_edited: v.number(),
@@ -66,19 +66,25 @@ export function makeCard<
 }
 
 export interface NewCard extends v.InferOutput<typeof NewCard> {}
-export const NewCard = makeCard(v.undefined(), v.literal(State.New))
+export const NewCard = makeCard(
+  v.optional(v.null(), null),
+  v.literal(State.New),
+)
 
 export interface ReviewedCard extends v.InferOutput<typeof ReviewedCard> {}
 export const ReviewedCard = makeCard(v.number(), v.enum(State))
 
 export interface AnyCard extends v.InferOutput<typeof AnyCard> {}
-export const AnyCard = makeCard(v.nullish(v.number()), v.enum(State))
+export const AnyCard = makeCard(
+  v.optional(v.nullable(v.number()), null),
+  v.enum(State),
+)
 
 export interface Grave extends v.InferOutput<typeof Grave> {}
 export const Grave = v.object({
   /** The id of the grave */
   // DB: added in v8
-  id: v.nullish(Id, randomId),
+  id: v.optional(v.nullable(Id, randomId), null),
 
   /** The original id of the item to delete */
   oid: Id,
@@ -171,10 +177,10 @@ export const ModelField = v.object({
   id: Id,
 
   /** Font family displayed in the entry window */
-  font: v.nullish(v.string()),
+  font: v.optional(v.nullable(v.string()), null),
 
   /** Font size displayed in the entry window */
-  size: v.nullish(v.number()),
+  size: v.optional(v.nullable(v.number()), null),
 
   /** Whether the entry window should use RTL text direction */
   rtl: v.boolean(),
@@ -222,10 +228,10 @@ export const ModelTemplate = v.object({
   afmt: v.string(),
 
   /** Template for displaying question in browser */
-  qb: v.nullish(v.string()),
+  qb: v.optional(v.nullable(v.string()), null),
 
   /** Template for displaying answer in browser */
-  ab: v.nullish(v.string()),
+  ab: v.optional(v.nullable(v.string()), null),
 
   /** Name of the template */
   name: v.string(),
@@ -248,19 +254,19 @@ export const Model = v.object({
   css: v.string(),
 
   // /** Deck id that cards of this type go into by default */
-  // did: v.nullish(Id),
+  // did: v.optional(v.nullable(Id), null),
 
   /** Fields in this model */
   fields: ModelFields,
 
   /** If present, Mathjax options. If absent, Mathquill is used */
-  latex: v.nullish(MathjaxOptions),
+  latex: v.optional(v.nullable(MathjaxOptions), null),
 
   /** Model name */
   name: v.string(),
 
   /** Which field to use when sorting */
-  sort_field: v.nullish(Id),
+  sort_field: v.optional(v.nullable(Id), null),
 
   /** Templates that this model generates */
   tmpls: ModelTemplates,
@@ -273,7 +279,7 @@ export const Model = v.object({
 
   // DB: new in v4
   /** Creation timestamp of this model */
-  creation: v.nullish(v.number(), Date.now),
+  creation: v.optional(v.nullable(v.number(), Date.now), null),
 
   /** Last time this model was edited */
   last_edited: v.number(),
@@ -294,16 +300,16 @@ export const Deck = v.object({
   is_filtered: v.boolean(),
 
   /** Custom limit on review cards for today */
-  custom_revcard_limit: v.nullish(v.number()),
+  custom_revcard_limit: v.optional(v.nullable(v.number()), null),
 
   /** Custom limit on new cards for today */
-  custom_newcard_limit: v.nullish(v.number()),
+  custom_newcard_limit: v.optional(v.nullable(v.number()), null),
 
   /** Custom limit on review cards for all days. Defaults to limit in `conf`. */
-  default_revcard_limit: v.nullish(v.number()),
+  default_revcard_limit: v.optional(v.nullable(v.number()), null),
 
   /** Custom limit on new cards for all days. Defaults to limit in `conf`. */
-  default_newcard_limit: v.nullish(v.number()),
+  default_newcard_limit: v.optional(v.nullable(v.number()), null),
 
   /**
    * Last time this deck was edited. WILL ALWAYS BE AS RECENT OR MORE THAN
@@ -331,7 +337,7 @@ export const Deck = v.object({
   cfid: Id,
 
   /** Creation timestamp */
-  creation: v.nullish(v.number(), Date.now),
+  creation: v.optional(v.nullable(v.number(), Date.now), null),
 })
 
 export interface Conf extends v.InferOutput<typeof Conf> {}
@@ -378,7 +384,7 @@ export const Conf = v.object({
     max_review_interval: v.number(),
 
     /** The number of review cards per day */
-    per_day: v.nullish(v.number()),
+    per_day: v.optional(v.nullable(v.number()), null),
 
     /** Relearning steps (in seconds) */
     relearning_steps: v.array(v.number()),
@@ -387,14 +393,14 @@ export const Conf = v.object({
     requested_retention: v.number(),
 
     /** The w-array for FSRS */
-    w: v.nullish(v.array(v.number())),
+    w: v.optional(v.nullable(v.array(v.number())), null),
   }),
 
   /** Whether to show the global timer */
   show_global_timer: v.boolean(),
 
   /** If not undefined, shows a timer on each card (in seconds) */
-  timer_per_card: v.nullish(v.number()),
+  timer_per_card: v.optional(v.nullable(v.number()), null),
 
   // lapse : {
   //     "The configuration for lapse cards."
@@ -465,10 +471,10 @@ export const Prefs = v.object({
   last_edited: v.number(),
 
   /** Current deck id */
-  current_deck: v.nullish(Id),
+  current_deck: v.optional(v.nullable(Id), null),
 
   /** Last model used */
-  last_model_used: v.nullish(Id),
+  last_model_used: v.optional(v.nullable(Id), null),
 
   /** 0 = mix new and review, 1 = new after review, 2 = new before review */
   new_spread: v.picklist([0, 1, 2]),
@@ -492,7 +498,7 @@ export const Prefs = v.object({
   next_new_card_position: v.number(),
 
   /** The last time any card was unburied. If not today, then buried notes need to be unburied */
-  last_unburied: v.nullish(v.number(), 0),
+  last_unburied: v.optional(v.nullable(v.number(), 0), null),
 
   /** When the day is considered to start, in milliseconds after midnight */
   day_start: v.number(),

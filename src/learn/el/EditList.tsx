@@ -55,7 +55,7 @@ export function createListEditor<
     data: Data
     items: Entry[]
   }) => Item,
-  sortId: ((data: Data) => Id | undefined) | undefined,
+  sortId: ((data: Data) => Id | null) | null,
   create: (name: string, selected: Entry) => Entry,
   internalProps: {
     add: string
@@ -137,7 +137,7 @@ export function createListEditor<
                     set={setEntries}
                     selectedId={selectedId()}
                     setSelectedId={setSelectedId}
-                    sortId={sortId?.(data)}
+                    sortId={sortId?.(data) ?? undefined}
                     fullHeight={!!internalProps.full}
                   />
                 }
@@ -150,7 +150,7 @@ export function createListEditor<
                   }
                   selectedId={selectedId()}
                   setSelectedId={setSelectedId}
-                  sortId={sortId?.(data)}
+                  sortId={sortId?.(data) ?? undefined}
                   fullHeight={!!internalProps.full}
                 />
               </Show>

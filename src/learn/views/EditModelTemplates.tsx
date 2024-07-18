@@ -1,24 +1,22 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
-import { prayTruthy } from "@/components/pray"
 import { error, ok, Result } from "@/components/result"
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createMemo, For, Show, untrack } from "solid-js"
 import { unwrap } from "solid-js/store"
-import type { DB } from "../db"
-import { setModelDB } from "../db/createNote/setModelDB"
-import { getEditModelTemplates } from "../db/getModelTemplates"
+import type { Worker } from "../db/worker"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { createListEditor } from "../el/EditList"
 import { IntegratedField } from "../el/IntegratedField"
 import { createModelTemplate } from "../lib/defaults"
 import type { Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
+import { Render } from "../lib/render"
 import * as Template from "../lib/template"
 import { Model, ModelTemplate, TemplateEditStyle } from "../lib/types"
 
 interface Props {
-  db: DB
+  worker: Worker
   mid: Id
   fields: Template.FieldsRecord
 }
@@ -40,12 +38,10 @@ export const EditModelTemplates = createListEditor<
   ModelTemplate
 >(
   async (props) => {
-    const { model, editStyle } = await getEditModelTemplates(
-      props.db,
+    const { model, editStyle } = await props.worker.post(
+      "model_get_with_edit_style",
       props.mid,
     )
-
-    prayTruthy(model, "The specified model does not exist.")
 
     return {
       async: 0 as const,
@@ -58,13 +54,7 @@ export const EditModelTemplates = createListEditor<
       title: model.name,
       subtitle: "editing templates",
       async save({ model, editStyle }) {
-        await setModelDB(
-          props.db,
-          model,
-          Date.now(),
-          `Update templates for model ${model.name}`,
-          editStyle,
-        )
+        await props.worker.post("model_set", model, editStyle)
       },
     }
   },
@@ -73,7 +63,7 @@ export const EditModelTemplates = createListEditor<
     ...data,
     model: { ...data.model, tmpls: arrayToRecord(items) },
   }),
-  () => undefined,
+  () => null,
   (name, { qfmt, afmt }) => createModelTemplate(qfmt, afmt, name),
   {
     add: "Clone",
@@ -133,7 +123,7 @@ export const EditModelTemplates = createListEditor<
           )}
         >
           {(value) => (
-            <Template.Render
+            <Render
               class={
                 "min-h-48 rounded-lg bg-z-body-selected px-3 py-2 " +
                 local.theme
@@ -399,8 +389,8 @@ export const EditModelTemplates = createListEditor<
               <IntegratedField
                 label={field.name}
                 rtl={field.rtl}
-                font={field.font}
-                sizePx={field.size}
+                font={field.font ?? undefined}
+                sizePx={field.size ?? undefined}
                 type="html"
                 placeholder={field.desc}
                 value={props.get.fields[field.name]}

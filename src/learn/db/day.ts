@@ -16,11 +16,11 @@ export function startOfDaySync(dayStart: number, now: number) {
   return value
 }
 
-/** If `start` or `end` is undefined, returns `0`. */
+/** If `start` or `end` is nullish, returns `0`. */
 export function daysBetweenSync(
   dayStart: number,
-  start: number | undefined,
-  end: number | undefined,
+  start: number | null | undefined,
+  end: number | null | undefined,
 ) {
   if (start == null || end == null) {
     return 0

@@ -20,8 +20,9 @@ function createModel(
     name,
     tags: [],
     type: 0,
-    sort_field: fields[0]?.id,
+    sort_field: fields[0]?.id ?? null,
     last_edited: now,
+    latex: null,
   }
 }
 

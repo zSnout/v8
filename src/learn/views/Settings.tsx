@@ -18,7 +18,7 @@ import { Icon, Icons } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
 import { ShortcutManager } from "../lib/shortcuts"
-import { JsonData } from "./JsonData"
+import { SqlData } from "./SqlData"
 
 export const Settings = createLoading(
   async ([, sql]: [DB, Worker]) => {
@@ -107,8 +107,8 @@ export const Settings = createLoading(
             <Show when={prefs.debug}>
               <Icon
                 icon={faDatabase}
-                label="IDB"
-                onClick={() => layers.push(JsonData, db)}
+                label="Query"
+                onClick={() => layers.push(SqlData, worker)}
               />
               <Icon
                 icon={faDownload}

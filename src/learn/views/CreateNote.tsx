@@ -139,8 +139,8 @@ export const CreateNote = createLoading(
                 <IntegratedField
                   label={field.name}
                   rtl={field.rtl}
-                  font={field.font}
-                  sizePx={field.size}
+                  font={field.font ?? undefined}
+                  sizePx={field.size ?? undefined}
                   type="html"
                   onInput={(value) => setFields(field.id + "", value)}
                   placeholder={field.desc}

@@ -23,30 +23,28 @@ export const JsonData = createLoading(
     return {
       el: (
         <div class="flex h-[calc(100vh_-_7rem)] w-full flex-1 flex-col gap-4">
-          <div class="flex-1 overflow-y-auto rounded-lg bg-z-body-selected">
+          <div class="flex flex-1 flex-col overflow-y-auto rounded-lg bg-z-body-selected">
             <div class="sticky top-0 z-10 -mb-px flex w-full select-none gap-2 border-b border-z bg-z-body-selected px-2 pb-1 pt-1 text-sm text-z-subtitle">
               Database Dump (JSON)
             </div>
 
-            <div>
-              {IntegratedCodeField(
-                {
-                  value: v,
-                  onInput(value) {
-                    v = value
-                  },
+            {IntegratedCodeField(
+              {
+                value: v,
+                onInput(value) {
+                  v = value
                 },
-                {
-                  alone: true,
-                  lang: json(),
-                  exts: [
-                    view.lineNumbers(),
-                    language.foldGutter(),
-                    lint.linter(jsonParseLinter()),
-                  ],
-                },
-              )}
-            </div>
+              },
+              {
+                alone: true,
+                lang: json(),
+                exts: [
+                  view.lineNumbers(),
+                  language.foldGutter(),
+                  lint.linter(jsonParseLinter()),
+                ],
+              },
+            )}
           </div>
 
           <TwoBottomButtons>

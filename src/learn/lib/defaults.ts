@@ -26,8 +26,8 @@ export function createCore(now: number): Core {
 export function createPrefs(now: number): Prefs {
   return {
     last_edited: now,
-    current_deck: undefined,
-    last_model_used: undefined,
+    current_deck: null,
+    last_model_used: null,
     new_spread: 0,
     collapse_time: 60 * 20,
     notify_after_time: 0,
@@ -74,9 +74,10 @@ export function createConf(now: number): Conf {
       per_day: Number.MAX_SAFE_INTEGER,
       relearning_steps: [10 * 60],
       requested_retention: 0.9,
+      w: null,
     },
     show_global_timer: false,
-    timer_per_card: undefined,
+    timer_per_card: null,
   }
 }
 
@@ -94,6 +95,10 @@ export function createDeck(now: number, name: string, id: Id): Deck {
     today: now,
     revcards_today: [],
     revlogs_today: 0,
+    custom_newcard_limit: null,
+    custom_revcard_limit: null,
+    default_newcard_limit: null,
+    default_revcard_limit: null,
   }
 }
 
@@ -107,6 +112,8 @@ export function createField(name: string, id = randomId()): ModelField {
     excludeFromSearch: false,
     html: false,
     sticky: "",
+    font: null,
+    size: null,
   }
 }
 
@@ -116,5 +123,5 @@ export function createModelTemplate(
   name: string,
   id = randomId(),
 ): ModelTemplate {
-  return { id, qfmt, afmt, name }
+  return { id, qfmt, afmt, name, ab: null, qb: null }
 }

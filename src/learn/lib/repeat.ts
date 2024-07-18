@@ -52,7 +52,7 @@ function merge(
     {
       ...prev,
       due: fsrsCard.due.getTime(),
-      last_review: fsrsCard.last_review?.getTime(),
+      last_review: fsrsCard.last_review?.getTime() ?? null,
       reps: fsrsCard.reps,
       state: fsrsCard.state,
       elapsed_days: fsrsCard.elapsed_days,
@@ -157,10 +157,10 @@ function repeatLearning(
     ? // average again and good
       (dueAgain + dueGood) / 2
     : learningSteps.length == 1
-    ? // higher than `Again`
-      now + againStep * 1500
-    : // go back to last learning step
-      now + learningSteps[learningSteps.length - 1]! * 1000
+      ? // higher than `Again`
+        now + againStep * 1500
+      : // go back to last learning step
+        now + learningSteps[learningSteps.length - 1]! * 1000
 
   return {
     [Rating.Again]: createRepeatItem(

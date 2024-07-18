@@ -1,8 +1,5 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import { notNull } from "@/components/pray"
-import { DB } from "../db"
-import { setModelDB } from "../db/createNote/setModelDB"
-import { getModel } from "../db/getModel"
+import type { Worker } from "../db/worker"
 import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { createListEditor } from "../el/EditList"
@@ -13,17 +10,14 @@ import { arrayToRecord } from "../lib/record"
 import { Model, ModelField } from "../lib/types"
 
 export const EditModelFields = createListEditor<
-  { db: DB; mid: Id },
+  { worker: Worker; mid: Id },
   0,
   Model,
   Omit<Model, "fields">,
   ModelField
 >(
-  async (props) => {
-    const model = notNull(
-      await getModel(props.db, props.mid),
-      "The specified model does not exist.",
-    )
+  async ({ worker, mid }) => {
+    const model = await worker.post("model_get", mid)
 
     return {
       async: 0 as const,
@@ -31,12 +25,7 @@ export const EditModelFields = createListEditor<
       title: model.name,
       subtitle: "editing fields",
       async save(item) {
-        await setModelDB(
-          props.db,
-          item,
-          Date.now(),
-          `Update fields for model ${item.name}`,
-        )
+        await worker.post("model_set", item)
       },
     }
   },
@@ -59,8 +48,8 @@ export const EditModelFields = createListEditor<
         <IntegratedField
           label="Description"
           rtl={props.selected.rtl}
-          font={props.selected.font}
-          sizePx={props.selected.size}
+          font={props.selected.font ?? undefined}
+          sizePx={props.selected.size ?? undefined}
           value={props.selected.desc}
           onInput={(y) => {
             setSelected((x) => ({ ...x, desc: y }))
@@ -73,7 +62,7 @@ export const EditModelFields = createListEditor<
           <AutocompleteFontFamily
             label="Editing Font"
             placeholder="(optional)"
-            value={props.selected.font}
+            value={props.selected.font ?? undefined}
             onChange={(font) => {
               setSelected((field) => ({ ...field, font }))
             }}
@@ -88,7 +77,7 @@ export const EditModelFields = createListEditor<
             onInput={(value) =>
               setSelected((field) => {
                 if (value == "") {
-                  return { ...field, size: undefined }
+                  return { ...field, size: null }
                 }
 
                 const size = Math.floor(+value)

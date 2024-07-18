@@ -13,7 +13,6 @@ import {
 } from "@/learn/lib/types"
 import type { SqlValue } from "sql.js"
 import { parse } from "valibot"
-import { db } from "./db"
 import { latest } from "./version"
 
 export type INTEGER = number
@@ -22,9 +21,7 @@ export type TEXT = string
 
 export const stmts = {
   core: {
-    prepareInsert() {
-      return db.prepare("INSERT INTO core VALUES (?, ?, ?, ?, ?, ?, ?)")
-    },
+    insert: "INSERT INTO core VALUES (?, ?, ?, ?, ?, ?, ?)",
     makeArgs(core: Core): SqlValue[] {
       return [
         ID_ZERO satisfies INTEGER,
@@ -38,9 +35,7 @@ export const stmts = {
     },
   },
   graves: {
-    prepareInsert() {
-      return db.prepare("INSERT INTO graves VALUES (?, ?, ?)")
-    },
+    insert: "INSERT INTO graves VALUES (?, ?, ?)",
     makeArgs(grave: Grave): SqlValue[] {
       return [
         grave.id satisfies INTEGER,
@@ -50,11 +45,8 @@ export const stmts = {
     },
   },
   confs: {
-    prepareInsert() {
-      return db.prepare(
-        "INSERT INTO confs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      )
-    },
+    insert:
+      "INSERT INTO confs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     makeArgs(conf: Conf): SqlValue[] {
       return [
         conf.id satisfies INTEGER,
@@ -81,11 +73,8 @@ export const stmts = {
     },
   },
   decks: {
-    prepareInsert() {
-      return db.prepare(
-        "INSERT INTO decks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      )
-    },
+    insert:
+      "INSERT INTO decks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     /** Expects data from a `SELECT * FROM decks` statement. */
     interpret(data: SqlValue[]): Deck {
       return {
@@ -129,11 +118,7 @@ export const stmts = {
     },
   },
   models: {
-    prepareInsert() {
-      return db.prepare(
-        "INSERT INTO models VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      )
-    },
+    insert: "INSERT INTO models VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     interpret(data: SqlValue[]): Model {
       return {
         id: data[0],
@@ -168,9 +153,7 @@ export const stmts = {
     },
   },
   notes: {
-    prepareInsert() {
-      return db.prepare("INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    },
+    insert: "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     interpret(data: SqlValue[]): Note {
       return {
         id: data[0],
@@ -199,11 +182,8 @@ export const stmts = {
     },
   },
   cards: {
-    prepareInsert() {
-      return db.prepare(
-        "INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      )
-    },
+    insert:
+      "INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     interpret(data: SqlValue[]): AnyCard {
       return {
         id: data[0],
@@ -250,11 +230,8 @@ export const stmts = {
     },
   },
   rev_log: {
-    prepareInsert() {
-      return db.prepare(
-        "INSERT INTO rev_log VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      )
-    },
+    insert:
+      "INSERT INTO rev_log VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     makeArgs(review: Review) {
       return [
         review.id satisfies INTEGER,
@@ -274,16 +251,10 @@ export const stmts = {
     },
   },
   prefs: {
-    prepareInsert() {
-      return db.prepare(
-        "INSERT INTO prefs VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      )
-    },
-    prepareUpdate() {
-      return db.prepare(
-        "UPDATE prefs SET last_edited = ?, current_deck = ?, last_model_used = ?, new_spread = ?, collapse_time = ?, notify_after_time = ?, show_review_time_above_buttons = ?, show_remaining_due_counts = ?, show_deck_name = ?, next_new_card_position = ?, last_unburied = ?, day_start = ?, debug = ?, sidebar_state = ?, template_edit_style = ?, show_flags_in_sidebar = ?, show_marks_in_sidebar = ?, browser = ? WHERE id = 0",
-      )
-    },
+    insert:
+      "INSERT INTO prefs VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    update:
+      "UPDATE prefs SET last_edited = ?, current_deck = ?, last_model_used = ?, new_spread = ?, collapse_time = ?, notify_after_time = ?, show_review_time_above_buttons = ?, show_remaining_due_counts = ?, show_deck_name = ?, next_new_card_position = ?, last_unburied = ?, day_start = ?, debug = ?, sidebar_state = ?, template_edit_style = ?, show_flags_in_sidebar = ?, show_marks_in_sidebar = ?, browser = ? WHERE id = 0",
     /**
      * Expects data from SELECT *.
      *
