@@ -1,4 +1,6 @@
 export { export_sqlite } from "./export_sqlite"
+export { prefs_get } from "./prefs_get"
 export { home_list_decks } from "./home_list_decks"
 export { idb_import } from "./idb_import"
 export { ready } from "./ready"
+export { prefs_set } from "./prefs_set"

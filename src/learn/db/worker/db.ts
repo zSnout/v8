@@ -153,18 +153,21 @@ let messages: Awaited<typeof messagesImport> | undefined
 
 // message handler should be set up as early as possible
 addEventListener("message", async ({ data }: { data: unknown }) => {
-  console.time()
+  if (import.meta.env.DEV) {
+    console.time("worker is handling query")
+  }
   messages ??= await messagesImport
   if (typeof data != "object" || data == null || !("zTag" in data)) {
+    if (import.meta.env.DEV) {
+      console.timeEnd("worker is handling query")
+    }
     return
   }
 
   if (data["zTag"] === 0) {
     const req = data as unknown as ToWorker
     try {
-      console.time("do the action")
       const value = await (messages[req.type] as any)(...req.data)
-      console.timeEnd("do the action")
       const res: ToScript = { zTag: 0, id: req.id, ok: true, value }
       postMessage(res)
     } catch (value) {
@@ -176,8 +179,13 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
       }
       postMessage(res)
     }
-    console.timeEnd()
+    if (import.meta.env.DEV) {
+      console.timeEnd("worker is handling query")
+    }
     return
+  }
+  if (import.meta.env.DEV) {
+    console.timeEnd("worker is handling query")
   }
 })
 

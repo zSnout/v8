@@ -8,7 +8,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { getOwner, Show } from "solid-js"
 import { DB } from "../db"
-import { createPrefsStore } from "../db/prefs/store"
+import { createPrefsSQL } from "../db/prefs/store"
 import { exportDb, importJson } from "../db/save"
 import type { SQL } from "../db/sqlite"
 import { SingleBottomAction } from "../el/BottomButtons"
@@ -20,8 +20,8 @@ import { ShortcutManager } from "../lib/shortcuts"
 import { JsonData } from "./JsonData"
 
 export const Settings = createLoading(
-  async ([db]: [DB, SQL]) => {
-    const [prefs, setPrefs, ready] = createPrefsStore(db)
+  async ([, sql]: [DB, SQL]) => {
+    const [prefs, setPrefs, ready] = createPrefsSQL(sql)
     await ready
     return [prefs, setPrefs] as const
   },
@@ -113,7 +113,7 @@ export const Settings = createLoading(
                 icon={faDownload}
                 label="SQLite"
                 onClick={async () => {
-                  const file = await sql.post("export")
+                  const file = await sql.post("export_sqlite")
                   const url = URL.createObjectURL(file)
                   const a = document.createElement("a")
                   a.style.display = "none"

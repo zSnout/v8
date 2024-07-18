@@ -17,14 +17,12 @@ export class SQL {
     this.ready = new Promise<this>((resolve, reject) => {
       this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
         if (data == "zdb:resolve") {
-          console.info("The worker has started successfully.")
           this.isReady = true
           resolve(this)
           return
         }
 
         if (data == "zdb:reject") {
-          console.error("The worker has failed successfully.")
           reject("The database failed to start.")
           return
         }
@@ -59,17 +57,32 @@ export class SQL {
     type: K,
     ...data: Parameters<Handlers[K]>
   ): Promise<ReturnType<Handlers[K]>> {
-    return new Promise((resolve, reject) => {
+    if (import.meta.env.DEV) {
+      console.time("main thread is sending query")
+      console.time("main thread is handling query")
+    }
+    const promise = new Promise<ReturnType<Handlers[K]>>((resolve, reject) => {
       const id = randomId()
       const req: ToWorker = {
         zTag: 0,
         id,
         type,
-        data,
+        data: data as any,
       }
       this.handlers.set(id, [resolve, reject])
       this.worker.postMessage(req)
     })
+    if (import.meta.env.DEV) {
+      console.timeEnd("main thread is sending query")
+      promise.then(
+        () => console.timeEnd("main thread is handling query"),
+        (err) => {
+          console.timeEnd("main thread is handling query")
+          throw err
+        },
+      )
+    }
+    return promise
   }
 
   async post<K extends keyof Handlers>(

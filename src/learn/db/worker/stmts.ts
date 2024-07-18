@@ -1,6 +1,6 @@
 import { ID_ZERO } from "@/learn/lib/id"
-import { serializeSidebar } from "@/learn/lib/sidebar"
-import type {
+import { deserializeSidebar, serializeSidebar } from "@/learn/lib/sidebar"
+import {
   AnyCard,
   Conf,
   Core,
@@ -12,6 +12,7 @@ import type {
   Review,
 } from "@/learn/lib/types"
 import type { SqlValue } from "sql.js"
+import { parse } from "valibot"
 import { db } from "./db"
 
 export const VERSION = 8
@@ -204,12 +205,51 @@ export const stmts = {
   prefs: {
     prepareInsert() {
       return db.prepare(
-        "INSERT INTO prefs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO prefs VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
     },
+    prepareUpdate() {
+      return db.prepare(
+        "UPDATE prefs SET last_edited = ?, current_deck = ?, last_model_used = ?, new_spread = ?, collapse_time = ?, notify_after_time = ?, show_review_time_above_buttons = ?, show_remaining_due_counts = ?, show_deck_name = ?, next_new_card_position = ?, last_unburied = ?, day_start = ?, debug = ?, sidebar_state = ?, template_edit_style = ?, show_flags_in_sidebar = ?, show_marks_in_sidebar = ?, browser = ? WHERE id = 0",
+      )
+    },
+    /**
+     * Expects data from SELECT *.
+     *
+     * Not compatiable with makeArgs.
+     */
+    interpret(data: SqlValue[]): Prefs {
+      const result = {
+        // data[0] is ID_ZERO
+        last_edited: data[1],
+        current_deck: data[2],
+        last_model_used: data[3],
+        new_spread: data[4],
+        collapse_time: data[5],
+        notify_after_time: data[6],
+        show_review_time_above_buttons: !!data[7],
+        show_remaining_due_counts: !!data[8],
+        show_deck_name: !!data[9],
+        next_new_card_position: data[10],
+        last_unburied: data[11],
+        day_start: data[12],
+        debug: !!data[13],
+        sidebar_state: deserializeSidebar(data[14] as number),
+        template_edit_style: JSON.parse(data[15] as string),
+        show_flags_in_sidebar: !!data[16],
+        show_marks_in_sidebar: !!data[17],
+        browser: JSON.parse(data[18] as string),
+      }
+
+      return parse(Prefs, result)
+    },
+    /**
+     * Prepares arguments for INSERT or UPDATE.
+     *
+     * Not compatiable with interpret.
+     */
     makeArgs(prefs: Prefs) {
       return [
-        ID_ZERO satisfies INTEGER,
         prefs.last_edited satisfies INTEGER,
         (prefs.current_deck ?? null) satisfies INTEGER | null,
         (prefs.last_model_used ?? null) satisfies INTEGER | null,
@@ -228,7 +268,7 @@ export const stmts = {
         +prefs.show_flags_in_sidebar satisfies BOOLEAN,
         +prefs.show_marks_in_sidebar satisfies BOOLEAN,
         JSON.stringify(prefs.browser) satisfies TEXT,
-      ]
+      ] satisfies SqlValue[]
     },
   },
 }
