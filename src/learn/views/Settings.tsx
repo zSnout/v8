@@ -5,15 +5,17 @@ import {
   faDownload,
   faMagnifyingGlassChart,
   faRightFromBracket,
+  faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { getOwner, Show } from "solid-js"
 import { createPrefsWithWorker } from "../db/prefs/store"
 import type { Worker } from "../db/worker"
-import { SingleBottomAction } from "../el/BottomButtons"
+import { Action } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
-import { Icon, Icons } from "../el/IconButton"
+import { Icon, IconGrid } from "../el/IconButton"
 import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
+import { UploadButton } from "../el/upload"
 import { SqlData } from "./SqlData"
 
 export const Settings = createLoading(
@@ -28,64 +30,22 @@ export const Settings = createLoading(
 
     return {
       el: (
-        <div class="flex min-h-full w-full flex-col gap-8">
-          <Icons>
-            <Icon icon={faRightFromBracket} label="Back" onClick={pop} />
-            {/* <input
-              type="file"
-              class="sr-only"
-              accept="application/json"
-              ref={filePicker}
-              onChange={async (event) => {
-                const file = event.currentTarget.files?.[0]
-                if (!file) {
-                  return
-                }
-                event.currentTarget.value = ""
+        <div class="mx-auto flex min-h-full w-full max-w-xl flex-col gap-4">
+          {/* TODO: show all available options, not just booleans */}
 
-                const result = await confirm({
-                  owner,
-                  title: "Confirm import?",
-                  description: (
-                    <ModalDescription>
-                      This will{" "}
-                      <strong class="text-z underline">irreversibly</strong>{" "}
-                      replace your entire collection with data from the imported
-                      file. We highly recommend exporting your current data
-                      before you import, just in case.
-                    </ModalDescription>
-                  ),
-                  cancelText: "No, cancel",
-                  okText: "Yes, import",
-                })
-
-                if (!result) {
-                  return
-                }
-
-                await importJson(db, await file.text())
-
-                await alert({
-                  owner,
-                  title: "Imported successfully",
-                  description: (
-                    <ModalDescription>
-                      The collection was imported successfully.
-                    </ModalDescription>
-                  ),
-                })
-              }}
+          <div class="grid w-full grid-cols-2 gap-1">
+            <Action
+              center
+              icon={faRightFromBracket}
+              label="Back"
+              onClick={pop}
             />
-            <Icon
-              icon={faUpload}
-              label="Import"
-              onClick={() => filePicker.click()}
-            /> */}
-            <Icon
+            <Action
+              center
               icon={faDownload}
               label="Export"
               onClick={async () => {
-                const file = await worker.post("sqlite_export")
+                const file = await worker.post("export_sqlite")
                 const url = URL.createObjectURL(file)
                 const a = document.createElement("a")
                 a.style.display = "none"
@@ -96,55 +56,7 @@ export const Settings = createLoading(
                 a.remove()
               }}
             />
-            <Show when={prefs.debug}>
-              <Icon
-                icon={faMagnifyingGlassChart}
-                label="Query"
-                onClick={() => layers.push(SqlData, worker)}
-              />
-              <Icon
-                icon={faArrowRightArrowLeft}
-                label="Transfer"
-                onClick={async () => {
-                  if (
-                    !(await confirm({
-                      owner,
-                      title: "Do you want to transfer?",
-                      get description() {
-                        return (
-                          <ModalDescription>
-                            This will reset all your data stored in SQLite (the
-                            newer database system) with data purely taken from
-                            indexedDB (which is likely no longer in use). Are
-                            you sure?
-                          </ModalDescription>
-                        )
-                      },
-                      okText: "Yes, transfer",
-                      cancelText: "No, cancel",
-                    }))
-                  ) {
-                    return
-                  }
-
-                  try {
-                    await worker.post("idb_import")
-                    await alert({
-                      owner,
-                      title: "Imported indexedDB data into SQLite database.",
-                    })
-                  } catch {
-                    await alert({
-                      owner,
-                      title: "Failed to import indexedDB data.",
-                    })
-                  }
-                }}
-              />
-            </Show>
-          </Icons>
-
-          {/* TODO: show all available options, not just booleans */}
+          </div>
 
           <CheckboxContainer label="Other options">
             <label class="flex w-full gap-2">
@@ -185,15 +97,137 @@ export const Settings = createLoading(
             </label>
           </CheckboxContainer>
 
-          <SingleBottomAction
-            icon={faRightFromBracket}
-            label="Back"
-            center
-            onClick={pop}
-          />
+          <Show when={prefs.debug}>
+            <DebugSection />
+          </Show>
         </div>
       ),
       onForcePop: () => true,
+    }
+
+    function DebugSection() {
+      return (
+        <IconGrid label="Debug actions">
+          <UploadButton
+            accept=".json"
+            onUpload={async ([file]) => {
+              const result = await confirm({
+                owner,
+                title: "Confirm import?",
+                description: (
+                  <ModalDescription>
+                    This will{" "}
+                    <strong class="text-z underline">irreversibly</strong>{" "}
+                    replace your entire collection with data from the imported
+                    file. We highly recommend exporting your current data before
+                    you import, just in case.
+                  </ModalDescription>
+                ),
+                cancelText: "No, cancel",
+                okText: "Yes, import",
+              })
+
+              if (!result) {
+                return
+              }
+
+              await worker.post("import_json_unparsed", await file.text())
+
+              await alert({
+                owner,
+                title: "Imported successfully",
+                description: (
+                  <ModalDescription>
+                    The collection was imported successfully.
+                  </ModalDescription>
+                ),
+              })
+            }}
+          >
+            {(trigger) => (
+              <Icon icon={faUpload} label="Legacy" onClick={trigger} />
+            )}
+          </UploadButton>
+
+          <Icon
+            icon={faMagnifyingGlassChart}
+            label="Query"
+            onClick={async () => {
+              const result = await confirm({
+                owner,
+                title: "Are you sure you want to use Query?",
+                description: (
+                  <>
+                    <ModalDescription>
+                      The Query tool lets you query your collection using
+                      arbitrary SQLite commands. If you don't know SQLite, this
+                      area is not for you.
+                    </ModalDescription>
+
+                    <ModalDescription>
+                      Anything you do in the Query tool
+                      <strong class="text-z underline">
+                        irreversibly
+                      </strong>{" "}
+                      replace your entire collection with data from the imported
+                      file. We highly recommend exporting your current data
+                      before you import, just in case.
+                    </ModalDescription>
+                  </>
+                ),
+                cancelText: "No, back",
+                okText: "Yes, let me query",
+              })
+
+              if (!result) {
+                return
+              }
+
+              layers.push(SqlData, worker)
+            }}
+          />
+
+          <Icon
+            icon={faArrowRightArrowLeft}
+            label="Transfer"
+            onClick={async () => {
+              if (
+                !(await confirm({
+                  owner,
+                  title: "Do you want to transfer?",
+                  get description() {
+                    return (
+                      <ModalDescription>
+                        This will reset all your data stored in SQLite (the
+                        newer database system) with data purely taken from
+                        indexedDB (which is likely no longer in use). Are you
+                        sure?
+                      </ModalDescription>
+                    )
+                  },
+                  okText: "Yes, transfer",
+                  cancelText: "No, cancel",
+                }))
+              ) {
+                return
+              }
+
+              try {
+                await worker.post("import_idb")
+                await alert({
+                  owner,
+                  title: "Imported indexedDB data into SQLite database.",
+                })
+              } catch {
+                await alert({
+                  owner,
+                  title: "Failed to import indexedDB data.",
+                })
+              }
+            }}
+          />
+        </IconGrid>
+      )
     }
   },
 )

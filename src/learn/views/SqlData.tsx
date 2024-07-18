@@ -138,7 +138,7 @@ export function SqlData(worker: Worker, pop: () => void): LayerOutput {
 
   async function run() {
     try {
-      setResult(await worker.post("volatile_user_query", v))
+      setResult(await worker.post("user_query_safe", v))
     } catch (err) {
       console.error(err)
       setResult(String(err))
