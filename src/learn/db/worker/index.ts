@@ -4,7 +4,7 @@ import type * as messages from "./messages"
 
 import "./db"
 
-export type Handler = (this: unknown, ...data: any) => HandlerReturn
+export type Handler = (this: void, ...data: any) => HandlerReturn
 
 export type HandlerReturn = MaybePromise<Cloneable>
 

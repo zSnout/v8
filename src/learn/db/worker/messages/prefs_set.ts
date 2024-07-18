@@ -1,9 +1,8 @@
 import type { Prefs } from "@/learn/lib/types"
-import type { Handler } from ".."
 import { db } from "../db"
 import { stmts } from "../stmts"
 
-export const prefs_set = ((prefs: Prefs) => {
+export function prefs_set(prefs: Prefs) {
   const tx = db.tx()
   try {
     const stmt = stmts.prefs.prepareUpdate()
@@ -13,4 +12,4 @@ export const prefs_set = ((prefs: Prefs) => {
   } finally {
     tx.dispose()
   }
-}) satisfies Handler
+}

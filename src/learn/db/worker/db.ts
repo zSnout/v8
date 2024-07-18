@@ -1,10 +1,12 @@
+import type { Cloneable } from "@/learn/message"
 import initSqlJs from "@jlongster/sql.js"
 import wasm from "@jlongster/sql.js/dist/sql-wasm.wasm?url"
 import { SQLiteFS } from "absurd-sql"
 import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
 import type { BindParams, Database, SqlValue } from "sql.js"
-import type { ToScript, ToWorker } from "."
+import type { Handler, ToScript, ToWorker } from "."
 import type { Check, CheckResult } from "./checks"
+import * as messages from "./messages"
 import query_schema from "./query/schema.sql?raw"
 
 const data = { initSqlJs, wasm, SQLiteFS, IndexedDBBackend, query_schema }
@@ -143,14 +145,10 @@ export class Tx {
   }
 }
 
-let messages: typeof import("./messages") | undefined
-
-// message handler should be set up as early as possible
 addEventListener("message", async ({ data }: { data: unknown }) => {
   if (import.meta.env.DEV) {
     console.time("worker is handling query")
   }
-  messages ??= await import("./messages")
   if (typeof data != "object" || data == null || !("zTag" in data)) {
     if (import.meta.env.DEV) {
       console.timeEnd("worker is handling query")
@@ -161,8 +159,15 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
   if (data["zTag"] === 0) {
     const req = data as unknown as ToWorker
     try {
-      const value = await (messages[req.type] as any)(...req.data)
-      const res: ToScript = { zTag: 0, id: req.id, ok: true, value }
+      const value = await (messages[req.type] as Handler)(...req.data)
+
+      const res: ToScript = {
+        zTag: 0,
+        id: req.id,
+        ok: true,
+        value: value satisfies Cloneable as any,
+      }
+
       postMessage(res)
     } catch (value) {
       const res: ToScript = {
@@ -189,4 +194,5 @@ export const db = await init().catch((err) => {
   console.error(err)
   throw err
 })
+
 postMessage("zdb:resolve")

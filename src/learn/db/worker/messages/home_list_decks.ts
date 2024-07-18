@@ -1,12 +1,11 @@
 import { Tree } from "@/components/tree"
-import type { Handler } from ".."
 import { bucketOfArray } from "../../bucket"
 import { startOfDaySync } from "../../day"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../../home/listDecks"
 import { bool, id, int, text } from "../checks"
 import { db } from "../db"
 
-export const home_list_decks = (() => {
+export function home_list_decks() {
   const tx = db.tx()
 
   try {
@@ -91,4 +90,4 @@ export const home_list_decks = (() => {
   } finally {
     tx.dispose()
   }
-}) satisfies Handler
+}
