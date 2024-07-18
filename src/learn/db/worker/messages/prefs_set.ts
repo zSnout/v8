@@ -4,8 +4,13 @@ import { db } from "../db"
 import { stmts } from "../stmts"
 
 export const prefs_set = ((prefs: Prefs) => {
-  using tx = db.tx()
-  const stmt = stmts.prefs.prepareUpdate()
-  stmt.bind(stmts.prefs.makeArgs(prefs))
-  tx.commit()
+  const tx = db.tx()
+  try {
+    const stmt = stmts.prefs.prepareUpdate()
+    stmt.bind(stmts.prefs.makeArgs(prefs))
+    stmt.free()
+    tx.commit()
+  } finally {
+    tx.dispose()
+  }
 }) satisfies Handler

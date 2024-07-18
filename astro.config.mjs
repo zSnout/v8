@@ -90,18 +90,15 @@ export default defineConfig({
     ],
     optimizeDeps: {
       esbuildOptions: {
-        target: "es2022",
+        target: "esnext",
       },
     },
-    esbuild: {
-      target: "es2022",
-    },
     build: {
-      target: "es2022",
+      target: "esnext",
     },
     worker: {
       format: "es",
-      plugins: [tsconfigPaths({ loose: true })],
+      plugins: [tsconfigPaths()],
     },
   },
   server: {

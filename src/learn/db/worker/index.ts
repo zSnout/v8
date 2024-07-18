@@ -1,4 +1,3 @@
-import "core-js/proposals/explicit-resource-management"
 import type { MaybePromise } from "valibot"
 import type { Cloneable } from "../../message"
 import type * as messages from "./messages"

@@ -7,7 +7,9 @@ import type { ToScript, ToWorker } from "."
 import type { Check, CheckResult } from "./checks"
 import query_schema from "./query/schema.sql?raw"
 
-// now that message handler
+const data = { initSqlJs, wasm, SQLiteFS, IndexedDBBackend, query_schema }
+Object.assign(globalThis, { data })
+
 const SQL = (await initSqlJs({ locateFile: () => wasm })) as {
   Database: new (...args: any) => Database
   FS: any
@@ -90,7 +92,6 @@ export class WorkerDB extends SQL.Database {
   }
 }
 
-// messy stuff with lots of unchecked types; don't touch
 async function init() {
   const fs = new SQLiteFS(SQL.FS, new IndexedDBBackend())
   SQL.register_for_idb(fs)
@@ -140,23 +141,16 @@ export class Tx {
       this.rollback()
     }
   }
-
-  [Symbol.dispose]() {
-    if (!this.done) {
-      this.rollback()
-    }
-  }
 }
 
-const messagesImport = import("./messages")
-let messages: Awaited<typeof messagesImport> | undefined
+let messages: typeof import("./messages") | undefined
 
 // message handler should be set up as early as possible
 addEventListener("message", async ({ data }: { data: unknown }) => {
   if (import.meta.env.DEV) {
     console.time("worker is handling query")
   }
-  messages ??= await messagesImport
+  messages ??= await import("./messages")
   if (typeof data != "object" || data == null || !("zTag" in data)) {
     if (import.meta.env.DEV) {
       console.timeEnd("worker is handling query")
