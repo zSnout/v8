@@ -83,6 +83,15 @@ export function ContextMenuTrigger(props: { children: JSX.Element }) {
 
   if (typeof document != "undefined") {
     createEventListener(document, "contextmenu", (event) => {
+      for (const el of document.querySelectorAll(".ctx")) {
+        el.classList.remove("ctx")
+      }
+
+      event
+        .composedPath()
+        .filter((x) => x instanceof Element)
+        .map((x) => x.classList.add("ctx"))
+
       event.preventDefault()
       setX(event.clientX)
       setY(event.clientY)
@@ -90,6 +99,10 @@ export function ContextMenuTrigger(props: { children: JSX.Element }) {
     })
 
     createEventListener(document, "click", () => {
+      for (const el of document.querySelectorAll(".ctx")) {
+        el.classList.remove("ctx")
+      }
+
       setActive(false)
     })
   }

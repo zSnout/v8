@@ -35,7 +35,15 @@ export default {
 
       addVariant("scrollbar", "&::-webkit-scrollbar")
 
-      addVariant("dhover", ["&:hover", ".z-expand-checkbox-group:hover + &"])
+      addVariant("dhover", [
+        "&:hover",
+        "&.ctx",
+        ".z-expand-checkbox-group:hover + &",
+        ".z-expand-checkbox-group.ctx + &",
+      ])
+      addVariant("hover", ["&:hover", "&.ctx"])
+      addVariant("focus", ["&:focus", "&.ctx"])
+      addVariant("active", ["&:active", "&.ctx"])
 
       addVariant(
         "prose-details",
