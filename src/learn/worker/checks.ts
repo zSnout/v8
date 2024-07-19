@@ -23,7 +23,7 @@ export function id(value: SqlValue): value is Id {
 }
 
 // manual argument because typescript's `x is ...` semantics are strange
-export function qint(value: SqlValue): value is number {
+export function qint(value: SqlValue): value is number | null {
   return (
     value == null || (typeof value == "number" && Number.isSafeInteger(value))
   )
