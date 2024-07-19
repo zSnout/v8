@@ -59,6 +59,32 @@ export const stmts = {
   confs: {
     insert:
       "INSERT INTO confs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    interpret(data: SqlValue[]): Conf {
+      return {
+        id: data[0],
+        autoplay_audio: !!data[1],
+        last_edited: data[2],
+        name: data[3],
+        new: {
+          bury_related: !!data[4],
+          pick_at_random: !!data[5],
+          per_day: data[6],
+          learning_steps: JSON.parse(data[7] as string),
+        },
+        replay_question_audio: !!data[8],
+        review: {
+          bury_related: !!data[9],
+          enable_fuzz: !!data[10],
+          max_review_interval: data[11],
+          per_day: data[12],
+          relearning_steps: JSON.parse(data[13] as string),
+          requested_retention: data[14],
+          w: data[15] ? JSON.parse(data[15] as string) : null,
+        },
+        show_global_timer: !!data[16],
+        timer_per_card: data[17],
+      } as Conf // TODO: validate data
+    },
     insertArgs(conf: Conf): SqlValue[] {
       return [
         conf.id satisfies INTEGER,
