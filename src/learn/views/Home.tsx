@@ -12,7 +12,6 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, getOwner, onMount } from "solid-js"
-import { createDeckDB } from "../db/home/createDeck"
 import { Buckets, DeckHomeInfo } from "../db/home/listDecks"
 import "../db/worker"
 import { Worker } from "../db/worker"
@@ -190,7 +189,7 @@ export const Home = createLoadingBase(
                 return
               }
 
-              await createDeckDB(db, name)
+              await worker.post("create_deck", name)
               reloadDecks()
             }}
           />

@@ -1,5 +1,6 @@
 export { browse_load } from "./browse_load"
 export { core_get } from "./core_get"
+export { create_deck } from "./create_deck"
 export { create_note } from "./create_note"
 export { create_note_load } from "./create_note_load"
 export { export_sqlite } from "./export_sqlite"
