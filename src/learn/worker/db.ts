@@ -11,8 +11,8 @@ import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
 import { latest } from "./version"
 
-import query_schema from "./query/schema.sql?raw"
 import query_init from "./query/init.sql?raw"
+import query_schema from "./query/schema.sql?raw"
 
 const SQL = (await initSqlJs({ locateFile: () => wasm })) as {
   Database: new (...args: any) => Database
@@ -78,7 +78,7 @@ export class WorkerDB extends SQL.Database {
     }
   }
 
-  /** Runs a query and checks the types of the first row of values. */
+  /** Runs a single query and checks the types of the first row of values. */
   checked<const T extends ((x: SqlValue) => boolean)[]>(
     sql: string,
     checks: T,
