@@ -33,13 +33,69 @@ export const Settings = createLoading(
         <div class="mx-auto flex min-h-full w-full max-w-xl flex-col gap-4">
           {/* TODO: show all available options, not just booleans */}
 
-          <div class="grid w-full grid-cols-2 gap-1">
+          <div class="grid w-full grid-cols-2 gap-1 xs:grid-cols-3">
             <Action
+              class="col-span-2 xs:col-span-1"
               center
               icon={faRightFromBracket}
               label="Back"
               onClick={pop}
             />
+            <UploadButton
+              accept=".json,.sqlite3,.sqlite,application/json,application/x-sqlite3,application/vnd.sqlite3"
+              onUpload={async ([file]) => {
+                const mode =
+                  file.name.endsWith(".json") || file.type == "application/json"
+                    ? "json"
+                    : "sqlite3"
+
+                const result = await confirm({
+                  owner,
+                  title: "Confirm import?",
+                  description: (
+                    <ModalDescription>
+                      This will{" "}
+                      <strong class="text-z underline">irreversibly</strong>{" "}
+                      replace your entire collection with data from the imported
+                      file. We highly recommend exporting your current data
+                      before you import, just in case.
+                    </ModalDescription>
+                  ),
+                  cancelText: "No, cancel",
+                  okText: "Yes, import",
+                })
+
+                if (!result) {
+                  return
+                }
+
+                if (mode == "json") {
+                  await worker.post("import_json_unparsed", await file.text())
+                } else {
+                  await worker.post("import_sqlite", await file.arrayBuffer())
+                }
+
+                await alert({
+                  owner,
+                  title: "Imported successfully",
+                  description: (
+                    <ModalDescription>
+                      The collection was imported successfully.
+                    </ModalDescription>
+                  ),
+                })
+              }}
+            >
+              {(trigger) => (
+                <Action
+                  center
+                  icon={faUpload}
+                  label="Import"
+                  onClick={trigger}
+                />
+              )}
+            </UploadButton>
+
             <Action
               center
               icon={faDownload}
@@ -132,6 +188,47 @@ export const Settings = createLoading(
               }
 
               await worker.post("import_json_unparsed", await file.text())
+
+              await alert({
+                owner,
+                title: "Imported successfully",
+                description: (
+                  <ModalDescription>
+                    The collection was imported successfully.
+                  </ModalDescription>
+                ),
+              })
+            }}
+          >
+            {(trigger) => (
+              <Icon icon={faUpload} label="Legacy" onClick={trigger} />
+            )}
+          </UploadButton>
+
+          <UploadButton
+            accept=".sqlite3,.sqlite"
+            onUpload={async ([file]) => {
+              const result = await confirm({
+                owner,
+                title: "Confirm import?",
+                description: (
+                  <ModalDescription>
+                    This will{" "}
+                    <strong class="text-z underline">irreversibly</strong>{" "}
+                    replace your entire collection with data from the imported
+                    file. We highly recommend exporting your current data before
+                    you import, just in case.
+                  </ModalDescription>
+                ),
+                cancelText: "No, cancel",
+                okText: "Yes, import",
+              })
+
+              if (!result) {
+                return
+              }
+
+              await worker.post("import_sqlite", await file.arrayBuffer())
 
               await alert({
                 owner,

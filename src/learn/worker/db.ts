@@ -14,7 +14,7 @@ import { latest } from "./version"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 
-const sqlite3 = await sqlite3InitModule({
+export const sqlite3 = await sqlite3InitModule({
   print: console.log,
   printErr: console.error,
   // locateFile: () => wasm
@@ -140,15 +140,26 @@ export class WorkerDB extends sqlite3.oo1.OpfsDb {
   }
 }
 
-async function init() {
-  if (!("opfs" in sqlite3)) {
-    throw new Error("OPFS is not supported on this browser.")
-  }
+export const DB_FILENAME = "/learn/User 1.sqlite3"
 
-  const db = new WorkerDB("/mydb.sqlite3")
-  db.exec(query_init)
-  checkVersion(db)
-  return db
+async function init() {
+  try {
+    if (!("opfs" in sqlite3)) {
+      throw new Error("OPFS is not supported on this browser.")
+    }
+
+    const db = new WorkerDB(DB_FILENAME)
+    db.exec(query_init)
+    checkVersion(db)
+    return db
+  } catch (err) {
+    try {
+      postMessage({ "zdb:reject": err })
+    } catch {
+      postMessage({ "zdb:reject": "Error is unable to be reported." })
+    }
+    throw err
+  }
 }
 
 // this function cannot access external `db` since that variable isn't set yet
@@ -249,14 +260,43 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
   }
 })
 
-// initialize the database and report the main thread on whether that worked
-export const db = await init().catch((err) => {
-  try {
-    postMessage({ "zdb:reject": err })
-  } catch {
-    postMessage({ "zdb:reject": "Error is unable to be reported." })
+/** This is a `let` binding so we can close and reopen it. */
+export let db = await init()
+
+function createClosedDatabase(message: string) {
+  function dbImporting(): never {
+    throw new Error(message)
   }
-  throw err
-})
+
+  return new Proxy<any>(
+    {},
+    {
+      defineProperty: dbImporting,
+      deleteProperty: dbImporting,
+      get: dbImporting,
+      getOwnPropertyDescriptor: dbImporting,
+      getPrototypeOf: dbImporting,
+      has: dbImporting,
+      isExtensible: dbImporting,
+      ownKeys: dbImporting,
+      preventExtensions: dbImporting,
+      set: dbImporting,
+      setPrototypeOf: dbImporting,
+    },
+  )
+}
+
+export async function closeDatabaseTemporarily(
+  message: string,
+  fn: () => Promise<void>,
+) {
+  try {
+    db.close()
+    db = createClosedDatabase(message)
+    await fn()
+  } finally {
+    db = await init()
+  }
+}
 
 postMessage("zdb:resolve")

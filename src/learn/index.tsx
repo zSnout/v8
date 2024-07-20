@@ -57,13 +57,20 @@ function UndoManager(worker: Worker) {
   shortcuts.scoped(
     { key: "Escape" },
     () => {
-      if (document.activeElement == document.body) {
-        layers.popLatest()
-      } else if (
-        document.activeElement instanceof HTMLElement ||
-        document.activeElement instanceof SVGElement
+      let dialog
+      if (
+        (document.activeElement instanceof HTMLElement ||
+          document.activeElement instanceof SVGElement) &&
+        document.activeElement != document.body
       ) {
         document.activeElement.blur()
+      } else if (
+        (dialog = document.querySelector<HTMLDialogElement>("dialog[open]"))
+      ) {
+        console.log(dialog)
+        dialog.dispatchEvent(new Event("cancel"))
+      } else if (document.activeElement == document.body) {
+        layers.popLatest()
       }
     },
     true,

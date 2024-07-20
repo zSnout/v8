@@ -15,7 +15,7 @@ export function create_note_load(state: { did?: Id; mid?: Id }) {
 
     const currentDeck = stmts.decks.interpret(
       db.row("SELECT * FROM decks WHERE id = ?", [
-        state.did ?? prefs.current_deck ?? ID_ZERO ?? allDecks[0]?.id,
+        state.did ?? prefs.current_deck ?? allDecks[0]?.id ?? ID_ZERO,
       ]),
     )
 
@@ -23,7 +23,7 @@ export function create_note_load(state: { did?: Id; mid?: Id }) {
 
     const currentModel = stmts.models.interpret(
       db.row("SELECT * FROM models WHERE id = ?", [
-        state.mid ?? prefs.last_model_used ?? ID_ZERO ?? allModels[0]?.id,
+        state.mid ?? prefs.last_model_used ?? allModels[0]?.id ?? ID_ZERO,
       ]),
     )
 
