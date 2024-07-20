@@ -7,7 +7,7 @@
 export interface ChartBase<T extends string> {
   data: [label: number | string, values: number[]][]
   type: T
-  colors: string[]
+  colors: [light: string, dark: string][]
   /** @deprecated The direction of the chart. */ dir: "tb" | "bt" | "lr" | "rl"
   /** @deprecated How many decimal places to show. */ decimalPlaces: number
   /** @deprecated Every nth entry gets a label. */ labelsEach: number

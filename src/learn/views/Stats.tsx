@@ -20,7 +20,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
 
         <Unmain>
           <div class="flex px-6">
-            <div class="mx-auto grid w-full max-w-[80rem] grid-cols-[repeat(auto-fill,minmax(24rem,1fr))] gap-4">
+            <div class="mx-auto grid w-full max-w-[80rem] grid-cols-[repeat(auto-fill,minmax(min(24rem,100%),1fr))] gap-4">
               <Charts />
             </div>
           </div>
@@ -83,7 +83,13 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
             ["May", [50]],
             ["Jun", [5]],
           ],
-          colors: ["red", "blue", "green", "orange", "purple"],
+          colors: [
+            ["hsl(173 58% 39%)", "hsl(220 70% 50%)"],
+            ["hsl(12 76% 61%)", "hsl(160 60% 45%)"],
+            ["hsl(197 37% 24%)", "hsl(30 80% 55%)"],
+            ["hsl(43 74% 66%)", "hsl(280 65% 60%)"],
+            ["hsl(27 87% 67%)", "hsl(340 75% 55%)"],
+          ],
 
           decimalPlaces: 4,
           dir: "lr",
