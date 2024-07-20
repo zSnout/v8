@@ -67,7 +67,9 @@ export interface Limits {
 export function deck_limits(main: Id | null): Limits {
   const tx = db.tx()
   try {
-    return deck_limits_txless(main, prefs_get().day_start)
+    const value = deck_limits_txless(main, prefs_get().day_start)
+    tx.commit()
+    return value
   } finally {
     tx.dispose()
   }

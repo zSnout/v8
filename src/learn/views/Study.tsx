@@ -61,11 +61,11 @@ import {
   runWithOwner,
   Show,
 } from "solid-js"
-import { Grade, Rating } from "ts-fsrs"
+import { Grade, Rating, State } from "ts-fsrs"
 import { createPrefsWithWorker } from "../db/prefs/store"
 import { Reason } from "../db/reason"
 import { putCard, putNote } from "../db/study/merge"
-import { checkBucket, saveForget, saveReview } from "../db/study/select"
+import { checkBucket, saveForget } from "../db/study/select"
 import type { Worker } from "../db/worker"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
@@ -300,7 +300,13 @@ export const Study = createLoading(
       prayTruthy(c, "Cannot answer a `null` card.")
       state.lastCid = c.card.id
       const now = Date.now()
-      await saveReview(db, c, info, now, now - shownAt, grade)
+      await worker.post(
+        "study_save_review",
+        c.repeat[grade].card,
+        c.repeat[grade].log,
+        c.card.state == State.New,
+        now - shownAt,
+      )
       batch(() => {
         refetch()
         setAnswerShown(false)
