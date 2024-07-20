@@ -31,7 +31,7 @@ export function deck_done_today_txless(decks: Id[], dayStart: number) {
 
     return { new_today, rev_today }
   } finally {
-    stmt.free()
+    stmt.finalize()
   }
 }
 

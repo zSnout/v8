@@ -9,21 +9,13 @@ export function browse_load() {
   const tx = db.tx()
 
   try {
-    const decks = db
-      .single("SELECT * FROM decks")
-      .values.map(stmts.decks.interpret)
-
-    const models = db
-      .single("SELECT * FROM models")
-      .values.map(stmts.models.interpret)
-
-    const notes = db
-      .single("SELECT * FROM notes")
-      .values.map(stmts.notes.interpret)
+    const decks = db.run("SELECT * FROM decks").map(stmts.decks.interpret)
+    const models = db.run("SELECT * FROM models").map(stmts.models.interpret)
+    const notes = db.run("SELECT * FROM notes").map(stmts.notes.interpret)
 
     const cards = db
-      .single("SELECT * FROM cards ORDER BY creation")
-      .values.map(stmts.cards.interpret)
+      .run("SELECT * FROM cards ORDER BY creation")
+      .map(stmts.cards.interpret)
 
     const prefs = prefs_get()
 

@@ -84,7 +84,7 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
     }
 
     if (editStyle) {
-      db.exec("UPDATE prefs SET template_edit_style = ? WHERE id = 0", [
+      db.run("UPDATE prefs SET template_edit_style = ? WHERE id = 0", [
         JSON.stringify(editStyle),
       ])
     }
@@ -98,10 +98,10 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
       "SELECT tmpls, sort_field, fields FROM models WHERE id = ?",
       [text, qid, text],
       [model.id],
-    ).values[0]
+    )[0]
 
     if (!prevRaw) {
-      db.exec(stmts.models.insert, stmts.models.insertArgs(model))
+      db.run(stmts.models.insert, stmts.models.insertArgs(model))
       tx.commit()
       return
     }
@@ -115,19 +115,19 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
     const { add, del } = diffTmpls(prev.tmpls, model.tmpls)
 
     if (requiresOneWaySync(prev, model)) {
-      db.exec(
+      db.run(
         "UPDATE core SET last_schema_edit = :now, last_edited = :now WHERE id = 0",
         { ":now": Date.now() },
       )
     }
 
-    for (const note of db.single("SELECT * FROM notes WHERE mid = ?", [
+    for (const note of db.run("SELECT * FROM notes WHERE mid = ?", [
       model.id,
-    ]).values) {
+    ])) {
       inner(stmts.notes.interpret(note))
     }
 
-    db.exec(stmts.models.update, stmts.models.updateArgs(model))
+    db.run(stmts.models.update, stmts.models.updateArgs(model))
     tx.commit()
     return
 
@@ -139,7 +139,7 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
       }
       const last_edited = now
       // FEAT: checksums
-      db.exec(
+      db.run(
         "UPDATE notes SET sort_field = ?, fields = ?, last_edited = ? WHERE id = ?",
         [sort_field, JSON.stringify(fields), last_edited, note.id],
       )
@@ -154,7 +154,7 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
           [id, qid, id, id],
           [note.id],
         )
-        .values.map(([tid, odid, did, id]) => ({ tid, odid, did, id }))
+        .map(([tid, odid, did, id]) => ({ tid, odid, did, id }))
 
       if (add.length) {
         const fields = Template.fieldRecord(model.fields, note.fields)
@@ -184,7 +184,7 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
               flags: 0,
               odid: null,
             }
-            db.exec(stmts.cards.insert, stmts.cards.insertArgs(card))
+            db.run(stmts.cards.insert, stmts.cards.insertArgs(card))
           }
         }
       }
@@ -193,8 +193,8 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
         for (const { id } of del) {
           const cid = cs.find((x) => x.tid == id)?.id
           if (cid != null) {
-            db.exec("DELETE FROM cards WHERE id = ?", [cid])
-            db.exec("INSERT INTO graves (id, oid, type) VALUES (?, ?, 0)", [
+            db.run("DELETE FROM cards WHERE id = ?", [cid])
+            db.run("INSERT INTO graves (id, oid, type) VALUES (?, ?, 0)", [
               randomId(),
               cid,
             ])

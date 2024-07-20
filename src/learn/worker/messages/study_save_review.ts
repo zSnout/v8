@@ -1,4 +1,3 @@
-import { notNull } from "@/components/pray"
 import type { AnyCard, Review } from "@/learn/lib/types"
 import { int, text } from "../checks"
 import { db } from "../db"
@@ -12,7 +11,7 @@ export function study_save_review(
 ) {
   const tx = db.tx()
   try {
-    db.exec(
+    db.run(
       "UPDATE cards SET due = ?, last_review = ?, reps = ?, state = ?, elapsed_days = ?, scheduled_days = ?, stability = ?, difficulty = ?, lapses = ? WHERE id = ?",
       [
         card.due,
@@ -28,18 +27,15 @@ export function study_save_review(
       ],
     )
 
-    db.exec(
+    db.run(
       stmts.rev_log.insert,
       stmts.rev_log.insertArgs({ ...log, time: timeElapsedMs }),
     )
 
-    const [new_today, revcards_today, revlogs_today] = notNull(
-      db.checked(
-        "SELECT new_today, revcards_today, revlogs_today FROM decks WHERE id = ?",
-        [text, text, int],
-        [card.did],
-      ).values[0],
-      "The card is not attached to a valid deck.",
+    const [new_today, revcards_today, revlogs_today] = db.rowChecked(
+      "SELECT new_today, revcards_today, revlogs_today FROM decks WHERE id = ?",
+      [text, text, int],
+      [card.did],
     )
 
     const revcardsToday = JSON.parse(revcards_today) as number[]
@@ -52,7 +48,7 @@ export function study_save_review(
       if (!newToday.includes(card.id)) {
         newToday.push(card.id)
       }
-      db.exec(
+      db.run(
         "UPDATE decks SET new_today = ?, revcards_today = ?, revlogs_today = ? WHERE id = ?",
         [
           JSON.stringify(newToday),
@@ -62,7 +58,7 @@ export function study_save_review(
         ],
       )
     } else {
-      db.exec(
+      db.run(
         "UPDATE decks SET revcards_today = ?, revlogs_today = ? WHERE id = ?",
         [JSON.stringify(revcardsToday), revlogs_today + 1, card.did],
       )

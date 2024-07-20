@@ -9,12 +9,12 @@ export function home_set_deck_expanded(
 
   try {
     if (typeof idOrName == "number") {
-      db.exec("UPDATE decks SET collapsed = ? WHERE id = ?", [
+      db.run("UPDATE decks SET collapsed = ? WHERE id = ?", [
         +!expanded,
         idOrName,
       ])
     } else {
-      db.exec(
+      db.run(
         "INSERT INTO decks (id, name, collapsed, is_filtered) VALUES (?, ?, ?, 0) ON CONFLICT(name) DO UPDATE SET is_filtered = excluded.is_filtered",
         [randomId(), idOrName, +!expanded],
       )

@@ -11,7 +11,7 @@ import {
   Prefs,
   Review,
 } from "@/learn/lib/types"
-import type { SqlValue } from "sql.js"
+import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { parse } from "valibot"
 import { latest } from "./version"
 

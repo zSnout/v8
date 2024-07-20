@@ -22,7 +22,7 @@ export function home_list_decks() {
       text,
     ])
 
-    const idToName = Object.fromEntries(decks.values.map((x) => [x[0], x]))
+    const idToName = Object.fromEntries(decks.map((x) => [x[0], x]))
 
     const cards = db.checked(
       "SELECT queue, state, last_edited, scheduled_days, due, did FROM cards",
@@ -38,7 +38,7 @@ export function home_list_decks() {
 
     const self = new Map<string, Buckets>()
 
-    for (const card of cards.values) {
+    for (const card of cards) {
       const bucket = bucketOfArray(today, card, dayStart)
       if (bucket == null) continue
 

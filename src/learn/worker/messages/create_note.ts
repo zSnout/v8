@@ -72,27 +72,23 @@ export function create_note(
 
   const tx = db.tx()
   try {
-    db.exec(stmts.notes.insert, stmts.notes.insertArgs(note))
+    db.run(stmts.notes.insert, stmts.notes.insertArgs(note))
 
     // insert cards using a prepared statement
     const stmt = db.prepare(stmts.cards.insert)
     try {
       for (const card of cards) {
-        stmt.run(stmts.cards.insertArgs(card))
+        stmt.bind(stmts.cards.insertArgs(card)).stepReset()
       }
     } finally {
-      stmt.free()
+      stmt.finalize()
     }
 
     // verify that the fields object we're adding doesn't kill integrity
-    const result = db.checked(
-      "SELECT fields FROM models WHERE id = ?",
-      [text],
-      [model.id],
-    )
-    const prevFields = Object.keys(
-      parse(ModelFields, JSON.parse(result.values[0]![0])),
-    )
+    const result = db.val("SELECT fields FROM models WHERE id = ?", text, [
+      model.id,
+    ])
+    const prevFields = Object.keys(parse(ModelFields, JSON.parse(result)))
     const nextFields = Object.keys(model.fields)
     if (
       (model.sort_field == null ||
@@ -100,7 +96,7 @@ export function create_note(
       prevFields.length == nextFields.length &&
       prevFields.every((x, i) => x == nextFields[i])
     ) {
-      db.exec("UPDATE models SET sort_field = ?, fields = ? WHERE id = ?", [
+      db.run("UPDATE models SET sort_field = ?, fields = ? WHERE id = ?", [
         model.sort_field,
         JSON.stringify(model.fields),
         model.id,

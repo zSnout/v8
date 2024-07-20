@@ -63,19 +63,19 @@ export function study_select_txless(root: Id | null, all: Id[]) {
   }
 
   const card = stmts.cards.interpret(
-    db.single("SELECT * FROM cards WHERE id = ?", [cid]).values[0]!,
+    db.row("SELECT * FROM cards WHERE id = ?", [cid]),
   )
 
   const note = stmts.notes.interpret(
-    db.single("SELECT * FROM notes WHERE id = ?", [card.nid]).values[0]!,
+    db.row("SELECT * FROM notes WHERE id = ?", [card.nid]),
   )
 
   const model = stmts.models.interpret(
-    db.single("SELECT * FROM models WHERE id = ?", [note.mid]).values[0]!,
+    db.row("SELECT * FROM models WHERE id = ?", [note.mid]),
   )
 
   const deck = stmts.decks.interpret(
-    db.single("SELECT * FROM decks WHERE id = ?", [card.did]).values[0]!,
+    db.row("SELECT * FROM decks WHERE id = ?", [card.did]),
   )
 
   const tmpl = notNull(
@@ -140,15 +140,14 @@ function pickNew(includeBuried: boolean, randomWithinDeck: boolean, all: Id[]) {
     for (const did of all) {
       stmt.bind([did])
       if (stmt.step()) {
-        const [cid] = stmt.get() as [Id]
-        return cid
+        return stmt.get(0) as Id
       }
       stmt.reset()
     }
 
     return
   } finally {
-    stmt.free()
+    stmt.finalize()
   }
 }
 
@@ -167,8 +166,7 @@ function pickLearningToday(includeBuried: boolean, now: number, all: Id[]) {
       .map((did) => {
         stmt.bind([did])
         if (stmt.step()) {
-          const [cid] = stmt.get() as [Id]
-          return cid
+          return stmt.get(0) as Id
         }
         stmt.reset()
         return
@@ -177,7 +175,7 @@ function pickLearningToday(includeBuried: boolean, now: number, all: Id[]) {
 
     return cids[0]
   } finally {
-    stmt.free()
+    stmt.finalize()
   }
 }
 
@@ -200,8 +198,7 @@ function pickReviewToday(
       .map((did) => {
         stmt.bind([did])
         if (stmt.step()) {
-          const [cid] = stmt.get() as [Id]
-          return cid
+          return stmt.get(0) as Id
         }
         stmt.reset()
         return
@@ -210,6 +207,6 @@ function pickReviewToday(
 
     return cids[0]
   } finally {
-    stmt.free()
+    stmt.finalize()
   }
 }

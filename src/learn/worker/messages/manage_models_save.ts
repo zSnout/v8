@@ -14,26 +14,26 @@ export function manage_models_save(
       try {
         for (const a of added) {
           const model = cloneModel(a.id, a.name, a.cloned)
-          stmt.run(stmts.models.insertArgs(model))
+          stmt.bind(stmts.models.insertArgs(model)).stepReset()
         }
       } finally {
-        stmt.free()
+        stmt.finalize()
       }
     }
 
     if (removed.length) {
-      db.exec(
+      db.run(
         "UPDATE core SET last_edited = ?, last_schema_edit = ? WHERE id = 0",
         [Date.now(), Date.now()],
       )
 
       for (const [mid] of removed) {
-        db.exec(
+        db.run(
           "INSERT INTO graves (oid, type) SELECT id, 1 FROM notes WHERE mid = ?",
           [mid],
         )
-        db.exec("DELETE FROM notes WHERE mid = ?", [mid])
-        db.exec("DELETE FROM models WHERE id = ?", [mid])
+        db.run("DELETE FROM notes WHERE mid = ?", [mid])
+        db.run("DELETE FROM models WHERE id = ?", [mid])
       }
     }
 

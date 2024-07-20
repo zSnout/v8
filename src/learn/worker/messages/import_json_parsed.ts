@@ -1,5 +1,5 @@
 import type { Collection } from "@/learn/lib/types"
-import type { SqlValue } from "sql.js"
+import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { db } from "../db"
 import query_reset from "../query/reset.sql?raw"
 import query_schema from "../query/schema.sql?raw"
@@ -11,9 +11,9 @@ function inner<T>(
 ) {
   const stmt = db.prepare(meta.insert)
   for (const item of items) {
-    stmt.run(meta.insertArgs(item))
+    stmt.bind(meta.insertArgs(item)).stepReset()
   }
-  stmt.free()
+  stmt.finalize()
 }
 
 export function import_json_parsed(data: Collection) {

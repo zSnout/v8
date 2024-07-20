@@ -7,8 +7,8 @@ import {
   faShieldHalved,
   faSkullCrossbones,
 } from "@fortawesome/free-solid-svg-icons"
+import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { createSignal, For, getOwner, Show, untrack } from "solid-js"
-import type { QueryExecResult } from "sql.js"
 import type { Worker } from "../db/worker"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { IntegratedCodeField } from "../el/IntegratedField"
@@ -30,7 +30,13 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
   shortcuts.scoped({ key: "Enter", mod: "macctrl" }, run, true)
 
   const [query, setQuery] = createSignal("")
-  const [result, setResult] = createSignal<QueryExecResult[] | string>("")
+  const [result, setResult] = createSignal<
+    | {
+        columns: string[]
+        values: SqlValue[][]
+      }[]
+    | string
+  >("")
   const [safe, setSafe] = createSignal(true)
 
   return {
@@ -186,13 +192,22 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
                                 <For each={row}>
                                   {(el) => (
                                     <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
-                                      {el instanceof Uint8Array
-                                        ? Array.from(el)
+                                      {el instanceof Uint8Array ||
+                                      el instanceof ArrayBuffer ||
+                                      el instanceof Int8Array
+                                        ? Array.from(new Uint8Array(el))
                                             .map((x) =>
                                               x.toString(16).padStart(2, "0"),
                                             )
                                             .join(" ")
-                                        : el}
+                                        : typeof el == "bigint"
+                                          ? el.toString()
+                                          : el == null
+                                            ? "NULL"
+                                            : (el as Exclude<
+                                                typeof el,
+                                                BigInt
+                                              >)}
                                     </td>
                                   )}
                                 </For>

@@ -1,11 +1,11 @@
 // import "core-js/proposals/explicit-resource-management"
 
+// import initSqlJs from "@jlongster/sql.js"
 import type { Cloneable } from "@/learn/message"
-import initSqlJs from "@jlongster/sql.js"
-import wasm from "@jlongster/sql.js/dist/sql-wasm.wasm?url"
-import { SQLiteFS } from "absurd-sql"
-import IndexedDBBackend from "absurd-sql/dist/indexeddb-backend"
-import type { BindParams, Database, SqlValue } from "sql.js"
+import sqlite3InitModule, {
+  type BindingSpec,
+  type SqlValue,
+} from "@sqlite.org/sqlite-wasm"
 import type { Handler, ToScript, ToWorker } from "."
 import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
@@ -14,35 +14,90 @@ import { latest } from "./version"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 
-const SQL = (await initSqlJs({ locateFile: () => wasm })) as {
-  Database: new (...args: any) => Database
-  FS: any
-  register_for_idb: any
+const sqlite3 = await sqlite3InitModule({
+  print: console.log,
+  printErr: console.error,
+  // locateFile: () => wasm
+})
+
+if (!("opfs" in sqlite3)) {
+  throw new Error("OPFS is not supported on this browser.")
 }
 
-export class WorkerDB extends SQL.Database {
+export class WorkerDB extends sqlite3.oo1.OpfsDb {
   tx() {
     return new Tx()
+  }
+
+  run(sql: string, params?: BindingSpec): SqlValue[][] {
+    return this.exec(sql, {
+      bind: params,
+      returnValue: "resultRows",
+    })
+  }
+
+  row(sql: string, params?: BindingSpec): SqlValue[] {
+    const result = this.run(sql, params)
+    const first = result[0]
+    if (first == null) {
+      throw new Error("Expected exactly one row; got none.")
+    }
+    if (result.length > 1) {
+      throw new Error("Expected exactly one row; got more than one.")
+    }
+    return first
+  }
+
+  rowChecked<const T extends Check[]>(
+    sql: string,
+    checks: T,
+    params?: BindingSpec,
+  ): {
+    [K in keyof T]: T[K] extends ((
+      x: SqlValue,
+    ) => x is infer U extends SqlValue)
+      ? U
+      : SqlValue
+  } {
+    const row = this.row(sql, params)
+    if (checks.length != row.length) {
+      throw new Error(
+        `Expected ${checks.length} column${checks.length == 1 ? "" : "s"}; received ${row.length}.`,
+      )
+    }
+    for (let index = 0; index < row.length; index++) {
+      if (!checks[index]!(row[index]!)) {
+        throw new Error("Query returned the wrong type.")
+      }
+    }
+    return row as any
+  }
+
+  runWithColumns(sql: string, params?: BindingSpec) {
+    const columns: string[] = []
+    return {
+      columns,
+      values: this.exec(sql, {
+        bind: params,
+        columnNames: columns,
+        returnValue: "resultRows",
+      }),
+    }
   }
 
   val<T extends Check>(
     sql: string,
     check: T,
-    params?: BindParams,
+    params?: BindingSpec,
   ): CheckResult<T>
-  val(sql: string, check?: undefined, params?: BindParams): SqlValue
-  val(sql: string, check?: Check, params?: BindParams): SqlValue {
-    const result = this.exec(sql, params)
-    if (result.length != 1) {
-      throw new TypeError("Expected a single statement to be run.")
-    }
-
-    const query = result[0]!
-    if (query.values.length != 1) {
+  val(sql: string, check?: undefined, params?: BindingSpec): SqlValue
+  val(sql: string, check?: Check, params?: BindingSpec): SqlValue {
+    const query = this.run(sql, params)
+    if (query.length != 1) {
       throw new TypeError("Expected a single row to be returned.")
     }
 
-    const row = query.values[0]!
+    const row = query[0]!
     if (row.length != 1) {
       throw new TypeError("Expected a single column to be returned.")
     }
@@ -56,48 +111,23 @@ export class WorkerDB extends SQL.Database {
     return item
   }
 
-  single(
-    sql: string,
-    params?: BindParams,
-  ): {
-    columns: string[]
-    values: SqlValue[][]
-  } {
-    const stmt = this.prepare(sql)
-    try {
-      stmt.bind(params)
-      const columns = stmt.getColumnNames()
-      const query: SqlValue[][] = []
-      while (stmt.step()) {
-        query.push(stmt.get())
-      }
-
-      return { columns, values: query satisfies SqlValue[][] as any }
-    } finally {
-      stmt.free()
-    }
-  }
-
   /** Runs a single query and checks the types of the first row of values. */
-  checked<const T extends ((x: SqlValue) => boolean)[]>(
+  checked<const T extends Check[]>(
     sql: string,
     checks: T,
-    params?: BindParams,
+    params?: BindingSpec,
   ): {
-    columns: string[]
-    values: {
-      [K in keyof T]: T[K] extends ((
-        x: SqlValue,
-      ) => x is infer U extends SqlValue)
-        ? U
-        : SqlValue
-    }[]
-  } {
+    [K in keyof T]: T[K] extends ((
+      x: SqlValue,
+    ) => x is infer U extends SqlValue)
+      ? U
+      : SqlValue
+  }[] {
     // TODO: possibly disable checks in prod
 
-    const data = this.single(sql, params)
+    const data = this.run(sql, params)
 
-    const row = data.values[0]
+    const row = data[0]
     if (row) {
       for (let index = 0; index < row.length; index++) {
         if (!checks[index]!(row[index]!)) {
@@ -111,20 +141,11 @@ export class WorkerDB extends SQL.Database {
 }
 
 async function init() {
-  const fs = new SQLiteFS(SQL.FS, new IndexedDBBackend())
-  SQL.register_for_idb(fs)
-
-  SQL.FS.mkdir("/sql")
-  SQL.FS.mount(fs, {}, "/sql")
-
-  const path = "/sql/db.sqlite"
-  if (typeof SharedArrayBuffer === "undefined") {
-    const stream = SQL.FS.open(path, "a+")
-    await stream.node.contents.readIfFallback()
-    SQL.FS.close(stream)
+  if (!("opfs" in sqlite3)) {
+    throw new Error("OPFS is not supported on this browser.")
   }
 
-  const db = new WorkerDB(path, { filename: true })
+  const db = new WorkerDB("/mydb.sqlite3")
   db.exec(query_init)
   checkVersion(db)
   return db
@@ -142,7 +163,7 @@ function checkVersion(db: WorkerDB) {
     : 0
   upgrade(db, current)
   if (current != latest) {
-    db.exec("UPDATE core SET version = ? WHERE id = 0", [latest])
+    db.run("UPDATE core SET version = ? WHERE id = 0", [latest])
   }
   db.exec("COMMIT")
 }
@@ -157,7 +178,7 @@ function upgrade(db: WorkerDB, current: number) {
 INSERT INTO prefs (id) VALUES (0);
 INSERT INTO confs (id, name) VALUES (0, 'Default');
 INSERT INTO decks (id, name, is_filtered) VALUES (0, 'Default', 0);`,
-      { ":version": latest },
+      { bind: { ":version": latest } },
     )
   }
 }

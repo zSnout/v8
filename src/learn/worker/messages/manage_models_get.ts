@@ -2,5 +2,5 @@ import { db } from "../db"
 import { stmts } from "../stmts"
 
 export function manage_models_get() {
-  return db.single("SELECT * FROM models").values.map(stmts.models.interpret)
+  return db.run("SELECT * FROM models").map(stmts.models.interpret)
 }

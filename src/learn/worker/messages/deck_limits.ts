@@ -19,13 +19,13 @@ export function deck_limits_txless(root: Id | null, dayStart: number): Limits {
           "SELECT cfid, custom_revcard_limit, custom_newcard_limit, default_revcard_limit, default_newcard_limit, today FROM decks WHERE id = ?",
           [id, qint, qint, qint, qint, int],
           [root],
-        ).values[0] ?? [ID_ZERO, null, null, null, null])
+        )[0] ?? [ID_ZERO, null, null, null, null])
 
-  const [new_per_day, rev_per_day] = db.checked(
+  const [new_per_day, rev_per_day] = db.rowChecked(
     "SELECT new_per_day, review_per_day FROM confs WHERE id = ?",
     [int, int],
     [cfid],
-  ).values[0]!
+  )
 
   const isToday =
     (today != null && isSameDaySync(dayStart, Date.now(), today)) || null

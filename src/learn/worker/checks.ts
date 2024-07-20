@@ -1,5 +1,5 @@
 import type { Id } from "@/learn/lib/id"
-import type { SqlValue } from "sql.js"
+import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 
 // manual argument because typescript's `x is ...` semantics are strange
 export function int(value: SqlValue): value is number {

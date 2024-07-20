@@ -11,25 +11,21 @@ export function create_note_load(state: { did?: Id; mid?: Id }) {
   try {
     const prefs = prefs_get()
 
-    const allDecks = db
-      .single("SELECT * FROM decks")
-      .values.map(stmts.decks.interpret)
+    const allDecks = db.run("SELECT * FROM decks").map(stmts.decks.interpret)
 
-    const currentDeck = db
-      .single("SELECT * FROM decks WHERE id = ?", [
-        state.did ?? prefs.current_deck ?? ID_ZERO,
-      ])
-      .values.map(stmts.decks.interpret)[0]
+    const currentDeck = stmts.decks.interpret(
+      db.row("SELECT * FROM decks WHERE id = ?", [
+        state.did ?? prefs.current_deck ?? ID_ZERO ?? allDecks[0]?.id,
+      ]),
+    )
 
-    const allModels = db
-      .single("SELECT * FROM models")
-      .values.map(stmts.models.interpret)
+    const allModels = db.run("SELECT * FROM models").map(stmts.models.interpret)
 
-    const currentModel = db
-      .single("SELECT * FROM models WHERE id = ?", [
-        state.mid ?? prefs.last_model_used ?? ID_ZERO,
-      ])
-      .values.map(stmts.models.interpret)[0]
+    const currentModel = stmts.models.interpret(
+      db.row("SELECT * FROM models WHERE id = ?", [
+        state.mid ?? prefs.last_model_used ?? ID_ZERO ?? allModels[0]?.id,
+      ]),
+    )
 
     const value = {
       deckCurrent: notNull(

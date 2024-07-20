@@ -1,4 +1,3 @@
-import { notNull } from "@/components/pray"
 import type { Id } from "@/learn/lib/id"
 import { TemplateEditStyle } from "@/learn/lib/types"
 import { parse } from "valibot"
@@ -11,10 +10,7 @@ export function model_get_with_edit_style(mid: Id) {
   try {
     const data = {
       model: stmts.models.interpret(
-        notNull(
-          db.single("SELECT * FROM models WHERE id = ?", [mid]).values[0],
-          "The selected model does not exist.",
-        ),
+        db.row("SELECT * FROM models WHERE id = ?", [mid]),
       ),
       editStyle: parse(
         TemplateEditStyle,
