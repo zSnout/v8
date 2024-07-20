@@ -1,22 +1,17 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { alert, confirm, ModalDescription } from "@/components/Modal"
 import {
-  faArrowRightArrowLeft,
   faDownload,
-  faMagnifyingGlassChart,
   faRightFromBracket,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { getOwner, Show } from "solid-js"
+import { getOwner } from "solid-js"
 import { createPrefsWithWorker } from "../db/prefs/store"
 import type { Worker } from "../db/worker"
 import { Action } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
-import { Icon, IconGrid } from "../el/IconButton"
-import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
 import { UploadButton } from "../el/upload"
-import { Query } from "./Query"
 
 export const Settings = createLoading(
   async (worker: Worker) => {
@@ -25,7 +20,6 @@ export const Settings = createLoading(
     return [prefs, setPrefs] as const
   },
   (worker, [prefs, setPrefs], pop) => {
-    const layers = useLayers()
     const owner = getOwner()
 
     return {
@@ -152,147 +146,9 @@ export const Settings = createLoading(
               <p>Enable debug features</p>
             </label>
           </CheckboxContainer>
-
-          <Show when={prefs.debug}>
-            <DebugSection />
-          </Show>
         </div>
       ),
       onForcePop: () => true,
-    }
-
-    function DebugSection() {
-      return (
-        <IconGrid label="Debug actions">
-          <UploadButton
-            accept=".json"
-            onUpload={async ([file]) => {
-              const result = await confirm({
-                owner,
-                title: "Confirm import?",
-                description: (
-                  <ModalDescription>
-                    This will{" "}
-                    <strong class="text-z underline">irreversibly</strong>{" "}
-                    replace your entire collection with data from the imported
-                    file. We highly recommend exporting your current data before
-                    you import, just in case.
-                  </ModalDescription>
-                ),
-                cancelText: "No, cancel",
-                okText: "Yes, import",
-              })
-
-              if (!result) {
-                return
-              }
-
-              await worker.post("import_json_unparsed", await file.text())
-
-              await alert({
-                owner,
-                title: "Imported successfully",
-                description: (
-                  <ModalDescription>
-                    The collection was imported successfully.
-                  </ModalDescription>
-                ),
-              })
-            }}
-          >
-            {(trigger) => (
-              <Icon icon={faUpload} label="Legacy" onClick={trigger} />
-            )}
-          </UploadButton>
-
-          <UploadButton
-            accept=".sqlite3,.sqlite"
-            onUpload={async ([file]) => {
-              const result = await confirm({
-                owner,
-                title: "Confirm import?",
-                description: (
-                  <ModalDescription>
-                    This will{" "}
-                    <strong class="text-z underline">irreversibly</strong>{" "}
-                    replace your entire collection with data from the imported
-                    file. We highly recommend exporting your current data before
-                    you import, just in case.
-                  </ModalDescription>
-                ),
-                cancelText: "No, cancel",
-                okText: "Yes, import",
-              })
-
-              if (!result) {
-                return
-              }
-
-              await worker.post("import_sqlite", await file.arrayBuffer())
-
-              await alert({
-                owner,
-                title: "Imported successfully",
-                description: (
-                  <ModalDescription>
-                    The collection was imported successfully.
-                  </ModalDescription>
-                ),
-              })
-            }}
-          >
-            {(trigger) => (
-              <Icon icon={faUpload} label="Legacy" onClick={trigger} />
-            )}
-          </UploadButton>
-
-          <Icon
-            icon={faMagnifyingGlassChart}
-            label="Query"
-            onClick={() => layers.push(Query, worker)}
-          />
-
-          <Icon
-            icon={faArrowRightArrowLeft}
-            label="Transfer"
-            onClick={async () => {
-              if (
-                !(await confirm({
-                  owner,
-                  title: "Do you want to transfer?",
-                  get description() {
-                    return (
-                      <ModalDescription>
-                        This will reset all your data stored in SQLite (the
-                        newer database system) with data purely taken from
-                        indexedDB (which is likely no longer in use). Are you
-                        sure?
-                      </ModalDescription>
-                    )
-                  },
-                  okText: "Yes, transfer",
-                  cancelText: "No, cancel",
-                }))
-              ) {
-                return
-              }
-
-              try {
-                await worker.post("import_idb")
-                await alert({
-                  owner,
-                  title: "Imported indexedDB data into SQLite database.",
-                })
-              } catch {
-                await alert({
-                  owner,
-                  title: "Failed to import indexedDB data.",
-                })
-              }
-            }}
-          />
-        </IconGrid>
-      )
     }
   },
 )
