@@ -2,7 +2,7 @@ import { isSameDaySync } from "@/learn/db/day"
 import type { Id } from "@/learn/lib/id"
 import { db } from "../db"
 
-export function deck_done_today(decks: Id[], dayStart: number) {
+export function deck_done_today_txless(decks: Id[], dayStart: number) {
   const stmt = db.prepare(
     "SELECT today, new_today, revcards_today FROM decks WHERE id = ?",
   )
@@ -13,22 +13,33 @@ export function deck_done_today(decks: Id[], dayStart: number) {
   try {
     for (const did of decks) {
       stmt.bind([did])
-      const value = stmt.get() as [
-        today: number,
-        new_today: string,
-        revcards_today: string,
-      ]
+      if (stmt.step()) {
+        const value = stmt.get() as [
+          today: number,
+          new_today: string,
+          revcards_today: string,
+        ]
 
-      const isToday = isSameDaySync(dayStart, Date.now(), value[0])
+        const isToday = isSameDaySync(dayStart, Date.now(), value[0])
 
-      if (isToday) {
-        new_today += (JSON.parse(value[1]) as number[]).length
-        rev_today += (JSON.parse(value[2]) as number[]).length
+        if (isToday) {
+          new_today += (JSON.parse(value[1]) as number[]).length
+          rev_today += (JSON.parse(value[2]) as number[]).length
+        }
       }
     }
 
     return { new_today, rev_today }
   } finally {
     stmt.free()
+  }
+}
+
+export function deck_done_today(decks: Id[], dayStart: number) {
+  const tx = db.tx()
+  try {
+    return deck_done_today_txless(decks, dayStart)
+  } finally {
+    tx.dispose()
   }
 }
