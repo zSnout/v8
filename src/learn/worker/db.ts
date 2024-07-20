@@ -2,11 +2,11 @@
 
 // import initSqlJs from "@jlongster/sql.js"
 import type { Cloneable } from "@/learn/message"
+import type { Handler, ToScript, ToWorker } from "."
 import sqlite3InitModule, {
   type BindingSpec,
   type SqlValue,
-} from "@sqlite.org/sqlite-wasm"
-import type { Handler, ToScript, ToWorker } from "."
+} from "../../../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
 import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
 import { latest } from "./version"
@@ -14,7 +14,9 @@ import { latest } from "./version"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 
-export const sqlite3 = await sqlite3InitModule({
+export const sqlite3 = await (
+  sqlite3InitModule as typeof import("@sqlite.org/sqlite-wasm").default
+)({
   print: console.log,
   printErr: console.error,
   // locateFile: () => wasm
