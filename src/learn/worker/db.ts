@@ -1,12 +1,8 @@
-// import "core-js/proposals/explicit-resource-management"
-
-// import initSqlJs from "@jlongster/sql.js"
 import type { Cloneable } from "@/learn/message"
+import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
 import type { Handler, ToScript, ToWorker } from "."
-import sqlite3InitModule, {
-  type BindingSpec,
-  type SqlValue,
-} from "../../../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
+// @ts-ignore shut up typescript. this makes vite happy
+import sqlite3InitModule from "../../../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
 import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
 import { latest } from "./version"

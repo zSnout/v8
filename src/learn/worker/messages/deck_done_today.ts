@@ -14,7 +14,7 @@ export function deck_done_today_txless(decks: Id[], dayStart: number) {
     for (const did of decks) {
       stmt.bind([did])
       if (stmt.step()) {
-        const value = stmt.get() as [
+        const value = stmt.get([]) as [
           today: number,
           new_today: string,
           revcards_today: string,

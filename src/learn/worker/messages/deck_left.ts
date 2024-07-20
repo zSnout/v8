@@ -17,20 +17,18 @@ export function deck_left_txless(decks: Id[]) {
     for (const did of decks) {
       stmtNew.bind([did])
       if (stmtNew.step()) {
-        const [count] = stmtNew.get() as [number]
-        new_left += count
+        new_left += stmtNew.get(0) as number
       }
 
       stmtRev.bind([did])
       if (stmtRev.step()) {
-        const [count] = stmtRev.get() as [number]
-        rev_left += count
+        rev_left += stmtRev.get(0) as number
       }
     }
 
     return { new_left, rev_left }
   } finally {
-    stmtNew.free()
+    stmtNew.finalize()
   }
 }
 
