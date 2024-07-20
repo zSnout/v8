@@ -23,6 +23,7 @@ export function home_list_decks() {
     ])
 
     const idToName = Object.fromEntries(decks.map((x) => [x[0], x]))
+    const nameToDeck = Object.fromEntries(decks.map((x) => [x[2], x]))
 
     const cards = db.checked(
       "SELECT queue, state, last_edited, scheduled_days, due, did FROM cards",
@@ -71,17 +72,25 @@ export function home_list_decks() {
       }
     }
 
+    console.log(self, sub)
+
     const tree: DeckHomeTree = new Tree()
 
-    for (const deck of Object.values(idToName)) {
+    for (const name of Array.from(self.keys())
+      .concat(Array.from(sub.keys()))
+      .filter((x, i, a) => a.indexOf(x) == i)) {
+      const deck = nameToDeck[name]
+
       const info: DeckHomeInfo = {
-        deck: { id: deck[0], collapsed: !!deck[1], name: deck[2] },
-        self: self.get(deck[2]) || [0, 0, 0],
-        sub: sub.get(deck[2]) || [0, 0, 0],
+        deck: deck ? { id: deck[0], collapsed: !!deck[1], name } : undefined,
+        self: self.get(name) || [0, 0, 0],
+        sub: sub.get(name) || [0, 0, 0],
       }
 
+      console.log(name)
+
       tree.set(
-        deck[2].split("::"),
+        name.split("::"),
         info,
         (x) => x,
         () => undefined,
@@ -89,6 +98,9 @@ export function home_list_decks() {
         () => info,
       )
     }
+
+    delete tree.tree[""]
+
     tx.commit()
     return { tree: tree.tree, global: sub.get("") ?? [0, 0, 0] }
   } finally {

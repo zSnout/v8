@@ -7,11 +7,7 @@ import { dayStartOffset, startOfDaySync } from "../day"
 
 export type Buckets = [new: number, lrn: number, rev: number]
 export type DeckHomeInfo = {
-  deck: {
-    collapsed: boolean
-    name: string
-    id: Id
-  }
+  deck?: { collapsed: boolean; name: string; id: Id }
   self: Buckets
   sub: Buckets
 }
