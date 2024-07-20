@@ -246,7 +246,7 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
                     <strong class="text-z underline">
                       permanently and irreversibly
                     </strong>
-                    . This could destroy years of review, make the application
+                    . This could destroy years of reviews, make the application
                     inaccessible, or any other number of terrible things. We
                     highly recommend exporting your current data before you use
                     unsafe mode, just in case.
