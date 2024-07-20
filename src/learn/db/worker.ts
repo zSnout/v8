@@ -1,7 +1,7 @@
 import { initBackend } from "absurd-sql/dist/indexeddb-main-thread"
 import { randomId } from "../lib/id"
 import type { Handlers, ToScript, ToWorker } from "../worker"
-// import ActualWorker from "../worker?worker"
+import ActualWorker from "../worker?worker&url"
 
 export class Worker {
   private readonly worker
@@ -13,9 +13,7 @@ export class Worker {
   private isReady = false
 
   constructor() {
-    this.worker = new globalThis.Worker(new URL("../worker", import.meta.url), {
-      type: "module",
-    })
+    this.worker = new globalThis.Worker(ActualWorker, { type: "module" })
     this.ready = new Promise<this>((resolve, reject) => {
       this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
         if (data == "zdb:resolve") {
