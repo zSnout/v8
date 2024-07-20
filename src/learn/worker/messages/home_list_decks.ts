@@ -78,6 +78,7 @@ export function home_list_decks() {
 
     for (const name of Array.from(self.keys())
       .concat(Array.from(sub.keys()))
+      .concat(decks.map((x) => x[2]))
       .filter((x, i, a) => a.indexOf(x) == i)) {
       const deck = nameToDeck[name]
 
