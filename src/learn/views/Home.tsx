@@ -224,13 +224,13 @@ export const Home = createLoadingBase(
             (subtree ? " -ml-6" : "")
           }
           onClick={() => {
-            const main = data?.deck.id
+            const root = data?.deck.id ?? null
 
-            const dids: Id[] = []
-            if (main != null) dids.push(main)
+            const all: Id[] = []
+            if (root != null) all.push(root)
             collectDeckIds(subtree)
 
-            layers.push(Study, { db, main, dids })
+            layers.push(Study, { worker, root, all })
 
             function collectDeckIds(
               subtree:
@@ -241,7 +241,7 @@ export const Home = createLoadingBase(
 
               for (const value of Object.values(subtree)) {
                 if (value.data) {
-                  dids.push(value.data.deck.id)
+                  all.push(value.data.deck.id)
                 }
 
                 if (value.subtree) {

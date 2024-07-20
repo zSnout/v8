@@ -1,10 +1,9 @@
-import { isSameDaySync } from "@/learn/db/day"
 import type { Id } from "@/learn/lib/id"
 import { db } from "../db"
 
-export function deck_left_txless(decks: Id[], dayStart: number) {
+export function deck_left_txless(decks: Id[]) {
   const stmtNew = db.prepare(
-    "SELECT COUNT(),today FROM cards WHERE did = ? AND state = 0",
+    "SELECT COUNT() FROM cards WHERE did = ? AND state = 0",
   )
 
   const stmtRev = db.prepare(
@@ -18,12 +17,8 @@ export function deck_left_txless(decks: Id[], dayStart: number) {
     for (const did of decks) {
       stmtNew.bind([did])
       if (stmtNew.step()) {
-        const [count, today] = stmtNew.get() as [number, number]
-        const isToday = isSameDaySync(dayStart, Date.now(), today)
-
-        if (isToday) {
-          new_left += count
-        }
+        const [count] = stmtNew.get() as [number]
+        new_left += count
       }
 
       stmtRev.bind([did])
@@ -39,10 +34,10 @@ export function deck_left_txless(decks: Id[], dayStart: number) {
   }
 }
 
-export function deck_left(decks: Id[], dayStart: number) {
+export function deck_left(decks: Id[]) {
   const tx = db.tx()
   try {
-    return deck_left_txless(decks, dayStart)
+    return deck_left_txless(decks)
   } finally {
     tx.dispose()
   }

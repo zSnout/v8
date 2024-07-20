@@ -1,6 +1,5 @@
 /// <reference types="../../env" />
 
-import { createEventListener } from "@/components/create-event-listener"
 import { Fa } from "@/components/Fa"
 import {
   Modal,
@@ -63,18 +62,11 @@ import {
   Show,
 } from "solid-js"
 import { Grade, Rating } from "ts-fsrs"
-import { DB } from "../db"
-import { createPrefsStore } from "../db/prefs/store"
+import { createPrefsWithWorker } from "../db/prefs/store"
 import { Reason } from "../db/reason"
-import { gather } from "../db/study/gather"
 import { putCard, putNote } from "../db/study/merge"
-import {
-  checkBucket,
-  saveForget,
-  saveReview,
-  select,
-  selectById,
-} from "../db/study/select"
+import { checkBucket, saveForget, saveReview } from "../db/study/select"
+import type { Worker } from "../db/worker"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
@@ -88,38 +80,32 @@ import { AnyCard, Note } from "../lib/types"
 // FEAT: improve screen for when no cards are left
 
 export const Study = createLoading(
-  async (
-    { db, main, dids }: { db: DB; main: Id | undefined; dids: Id[] },
-    _,
-  ) => {
-    const [prefs, setPrefs, ready] = createPrefsStore(db)
-    const [info] = await Promise.all([
-      gather(db, main, dids, Date.now()),
-      ready,
-    ])
-    return { info, prefs, setPrefs }
+  async ({ worker }: { worker: Worker; root: Id | null; all: Id[] }, _) => {
+    const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
+    await ready
+    return { prefs, setPrefs }
   },
   (
-    { db, main, dids },
-    { info, prefs, setPrefs },
+    { worker, root, all },
+    { prefs, setPrefs },
     pop,
     state: { lastCid?: Id },
   ) => {
-    createEventListener(window, "z-db-undo", async ({ detail }) => {
-      const now = Date.now()
-      setAnswerShown(false)
-      info = await gather(db, main, dids, now)
+    // TODO: createEventListener(window, "z-db-undo", async ({ detail }) => {
+    //   const now = Date.now()
+    //   setAnswerShown(false)
+    //   info = await gather(db, main, dids, now)
 
-      const last = detail.reason.includes("card")
-        ? state.lastCid
-        : getData()?.data?.card.id
+    //   const last = detail.reason.includes("card")
+    //     ? state.lastCid
+    //     : getData()?.data?.card.id
 
-      if (last != null) {
-        state.lastCid = getData()?.data?.card.id ?? last
-        const data = await selectById(db, main, dids, now, info, last)
-        mutate({ data, shownAt: now })
-      }
-    })
+    //   if (last != null) {
+    //     state.lastCid = getData()?.data?.card.id ?? last
+    //     const data = await selectById(db, main, dids, now, info, last)
+    //     mutate({ data, shownAt: now })
+    //   }
+    // })
 
     const shortcuts = new ShortcutManager()
     const owner = getOwner()
@@ -129,7 +115,10 @@ export const Study = createLoading(
       async () => {
         const now = Date.now()
         setAnswerShown(false)
-        return { data: await select(db, main, dids, now, info), shownAt: now }
+        return {
+          data: await worker.post("study_select", root, all),
+          shownAt: now,
+        }
       },
     )
 
@@ -345,7 +334,7 @@ export const Study = createLoading(
           {props.label}
           <br />
           {(() => {
-            const r = getData()?.data?.repeatInfo
+            const r = getData()?.data?.repeat
             if (!r) {
               return "<null>"
             }
@@ -662,7 +651,7 @@ export const Study = createLoading(
             Congratulations! You have finished this deck for now.
           </h1>
           <div class="mx-auto flex w-full max-w-md flex-col gap-2">
-            <Show when={info.cards.b0.length}>
+            {/* TODO: <Show when={info.cards.b0.length}>
               <NullMoreNewAvailable />
             </Show>
             <Show when={info.cards.b1.length}>
@@ -670,7 +659,7 @@ export const Study = createLoading(
             </Show>
             <Show when={info.cards.b2.length}>
               <NullMoreReviewBacklogAvailable />
-            </Show>
+            </Show> */}
             <p>
               If you wish to study outside of the regular schedule, you can use
               the{" "}
