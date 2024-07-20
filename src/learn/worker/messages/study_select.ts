@@ -93,43 +93,6 @@ export function study_select(root: Id | null, all: Id[]): Id | null {
   } finally {
     tx.dispose()
   }
-
-  //   const b0: Id[] = []
-  //   const b1: Id[] = []
-  //   const b2: Id[] = []
-
-  //   for (const did of all) {
-  //     // PERF: statement in a loop
-  //     b0.push(
-  //       ...db
-  //         .checked(
-  //           createStmt(includeBuried, "state = 0 ORDER BY due"),
-  //           [id],
-  //           [did],
-  //         )
-  //         .values.map((x) => x[0]),
-  //     )
-
-  //     b1.push(
-  //       ...db
-  //         .checked(
-  //           createStmt(includeBuried, "(state = 1 OR state = 3)"),
-  //           [id],
-  //           [did],
-  //         )
-  //         .values.map((x) => x[0]),
-  //     )
-
-  //     b2.push(
-  //       ...db
-  //         .checked(
-  //           createStmt(includeBuried, "state = 2 AND due < ?"),
-  //           [id],
-  //           [did, todayEnd],
-  //         )
-  //         .values.map((x) => x[0]),
-  //     )
-  //   }
 }
 
 function createStmt(includeBuried: boolean, where: string) {
