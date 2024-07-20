@@ -192,22 +192,21 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
                                 <For each={row}>
                                   {(el) => (
                                     <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
-                                      {el instanceof Uint8Array ||
-                                      el instanceof ArrayBuffer ||
-                                      el instanceof Int8Array
-                                        ? Array.from(new Uint8Array(el))
-                                            .map((x) =>
-                                              x.toString(16).padStart(2, "0"),
-                                            )
-                                            .join(" ")
-                                        : typeof el == "bigint"
-                                          ? el.toString()
-                                          : el == null
-                                            ? "NULL"
-                                            : (el as Exclude<
-                                                typeof el,
-                                                BigInt
-                                              >)}
+                                      {(
+                                        el instanceof Uint8Array ||
+                                        el instanceof ArrayBuffer ||
+                                        el instanceof Int8Array
+                                      ) ?
+                                        Array.from(new Uint8Array(el))
+                                          .map((x) =>
+                                            x.toString(16).padStart(2, "0"),
+                                          )
+                                          .join(" ")
+                                      : typeof el == "bigint" ?
+                                        el.toString()
+                                      : el == null ?
+                                        "NULL"
+                                      : (el as Exclude<typeof el, BigInt>)}
                                     </td>
                                   )}
                                 </For>

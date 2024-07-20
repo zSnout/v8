@@ -408,9 +408,8 @@ export const Study = createLoading(
                     updateCurrentCard(
                       `Toggle ${flag.color} card flag`,
                       (card) => ({
-                        flags: Flags.has(card.flags, flag)
-                          ? 0
-                          : 1 << flag.valueOf(),
+                        flags:
+                          Flags.has(card.flags, flag) ? 0 : 1 << flag.valueOf(),
                       }),
                     )
                   }}
@@ -714,16 +713,17 @@ export const Study = createLoading(
     }
 
     function NullMoreLearningAvailable() {
-      const earliest = info.cards.b1.length
-        ? info.cards.b1.reduce((a, b) => (a.due < b.due ? a : b))
+      const earliest =
+        info.cards.b1.length ?
+          info.cards.b1.reduce((a, b) => (a.due < b.due ? a : b))
         : undefined
 
       return (
         <p>
           There are still some learning cards left, but they aren't due for{" "}
-          {earliest
-            ? timestampDist((earliest.due - now()) / 1000)
-            : "<unknown time>"}
+          {earliest ?
+            timestampDist((earliest.due - now()) / 1000)
+          : "<unknown time>"}
           .
         </p>
       )
@@ -775,7 +775,11 @@ async function selectForgetMode(owner: Owner | null) {
         ref={(e) => (modal = e)}
         refPortal={(e) => (portal = e)}
         onClose={(value) => {
-          resolve(value == "false" ? false : value == "true" ? true : null)
+          resolve(
+            value == "false" ? false
+            : value == "true" ? true
+            : null,
+          )
           portal.ontransitionend = () => portal.remove()
         }}
       >

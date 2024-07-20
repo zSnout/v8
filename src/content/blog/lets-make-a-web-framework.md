@@ -604,7 +604,7 @@ this into `package.json`,
 and create a minimal `index.html`.
 
 ```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <script defer src="./dist/library.js"></script>
   <script defer src="./dist/index.js"></script>

@@ -14,13 +14,11 @@ export interface Props
 
 <Layout {...Astro.props}>
   {
-    Astro.slots.options ? (
+    Astro.slots.options ?
       <Navigation {...Astro.props} floating={false}>
         <slot name="options" slot="options" />
       </Navigation>
-    ) : (
-      <Navigation {...Astro.props} floating={false} />
-    )
+    : <Navigation {...Astro.props} floating={false} />
   }
 
   <div

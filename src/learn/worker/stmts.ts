@@ -102,9 +102,9 @@ export const stmts = {
         conf.review.per_day ?? (null satisfies INTEGER | null),
         JSON.stringify(conf.review.relearning_steps) satisfies TEXT,
         conf.review.requested_retention satisfies INTEGER,
-        (conf.review.w
-          ? JSON.stringify(conf.review.w)
-          : null) satisfies TEXT | null,
+        (conf.review.w ?
+          JSON.stringify(conf.review.w)
+        : null) satisfies TEXT | null,
         +conf.show_global_timer satisfies BOOLEAN,
         conf.timer_per_card ?? (null satisfies INTEGER | null),
       ]
@@ -179,9 +179,9 @@ export const stmts = {
         model.id satisfies INTEGER,
         model.css satisfies TEXT,
         JSON.stringify(model.fields) satisfies TEXT,
-        (model.latex
-          ? JSON.stringify(model.latex)
-          : null) satisfies TEXT | null,
+        (model.latex ?
+          JSON.stringify(model.latex)
+        : null) satisfies TEXT | null,
         model.name satisfies TEXT,
         (model.sort_field ?? null) satisfies INTEGER | null,
         JSON.stringify(model.tmpls) satisfies TEXT,
@@ -195,9 +195,9 @@ export const stmts = {
       return [
         model.css satisfies TEXT,
         JSON.stringify(model.fields) satisfies TEXT,
-        (model.latex
-          ? JSON.stringify(model.latex)
-          : null) satisfies TEXT | null,
+        (model.latex ?
+          JSON.stringify(model.latex)
+        : null) satisfies TEXT | null,
         model.name satisfies TEXT,
         (model.sort_field ?? null) satisfies INTEGER | null,
         JSON.stringify(model.tmpls) satisfies TEXT,

@@ -15,9 +15,9 @@ export type ReadonlySearchParams = Pick<
 export type SignalLike<T> = readonly [get: () => T, set: (value: T) => void]
 
 const [rawSearch, setRawSearch] = createSignal(
-  typeof location == "undefined"
-    ? new URLSearchParams()
-    : new URLSearchParams(location.search),
+  typeof location == "undefined" ?
+    new URLSearchParams()
+  : new URLSearchParams(location.search),
 )
 
 const queue = new Map<string, string | null>()
@@ -96,7 +96,10 @@ export function createBooleanSearchParam(name: string): SignalLike<boolean> {
   const [get, set] = createSearchParam(name)
 
   return [
-    () => (get() == "false" ? false : get() == "true" ? true : get() != null),
+    () =>
+      get() == "false" ? false
+      : get() == "true" ? true
+      : get() != null,
     (value) => set(value ? "true" : "false"),
   ]
 }
@@ -109,7 +112,10 @@ export function createBooleanSearchParamWithFallback(
   const [get, set] = createSearchParam(name)
 
   return [
-    () => (get() == "true" ? true : get() == "false" ? false : base()),
+    () =>
+      get() == "true" ? true
+      : get() == "false" ? false
+      : base(),
     (value) => set(value ? "true" : "false"),
   ]
 }

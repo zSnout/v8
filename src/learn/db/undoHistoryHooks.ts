@@ -176,9 +176,9 @@ set(
 
       const key =
         ogKey ??
-        (typeof this.keyPath == "string"
-          ? value?.[this.keyPath]
-          : this.keyPath.map((x) => value?.[x]))
+        (typeof this.keyPath == "string" ?
+          value?.[this.keyPath]
+        : this.keyPath.map((x) => value?.[x]))
 
       let data: any
       let ok = false

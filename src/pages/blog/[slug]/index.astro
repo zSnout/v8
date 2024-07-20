@@ -23,11 +23,9 @@ const { Content, headings } = await entry.render()
 const openGraphImage = (
   await import(
     `../../../assets/blog/${
-      entry.data.draft
-        ? "draft"
-        : entry.id.endsWith(".mdx")
-        ? entry.id.slice(0, -4)
-        : entry.id.slice(0, -3)
+      entry.data.draft ? "draft"
+      : entry.id.endsWith(".mdx") ? entry.id.slice(0, -4)
+      : entry.id.slice(0, -3)
     }.jpg`
   )
 ).default

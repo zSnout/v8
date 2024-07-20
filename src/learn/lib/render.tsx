@@ -38,11 +38,9 @@ export function Render(props: {
 
         createEffect(() => {
           const dark =
-            props.theme == "light"
-              ? false
-              : props.theme == "dark"
-                ? true
-                : isDark()
+            props.theme == "light" ? false
+            : props.theme == "dark" ? true
+            : isDark()
 
           html.classList.toggle("light", !dark)
           html.classList.toggle("dark", dark)

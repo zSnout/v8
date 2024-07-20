@@ -86,10 +86,8 @@
       "prettier-plugin-sql",
       "prettier-plugin-tailwindcss"
     ],
-    "pluginSearchDirs": [
-      "."
-    ],
-    "trailingComma": "all"
+    "trailingComma": "all",
+    "experimentalTernaries": true
   },
   "overrides": {
     "eslint": "^9.6.0"

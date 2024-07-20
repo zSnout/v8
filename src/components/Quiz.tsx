@@ -245,15 +245,11 @@ export function QuizLayout(props: { createQuestion(): QuizQuestion }) {
     }
 
     const index =
-      event.key == "a" || event.key == "A"
-        ? 1
-        : event.key == "b" || event.key == "B"
-          ? 2
-          : event.key == "c" || event.key == "C"
-            ? 3
-            : event.key == "d" || event.key == "D"
-              ? 4
-              : null
+      event.key == "a" || event.key == "A" ? 1
+      : event.key == "b" || event.key == "B" ? 2
+      : event.key == "c" || event.key == "C" ? 3
+      : event.key == "d" || event.key == "D" ? 4
+      : null
 
     if (!index) {
       return

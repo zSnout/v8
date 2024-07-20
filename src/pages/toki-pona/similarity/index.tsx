@@ -137,15 +137,11 @@ export function Main() {
     }
 
     const value =
-      event.key == "4"
-        ? 4
-        : event.key == "1"
-        ? 1
-        : event.key == "2"
-        ? 2
-        : event.key == "3"
-        ? 3
-        : null
+      event.key == "4" ? 4
+      : event.key == "1" ? 1
+      : event.key == "2" ? 2
+      : event.key == "3" ? 3
+      : null
 
     if (value != null) {
       answer(value)
@@ -403,9 +399,9 @@ export function Main() {
               <Fa
                 class={
                   "h-4 w-4" +
-                  (entry.status == "sending"
-                    ? " animate-[faspinner_1s_linear_infinite]"
-                    : "")
+                  (entry.status == "sending" ?
+                    " animate-[faspinner_1s_linear_infinite]"
+                  : "")
                 }
                 icon={
                   {
@@ -425,11 +421,11 @@ export function Main() {
                       <SmallLabel>{entry.word1}</SmallLabel>
                       <span class="text-xs/[1]">
                         sama{" "}
-                        {entry.similarity == 3
-                          ? "mute"
-                          : entry.similarity == 2
-                          ? "lili"
-                          : "ala"}
+                        {entry.similarity == 3 ?
+                          "mute"
+                        : entry.similarity == 2 ?
+                          "lili"
+                        : "ala"}
                       </span>
                       <SmallLabel>{entry.word2}</SmallLabel>
                     </>

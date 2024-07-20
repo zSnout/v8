@@ -144,9 +144,9 @@ export function createListEditor<
               >
                 <PlainFieldList
                   get={
-                    internalProps.noSort == "by-name"
-                      ? entries().toSorted(compareWithName)
-                      : entries()
+                    internalProps.noSort == "by-name" ?
+                      entries().toSorted(compareWithName)
+                    : entries()
                   }
                   selectedId={selectedId()}
                   setSelectedId={setSelectedId}
@@ -213,12 +213,13 @@ export function createListEditor<
             await prompt({
               owner,
               title,
-              description: first ? undefined : (
-                <ModalDescription>
-                  That name is already used. Please pick a different name, or
-                  cancel the action.
-                </ModalDescription>
-              ),
+              description:
+                first ? undefined : (
+                  <ModalDescription>
+                    That name is already used. Please pick a different name, or
+                    cancel the action.
+                  </ModalDescription>
+                ),
             })
           )?.trim()
 

@@ -170,14 +170,14 @@ function CharTable(props: { active: string | undefined }) {
           setUsed((usedStr) => {
             const used = split(usedStr)
 
-            const keys = event.altKey
-              ? [props.key]
-              : event.ctrlKey || event.metaKey
-              ? KEY_DATA.flat()
+            const keys =
+              event.altKey ? [props.key]
+              : event.ctrlKey || event.metaKey ? KEY_DATA.flat()
               : props.row
 
-            const items = event.shiftKey
-              ? keys.flatMap((x) => x.slice(1, 5) as string[])
+            const items =
+              event.shiftKey ?
+                keys.flatMap((x) => x.slice(1, 5) as string[])
               : keys.map((x) => x[props.index])
 
             if (used.includes(props.char)) {
@@ -217,13 +217,15 @@ function CharTable(props: { active: string | undefined }) {
               <div
                 class={
                   "-ml-px grid aspect-square grid-cols-[1.75rem,1.75rem] grid-rows-[1.75rem,1.75rem] border border-z transition first:ml-0" +
-                  ((cell as readonly (string | undefined)[])
-                    .slice(1)
-                    .includes(props.active)
-                    ? isBlurred() == "true"
-                      ? " relative group-hover:border-z-focus group-hover:bg-z-ring-focus group-hover:ring group-hover:ring-z-focus"
-                      : " relative border-z-focus bg-z-ring-focus ring ring-z-focus"
-                    : "")
+                  ((
+                    (cell as readonly (string | undefined)[])
+                      .slice(1)
+                      .includes(props.active)
+                  ) ?
+                    isBlurred() == "true" ?
+                      " relative group-hover:border-z-focus group-hover:bg-z-ring-focus group-hover:ring group-hover:ring-z-focus"
+                    : " relative border-z-focus bg-z-ring-focus ring ring-z-focus"
+                  : "")
                 }
               >
                 <Char char={shf} index={2} key={cell} row={KEY_DATA[index]!} />
@@ -321,11 +323,11 @@ export function Main() {
       }
 
       const key =
-        untrack(useCode) == "true"
-          ? KEY_DATA.flat().find((x) => x[5] == event.code)?.[
-              1 + 2 * +event.altKey + +event.shiftKey
-            ] || ""
-          : event.key
+        untrack(useCode) == "true" ?
+          KEY_DATA.flat().find((x) => x[5] == event.code)?.[
+            1 + 2 * +event.altKey + +event.shiftKey
+          ] || ""
+        : event.key
 
       if (PRESSABLE.includes(key)) {
         setPrompt((prompt) => ({
@@ -358,11 +360,11 @@ export function Main() {
             <div
               class={
                 "flex h-20 w-20 items-center justify-center rounded-lg border border-z text-6xl transition " +
-                (prompt().typed[index] == value()
-                  ? " !border-green-500 bg-green-100 dark:bg-green-950"
-                  : prompt().typed[index]
-                  ? " !border-red-500 bg-red-100 dark:bg-red-950"
-                  : "")
+                (prompt().typed[index] == value() ?
+                  " !border-green-500 bg-green-100 dark:bg-green-950"
+                : prompt().typed[index] ?
+                  " !border-red-500 bg-red-100 dark:bg-red-950"
+                : "")
               }
             >
               {value()}

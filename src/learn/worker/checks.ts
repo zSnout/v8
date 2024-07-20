@@ -49,8 +49,5 @@ export function qid(value: SqlValue): value is Id {
 
 export type Check = (x: SqlValue) => boolean
 
-export type CheckResult<T extends Check> = T extends ((
-  x: SqlValue,
-) => x is infer U extends SqlValue)
-  ? U
-  : SqlValue
+export type CheckResult<T extends Check> =
+  T extends ((x: SqlValue) => x is infer U extends SqlValue) ? U : SqlValue

@@ -8,9 +8,9 @@ export function createStorage(
   const realKey = `z8:${key}`
 
   const [get, set] = createSignal(
-    !delay && typeof localStorage != "undefined"
-      ? localStorage.getItem(realKey) ?? defaultValue
-      : defaultValue,
+    !delay && typeof localStorage != "undefined" ?
+      (localStorage.getItem(realKey) ?? defaultValue)
+    : defaultValue,
   )
 
   if (delay == "directmount") {

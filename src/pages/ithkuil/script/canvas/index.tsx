@@ -170,11 +170,9 @@ function makePath(
     rest: readonly Step[],
   ): string {
     const nextSegment = () =>
-      step.type == "cap"
-        ? ""
-        : rest[0]
-        ? segment(step.type, rest[0], rest.slice(1))
-        : segment(step.type, { type: "cap" }, [])
+      step.type == "cap" ? ""
+      : rest[0] ? segment(step.type, rest[0], rest.slice(1))
+      : segment(step.type, { type: "cap" }, [])
 
     const passSegment = () => {
       if (throwOnError) {

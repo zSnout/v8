@@ -39,9 +39,12 @@ export const Settings = createLoading(
               accept=".json,.sqlite3,.sqlite,application/json,application/x-sqlite3,application/vnd.sqlite3"
               onUpload={async ([file]) => {
                 const mode =
-                  file.name.endsWith(".json") || file.type == "application/json"
-                    ? "json"
-                    : "sqlite3"
+                  (
+                    file.name.endsWith(".json") ||
+                    file.type == "application/json"
+                  ) ?
+                    "json"
+                  : "sqlite3"
 
                 const result = await confirm({
                   owner,

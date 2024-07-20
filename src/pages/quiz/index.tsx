@@ -467,15 +467,15 @@ export function Main() {
       setQueue(
         q
           .map((x, i) =>
-            i == matchingCardIndex
-              ? {
-                  ...x,
+            i == matchingCardIndex ?
+              {
+                ...x,
 
-                  // we probably just took this one from the queue, so put it
-                  // back, but later
-                  availableAt: Math.max(x.availableAt, availableAt),
-                }
-              : x,
+                // we probably just took this one from the queue, so put it
+                // back, but later
+                availableAt: Math.max(x.availableAt, availableAt),
+              }
+            : x,
           )
           .sort(({ availableAt: a }, { availableAt: b }) => a - b),
       )

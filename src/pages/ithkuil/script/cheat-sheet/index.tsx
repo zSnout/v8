@@ -227,9 +227,8 @@ const diacritics = Object.entries(diacriticObject) as [
 function Extensions(props: { handwritten: boolean }) {
   const cores = props.handwritten ? HANDWRITTEN_CORES : CORES
 
-  const primaries = props.handwritten
-    ? HANDWRITTEN_PRIMARY_CORES
-    : PRIMARY_CORES
+  const primaries =
+    props.handwritten ? HANDWRITTEN_PRIMARY_CORES : PRIMARY_CORES
 
   const chars = Object.entries(EXTENSIONS)
     .map(
@@ -329,76 +328,74 @@ function Extensions(props: { handwritten: boolean }) {
                   <Show when={showExtensions()}>
                     <svg
                       class={
-                        props.handwritten
-                          ? "h-12 fill-transparent stroke-black dark:stroke-white"
-                          : "h-12 fill-black dark:fill-white"
+                        props.handwritten ?
+                          "h-12 fill-transparent stroke-black dark:stroke-white"
+                        : "h-12 fill-black dark:fill-white"
                       }
                       stroke-width={4}
                       stroke-linecap="round"
                       stroke-linejoin="round"
                       viewBox={
-                        props.handwritten
-                          ? "-30 -30 120 60"
-                          : showCores()
-                          ? "-30 -30 150 60"
-                          : "-30 -30 180 60"
+                        props.handwritten ? "-30 -30 120 60"
+                        : showCores() ?
+                          "-30 -30 150 60"
+                        : "-30 -30 180 60"
                       }
                     >
                       <Show when={value.extension}>
                         <g
                           transform={
-                            props.handwritten
-                              ? ""
-                              : key == "h"
-                              ? "translate(0,-20)"
-                              : key == "EXTENSION_GEMINATE"
-                              ? "translate(0,-10)"
-                              : ""
+                            props.handwritten ? ""
+                            : key == "h" ?
+                              "translate(0,-20)"
+                            : key == "EXTENSION_GEMINATE" ?
+                              "translate(0,-10)"
+                            : ""
                           }
                         >
                           <path
                             class={
-                              props.handwritten
-                                ? "fill-none"
-                                : "fill-[#c0c0c0] dark:fill-[#404040]"
+                              props.handwritten ? "fill-none" : (
+                                "fill-[#c0c0c0] dark:fill-[#404040]"
+                              )
                             }
                             d={
-                              props.handwritten
-                                ? "M 0 0 h -40"
-                                : "M -10 10 l 10 -10 h -40 l -10 10 z"
+                              props.handwritten ? "M 0 0 h -40" : (
+                                "M -10 10 l 10 -10 h -40 l -10 10 z"
+                              )
                             }
                           />
 
                           <path
                             d={
-                              props.handwritten
-                                ? rotate180(value.extension?.horiz2 || "")
-                                : value.extension?.horiz
+                              props.handwritten ?
+                                rotate180(value.extension?.horiz2 || "")
+                              : value.extension?.horiz
                             }
                           />
                         </g>
 
                         <g
                           transform={
-                            !props.handwritten && showCores()
-                              ? "translate(45,0)"
-                              : "translate(60,0)"
+                            !props.handwritten && showCores() ?
+                              "translate(45,0)"
+                            : "translate(60,0)"
                           }
                         >
                           <path
                             class="fill-[#c0c0c0] dark:fill-[#404040]"
                             d={
-                              props.handwritten
-                                ? "M 0 0 v 40"
-                                : "M -10 10 l 10 -10 v 40 l -10 10 z"
+                              props.handwritten ? "M 0 0 v 40" : (
+                                "M -10 10 l 10 -10 v 40 l -10 10 z"
+                              )
                             }
                           />
 
                           <path
                             d={
-                              props.handwritten
-                                ? value.extension?.vert2
-                                : value.extension?.vert
+                              props.handwritten ?
+                                value.extension?.vert2
+                              : value.extension?.vert
                             }
                           />
                         </g>
@@ -406,9 +403,9 @@ function Extensions(props: { handwritten: boolean }) {
                         <Show when={!props.handwritten}>
                           <g
                             transform={
-                              showCores()
-                                ? "translate(90,0)"
-                                : "translate(120,0)"
+                              showCores() ? "translate(90,0)" : (
+                                "translate(120,0)"
+                              )
                             }
                           >
                             <path
@@ -429,9 +426,9 @@ function Extensions(props: { handwritten: boolean }) {
                   <Show when={showCores()}>
                     <svg
                       class={
-                        props.handwritten
-                          ? "h-12 w-16 fill-transparent stroke-black dark:stroke-white"
-                          : "h-12 w-16 fill-black dark:fill-white"
+                        props.handwritten ?
+                          "h-12 w-16 fill-transparent stroke-black dark:stroke-white"
+                        : "h-12 w-16 fill-black dark:fill-white"
                       }
                       stroke-width={5}
                       stroke-linecap="round"
@@ -464,9 +461,9 @@ function Extensions(props: { handwritten: boolean }) {
             <div class="flex flex-1 flex-col">
               <svg
                 class={
-                  props.handwritten
-                    ? "fill-none stroke-black stroke-[5px] dark:stroke-white"
-                    : "fill-black dark:fill-white"
+                  props.handwritten ?
+                    "fill-none stroke-black stroke-[5px] dark:stroke-white"
+                  : "fill-black dark:fill-white"
                 }
                 stroke-linecap="round"
                 stroke-linejoin="round"
@@ -515,9 +512,9 @@ function Tertiaries(props: { handwritten?: boolean }) {
             <svg
               class={
                 "h-8 " +
-                (props.handwritten
-                  ? "fill-none stroke-black stroke-[7.5px] dark:stroke-white"
-                  : "fill-black dark:fill-white")
+                (props.handwritten ?
+                  "fill-none stroke-black stroke-[7.5px] dark:stroke-white"
+                : "fill-black dark:fill-white")
               }
               viewBox="-40 -30 80 60"
               stroke-linecap="round"
@@ -553,19 +550,19 @@ function Tertiaries(props: { handwritten?: boolean }) {
         ].map(([key, bottom]) => (
           <div class="flex flex-col items-center bg-z-bg-body py-1 text-base/4">
             <p>
-              {key.endsWith(":BEN")
-                ? key.slice(0, -4) + "+"
-                : key.endsWith(":DET")
-                ? key.slice(0, -4) + "-"
-                : key}
+              {key.endsWith(":BEN") ?
+                key.slice(0, -4) + "+"
+              : key.endsWith(":DET") ?
+                key.slice(0, -4) + "-"
+              : key}
             </p>
 
             <svg
               class={
                 "h-8 " +
-                (props.handwritten
-                  ? "fill-none stroke-black stroke-[7.5px] dark:stroke-white"
-                  : "fill-black dark:fill-white")
+                (props.handwritten ?
+                  "fill-none stroke-black stroke-[7.5px] dark:stroke-white"
+                : "fill-black dark:fill-white")
               }
               viewBox="-40 -30 80 60"
               stroke-linecap="round"
@@ -577,9 +574,9 @@ function Tertiaries(props: { handwritten?: boolean }) {
                   (
                     <path
                       d={
-                        (props.handwritten
-                          ? HANDWRITTEN_TERTIARY_SEGMENTS
-                          : TERTIARY_SEGMENTS)[key]
+                        (props.handwritten ?
+                          HANDWRITTEN_TERTIARY_SEGMENTS
+                        : TERTIARY_SEGMENTS)[key]
                       }
                     />
                   ) as SVGPathElement
@@ -605,9 +602,9 @@ function Tertiaries(props: { handwritten?: boolean }) {
               <svg
                 class={
                   "h-8 overflow-visible " +
-                  (props.handwritten
-                    ? "fill-none stroke-black stroke-[5px] dark:stroke-white"
-                    : "fill-black dark:fill-white")
+                  (props.handwritten ?
+                    "fill-none stroke-black stroke-[5px] dark:stroke-white"
+                  : "fill-black dark:fill-white")
                 }
                 viewBox="-20 -20 40 40"
                 stroke-linecap="round"
@@ -619,9 +616,9 @@ function Tertiaries(props: { handwritten?: boolean }) {
                     (
                       <path
                         d={
-                          (props.handwritten
-                            ? HANDWRITTEN_REGISTERS
-                            : REGISTERS)[category][name]
+                          (props.handwritten ?
+                            HANDWRITTEN_REGISTERS
+                          : REGISTERS)[category][name]
                         }
                       />
                     ) as SVGPathElement

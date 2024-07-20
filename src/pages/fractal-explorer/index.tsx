@@ -366,7 +366,11 @@ export function Main() {
     "inner_theme",
     (() => {
       const t = untrack(theme)
-      return t == "simple" || t == "trig" ? "black" : t == "none" ? "plot" : t
+      return (
+        t == "simple" || t == "trig" ? "black"
+        : t == "none" ? "plot"
+        : t
+      )
     })(),
   )
 
@@ -806,7 +810,9 @@ export function Main() {
             />
           </Show>
 
-          {gl ? <ColorModifiers gl={gl} save /> : undefined}
+          {gl ?
+            <ColorModifiers gl={gl} save />
+          : undefined}
         </Show>
 
         <Show when={view() == "help"}>

@@ -81,61 +81,65 @@ export function Main() {
           at: "l",
           children: (
             <g>
-              {parsed.ok
-                ? willElidePrimaries
-                  ? Row({
-                      children: parsed.value
-                        .filter((character) => {
-                          if (
-                            character.construct == Primary &&
-                            isElidable(character as PrimaryCharacter) &&
-                            (!(character as PrimaryCharacter).bottom ||
-                              (character as PrimaryCharacter).bottom == "UNF/C")
-                          ) {
-                            return false
-                          }
+              {parsed.ok ?
+                willElidePrimaries ?
+                  Row({
+                    children: parsed.value
+                      .filter((character) => {
+                        if (
+                          character.construct == Primary &&
+                          isElidable(character as PrimaryCharacter) &&
+                          (!(character as PrimaryCharacter).bottom ||
+                            (character as PrimaryCharacter).bottom == "UNF/C")
+                        ) {
+                          return false
+                        }
 
-                          return true
-                        })
-                        .map((character) => {
-                          if (
-                            character.construct == Primary &&
-                            isElidable(character as PrimaryCharacter)
-                          ) {
-                            return AnchorY({
-                              at: "c",
-                              children: Diacritic({
-                                name:
+                        return true
+                      })
+                      .map((character) => {
+                        if (
+                          character.construct == Primary &&
+                          isElidable(character as PrimaryCharacter)
+                        ) {
+                          return AnchorY({
+                            at: "c",
+                            children: Diacritic({
+                              name:
+                                (
                                   (character as PrimaryCharacter).bottom ==
                                   "FRM"
-                                    ? "HORIZ_BAR"
-                                    : "DOT",
-                                handwritten: renderedStrokeWidth != 0,
-                              }),
-                            })
-                          }
+                                ) ?
+                                  "HORIZ_BAR"
+                                : "DOT",
+                              handwritten: renderedStrokeWidth != 0,
+                            }),
+                          })
+                        }
 
-                          const node = character.construct(character as any)
+                        const node = character.construct(character as any)
 
-                          if (character.dimmed) {
-                            node.classList.add("dimmed")
-                          }
+                        if (character.dimmed) {
+                          node.classList.add("dimmed")
+                        }
 
-                          return node
-                        }),
-                      compact: !isFast,
-                      space: 10 + renderedStrokeWidth,
-                    })
-                  : CharacterRow({
-                      children: parsed.value,
-                      compact: !isFast,
-                      space: 10 + renderedStrokeWidth,
-                    })
-                : ((
-                    <text class="fill-z-text-heading" stroke-width={0}>
-                      {parsed.reason}
-                    </text>
-                  ) as SVGTextElement)}
+                        return node
+                      }),
+                    compact: !isFast,
+                    space: 10 + renderedStrokeWidth,
+                  })
+                : CharacterRow({
+                    children: parsed.value,
+                    compact: !isFast,
+                    space: 10 + renderedStrokeWidth,
+                  })
+
+              : ((
+                  <text class="fill-z-text-heading" stroke-width={0}>
+                    {parsed.reason}
+                  </text>
+                ) as SVGTextElement)
+              }
             </g>
           ) as SVGGElement,
           y: index * (70 + spaceBetweenLines),
@@ -189,9 +193,9 @@ export function Main() {
     <svg
       class={
         "transition " +
-        (strokeWidth()
-          ? "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
-          : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed")
+        (strokeWidth() ?
+          "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
+        : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed")
       }
       viewBox="-512 -100 1024 200"
       stroke-width={strokeWidth()}

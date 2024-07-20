@@ -210,15 +210,11 @@ const nonBlogPages: readonly Page[] = [
 ]
 
 const blogPages: readonly Page[] = await Promise.all(
-  (
-    await getCollection("blog", (entry) => !entry.data.draft)
-  )
+  (await getCollection("blog", (entry) => !entry.data.draft))
     .sort((a, b) =>
-      a.data.published < b.data.published
-        ? 1
-        : a.data.published > b.data.published
-        ? -1
-        : 0,
+      a.data.published < b.data.published ? 1
+      : a.data.published > b.data.published ? -1
+      : 0,
     )
     .map<Promise<Page>>(async (entry) => ({
       title: entry.data.title,
@@ -234,9 +230,9 @@ const blogPages: readonly Page[] = await Promise.all(
       imageSrc: (
         await import(
           `../../assets/blog/${
-            entry.id.endsWith(".mdx")
-              ? entry.id.slice(0, -4)
-              : entry.id.slice(0, -3)
+            entry.id.endsWith(".mdx") ?
+              entry.id.slice(0, -4)
+            : entry.id.slice(0, -3)
           }.jpg`
         )
       ).default,

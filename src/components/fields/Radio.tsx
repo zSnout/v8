@@ -43,9 +43,9 @@ export function Radio<T extends string>(props: {
 
           if (index == -1) {
             index =
-              event.key == "ArrowLeft" || event.key == "ArrowUp"
-                ? props.options.length
-                : -1
+              event.key == "ArrowLeft" || event.key == "ArrowUp" ?
+                props.options.length
+              : -1
           }
 
           const newIndex =

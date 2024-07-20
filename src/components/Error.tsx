@@ -15,9 +15,9 @@ export function Error(props: { reason: unknown; status?: number }) {
             <span class="sr-only">|</span>
 
             <p class="max-w-sm whitespace-pre-wrap py-4">
-              {props.reason instanceof globalThis.Error
-                ? props.reason.message
-                : String(props.reason)}
+              {props.reason instanceof globalThis.Error ?
+                props.reason.message
+              : String(props.reason)}
             </p>
           </div>
 

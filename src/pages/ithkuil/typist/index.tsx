@@ -647,39 +647,41 @@ type KeyLabel =
 function LabeledKey(props: { active?: boolean; label: KeyLabel }) {
   return (
     <Key active={props.active}>
-      {props.label == "up" ? (
+      {props.label == "up" ?
         <path d="M -20 10 l 20 -20 l 20 20" />
-      ) : props.label == "down" ? (
+      : props.label == "down" ?
         <path d="M -20 -10 l 20 20 l 20 -20" />
-      ) : props.label == "left" ? (
+      : props.label == "left" ?
         <path d="M 10 -20 l -20 20 l 20 20" />
-      ) : props.label == "right" ? (
+      : props.label == "right" ?
         <path d="M -10 -20 l 20 20 l -20 20" />
-      ) : props.label == "rotate" ? (
+      : props.label == "rotate" ?
         <path d="M 0 30 a 30 30 0 1 0 -30 -30 l -10 -20 m 10 20 l 20 -10" />
-      ) : has(ALL_SPECIFICATIONS, props.label) ? (
+      : has(ALL_SPECIFICATIONS, props.label) ?
         Primary({ specification: props.label, handwritten: HANDWRITTEN_MODE })
-      ) : has(ALL_VALENCES, props.label) ? (
+      : has(ALL_VALENCES, props.label) ?
         Tertiary({ valence: props.label, handwritten: HANDWRITTEN_MODE })
-      ) : has(ALL_PHASES, props.label) ||
+      : (
+        has(ALL_PHASES, props.label) ||
         has(ALL_EFFECTS, props.label) ||
-        has(ALL_ASPECTS, props.label) ? (
+        has(ALL_ASPECTS, props.label)
+      ) ?
         Tertiary({ top: props.label, handwritten: HANDWRITTEN_MODE })
-      ) : has(Object.keys(CORES) as CoreName[], props.label) ? (
+      : has(Object.keys(CORES) as CoreName[], props.label) ?
         Secondary({
           core: props.label,
           handwritten: HANDWRITTEN_MODE,
           rotated: props.label == "BIAS",
         })
-      ) : props.label == "ASR" ? (
+      : props.label == "ASR" ?
         Quaternary({ value: "ASR", handwritten: HANDWRITTEN_MODE })
-      ) : has(Object.keys(EXTENSIONS) as ExtensionName[], props.label) ? (
+      : has(Object.keys(EXTENSIONS) as ExtensionName[], props.label) ?
         Secondary({
           core: "STRESSED_SYLLABLE_PLACEHOLDER",
           top: props.label,
           handwritten: HANDWRITTEN_MODE,
         })
-      ) : has(Object.keys(CORE_DIACRITICS) as DiacriticName[], props.label) ? (
+      : has(Object.keys(CORE_DIACRITICS) as DiacriticName[], props.label) ?
         Anchor({
           at: "cc",
           children:
@@ -695,9 +697,9 @@ function LabeledKey(props: { active?: boolean; label: KeyLabel }) {
               />
             ) as SVGPathElement),
         })
-      ) : typeof props.label == "number" ? (
+      : typeof props.label == "number" ?
         Numeral({ value: props.label, handwritten: HANDWRITTEN_MODE })
-      ) : typeof props.label == "object" ? (
+      : typeof props.label == "object" ?
         Anchor({
           at: "cc",
           children:
@@ -713,7 +715,7 @@ function LabeledKey(props: { active?: boolean; label: KeyLabel }) {
               />
             ) as SVGPathElement),
         })
-      ) : undefined}
+      : undefined}
     </Key>
   )
 }
@@ -927,11 +929,9 @@ export function Main() {
         key == 9
       ) {
         const segmentGroup =
-          mod == "phase"
-            ? ALL_PHASES
-            : mod == "effect"
-            ? ALL_EFFECTS
-            : ALL_VALENCES
+          mod == "phase" ? ALL_PHASES
+          : mod == "effect" ? ALL_EFFECTS
+          : ALL_VALENCES
 
         write(mod.toUpperCase() + ": " + segmentGroup[key - 1]!)
 
@@ -989,19 +989,18 @@ export function Main() {
     <div class="my-auto flex flex-col gap-4">
       <Keyboard
         layout={
-          modifier_() == "valence"
-            ? VALENCE_KEYBOARD_LAYOUT
-            : modifier_() == "phase"
-            ? PHASE_KEYBOARD_LAYOUT
-            : modifier_() == "effect"
-            ? EFFECT_KEYBOARD_LAYOUT
-            : modifier_() == "aspect"
-            ? ASPECT_KEYBOARD_LAYOUT
-            : modifier_() == "register"
-            ? REGISTER_KEYBOARD_LAYOUT
-            : isShifting()
-            ? SHIFTED_KEYBOARD_LAYOUT
-            : BASE_KEYBOARD_LAYOUT
+          modifier_() == "valence" ? VALENCE_KEYBOARD_LAYOUT
+          : modifier_() == "phase" ?
+            PHASE_KEYBOARD_LAYOUT
+          : modifier_() == "effect" ?
+            EFFECT_KEYBOARD_LAYOUT
+          : modifier_() == "aspect" ?
+            ASPECT_KEYBOARD_LAYOUT
+          : modifier_() == "register" ?
+            REGISTER_KEYBOARD_LAYOUT
+          : isShifting() ?
+            SHIFTED_KEYBOARD_LAYOUT
+          : BASE_KEYBOARD_LAYOUT
         }
       />
 

@@ -26,11 +26,10 @@ export interface Props {
 {/* That is used in prose and other documents with internal nav links. */}
 <header
   class={"pointer-events-none fixed top-0 z-30 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden " +
-    (Astro.props.floating
-      ? "border-b-transparent"
-      : Astro.props.shortLine
-      ? "backdrop-blur-sm bg-z-body-partial border-b-transparent"
-      : "backdrop-blur-sm bg-z-body-partial border-b-z")}
+    (Astro.props.floating ? "border-b-transparent"
+    : Astro.props.shortLine ?
+      "backdrop-blur-sm bg-z-body-partial border-b-transparent"
+    : "backdrop-blur-sm bg-z-body-partial border-b-z")}
 >
   <div
     class={`relative flex h-full w-full flex-1 items-center ${Astro.props.maxWidth}`}
@@ -56,10 +55,10 @@ export interface Props {
             <Fa class="h-4 w-4" icon={faChevronRight} title="sublink" />
             <a
               class={
-                "z-sublink rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition hover:decoration-current focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring " +
-                (Astro.props.floating
-                  ? "bg-z-body-partial backdrop-blur-sm"
-                  : "")
+                "z-sublink rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring hover:decoration-current " +
+                (Astro.props.floating ?
+                  "bg-z-body-partial backdrop-blur-sm"
+                : "")
               }
               href={Astro.props.sublink.href}
             >
@@ -71,13 +70,11 @@ export interface Props {
     </div>
 
     {
-      Astro.slots.options ? (
+      Astro.slots.options ?
         <Options client:load>
           <slot name="options" />
         </Options>
-      ) : (
-        <div id="nav-options" class="contents" />
-      )
+      : <div id="nav-options" class="contents" />
     }
 
     <ThemeSwitcher client:idle theme={Astro.props.theme} />

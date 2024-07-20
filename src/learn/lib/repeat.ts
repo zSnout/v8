@@ -133,9 +133,8 @@ function repeatLearning(
   const againStep = learningSteps[0]
   pray(againStep != null, "must have at least one learning step")
 
-  const lastStepInSeconds = card.last_review
-    ? (card.due - card.last_review) / 1000
-    : againStep
+  const lastStepInSeconds =
+    card.last_review ? (card.due - card.last_review) / 1000 : againStep
   let lastStepIndex = learningSteps.findLastIndex(
     (step) => step <= lastStepInSeconds,
   )
@@ -149,18 +148,20 @@ function repeatLearning(
 
   const areLearningStepsLeft = lastStepIndex + 1 < learningSteps.length
 
-  const dueGood = areLearningStepsLeft
-    ? now + learningSteps[lastStepIndex + 1]! * 1000
+  const dueGood =
+    areLearningStepsLeft ?
+      now + learningSteps[lastStepIndex + 1]! * 1000
     : byFsrs[Rating.Good].card.due
 
-  const dueHard = areLearningStepsLeft
-    ? // average again and good
+  const dueHard =
+    areLearningStepsLeft ?
+      // average again and good
       (dueAgain + dueGood) / 2
-    : learningSteps.length == 1
-      ? // higher than `Again`
-        now + againStep * 1500
-      : // go back to last learning step
-        now + learningSteps[learningSteps.length - 1]! * 1000
+    : learningSteps.length == 1 ?
+      // higher than `Again`
+      now + againStep * 1500
+      // go back to last learning step
+    : now + learningSteps[learningSteps.length - 1]! * 1000
 
   return {
     [Rating.Again]: createRepeatItem(
@@ -203,8 +204,9 @@ function repeatLearning(
       now,
     ),
 
-    [Rating.Good]: areLearningStepsLeft
-      ? createRepeatItem(
+    [Rating.Good]:
+      areLearningStepsLeft ?
+        createRepeatItem(
           card,
           Rating.Good,
           time,

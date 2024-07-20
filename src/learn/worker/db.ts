@@ -51,11 +51,11 @@ export class WorkerDB extends sqlite3.oo1.OpfsDb {
     checks: T,
     params?: BindingSpec,
   ): {
-    [K in keyof T]: T[K] extends ((
-      x: SqlValue,
-    ) => x is infer U extends SqlValue)
-      ? U
-      : SqlValue
+    [K in keyof T]: T[K] extends (
+      ((x: SqlValue) => x is infer U extends SqlValue)
+    ) ?
+      U
+    : SqlValue
   } {
     const row = this.row(sql, params)
     if (checks.length != row.length) {
@@ -115,11 +115,11 @@ export class WorkerDB extends sqlite3.oo1.OpfsDb {
     checks: T,
     params?: BindingSpec,
   ): {
-    [K in keyof T]: T[K] extends ((
-      x: SqlValue,
-    ) => x is infer U extends SqlValue)
-      ? U
-      : SqlValue
+    [K in keyof T]: T[K] extends (
+      ((x: SqlValue) => x is infer U extends SqlValue)
+    ) ?
+      U
+    : SqlValue
   }[] {
     // TODO: possibly disable checks in prod
 
@@ -167,8 +167,9 @@ function checkVersion(db: WorkerDB) {
   // no rollback logic since if upgrading fails, nothing good will happen
   db.exec("BEGIN TRANSACTION")
   db.exec(query_schema)
-  const current = db.val("SELECT EXISTS(SELECT 1 FROM core WHERE id = 0)", int)
-    ? db.val("SELECT version FROM core WHERE id = 0", int)
+  const current =
+    db.val("SELECT EXISTS(SELECT 1 FROM core WHERE id = 0)", int) ?
+      db.val("SELECT version FROM core WHERE id = 0", int)
     : 0
   upgrade(db, current)
   if (current != latest) {

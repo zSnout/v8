@@ -60,8 +60,9 @@ export async function select(
     newLeft >= 0 && newLeft / newTotal >= reviewsLeft / reviewsTotal
 
   function pickNew(): SelectedCard | null {
-    const index = info.limits.conf.new.pick_at_random
-      ? Math.floor(Math.random() * info.cards.b0.length)
+    const index =
+      info.limits.conf.new.pick_at_random ?
+        Math.floor(Math.random() * info.cards.b0.length)
       : 0
 
     const card = info.cards.b0[index]

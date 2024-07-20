@@ -141,9 +141,8 @@ function kanaRead(
 function each<T>(
   names: T[],
   card: (value: T) => Node,
-  ...name: T extends string
-    ? [name?: (x: T) => PropertyKey]
-    : [name: (x: T) => PropertyKey]
+  ...name: T extends string ? [name?: (x: T) => PropertyKey]
+  : [name: (x: T) => PropertyKey]
 ): RawTree {
   const n = name[0] || String
   return Object.fromEntries(names.map((x) => [n(x), card(x)]))

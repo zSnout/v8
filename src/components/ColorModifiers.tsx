@@ -65,9 +65,9 @@ export function ColorModifiers(props: { gl: WebGLCanvas; save?: boolean }) {
         step="any"
         get={smoothness}
         getLabel={() =>
-          smoothness() == 100
-            ? "all"
-            : (1 / (1 - smoothness() / 100)).toFixed(2)
+          smoothness() == 100 ? "all" : (
+            (1 / (1 - smoothness() / 100)).toFixed(2)
+          )
         }
         set={setSmoothness}
       />

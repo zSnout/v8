@@ -14,13 +14,12 @@ export async function saveManagedModels(
   removed: RemovedModel[],
 ) {
   const reason: Reason =
-    added.length && removed.length
-      ? `Create model(s) ${added
-          .map((x) => x.name)
-          .join(",")} and delete ${removed.map((x) => x[1]).join(",")}`
-      : added.length
-        ? `Create model(s) ${added.map((x) => x.name).join(",")}`
-        : `Delete model(s) ${removed.map((x) => x[1]).join(",")}`
+    added.length && removed.length ?
+      `Create model(s) ${added
+        .map((x) => x.name)
+        .join(",")} and delete ${removed.map((x) => x[1]).join(",")}`
+    : added.length ? `Create model(s) ${added.map((x) => x.name).join(",")}`
+    : `Delete model(s) ${removed.map((x) => x[1]).join(",")}`
 
   const tx = db.readwrite(
     ["notes", "cards", "graves", "models", "core"],

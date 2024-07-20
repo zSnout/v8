@@ -14,12 +14,11 @@ export const isDark = () =>
 
 export function toggleIsDark() {
   setTheme(
-    untrack(isDeviceDark)
-      ? untrack(theme) == "light"
-        ? "auto"
-        : "light"
-      : untrack(theme) == "dark"
-      ? "auto"
-      : "dark",
+    untrack(isDeviceDark) ?
+      untrack(theme) == "light" ?
+        "auto"
+      : "light"
+    : untrack(theme) == "dark" ? "auto"
+    : "dark",
   )
 }

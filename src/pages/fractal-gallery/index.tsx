@@ -214,11 +214,9 @@ export function Fractal(props: { class: string; url: string }) {
 
   if (!innerTheme) {
     innerTheme =
-      theme == "simple" || theme == "trig"
-        ? "black"
-        : theme == "none"
-        ? "plot"
-        : theme
+      theme == "simple" || theme == "trig" ? "black"
+      : theme == "none" ? "plot"
+      : theme
   }
 
   if (effectSplit) {
@@ -446,9 +444,9 @@ export function Main() {
             <a
               class="hover:opacity-70"
               href={
-                url.startsWith("https://v8.zsnout.com")
-                  ? url.slice("https://v8.zsnout.com".length)
-                  : url
+                url.startsWith("https://v8.zsnout.com") ?
+                  url.slice("https://v8.zsnout.com".length)
+                : url
               }
             >
               <Fractal

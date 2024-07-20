@@ -40,11 +40,13 @@ export function study_select_txless(root: Id | null, all: Id[]) {
 
   // TODO: what happens when .now is zero
   const PREFER_NEW =
-    Math.max(0, limits.new.now - new_today) / limits.new.now >=
-    Math.max(0, Math.min(limits.rev.now - rev_today, EXPECTED_REVIEWS_LEFT)) /
-      limits.rev.now
-      ? true
-      : null
+    (
+      Math.max(0, limits.new.now - new_today) / limits.new.now >=
+      Math.max(0, Math.min(limits.rev.now - rev_today, EXPECTED_REVIEWS_LEFT)) /
+        limits.rev.now
+    ) ?
+      true
+    : null
 
   const cid =
     // 1. If PREFER_NEW, a new card.
