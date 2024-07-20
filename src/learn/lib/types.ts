@@ -325,7 +325,13 @@ export const Deck = v.object({
 
   /** Ids of review logs done today (each entry is unique) */
   // DB: changed from id array to number in v8
-  revlogs_today: v.number(),
+  revlogs_today: v.union([
+    v.number(),
+    v.pipe(
+      v.array(v.number()),
+      v.transform((x) => x.length),
+    ),
+  ]),
 
   /** When `new_today` and the `..._limit` properties were last updated */
   today: v.number(),
