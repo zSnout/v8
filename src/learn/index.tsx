@@ -67,7 +67,6 @@ function UndoManager(worker: Worker) {
       } else if (
         (dialog = document.querySelector<HTMLDialogElement>("dialog[open]"))
       ) {
-        console.log(dialog)
         dialog.dispatchEvent(new Event("cancel"))
       } else if (document.activeElement == document.body) {
         layers.popLatest()

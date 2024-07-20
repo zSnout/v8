@@ -72,8 +72,6 @@ export function home_list_decks() {
       }
     }
 
-    console.log(self, sub)
-
     const tree: DeckHomeTree = new Tree()
 
     for (const name of Array.from(self.keys())
@@ -87,8 +85,6 @@ export function home_list_decks() {
         self: self.get(name) || [0, 0, 0],
         sub: sub.get(name) || [0, 0, 0],
       }
-
-      console.log(name)
 
       tree.set(
         name.split("::"),

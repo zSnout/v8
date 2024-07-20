@@ -89,14 +89,11 @@ export default defineConfig({
       }),
     ],
     optimizeDeps: {
-      esbuildOptions: {
-        target: "esnext",
-      },
+      esbuildOptions: { target: "es2022" },
       exclude: ["@sqlite.org/sqlite-wasm"],
     },
-    build: {
-      target: "esnext",
-    },
+    esbuild: { target: "es2022" },
+    build: { target: "es2022" },
     worker: {
       format: "es",
       plugins: [tsconfigPaths()],
