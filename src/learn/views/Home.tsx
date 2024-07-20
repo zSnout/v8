@@ -26,8 +26,8 @@ import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
 import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
-import { Query } from "./Query"
 import { Settings } from "./Settings"
+import { Stats } from "./Stats"
 import { Study } from "./Study"
 
 function nope(): never {
@@ -106,8 +106,8 @@ export const Home = createLoadingBase(
           <Action
             center
             icon={faChartBar}
-            label="Query"
-            onClick={() => layers.push(Query, worker)}
+            label="Stats"
+            onClick={() => layers.push(Stats, worker)}
           />
           {/* TODO: implement actual statistics page */}
           <Action

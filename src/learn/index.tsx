@@ -3,11 +3,12 @@ import { error } from "@/components/result"
 import { Error } from "@/learn/el/Error"
 import { Layers, useLayers } from "@/learn/el/Layers"
 import { createLoadingBase } from "@/learn/el/Loading"
-import { Home } from "@/learn/views/Home"
 import { createSignal, JSX, onMount, Show } from "solid-js"
 import { Worker } from "./db/worker"
 import { Toasts } from "./el/Toast"
 import { ShortcutManager } from "./lib/shortcuts"
+import { Home } from "./views/Home"
+import { Stats } from "./views/Stats"
 
 function ErrorHandler(props: { children: JSX.Element }) {
   const [reason, setError] = createSignal<unknown>()
@@ -77,7 +78,12 @@ function UndoManager(worker: Worker) {
   // manager.scoped({ key: "Z" }, undoFn)
   // manager.scoped({ key: "Z", mod: "macctrl" }, undoFn)
 
-  return Home(worker)
+  // TODO: remove this once <Stats /> is done
+  if (import.meta.env.DEV) {
+    return Stats(worker, () => {})
+  } else {
+    return Home(worker)
+  }
 }
 
 const InsideErrorHandler = createLoadingBase<void, Worker>(
