@@ -34,7 +34,7 @@ export function stats_add(title: string, query: string) {
         roundCard: true,
         width: 1,
         titleLocation: "floating",
-        titleBorder: "normal",
+        titleBorder: "none",
         titleAlign: "center",
       },
     }

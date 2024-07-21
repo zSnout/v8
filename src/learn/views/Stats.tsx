@@ -1,16 +1,19 @@
 import { Fa } from "@/components/Fa"
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
+import { confirm, ModalDescription } from "@/components/Modal"
 import { Unmain } from "@/components/Prose"
 import { error, ok, type Result } from "@/components/result"
 import { sql, SQLite } from "@codemirror/lang-sql"
 import { EditorView } from "@codemirror/view"
+import { faFaceMehBlank } from "@fortawesome/free-regular-svg-icons"
 import {
   faMagnifyingGlassChart,
   faPenToSquare,
   faPlus,
   faRightFromBracket,
   faSpinner,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import {
@@ -18,6 +21,7 @@ import {
   createResource,
   createSignal,
   For,
+  getOwner,
   Show,
   untrack,
   type JSX,
@@ -51,6 +55,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
   const layers = useLayers()
   const [stats, setStats] = createSignal(fetch())
   const [editing, setEditing] = createSignal(false)
+  const owner = getOwner()
   let current: StatCard[] | undefined
 
   return {
@@ -157,8 +162,8 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
 
     return (
       <div class="flex flex-col gap-1">
-        <div class="flex flex-col rounded-lg bg-z-body-selected pb-2">
-          <div class="flex min-h-20 w-full overflow-auto border-b border-z pl-0 pr-1">
+        <div class="relative flex transform flex-col rounded-lg bg-z-body-selected pb-2">
+          <div class="flex min-h-20 w-full overflow-auto border-b border-z pl-0 pr-8">
             {IntegratedCodeField(
               {
                 value: untrack(() => card.query),
@@ -172,6 +177,44 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
               },
             )}
           </div>
+
+          <button
+            class="fixed right-1 top-1 size-6 rounded bg-red-500 p-1"
+            onClick={async () => {
+              if (
+                !(await confirm({
+                  owner,
+                  title: "Are you sure?",
+                  get description() {
+                    return (
+                      <>
+                        <ModalDescription>
+                          This will delete the statistic{" "}
+                          <strong class="text-z underline">{card.title}</strong>{" "}
+                          from your statistics page. You can always add it back
+                          later, but it might take a while to set up the correct
+                          configuration. For reference, its query is this:
+                        </ModalDescription>
+
+                        <pre class="mt-2 whitespace-pre-wrap rounded-md bg-z-body-selected px-2 py-1 text-sm text-z">
+                          {card.query}
+                        </pre>
+                      </>
+                    )
+                  },
+                  cancelText: "No, cancel",
+                  okText: "Yes, delete",
+                }))
+              ) {
+                return
+              }
+              current?.splice(current.indexOf(props.card, 1))
+              save()
+              setStats(fetch())
+            }}
+          >
+            <Fa class="size-4 icon-white" icon={faTrash} title="Delete Card" />
+          </button>
 
           <div class="grid grid-cols-2 gap-2 px-2 pb-1 pt-1">
             <div class="flex flex-col gap-1">
@@ -466,7 +509,8 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
               return DrawStatCard(card, data(), COLORS)
             }
 
-            return <Inner />
+            // <Show /> does it so we can too
+            return createMemo(Inner, undefined, undefined) as any as JSX.Element
           } catch (e) {
             return <Error>{error(e).reason}</Error>
           }
@@ -481,6 +525,15 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
     }
 
     worker.post("stats_set", current)
+  }
+
+  async function create() {
+    await worker.post(
+      "stats_add",
+      "# of cards by number of reviews",
+      "SELECT reps, COUNT() from cards GROUP BY reps",
+    )
+    setStats(fetch())
   }
 
   function Charts() {
@@ -500,29 +553,42 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
         {(stats) => {
           current = stats
           return (
-            <Unmain>
-              <div class="flex px-6">
-                <div class="mx-auto grid w-full max-w-[80rem] grid-cols-[repeat(auto-fill,minmax(min(24rem,100%),1fr))] gap-4">
-                  <For each={stats}>{Stat}</For>
-                  <Show when={editing}>
+            <Show
+              when={stats.length > 0 || editing()}
+              fallback={
+                <div class="flex w-full flex-1 flex-col items-center justify-center gap-4 rounded-lg">
+                  <Fa class="size-12" icon={faFaceMehBlank} title={false} />
+                  <p class="text-center">
+                    It's looking a bit empty here.
+                    <br />
+                    Want to{" "}
                     <button
-                      class="flex aspect-video flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-z"
-                      onClick={async () => {
-                        await worker.post(
-                          "stats_add",
-                          "New card",
-                          "SELECT 1, 2",
-                        )
-                        setStats(fetch())
-                      }}
+                      class="whitespace-normal text-z-link underline underline-offset-2"
+                      onClick={create}
                     >
-                      <Fa class="size-8" icon={faPlus} title="New Card" />
-                      <p class="text-sm text-z-subtitle">New Card</p>
+                      add a statistic?
                     </button>
-                  </Show>
+                  </p>
                 </div>
-              </div>
-            </Unmain>
+              }
+            >
+              <Unmain>
+                <div class="flex px-6">
+                  <div class="mx-auto grid w-full max-w-[80rem] grid-cols-[repeat(auto-fill,minmax(min(24rem,100%),1fr))] gap-4">
+                    <For each={stats}>{Stat}</For>
+                    <Show when={editing()}>
+                      <button
+                        class="flex aspect-video flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-z"
+                        onClick={create}
+                      >
+                        <Fa class="size-8" icon={faPlus} title="New Card" />
+                        <p class="text-sm text-z-subtitle">New Card</p>
+                      </button>
+                    </Show>
+                  </div>
+                </div>
+              </Unmain>
+            </Show>
           )
         }}
       </InlineLoading>
