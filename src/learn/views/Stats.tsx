@@ -61,7 +61,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
 
   return {
     el: (
-      <div class="flex flex-1 flex-col gap-4">
+      <div class="flex min-h-full flex-1 flex-col gap-4">
         <TopActions />
         <Charts />
       </div>
