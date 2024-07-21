@@ -24,12 +24,15 @@ const format = new Intl.ListFormat("en", {
   type: "conjunction",
 })
 
-export function Query(worker: Worker, pop: () => void): LayerOutput {
+export function Query(
+  { worker, initial = "" }: { worker: Worker; initial?: string },
+  pop: () => void,
+): LayerOutput {
   const owner = getOwner()
   const shortcuts = new ShortcutManager()
   shortcuts.scoped({ key: "Enter", mod: "macctrl" }, run, true)
 
-  const [query, setQuery] = createSignal("")
+  const [query, setQuery] = createSignal(initial)
   const [result, setResult] = createSignal<
     | {
         columns: string[]
@@ -37,6 +40,9 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
       }[]
     | string
   >("")
+  if (initial) {
+    runSafely(initial)
+  }
   const [safe, setSafe] = createSignal(true)
 
   return {
@@ -155,7 +161,7 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
               <div class="flex w-screen flex-col gap-4">
                 <For each={result()}>
                   {(result) => (
-                    <div class="mx-auto min-w-[67rem] max-w-[100vw] overflow-x-auto px-6">
+                    <div class="mx-auto min-w-[min(67rem,100vw)] max-w-[100vw] overflow-x-auto px-6">
                       <table class="w-full border border-z text-sm">
                         <thead>
                           <tr>
@@ -272,6 +278,15 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
       } else {
         setResult(await worker.post("user_query_unsafe", untrack(query)))
       }
+    } catch (err) {
+      console.error(err)
+      setResult(String(err))
+    }
+  }
+
+  async function runSafely(q = untrack(query)) {
+    try {
+      setResult(await worker.post("user_query_safe", q))
     } catch (err) {
       console.error(err)
       setResult(String(err))

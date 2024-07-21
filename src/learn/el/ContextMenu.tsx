@@ -1,6 +1,13 @@
 import { createEventListener } from "@/components/create-event-listener"
 import type { CtxCreateMenu } from "@/env2"
-import { createEffect, createMemo, createSignal, type JSX } from "solid-js"
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Show,
+  type JSX,
+} from "solid-js"
 import { Dynamic, Portal } from "solid-js/web"
 import { randomId } from "../lib/id"
 import { createElementSize, createRemSize, createScreenSize } from "../lib/size"
@@ -93,7 +100,7 @@ export function ContextMenuTrigger() {
   const [x, setX] = createSignal(50)
   const [y, setY] = createSignal(50)
   const [active, setActive] = createSignal(false)
-  const [content, setContent] = createSignal<() => JSX.Element>(() => void 0)
+  const [content, setContent] = createSignal<(() => JSX.Element)[]>([])
 
   if (typeof document != "undefined") {
     createEventListener(document, "contextmenu", (event) => {
@@ -101,21 +108,20 @@ export function ContextMenuTrigger() {
         el.classList.remove("ctx")
       }
 
-      let menu!: () => JSX.Element
+      const menus: (() => JSX.Element)[] = []
       const findCtxEvent = new CustomEvent<CtxCreateMenu>("ctx", {
         detail(m) {
-          findCtxEvent.stopImmediatePropagation()
-          menu = m
+          menus.push(m)
         },
         bubbles: true,
       })
       event.target?.dispatchEvent(findCtxEvent)
-      if (!menu) {
+      if (!menus.length) {
         setActive(false)
         return
       }
 
-      setContent(() => menu)
+      setContent(menus)
 
       event
         .composedPath()
@@ -148,7 +154,16 @@ export function ContextMenuTrigger() {
   return (
     <Portal>
       <ContextMenu x={x()} y={y()} active={active()}>
-        <Dynamic component={content()} />
+        <For each={content()}>
+          {(items, index) => (
+            <>
+              <Show when={index() != 0}>
+                <ContextMenuLine />
+              </Show>
+              <Dynamic component={items} />
+            </>
+          )}
+        </For>
       </ContextMenu>
     </Portal>
   )

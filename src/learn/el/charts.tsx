@@ -53,11 +53,7 @@ function display(value: string | number, format: ChartLabelFormat) {
         }
       : { hour: "2-digit", minute: "2-digit" },
     )
-    const d = new Date(
-      typeof value == "string" ?
-        new Date(value).getTime() + new Date().getTimezoneOffset() * 60 * 1000
-      : value,
-    )
+    const d = new Date(value)
     if (Number.isNaN(d.getTime())) {
       return "???"
     } else {
@@ -66,11 +62,7 @@ function display(value: string | number, format: ChartLabelFormat) {
   }
 
   if (format == "dt-offset") {
-    const d = new Date(
-      typeof value == "string" ?
-        new Date(value).getTime() + new Date().getTimezoneOffset() * 60 * 1000
-      : value,
-    )
+    const d = new Date(value)
     if (Number.isNaN(d.getTime())) {
       return "???"
     } else {

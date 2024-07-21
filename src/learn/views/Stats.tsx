@@ -30,6 +30,7 @@ import { parse } from "valibot"
 import type { Worker } from "../db/worker"
 import { Action } from "../el/BottomButtons"
 import { DrawStatCard } from "../el/charts"
+import { ContextMenuItem } from "../el/ContextMenu"
 import { IntegratedCodeField } from "../el/IntegratedField"
 import { useLayers, type LayerOutput } from "../el/Layers"
 import { InlineLoading } from "../el/Loading"
@@ -90,7 +91,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
           center
           icon={faMagnifyingGlassChart}
           label="Query"
-          onClick={() => layers.push(Query, worker)}
+          onClick={() => layers.push(Query, { worker })}
         />
 
         <Action
@@ -495,7 +496,24 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
         fallback={(err) => <Error>{err()}</Error>}
         result={data.ok ? ok({ v: data.value }) : data}
       >
-        {(result) => <>{DrawStatCard(card, result().v, COLORS)}</>}
+        {(result) => (
+          <div
+            class="contents"
+            onCtx={({ detail }) =>
+              detail(() => (
+                <ContextMenuItem
+                  onClick={() =>
+                    layers.push(Query, { worker, initial: card.query })
+                  }
+                >
+                  Preview in Query
+                </ContextMenuItem>
+              ))
+            }
+          >
+            {DrawStatCard(card, result().v, COLORS)}
+          </div>
+        )}
       </MatchResult>
     )
   }
