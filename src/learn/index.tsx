@@ -8,7 +8,6 @@ import { Worker } from "./db/worker"
 import { Toasts } from "./el/Toast"
 import { ShortcutManager } from "./lib/shortcuts"
 import { Home } from "./views/Home"
-import { Stats } from "./views/Stats"
 
 function ErrorHandler(props: { children: JSX.Element }) {
   const [reason, setError] = createSignal<unknown>()
@@ -79,11 +78,11 @@ function UndoManager(worker: Worker) {
   // manager.scoped({ key: "Z", mod: "macctrl" }, undoFn)
 
   // TODO: remove this once <Stats /> is done
-  if (import.meta.env.DEV) {
-    return Stats(worker, () => {})
-  } else {
-    return Home(worker)
-  }
+  // if (import.meta.env.DEV) {
+  // return Stats(worker, () => {})
+  // } else {
+  return Home(worker)
+  // }
 }
 
 const InsideErrorHandler = createLoadingBase<void, Worker>(

@@ -58,6 +58,7 @@ export function ContextMenu(props: {
       style={pos()}
       ref={el!}
       inert={!props.active}
+      onMouseDown={(event) => event.stopImmediatePropagation()}
     >
       {props.children}
     </div>
@@ -96,6 +97,14 @@ export function ContextMenuTrigger(props: { children: JSX.Element }) {
       setX(event.clientX)
       setY(event.clientY)
       setActive(true)
+    })
+
+    createEventListener(document, "mousedown", () => {
+      for (const el of document.querySelectorAll(".ctx")) {
+        el.classList.remove("ctx")
+      }
+
+      setActive(false)
     })
 
     createEventListener(document, "click", () => {

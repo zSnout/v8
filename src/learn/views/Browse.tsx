@@ -1,23 +1,81 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { Unmain } from "@/components/Prose"
-import { For, untrack } from "solid-js"
+import {
+  batch,
+  createMemo,
+  createSignal,
+  For,
+  untrack,
+  type Accessor,
+  type Setter,
+} from "solid-js"
+import { createStore, type SetStoreFunction } from "solid-js/store"
 import { createPrefsWithWorker } from "../db/prefs/store"
 import type { Worker } from "../db/worker"
 import { createLoading } from "../el/Loading"
 import { createExpr } from "../lib/expr"
+import type { Id } from "../lib/id"
 import { BrowserColumn } from "../lib/types"
 
 // TODO: add escape key to all pages
 
 export const Browse = createLoading(
-  async (worker: Worker) => {
+  async (
+    worker: Worker,
+    _,
+    state: {
+      selected?: Record<string, boolean>
+      setSelected?: SetStoreFunction<Record<string, boolean>>
+      selectFrom?: Accessor<Id | undefined>
+      setSelectFrom?: Setter<Id | undefined>
+      selectTo?: Accessor<Id | undefined>
+      setSelectTo?: Setter<Id | undefined>
+      selectInvert?: Accessor<boolean>
+      setSelectInvert?: Setter<boolean>
+    },
+  ) => {
     const data = await worker.post("browse_load")
     const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
     await ready
     const [sorted, reloadSorted] = createExpr(() => data.cards)
+    if (!state.selected) {
+      ;[state.selected, state.setSelected] = createStore({})
+      ;[state.selectFrom, state.setSelectFrom] = createSignal()
+      ;[state.selectTo, state.setSelectTo] = createSignal()
+      ;[state.selectInvert, state.setSelectInvert] = createSignal(false)
+    }
     return [data, { prefs, setPrefs, sorted, reloadSorted }] as const
   },
-  (_, [, { prefs, setPrefs, sorted, reloadSorted }]) => {
+  (_, [, { prefs, setPrefs, sorted, reloadSorted }], pop, state) => {
+    const selected = state.selected!
+    const setSelected = state.setSelected!
+    const selectFrom = state.selectFrom!
+    const setSelectFrom = state.setSelectFrom!
+    const selectTo = state.selectTo!
+    const setSelectTo = state.setSelectTo!
+    const selectInvert = state.selectInvert!
+    const setSelectInvert = state.setSelectInvert!
+    const [mousedown, setMousedown] = createSignal(false)
+    const ids = createMemo(() => sorted().map((x) => x.card.id))
+    const selectFromIndex = createMemo(() => {
+      const sf = selectFrom()
+      if (sf == null) {
+        return NaN
+      } else {
+        return ids().indexOf(sf)
+      }
+    })
+    const selectToIndex = createMemo(() => {
+      const st = selectTo()
+      if (st == null) {
+        return NaN
+      } else {
+        return ids().indexOf(st)
+      }
+    })
+
+    addEventListener("mouseup", () => setMousedown(false))
+
     return {
       el: (
         <div class="-my-8">
@@ -30,6 +88,27 @@ export const Browse = createLoading(
         </div>
       ),
       onForcePop: () => true,
+    }
+
+    function savePreviousSelection() {
+      batch(() => {
+        let siLow = selectFromIndex()
+        let siHigh = selectToIndex()
+        if (siLow > siHigh) {
+          ;[siLow, siHigh] = [siHigh, siLow]
+        }
+        setSelectTo()
+        const value = !selectInvert()
+        setSelectInvert(false)
+        if (isFinite(siLow) && isFinite(siHigh)) {
+          const allIds = ids()
+          const diff: Record<Id, boolean> = {}
+          for (let index = siLow; index <= siHigh; index++) {
+            diff[allIds[index]!] = value
+          }
+          setSelected(diff)
+        }
+      })
     }
 
     function Sidebar() {
@@ -119,17 +198,96 @@ export const Browse = createLoading(
             </thead>
             <tbody>
               <For each={sorted()}>
-                {(data) => (
-                  <tr class="odd:bg-[--z-table-row-alt]">
-                    <For each={prefs.browser.active_cols}>
-                      {(x) => (
-                        <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
-                          {data.columns[x]}
-                        </td>
-                      )}
-                    </For>
-                  </tr>
-                )}
+                {(data, index) => {
+                  const id = data.card.id
+                  const isSelected = createMemo(() =>
+                    (
+                      (selectFromIndex() <= index() &&
+                        index() <= selectToIndex()) ||
+                      (selectFromIndex() >= index() &&
+                        index() >= selectToIndex())
+                    ) ?
+                      !selectInvert()
+                    : selected[id],
+                  )
+                  return (
+                    <tr
+                      class="select-none"
+                      classList={{
+                        "odd:bg-[--z-table-row-alt]": !isSelected(),
+                        "bg-[--z-table-row-selected]": isSelected(),
+                        "odd:bg-[--z-table-row-selected-alt]": isSelected(),
+                      }}
+                      onMouseDown={(event) => {
+                        const isCtx =
+                          event.button == 2 ||
+                          (event.button == 0 && event.ctrlKey)
+                        if (isCtx) {
+                          if (!isSelected()) {
+                            setSelected((x) => {
+                              return {
+                                ...Object.fromEntries(
+                                  Object.keys(x).map((x) => [x, false]),
+                                ),
+                                [id]: true,
+                              }
+                            })
+                            setSelectInvert(false)
+                            setSelectFrom(id)
+                            setSelectTo(id)
+                          }
+                          return
+                        }
+                        if (event.shiftKey) {
+                          setSelectInvert(false)
+                        } else {
+                          if (event.ctrlKey || event.metaKey) {
+                            savePreviousSelection()
+                            setSelected(id.toString(), (x) => {
+                              setSelectInvert(x)
+                              return !x
+                            })
+                          } else {
+                            setSelected((x) => {
+                              return {
+                                ...Object.fromEntries(
+                                  Object.keys(x).map((x) => [x, false]),
+                                ),
+                                [id]: true,
+                              }
+                            })
+                            setSelectInvert(false)
+                          }
+                          setSelectFrom(id)
+                        }
+                        setMousedown(true)
+                        setSelectTo(id)
+                      }}
+                      onMouseOver={() => {
+                        if (mousedown()) {
+                          setSelectTo(id)
+                        }
+                      }}
+                    >
+                      <For each={prefs.browser.active_cols}>
+                        {(x) => (
+                          <td
+                            class="whitespace-nowrap border-x px-1 first:border-l-0 last:border-r-0"
+                            classList={{
+                              "border-z": !isSelected(),
+                              "border-[--z-table-row-selected-border]":
+                                isSelected(),
+                              "text-[--z-table-row-selected-text]":
+                                isSelected(),
+                            }}
+                          >
+                            {data.columns[x]}
+                          </td>
+                        )}
+                      </For>
+                    </tr>
+                  )
+                }}
               </For>
             </tbody>
           </table>
