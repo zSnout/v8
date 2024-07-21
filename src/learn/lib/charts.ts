@@ -34,8 +34,14 @@ export function groupData(data: Data, axis: ChartMainAxis): Data {
     return data
   }
 
-  const min = axis.min ?? data.reduce((a, [b]) => Math.min(a, +b), 0)
-  const max = axis.max ?? data.reduce((a, [b]) => Math.max(a, +b), 0)
+  if (data.length == 0) {
+    return []
+  }
+
+  const min =
+    axis.min ?? data.slice(1).reduce((a, [b]) => Math.min(a, +b), +data[0]![0])
+  const max =
+    axis.max ?? data.slice(1).reduce((a, [b]) => Math.max(a, +b), +data[0]![0])
   const size =
     axis.groupSizeIsPercentage ?
       (axis.groupSize / 100) * (max - min)
@@ -48,8 +54,10 @@ export function groupData(data: Data, axis: ChartMainAxis): Data {
     !Number.isFinite(size) ||
     size <= (max - min) / 200
   ) {
-    return data.map(([a, b]) => [+a, b])
+    console.log("group size too small", size, max - min)
+    return data
   }
+  console.log(size)
 
   const els = data[0]?.[1].length
 

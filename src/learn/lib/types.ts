@@ -568,6 +568,7 @@ export const ChartLabelFormat = v.picklist([
   "numeric",
   "date",
   "time",
+  "dt-offset",
 ])
 
 export type ChartLabelFrequency = v.InferOutput<typeof ChartLabelFrequency>
@@ -606,6 +607,37 @@ export const ChartLabel = v.object({
 export interface ChartMainAxis extends v.InferOutput<typeof ChartMainAxis> {}
 export const ChartMainAxis = v.object({
   /** The minimum value, or `null` to automatically determine. */
+  min: v.string(),
+
+  /** The maximum value, or `null` to automatically determine. */
+  max: v.string(),
+
+  /** The group size, or `null` to avoid grouping. */
+  groupSize: v.string(),
+
+  /** Whether the group size is a percentage. */
+  groupSizeIsPercentage: v.boolean(),
+
+  /** Settings for the main axis labels. */
+  label: ChartLabel,
+})
+
+export interface ChartCrossAxis extends v.InferOutput<typeof ChartCrossAxis> {}
+export const ChartCrossAxis = v.object({
+  /** The minimum value, or `null` to automatically determine. */
+  min: v.string(),
+
+  /** The maximum value, or `null` to automatically determine. */
+  max: v.string(),
+
+  /** Settings for the cross axis labels. */
+  label: ChartLabel,
+})
+
+export interface ChartComputedMainAxis
+  extends v.InferOutput<typeof ChartMainAxis> {}
+export const ChartComputedMainAxis = v.object({
+  /** The minimum value, or `null` to automatically determine. */
   min: v.nullable(v.number()),
 
   /** The maximum value, or `null` to automatically determine. */
@@ -621,8 +653,9 @@ export const ChartMainAxis = v.object({
   label: ChartLabel,
 })
 
-export interface ChartCrossAxis extends v.InferOutput<typeof ChartCrossAxis> {}
-export const ChartCrossAxis = v.object({
+export interface ChartComputedCrossAxis
+  extends v.InferOutput<typeof ChartCrossAxis> {}
+export const ChartComputedCrossAxis = v.object({
   /** The minimum value, or `null` to automatically determine. */
   min: v.nullable(v.number()),
 
@@ -633,13 +666,22 @@ export const ChartCrossAxis = v.object({
   label: ChartLabel,
 })
 
-export interface ChartBase extends v.InferOutput<typeof ChartBase> {}
-export const ChartBase = v.object({
+export interface Chart extends v.InferOutput<typeof Chart> {}
+export const Chart = v.object({
   /** Settings related to the chart's main axis. */
   mainAxis: ChartMainAxis,
 
   /** Settings related to the chart's cross axis. */
   crossAxis: ChartCrossAxis,
+
+  /** The type of this chart. */
+  type: v.literal("bar"),
+
+  /** Whether to space the chart items. */
+  space: v.boolean(),
+
+  /** Whether to round the chart items. */
+  rounded: v.boolean(),
 
   /** @deprecated Show a cummulative total in the background. */
   showTotal: v.boolean(),
@@ -648,22 +690,16 @@ export const ChartBase = v.object({
   stacked: v.boolean(),
 })
 
-export interface ChartBar extends v.InferOutput<typeof ChartBar> {}
-export const ChartBar = v.object({
-  ...ChartBase.entries,
+export interface ChartComputed extends v.InferOutput<typeof ChartComputed> {}
+export const ChartComputed = v.object({
+  ...Chart.entries,
 
-  /** A marker for this chart type. */
-  type: v.literal("bar"),
+  /** Settings related to the chart's main axis. */
+  mainAxis: ChartComputedMainAxis,
 
-  /** Whether to space the bars (if false, acts like a histogram.) */
-  space: v.boolean(),
-
-  /** Whether to round the bars. */
-  rounded: v.boolean(),
+  /** Settings related to the chart's cross axis. */
+  crossAxis: ChartComputedCrossAxis,
 })
-
-export type Chart = v.InferOutput<typeof Chart>
-export const Chart = v.union([ChartBar])
 
 export type ChartTitleLocation = v.InferOutput<typeof ChartTitleLocation>
 export const ChartTitleLocation = v.picklist([
@@ -778,6 +814,30 @@ export const ChartCard = v.object({
 
   /** An array of chart options. */
   options: v.array(ChartOption),
+})
+
+export type ChartDataLabel = v.InferOutput<typeof ChartDataLabel>
+export const ChartDataLabel = v.union([v.string(), v.number(), v.null()])
+
+export interface ChartDataEntry extends v.InferOutput<typeof ChartDataEntry> {}
+export const ChartDataEntry = v.tuple([ChartDataLabel, v.array(v.number())])
+
+export interface ChartData extends v.InferOutput<typeof ChartData> {}
+export const ChartData = v.array(ChartDataEntry)
+
+export interface ChartComputedCard
+  extends v.InferOutput<typeof ChartComputedCard> {}
+export const ChartComputedCard = v.object({
+  ...ChartCard.entries,
+
+  /** The result of the query. */
+  query: ChartData,
+
+  /** A computed definition of the chart itself. */
+  chart: ChartComputed,
+
+  /** An array of chart options. */
+  options: v.record(v.string(), ChartOptionValue),
 })
 
 export interface Collection extends v.InferOutput<typeof Collection> {}

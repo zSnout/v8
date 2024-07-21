@@ -1,11 +1,12 @@
+import { timestampDist } from "@/pages/quiz/shared"
 import { isDark } from "@/stores/theme"
 import { For, Show } from "solid-js"
 import type { Colors, Data } from "../lib/charts"
 import type {
   ChartBar,
+  ChartCard,
   ChartLabelFormat,
   ChartStyle,
-  ChartCard,
 } from "../lib/types"
 
 function display(value: string | number, format: ChartLabelFormat) {
@@ -22,8 +23,47 @@ function display(value: string | number, format: ChartLabelFormat) {
     }
   }
 
-  // TODO:
-  return value
+  if (format == "date" || format == "time") {
+    const locale = new Intl.DateTimeFormat(
+      undefined,
+      format == "date" ?
+        {
+          day: "2-digit",
+          month: "numeric",
+        }
+      : { hour: "2-digit", minute: "2-digit" },
+    )
+    const d = new Date(
+      typeof value == "string" ?
+        new Date(value).getTime() + new Date().getTimezoneOffset() * 60 * 1000
+      : value,
+    )
+    if (Number.isNaN(d.getTime())) {
+      return "???"
+    } else {
+      return locale.format(d)
+    }
+  }
+
+  if (format == "dt-offset") {
+    const d = new Date(
+      typeof value == "string" ?
+        new Date(value).getTime() + new Date().getTimezoneOffset() * 60 * 1000
+      : value,
+    )
+    if (Number.isNaN(d.getTime())) {
+      return "???"
+    } else {
+      const delta = (d.getTime() - Date.now()) / 1000
+      if (delta > 0) {
+        return timestampDist(delta)
+      } else {
+        return "-" + timestampDist(-delta)
+      }
+    }
+  }
+
+  throw new Error("Unsupported display format.")
 }
 
 export function DrawChartBar(
