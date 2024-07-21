@@ -136,6 +136,7 @@ export function IntegratedCodeField(
     alone?: boolean
     lang?: language.LanguageSupport
     exts?: state.Extension
+    noBorderTop?: boolean
   },
 ) {
   return untrack(() => {
@@ -145,7 +146,8 @@ export function IntegratedCodeField(
 
     return (
       <div
-        class="flex flex-1 border-t border-z *:flex-1 focus-within:*:outline-none"
+        class="flex flex-1 border-z *:flex-1 focus-within:*:outline-none"
+        classList={{ "border-t": !moreProps?.noBorderTop }}
         ref={(el) => {
           editor = new EditorView({
             doc: props.value,

@@ -562,6 +562,92 @@ export const Core = v.object({
   tags: v.string(),
 })
 
+export interface ChartBase extends v.InferOutput<typeof ChartBase> {}
+export const ChartBase = v.object({
+  /** How many decimal places to show. */
+  decimalPlaces: v.number(),
+
+  /** Show labels in each bar. */
+  inlineLabels: v.boolean(),
+
+  /** Group entries into chunks of this value. */
+  chunkSize: v.nullish(v.number()),
+
+  /** @deprecated Every nth entry gets a label. */
+  labelsEach: v.number(),
+
+  /** @deprecated Show values above each bar. */
+  persistentValues: v.boolean(),
+
+  /** @deprecated Show a cummulative total in the background. */
+  showTotal: v.boolean(),
+
+  /** @deprecated Stack bars when multiple values are present. */
+  stacked: v.boolean(),
+
+  /** @deprecated Whether to use zero as the baseline value. */
+  zeroBaseline: v.boolean(),
+})
+
+export interface ChartBar extends v.InferOutput<typeof ChartBar> {}
+export const ChartBar = v.object({
+  ...ChartBase.entries,
+
+  /** A marker for this chart type. */
+  type: v.literal("bar"),
+
+  /** Whether to space the bars (if false, acts like a histogram.) */
+  space: v.boolean(),
+
+  /** Whether to round the bars. */
+  rounded: v.boolean(),
+})
+
+export type Chart = v.InferOutput<typeof Chart>
+export const Chart = v.union([ChartBar])
+
+export interface ChartStyle extends v.InferOutput<typeof ChartStyle> {}
+export const ChartStyle = v.object({
+  /** Whether the chart is padded. */
+  padded: v.boolean(),
+
+  /** Whether the chart has a border. */
+  bordered: v.boolean(),
+
+  /** Whether the chart is in a different background from the main page. */
+  layered: v.boolean(),
+
+  /** Whether the stat card itself is rounded. */
+  roundCard: v.boolean(),
+
+  /** The chart's width (number of grid cells it takes up). */
+  width: v.number(),
+
+  /** The chart's height (number of grid cells it takes up). */
+  height: v.number(),
+})
+
+export interface StatCard extends v.InferOutput<typeof StatCard> {}
+export const StatCard = v.object({
+  /** The id of the stat card. */
+  id: Id,
+
+  /** The last edited timestamp of the stat card. */
+  last_edited: v.number(),
+
+  /** The title of the stat card. */
+  title: v.string(),
+
+  /** The query run to get the information. */
+  query: v.string(),
+
+  /** A definition of the chart itself. */
+  chart: Chart,
+
+  /** A definition of the chart's styles. */
+  style: ChartStyle,
+})
+
 export interface Collection extends v.InferOutput<typeof Collection> {}
 export const Collection = v.object({
   version: v.picklist([3, 6]),
@@ -574,6 +660,7 @@ export const Collection = v.object({
   decks: v.array(Deck),
   confs: v.array(Conf),
   prefs: Prefs,
+  stats: v.nullish(v.array(StatCard), []),
 })
 
 export interface RepeatItem {

@@ -17,7 +17,7 @@ import { ShortcutManager } from "../lib/shortcuts"
 
 const MODIFYING_QUERY =
   /insert|update|delete|alter|drop|truncate|create|merge/gi
-const TRANSACTIONAL_QUERY = /begin\s+transaction|commit|rollback/gi
+const TRANSACTIONAL_QUERY = /begin|transaction|commit|rollback/gi
 
 const format = new Intl.ListFormat("en", {
   style: "long",
@@ -67,24 +67,7 @@ export function Query(worker: Worker, pop: () => void): LayerOutput {
   function FieldInner() {
     return IntegratedCodeField(
       { value: untrack(query), onInput: setQuery },
-      {
-        alone: true,
-        lang: sql({
-          dialect: SQLite,
-          upperCaseKeywords: true,
-          schema: {
-            core: [
-              "id",
-              "version",
-              "creation",
-              "last_edited",
-              "last_schema_edit",
-              "last_sync",
-              "tags",
-            ],
-          },
-        }),
-      },
+      { alone: true, lang: sql({ dialect: SQLite, upperCaseKeywords: true }) },
     )
   }
 

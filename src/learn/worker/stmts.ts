@@ -10,6 +10,7 @@ import {
   Note,
   Prefs,
   Review,
+  type StatCard,
 } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { parse } from "valibot"
@@ -367,6 +368,56 @@ export const stmts = {
         +prefs.show_flags_in_sidebar satisfies BOOLEAN,
         +prefs.show_marks_in_sidebar satisfies BOOLEAN,
         JSON.stringify(prefs.browser) satisfies TEXT,
+      ] satisfies SqlValue[]
+    },
+  },
+  stats: {
+    insert: "INSERT INTO stats VALUES (?, ?, ?, ?, ?, ?)",
+    update:
+      "UPDATE stats SET last_edited = ?, title = ?, query = ?, chart = ?, style = ? WHERE id = ?",
+    /**
+     * Expects data from SELECT *.
+     *
+     * Not compatiable with makeArgs.
+     */
+    interpret(data: SqlValue[]): StatCard {
+      return {
+        id: data[0],
+        last_edited: data[1],
+        title: data[2],
+        query: data[3],
+        chart: JSON.parse(data[4] as string),
+        style: JSON.parse(data[5] as string),
+      } as StatCard
+    },
+    /**
+     * Prepares arguments for INSERT.
+     *
+     * Not compatiable with interpret.
+     */
+    insertArgs(card: StatCard) {
+      return [
+        card.id,
+        card.last_edited,
+        card.title,
+        card.query,
+        JSON.stringify(card.chart),
+        JSON.stringify(card.style),
+      ] satisfies SqlValue[]
+    },
+    /**
+     * Prepares arguments for UPDATE.
+     *
+     * Not compatiable with interpret.
+     */
+    updateArgs(card: StatCard) {
+      return [
+        card.last_edited,
+        card.title,
+        card.query,
+        JSON.stringify(card.chart),
+        JSON.stringify(card.style),
+        card.id,
       ] satisfies SqlValue[]
     },
   },
