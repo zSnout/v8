@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import {
+  createMemo,
   createResource,
   createSignal,
   For,
@@ -346,7 +347,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
           </div>
         </div>
 
-        {StatDisplayed(card, data())}
+        {StatDisplayed(card, data(), () => card.chart.chunkSize)}
       </div>
     )
   }
@@ -354,6 +355,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
   function StatDisplayed(
     card: StatCard,
     data: Result<{ columns: string[]; values: SqlValue[][] }[]>,
+    chunkSize = () => card.chart.chunkSize,
   ) {
     return (
       <MatchResult fallback={(err) => <Error>{err()}</Error>} result={data}>
@@ -364,7 +366,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
           }
 
           try {
-            let data = row.values.map<Data[number]>(([label, ...values]) => {
+            const raw = row.values.map<Data[number]>(([label, ...values]) => {
               if (!(typeof label == "string" || typeof label == "number")) {
                 throw new TypeError(
                   "Chart labels must be strings or small numbers.",
@@ -378,11 +380,20 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
               }
             })
 
-            if (card.chart.chunkSize != null) {
-              data = groupData(data, card.chart.chunkSize)
+            const data = createMemo(() => {
+              const cs = chunkSize()
+              if (cs) {
+                return groupData(raw, cs)
+              } else {
+                return raw
+              }
+            })
+
+            function Inner() {
+              return DrawStatCard(card, data(), COLORS)
             }
 
-            return DrawStatCard(card, data, COLORS)
+            return <Inner />
           } catch (e) {
             return <Error>{error(e).reason}</Error>
           }
