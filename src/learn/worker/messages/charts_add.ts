@@ -16,9 +16,9 @@ export function charts_add(title: string, query: string) {
       query,
       chart: {
         mainAxis: {
-          min: 0,
-          max: null,
-          groupSize: 1,
+          min: "0",
+          max: "",
+          groupSize: "1",
           groupSizeIsPercentage: false,
           label: {
             format: "numeric",
@@ -31,8 +31,8 @@ export function charts_add(title: string, query: string) {
           },
         },
         crossAxis: {
-          min: 0,
-          max: null,
+          min: "0",
+          max: "",
           label: {
             format: "preserve",
             overflow: "ellipsis",

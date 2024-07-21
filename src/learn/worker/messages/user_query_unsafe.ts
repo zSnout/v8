@@ -1,4 +1,4 @@
-import type { SqlValue } from "@sqlite.org/sqlite-wasm"
+import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
 import { db } from "../db"
 
 function split(text: string) {
@@ -37,9 +37,12 @@ function split(text: string) {
   return output.filter((x) => x.trim())
 }
 
-export function user_query_unsafe(query: string): {
+export function user_query_unsafe(
+  query: string,
+  bindings?: BindingSpec,
+): {
   columns: string[]
   values: SqlValue[][]
 }[] {
-  return split(query).map((query) => db.runWithColumns(query))
+  return split(query).map((query) => db.runWithColumns(query, bindings))
 }

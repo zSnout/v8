@@ -16,9 +16,7 @@ import {
   faSpinner,
   faTrash,
 } from "@fortawesome/free-solid-svg-icons"
-import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import {
-  createMemo,
   createResource,
   createSignal,
   For,
@@ -27,7 +25,7 @@ import {
   untrack,
   type JSX,
 } from "solid-js"
-import { createStore } from "solid-js/store"
+import { createStore, unwrap } from "solid-js/store"
 import { parse } from "valibot"
 import type { Worker } from "../db/worker"
 import { Action } from "../el/BottomButtons"
@@ -35,16 +33,17 @@ import { DrawStatCard } from "../el/charts"
 import { IntegratedCodeField } from "../el/IntegratedField"
 import { useLayers, type LayerOutput } from "../el/Layers"
 import { InlineLoading } from "../el/Loading"
-import { groupData, type Colors, type Data } from "../lib/charts"
 import {
   ChartCard,
   ChartTitleAlign,
   ChartTitleBorder,
   ChartTitleLocation,
+  type ChartColors,
+  type ChartComputedInfo,
 } from "../lib/types"
 import { Query } from "./Query"
 
-const COLORS: Colors = [
+const COLORS: ChartColors = [
   ["hsl(173 58% 39%)", "hsl(220 70% 50%)"],
   ["hsl(12 76% 61%)", "hsl(160 60% 45%)"],
   ["hsl(197 37% 24%)", "hsl(30 80% 55%)"],
@@ -120,9 +119,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
   }
 
   function Stat(card: ChartCard) {
-    const data = worker
-      .post("user_query_safe", card.query)
-      .then((x) => ok(x), error)
+    const data = worker.post("chart_compute", card).then((x) => ok(x), error)
 
     return (
       <InlineLoading data={data}>
@@ -147,7 +144,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
 
   function StatEditing(props: {
     card: ChartCard
-    data: Result<{ columns: string[]; values: SqlValue[][] }[]>
+    data: Result<ChartComputedInfo | null>
   }) {
     const [card, rawSetCard] = createStore(props.card)
 
@@ -157,8 +154,19 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
     } as typeof rawSetCard
 
     const [data] = createResource(
-      () => card.query,
-      (q) => worker.post("user_query_safe", q).then((x) => ok(x), error),
+      () => (
+        card.query,
+        card.chart.mainAxis.min,
+        card.chart.mainAxis.max,
+        card.chart.mainAxis.groupSize,
+        card.chart.mainAxis.groupSizeIsPercentage,
+        card.chart.crossAxis.min,
+        card.chart.crossAxis.max,
+        card.options,
+        Math.random() // random value so solid doesn't cache us
+      ),
+      () =>
+        worker.post("chart_compute", unwrap(card)).then((x) => ok(x), error),
       { initialValue: props.data },
     )
 
@@ -424,8 +432,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
             <Field
               name="Label group size:"
               get={() => card.chart.mainAxis.groupSize}
-              set={int((x) => setCard("chart", "mainAxis", "groupSize", x), 1)}
-              numeric
+              set={(x) => setCard("chart", "mainAxis", "groupSize", x)}
             />
           </div>
         </>
@@ -481,45 +488,14 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
 
   function StatDisplayed(
     card: ChartCard,
-    data: Result<{ columns: string[]; values: SqlValue[][] }[]>,
+    data: Result<ChartComputedInfo | null>,
   ) {
     return (
-      <MatchResult fallback={(err) => <Error>{err()}</Error>} result={data}>
-        {(result) => {
-          const row = result().at(-1)
-          if (row == null) {
-            return <Error>The query returned no tables.</Error>
-          }
-
-          try {
-            const raw = row.values.map<Data[number]>(([label, ...values]) => {
-              if (!(typeof label == "string" || typeof label == "number")) {
-                throw new TypeError(
-                  "Chart labels must be strings or small numbers.",
-                )
-              }
-
-              if (values.every((x) => typeof x == "number")) {
-                return [label, values]
-              } else {
-                throw new TypeError("Chart values must be numbers.")
-              }
-            })
-
-            const data = createMemo(() =>
-              groupData(raw, { ...card.chart.mainAxis }),
-            )
-
-            function Inner() {
-              return DrawStatCard(card, data(), COLORS)
-            }
-
-            // <Show /> does it so we can too
-            return createMemo(Inner, undefined, undefined) as any as JSX.Element
-          } catch (e) {
-            return <Error>{error(e).reason}</Error>
-          }
-        }}
+      <MatchResult
+        fallback={(err) => <Error>{err()}</Error>}
+        result={data.ok ? ok({ v: data.value }) : data}
+      >
+        {(result) => <>{DrawStatCard(card, result().v, COLORS)}</>}
       </MatchResult>
     )
   }

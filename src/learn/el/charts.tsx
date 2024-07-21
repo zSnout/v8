@@ -1,13 +1,33 @@
 import { timestampDist } from "@/pages/quiz/shared"
 import { isDark } from "@/stores/theme"
 import { For, Show } from "solid-js"
-import type { Colors, Data } from "../lib/charts"
 import type {
-  ChartBar,
+  Chart,
   ChartCard,
+  ChartColors,
+  ChartComputedInfo,
   ChartLabelFormat,
   ChartStyle,
 } from "../lib/types"
+
+// export interface ChartBar extends ChartBase<"bar"> {
+//   /** Whether to space bars. */ space: boolean
+//   rounded: boolean
+// }
+
+// export interface ChartLine extends ChartBase<"line"> {
+//   /** @deprecated Fill type. */ fill: "none" | "solid" | "gradient"
+//   /** @deprecated Sharpness of the line. */ mode: "sharp" | "curve" | "step"
+//   /** @deprecated Whether to show dots. */ dots: true | false | "hole"
+// }
+
+// export interface ChartPie extends ChartBase<"pie"> {
+//   /** @deprecated What to show in the center. */
+//   center:
+//     | { title: number | string; subtitle: number | string | null }
+//     | "hole"
+//     | "filled"
+// }
 
 function display(value: string | number, format: ChartLabelFormat) {
   if (format == "preserve") {
@@ -67,18 +87,17 @@ function display(value: string | number, format: ChartLabelFormat) {
 }
 
 export function DrawChartBar(
-  chart: ChartBar,
+  chart: Chart,
   style: ChartStyle,
-  data: Data,
-  colors: Colors,
+  info: ChartComputedInfo | null,
+  colors: ChartColors,
 ) {
+  const {
+    data,
+    crossAxis: { min, max },
+  } = info ?? { data: [], crossAxis: { min: 0, max: 1 } }
+
   const color = (index: number) => colors[index % colors.length]?.[+isDark()]
-
-  const minV = () =>
-    chart.crossAxis.min ?? data.reduce((a, [, b]) => Math.min(a, ...b), 0)
-
-  const maxV = () =>
-    chart.crossAxis.max ?? data.reduce((a, [, b]) => Math.max(a, ...b), 0)
 
   return (
     <div
@@ -125,7 +144,7 @@ export function DrawChartBar(
                             (chart.space || next() == null || next()! < value),
                         }}
                         style={{
-                          height: `${(value! / (maxV() - minV())) * 100}%`,
+                          height: `${(value / (max - min)) * 100}%`,
                           background: color(index()),
                         }}
                       >
@@ -208,8 +227,8 @@ export function DrawChartBar(
 
 export function DrawStatCard(
   card: Omit<ChartCard, "query">,
-  data: Data,
-  colors: Colors,
+  data: ChartComputedInfo | null,
+  colors: ChartColors,
 ) {
   const floating = () => card.style.titleLocation.startsWith("floating")
   const border = () => card.style.titleBorder == "normal"
