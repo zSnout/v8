@@ -718,7 +718,7 @@ export const StatCard = v.object({
   style: ChartStyle,
 
   /** An array of chart options. */
-  options
+  // TODO:
 })
 
 export interface Collection extends v.InferOutput<typeof Collection> {}
