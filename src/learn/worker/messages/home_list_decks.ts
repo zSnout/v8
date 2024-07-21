@@ -1,11 +1,7 @@
 import { Tree } from "@/components/tree-structure"
 import { bucketOfArray } from "@/learn/db/bucket"
 import { startOfDaySync } from "@/learn/db/day"
-import type {
-  Buckets,
-  DeckHomeInfo,
-  DeckHomeTree,
-} from "@/learn/db/home/listDecks"
+import type { Buckets, DeckHomeInfo } from "@/learn/lib/types"
 import { bool, id, int, text } from "../checks"
 import { db } from "../db"
 
@@ -72,7 +68,7 @@ export function home_list_decks() {
       }
     }
 
-    const tree: DeckHomeTree = new Tree()
+    const tree = new Tree<DeckHomeInfo | undefined, DeckHomeInfo>()
 
     for (const name of Array.from(self.keys())
       .concat(Array.from(sub.keys()))

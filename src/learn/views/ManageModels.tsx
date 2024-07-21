@@ -1,12 +1,11 @@
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createResource } from "solid-js"
-import type { AddedModel, RemovedModel } from "../db/saveManagedModels"
 import type { Worker } from "../db/worker"
 import { createListEditor } from "../el/EditList"
 import { LoadingSmall } from "../el/LoadingSmall"
 import { Id, randomId } from "../lib/id"
 import { BUILTIN_IDS } from "../lib/models"
-import { Model } from "../lib/types"
+import type { AddedModel, Model, RemovedModel } from "../lib/types"
 
 export type Item =
   | { type: "keep"; id: Id; name: string; model: Model }

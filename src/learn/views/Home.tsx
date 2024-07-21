@@ -1,7 +1,7 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { ModalDescription, prompt } from "@/components/Modal"
-import { NodeProps, TreeOf } from "@/components/tree"
+import { NodeProps } from "@/components/tree"
 import {
   faChartBar,
   faPlus,
@@ -12,7 +12,6 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, getOwner, onMount } from "solid-js"
-import { Buckets, DeckHomeInfo } from "../db/home/listDecks"
 import "../db/worker"
 import { Worker } from "../db/worker"
 import { Action, BottomButtons } from "../el/BottomButtons"
@@ -20,6 +19,7 @@ import { ContextMenuTrigger } from "../el/ContextMenu"
 import { useLayers } from "../el/Layers"
 import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
+import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../lib/types"
 import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
@@ -193,7 +193,7 @@ export const Home = createLoadingBase(
       data,
       subtree,
       key,
-    }: NodeProps<DeckHomeInfo | undefined>) {
+    }: NodeProps<DeckHomeInfo | undefined, DeckHomeInfo>) {
       let buckets: Buckets = [0, 0, 0]
       if (data) {
         buckets = data.self
@@ -217,11 +217,7 @@ export const Home = createLoadingBase(
 
             layers.push(Study, { worker, root, all })
 
-            function collectDeckIds(
-              subtree:
-                | TreeOf<DeckHomeInfo | undefined, DeckHomeInfo | undefined>
-                | undefined,
-            ) {
+            function collectDeckIds(subtree: DeckHomeTree | undefined) {
               if (subtree == null) return
 
               for (const value of Object.values(subtree)) {

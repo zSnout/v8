@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
+import type { TreeOf } from "@/components/tree-structure"
 import { type Grade, Rating, State } from "ts-fsrs"
 import * as v from "valibot"
 import { Id, IdKey, randomId } from "./id"
@@ -830,3 +831,17 @@ export interface RepeatItem {
 }
 
 export type RepeatInfo = Record<Grade, RepeatItem>
+
+export type AddedModel = { id: Id; name: string; cloned: Model }
+
+export type RemovedModel = [Id, string]
+
+export type Buckets = [new: number, lrn: number, rev: number]
+
+export type DeckHomeInfo = {
+  deck?: { collapsed: boolean; name: string; id: Id }
+  self: Buckets
+  sub: Buckets
+}
+
+export type DeckHomeTree = TreeOf<DeckHomeInfo | undefined, DeckHomeInfo>

@@ -1,5 +1,5 @@
-import type { AddedModel, RemovedModel } from "@/learn/db/saveManagedModels"
 import { cloneModel } from "@/learn/lib/models"
+import type { AddedModel, RemovedModel } from "@/learn/lib/types"
 import { db } from "../db"
 import { stmts } from "../stmts"
 

@@ -1,10 +1,4 @@
-import {
-  IDBPDatabase,
-  IDBPObjectStore,
-  IDBPTransaction,
-  openDB,
-  StoreNames,
-} from "idb"
+import { IDBPDatabase, IDBPObjectStore, IDBPTransaction, StoreNames } from "idb"
 import { Id } from "../lib/id"
 import type {
   AnyCard,
@@ -21,7 +15,6 @@ import type { Cloneable } from "../message"
 import "./lastEditedHooks"
 import type { Reason } from "./reason"
 import { createUndoable, type UndoFunction } from "./undoHistoryHooks"
-import { upgrade, VERSION } from "./upgrade"
 
 /** Like the schema type in idb, but uses `Cloneable` to ensure type safety. */
 export interface RequiredSchema {
@@ -43,10 +36,6 @@ export interface Ty extends RequiredSchema {
   cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
   rev_log: { key: Id; value: Review; indexes: { cid: Id } }
   prefs: { key: Id; value: Prefs; indexes: {} }
-}
-
-export async function open(name: string, now: number): Promise<DB> {
-  return new DB(await openDB(name, VERSION, { upgrade: upgrade(now) }))
 }
 
 export class DB {
