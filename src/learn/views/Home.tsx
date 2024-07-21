@@ -16,11 +16,7 @@ import { Buckets, DeckHomeInfo } from "../db/home/listDecks"
 import "../db/worker"
 import { Worker } from "../db/worker"
 import { Action, BottomButtons } from "../el/BottomButtons"
-import {
-  ContextMenuItem,
-  ContextMenuLine,
-  ContextMenuTrigger,
-} from "../el/ContextMenu"
+import { ContextMenuTrigger } from "../el/ContextMenu"
 import { useLayers } from "../el/Layers"
 import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
@@ -66,18 +62,7 @@ export const Home = createLoadingBase(
 
     return (
       <div class="flex min-h-full flex-1 flex-col gap-4">
-        <ContextMenuTrigger>
-          <ContextMenuItem>hello</ContextMenuItem>
-          <ContextMenuItem>world</ContextMenuItem>
-          <ContextMenuItem>goodbye</ContextMenuItem>
-          <ContextMenuItem>other</ContextMenuItem>
-          <ContextMenuLine />
-          <ContextMenuItem>people</ContextMenuItem>
-          <ContextMenuItem>of</ContextMenuItem>
-          <ContextMenuItem>this</ContextMenuItem>
-          <ContextMenuItem>strange</ContextMenuItem>
-          <ContextMenuItem>dimension</ContextMenuItem>
-        </ContextMenuTrigger>
+        <ContextMenuTrigger />
         <SublinkHandler />
         <TopActions />
         <DeckList />

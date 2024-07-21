@@ -7,14 +7,16 @@ import {
   For,
   untrack,
   type Accessor,
+  type JSX,
   type Setter,
 } from "solid-js"
-import { createStore, type SetStoreFunction } from "solid-js/store"
+import { createStore, unwrap, type SetStoreFunction } from "solid-js/store"
 import { createPrefsWithWorker } from "../db/prefs/store"
-import type { Worker } from "../db/worker"
+import { Worker } from "../db/worker"
+import { ContextMenuItem } from "../el/ContextMenu"
 import { createLoading } from "../el/Loading"
 import { createExpr } from "../lib/expr"
-import type { Id } from "../lib/id"
+import { idOf, type Id } from "../lib/id"
 import { BrowserColumn } from "../lib/types"
 
 // TODO: add escape key to all pages
@@ -46,7 +48,7 @@ export const Browse = createLoading(
     }
     return [data, { prefs, setPrefs, sorted, reloadSorted }] as const
   },
-  (_, [, { prefs, setPrefs, sorted, reloadSorted }], pop, state) => {
+  (worker, [, { prefs, setPrefs, sorted, reloadSorted }], pop, state) => {
     const selected = state.selected!
     const setSelected = state.setSelected!
     const selectFrom = state.selectFrom!
@@ -90,6 +92,27 @@ export const Browse = createLoading(
       onForcePop: () => true,
     }
 
+    function getSelected() {
+      const output = structuredClone(unwrap(selected))
+
+      let siLow = selectFromIndex()
+      let siHigh = selectToIndex()
+      if (siLow > siHigh) {
+        ;[siLow, siHigh] = [siHigh, siLow]
+      }
+      const value = !selectInvert()
+      if (isFinite(siLow) && isFinite(siHigh)) {
+        const allIds = ids()
+        for (let index = siLow; index <= siHigh; index++) {
+          output[allIds[index]!] = value
+        }
+      }
+
+      return Object.entries(output)
+        .filter((x) => x[1])
+        .map((x) => idOf(x[0]))
+    }
+
     function savePreviousSelection() {
       batch(() => {
         let siLow = selectFromIndex()
@@ -97,6 +120,7 @@ export const Browse = createLoading(
         if (siLow > siHigh) {
           ;[siLow, siHigh] = [siHigh, siLow]
         }
+        setSelectFrom()
         setSelectTo()
         const value = !selectInvert()
         setSelectInvert(false)
@@ -149,10 +173,28 @@ export const Browse = createLoading(
       )
     }
 
+    function GridContextMenu(): JSX.Element {
+      return (
+        <>
+          <ContextMenuItem
+            onClick={() => {
+              const cids = getSelected()
+              worker.post("browse_due_date_set", cids, Date.now())
+            }}
+          >
+            Make due now
+          </ContextMenuItem>
+        </>
+      )
+    }
+
     function Grid() {
       return (
         <div class="flex-1 overflow-auto pb-8 text-sm">
-          <table class="min-w-full border-b border-z">
+          <table
+            class="min-w-full border-b border-z"
+            onCtx={({ detail }) => detail(GridContextMenu)}
+          >
             <thead>
               <tr>
                 <For each={prefs.browser.active_cols}>
@@ -160,6 +202,7 @@ export const Browse = createLoading(
                     <th
                       class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0"
                       onClick={() => {
+                        savePreviousSelection()
                         untrack(sorted).sort((ad, bd) => {
                           const a = ad.columns[x]
                           const b = bd.columns[x]
@@ -239,6 +282,9 @@ export const Browse = createLoading(
                           return
                         }
                         if (event.shiftKey) {
+                          if (selectFrom() == null) {
+                            setSelectFrom(id)
+                          }
                           setSelectInvert(false)
                         } else {
                           if (event.ctrlKey || event.metaKey) {
