@@ -1,7 +1,6 @@
 import { Fa } from "@/components/Fa"
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
-import { prompt } from "@/components/Modal"
 import { Unmain } from "@/components/Prose"
 import { error, ok, type Result } from "@/components/result"
 import { sql, SQLite } from "@codemirror/lang-sql"
@@ -18,7 +17,6 @@ import {
   createResource,
   createSignal,
   For,
-  getOwner,
   Show,
   untrack,
   type JSX,
@@ -45,8 +43,7 @@ const COLORS: Colors = [
 export function Stats(worker: Worker, pop: () => void): LayerOutput {
   const layers = useLayers()
   const [stats, setStats] = createSignal(fetch())
-  const [editing, setEditing] = createSignal(true)
-  const owner = getOwner()
+  const [editing, setEditing] = createSignal(false)
   let current: StatCard[] | undefined
 
   return {
@@ -87,7 +84,14 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
           center
           icon={faPenToSquare}
           label="Rearrange"
-          onClick={() => setEditing((x) => !x)}
+          onClick={() => {
+            if (editing()) {
+              setEditing(false)
+              setStats(fetch())
+            } else {
+              setEditing(true)
+            }
+          }}
         />
       </div>
     )
@@ -95,7 +99,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
 
   function Error(props: { children: JSX.Element }) {
     return (
-      <pre class="flex min-h-full w-full flex-1 flex-col items-center justify-center whitespace-pre-wrap rounded-lg bg-red-100 px-2 py-1 text-sm text-red-800 transition dark:bg-red-900 dark:text-red-200">
+      <pre class="flex min-h-full w-full flex-1 flex-col items-center justify-center whitespace-pre-wrap rounded-xl bg-red-100 px-2 py-1 text-sm text-red-800 transition dark:bg-red-900 dark:text-red-200">
         {props.children}
       </pre>
     )

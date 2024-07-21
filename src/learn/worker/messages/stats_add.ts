@@ -29,6 +29,8 @@ export function stats_add(title: string, query: string) {
       padded: true,
       roundCard: true,
       width: 1,
+      titleLocation: "floating",
+      titleBorder: "normal",
     },
   }
 

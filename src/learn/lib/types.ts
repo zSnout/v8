@@ -606,6 +606,18 @@ export const ChartBar = v.object({
 export type Chart = v.InferOutput<typeof Chart>
 export const Chart = v.union([ChartBar])
 
+export type ChartTitleLocation = v.InferOutput<typeof ChartTitleLocation>
+export const ChartTitleLocation = v.picklist([
+  "hidden",
+  "floating",
+  "floating-anchored",
+  "inline",
+  "inline-big",
+])
+
+export type ChartTitleBorder = v.InferOutput<typeof ChartTitleBorder>
+export const ChartTitleBorder = v.picklist(["normal", "none"])
+
 export interface ChartStyle extends v.InferOutput<typeof ChartStyle> {}
 export const ChartStyle = v.object({
   /** Whether the chart is padded. */
@@ -625,6 +637,12 @@ export const ChartStyle = v.object({
 
   /** The chart's height (number of grid cells it takes up). */
   height: v.number(),
+
+  /** The location of the title. */
+  titleLocation: ChartTitleLocation,
+
+  /** Whether the title has a border or not. */
+  titleBorder: ChartTitleBorder,
 })
 
 export interface StatCard extends v.InferOutput<typeof StatCard> {}

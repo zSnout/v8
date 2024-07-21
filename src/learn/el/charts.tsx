@@ -154,7 +154,7 @@ export function DrawStatCard(
 ) {
   return (
     <div
-      class="overflow-hidden border-z transition"
+      class="relative transform overflow-hidden border-z transition"
       classList={{
         "bg-z-body-selected": card.style.layered,
         "p-2": card.style.padded,
@@ -163,6 +163,12 @@ export function DrawStatCard(
         border: card.style.bordered,
       }}
     >
+      <div
+        class="fixed left-1/2 top-1 z-10 max-w-full -translate-x-1/2 whitespace-nowrap rounded-md border border-z bg-z-body-selected px-2 text-center"
+        classList={{ "rounded-t-md": !card.style.padded }}
+      >
+        {card.title}
+      </div>
       {DrawChartBar(card.chart, card.style, data, colors)}
     </div>
   )
