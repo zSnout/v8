@@ -651,6 +651,52 @@ export const ChartStyle = v.object({
   titleAlign: ChartTitleAlign,
 })
 
+export interface ChartOptionCheckbox
+  extends v.InferOutput<typeof ChartOptionCheckbox> {}
+export const ChartOptionCheckbox = v.object({
+  /** The type of this chart option. */
+  type: v.literal("checkbox"),
+
+  /** The current value of this chart option. */
+  value: v.boolean(),
+
+  /** A label for this chart option. */
+  label: v.string(),
+
+  /** The name of the variable to interpolate. */
+  name: v.string(),
+})
+
+export type OptionValue = v.InferOutput<typeof OptionValue>
+export const OptionValue = v.union([
+  v.string(),
+  v.number(),
+  v.boolean(),
+  v.null(),
+])
+
+export interface ChartOptionSelect
+  extends v.InferOutput<typeof ChartOptionSelect> {}
+export const ChartOptionSelect = v.object({
+  /** The type of this chart option. */
+  type: v.picklist(["select", "dropdown"]),
+
+  /** The current value of this chart option. */
+  value: OptionValue,
+
+  /** A label for this chart option. */
+  label: v.string(),
+
+  /** The name of the variable to interpolate. */
+  name: v.string(),
+
+  /** Possible values for this option and their labels. */
+  values: v.array(v.tuple([v.string(), OptionValue])),
+})
+
+export type ChartOption = v.InferOutput<typeof ChartOption>
+export const ChartOption = v.union([ChartOptionCheckbox, ChartOptionSelect])
+
 export interface StatCard extends v.InferOutput<typeof StatCard> {}
 export const StatCard = v.object({
   /** The id of the stat card. */
@@ -670,6 +716,9 @@ export const StatCard = v.object({
 
   /** A definition of the chart's styles. */
   style: ChartStyle,
+
+  /** An array of chart options. */
+  options
 })
 
 export interface Collection extends v.InferOutput<typeof Collection> {}
