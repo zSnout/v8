@@ -1,4 +1,3 @@
-import { initBackend } from "absurd-sql/dist/indexeddb-main-thread"
 import { randomId } from "../lib/id"
 import type { Handlers, ToScript, ToWorker } from "../worker"
 import ActualWorker from "../worker?worker&url"
@@ -54,7 +53,6 @@ export class Worker {
         reject(event.error)
       })
     })
-    initBackend(this.worker)
   }
 
   private postNow<K extends keyof Handlers>(

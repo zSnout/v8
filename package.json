@@ -38,7 +38,6 @@
     "@types/nearley": "^2.11.5",
     "@zsnout/ithkuil": "^0.1.98",
     "@zsnout/tailwind": "^0.1.11",
-    "absurd-sql": "^0.0.54",
     "astro": "^2.5.5",
     "codemirror": "^6.0.1",
     "color-diff": "^1.4.0",
