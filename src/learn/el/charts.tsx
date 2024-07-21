@@ -134,7 +134,7 @@ export function DrawChartBar(
               }}
             >
               &nbsp;
-              <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+              <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
                 {typeof label == "string" ?
                   label
                 : display(label, chart.decimalPlaces)}
