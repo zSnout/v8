@@ -12,8 +12,7 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, getOwner, onMount } from "solid-js"
-import "../db/worker"
-import { Worker } from "../db/worker"
+import { Worker } from "../db"
 import { Action, BottomButtons } from "../el/BottomButtons"
 import { ContextMenuTrigger } from "../el/ContextMenu"
 import { useLayers } from "../el/Layers"

@@ -845,3 +845,5 @@ export type DeckHomeInfo = {
 }
 
 export type DeckHomeTree = TreeOf<DeckHomeInfo | undefined, DeckHomeInfo>
+
+export type CardBucket = 0 | 1 | 2 | null

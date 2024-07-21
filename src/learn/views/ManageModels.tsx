@@ -1,6 +1,6 @@
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createResource } from "solid-js"
-import type { Worker } from "../db/worker"
+import type { Worker } from "../db"
 import { createListEditor } from "../el/EditList"
 import { LoadingSmall } from "../el/LoadingSmall"
 import { Id, randomId } from "../lib/id"

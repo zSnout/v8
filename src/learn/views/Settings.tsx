@@ -6,8 +6,8 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { getOwner } from "solid-js"
-import { createPrefsWithWorker } from "../db/prefs/store"
-import type { Worker } from "../db/worker"
+import { createPrefsStore } from "../db/prefs"
+import type { Worker } from "../db"
 import { Action } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { createLoading } from "../el/Loading"
@@ -15,7 +15,7 @@ import { UploadButton } from "../el/upload"
 
 export const Settings = createLoading(
   async (worker: Worker) => {
-    const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
+    const [prefs, setPrefs, ready] = createPrefsStore(worker)
     await ready
     return [prefs, setPrefs] as const
   },

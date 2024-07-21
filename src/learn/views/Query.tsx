@@ -9,7 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { createSignal, For, getOwner, Show, untrack } from "solid-js"
-import type { Worker } from "../db/worker"
+import type { Worker } from "../db"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { IntegratedCodeField } from "../el/IntegratedField"
 import type { LayerOutput } from "../el/Layers"

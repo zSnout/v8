@@ -27,7 +27,7 @@ import {
 } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"
 import { parse } from "valibot"
-import type { Worker } from "../db/worker"
+import type { Worker } from "../db"
 import { Action } from "../el/BottomButtons"
 import { DrawStatCard } from "../el/charts"
 import { ContextMenuItem } from "../el/ContextMenu"

@@ -62,11 +62,9 @@ import {
   Show,
 } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
-import { createPrefsWithWorker } from "../db/prefs/store"
+import { createPrefsStore } from "../db/prefs"
 import { Reason } from "../db/reason"
-import { putCard, putNote } from "../db/study/merge"
-import { checkBucket, saveForget } from "../db/study/select"
-import type { Worker } from "../db/worker"
+import type { Worker } from "../db"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
@@ -81,7 +79,7 @@ import { AnyCard, Note } from "../lib/types"
 
 export const Study = createLoading(
   async ({ worker }: { worker: Worker; root: Id | null; all: Id[] }, _) => {
-    const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
+    const [prefs, setPrefs, ready] = createPrefsStore(worker)
     await ready
     return { prefs, setPrefs }
   },

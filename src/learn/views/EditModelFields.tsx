@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import type { Worker } from "../db/worker"
+import type { Worker } from "../db"
 import { AutocompleteFontFamily } from "../el/AutocompleteFonts"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { createListEditor } from "../el/EditList"

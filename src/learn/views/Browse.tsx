@@ -11,8 +11,8 @@ import {
   type Setter,
 } from "solid-js"
 import { createStore, unwrap, type SetStoreFunction } from "solid-js/store"
-import { createPrefsWithWorker } from "../db/prefs/store"
-import { Worker } from "../db/worker"
+import { createPrefsStore } from "../db/prefs"
+import { Worker } from "../db"
 import { ContextMenuItem } from "../el/ContextMenu"
 import { createLoading } from "../el/Loading"
 import { createExpr } from "../lib/expr"
@@ -37,7 +37,7 @@ export const Browse = createLoading(
     },
   ) => {
     const data = await worker.post("browse_load")
-    const [prefs, setPrefs, ready] = createPrefsWithWorker(worker)
+    const [prefs, setPrefs, ready] = createPrefsStore(worker)
     await ready
     const [sorted, reloadSorted] = createExpr(() => data.cards)
     if (!state.selected) {

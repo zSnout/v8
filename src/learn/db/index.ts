@@ -1,167 +1,84 @@
-import { IDBPDatabase, IDBPObjectStore, IDBPTransaction, StoreNames } from "idb"
-import { Id } from "../lib/id"
-import type {
-  AnyCard,
-  Conf,
-  Core,
-  Deck,
-  Grave,
-  Model,
-  Note,
-  Prefs,
-  Review,
-} from "../lib/types"
-import type { Cloneable } from "../message"
-import "./lastEditedHooks"
-import type { Reason } from "./reason"
-import { createUndoable, type UndoFunction } from "./undoHistoryHooks"
+import { randomId } from "../lib/id"
+import type { Handlers, ToScript, ToWorker } from "../worker"
+import ActualWorker from "../worker?worker&url"
 
-/** Like the schema type in idb, but uses `Cloneable` to ensure type safety. */
-export interface RequiredSchema {
-  [s: string]: {
-    key: IDBValidKey
-    value: Cloneable
-    indexes?: { [s: string]: IDBValidKey }
-  }
-}
+export class Worker {
+  private readonly worker
+  private readonly handlers = new Map<
+    number,
+    [(data: any) => void, (reason: any) => void]
+  >()
+  readonly ready
+  private isReady = false
 
-/** The types for the learn database. */
-export interface Ty extends RequiredSchema {
-  core: { key: Id; value: Core; indexes: {} }
-  graves: { key: Id; value: Grave; indexes: {} }
-  confs: { key: Id; value: Conf; indexes: {} }
-  decks: { key: Id; value: Deck; indexes: { cfid: Id; name: string } }
-  models: { key: Id; value: Model; indexes: {} }
-  notes: { key: Id; value: Note; indexes: { mid: Id } }
-  cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
-  rev_log: { key: Id; value: Review; indexes: { cid: Id } }
-  prefs: { key: Id; value: Prefs; indexes: {} }
-}
-
-export class DB {
-  private last?: {
-    reason: Reason
-    undo: UndoFunction
-    redo: boolean
-  }
-
-  constructor(private db: IDBPDatabase<Ty>) {}
-
-  undo() {
-    const { last } = this
-    if (!last) return
-    const redo = last.undo()
-    this.last = {
-      reason: last.reason,
-      redo: !last.redo,
-      undo: async () => {
-        const r = await redo
-        if (typeof r == "function") {
-          return r()
-        } else {
-          return false
+  constructor() {
+    this.worker = new globalThis.Worker(ActualWorker, { type: "module" })
+    this.ready = new Promise<this>((resolve, reject) => {
+      this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
+        if (data == "zdb:resolve") {
+          this.isReady = true
+          resolve(this)
+          return
         }
-      },
-    }
-    return { last, done: redo.then(() => {}) }
+
+        if (typeof data != "object" || data == null) {
+          return
+        }
+
+        if ("zdb:reject" in data) {
+          reject(data["zdb:reject"])
+          return
+        }
+
+        if (!("zTag" in data)) {
+          return
+        }
+
+        const res = data as unknown as ToScript
+        const handler = this.handlers.get(res.id)
+        if (!handler) {
+          return
+        }
+        this.handlers.delete(res.id)
+
+        if (res.ok) {
+          handler[0](res.value)
+        } else {
+          handler[1](res.value)
+        }
+      })
+
+      this.worker.addEventListener("error", (event) => {
+        console.error("The database failed to load.")
+        reject(event.error)
+      })
+    })
   }
 
-  read<Name extends StoreNames<Ty>>(
-    storeNames: Name,
-    options?: IDBTransactionOptions,
-  ): IDBPTransaction<Ty, [Name], "readonly">
-
-  read<Names extends ArrayLike<StoreNames<Ty>>>(
-    storeNames: Names,
-    options?: IDBTransactionOptions,
-  ): IDBPTransaction<Ty, Names, "readonly">
-
-  read<Names extends StoreNames<Ty> | ArrayLike<StoreNames<Ty>>>(
-    storeNames: Names,
-    options?: IDBTransactionOptions,
-  ): any {
-    return this.db.transaction(storeNames as any, "readonly", options)
+  private postNow<K extends keyof Handlers>(
+    type: K,
+    ...data: Parameters<Handlers[K]>
+  ): Promise<ReturnType<Handlers[K]>> {
+    return new Promise<ReturnType<Handlers[K]>>((resolve, reject) => {
+      const id = randomId()
+      const req: ToWorker = {
+        zTag: 0,
+        id,
+        type: type as any,
+        data: data as any,
+      }
+      this.handlers.set(id, [resolve, reject])
+      this.worker.postMessage(req)
+    })
   }
 
-  readwrite<Name extends StoreNames<Ty>>(
-    storeNames: Name,
-    reason: Reason,
-    options?: IDBTransactionOptions,
-  ): IDBPTransaction<Ty, [Name], "readwrite">
-
-  readwrite<Names extends ArrayLike<StoreNames<Ty>>>(
-    storeNames: Names,
-    reason: Reason,
-    options?: IDBTransactionOptions,
-  ): IDBPTransaction<Ty, Names, "readwrite">
-
-  readwrite(
-    storeNames: string | string[],
-    reason: Reason,
-    options?: IDBTransactionOptions,
-  ) {
-    const tx = this.db.transaction(storeNames as any, "readwrite", options)
-    const undo = createUndoable(tx)
-    this.last = {
-      reason,
-      redo: false,
-      undo,
+  async post<K extends keyof Handlers>(
+    type: K,
+    ...data: Parameters<Handlers[K]>
+  ): Promise<ReturnType<Handlers[K]>> {
+    if (!this.isReady) {
+      await this.ready
     }
-    return tx
+    return await this.postNow(type, ...data)
   }
 }
-
-// a lot of really stupid typescript stuff because typescript sucks
-
-export type TxWithExtends = Omit<
-  IDBTransaction,
-  "db" | "objectStore" | "objectStoreNames"
->
-
-export interface TxWith<
-  T extends StoreNames<Ty>,
-  Mode extends IDBTransactionMode = "readonly",
-> extends TxWithExtends {
-  /**
-   * The transaction's mode.
-   */
-  readonly mode: Mode
-  /**
-   * Promise for the completion of this transaction.
-   */
-  readonly done: Promise<void>
-  /**
-   * Returns an IDBObjectStore in the transaction's scope.
-   */
-  objectStore<StoreName extends T>(
-    name: StoreName,
-  ): ObjectStoreWith<Ty, T[], StoreName, Mode>
-}
-
-export type ObjectStoreExtends<
-  DBTypes extends RequiredSchema | unknown = unknown,
-  TxStores extends ArrayLike<StoreNames<DBTypes>> = ArrayLike<
-    StoreNames<DBTypes>
-  >,
-  StoreName extends StoreNames<DBTypes> = StoreNames<DBTypes>,
-  Mode extends IDBTransactionMode = "readonly",
-> = Omit<
-  IDBPObjectStore<DBTypes, TxStores, StoreName, Mode>,
-  // FIXME: type these properly
-  | "transaction"
-  | "indexNames"
-  | "index"
-  | typeof Symbol.asyncIterator
-  | "openCursor"
-  | "openKeyCursor"
-  | "iterate"
->
-
-export interface ObjectStoreWith<
-  DBTypes extends RequiredSchema | unknown = unknown,
-  TxStores extends ArrayLike<StoreNames<DBTypes>> = ArrayLike<
-    StoreNames<DBTypes>
-  >,
-  StoreName extends StoreNames<DBTypes> = StoreNames<DBTypes>,
-  Mode extends IDBTransactionMode = "readonly",
-> extends ObjectStoreExtends<DBTypes, TxStores, StoreName, Mode> {}
