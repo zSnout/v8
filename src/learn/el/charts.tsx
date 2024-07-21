@@ -152,20 +152,112 @@ export function DrawStatCard(
   data: Data,
   colors: Colors,
 ) {
+  const floating = () => card.style.titleLocation.startsWith("floating")
+  const border = () => card.style.titleBorder == "normal"
+  const padded = () => card.style.padded
   return (
     <div
       class="relative transform overflow-hidden border-z transition"
       classList={{
         "bg-z-body-selected": card.style.layered,
-        "p-2": card.style.padded,
+        "p-2": padded(),
         "pb-0": !card.chart.inlineLabels,
         "rounded-2xl": card.style.roundCard,
         border: card.style.bordered,
       }}
     >
       <div
-        class="fixed left-1/2 top-1 z-10 max-w-full -translate-x-1/2 whitespace-nowrap rounded-md border border-z bg-z-body-selected px-2 text-center"
-        classList={{ "rounded-t-md": !card.style.padded }}
+        class="fixed z-10 max-w-full whitespace-nowrap border-z"
+        classList={{
+          "bg-z-body": floating() && card.style.layered,
+          "bg-z-body-selected": floating() && !card.style.layered,
+          "px-2": floating(),
+
+          hidden: card.style.titleLocation == "hidden",
+          fixed: floating(),
+          border: border() && floating(),
+          "border-b": border(),
+          "pb-0.5": !floating(),
+          "mb-1": !border() && !floating(),
+          "mb-2": border() && !floating(),
+          "-mt-1": !floating(),
+          "rounded-t-md": card.style.titleLocation == "floating",
+          "rounded-b-md": floating(),
+          "top-1": !padded() && card.style.titleLocation == "floating",
+          "top-2": padded() && card.style.titleLocation == "floating",
+          "top-0": card.style.titleLocation == "floating-anchored",
+          "text-2xl": card.style.titleLocation == "inline-big",
+
+          "text-left": card.style.titleAlign == "left",
+          "text-center": card.style.titleAlign == "center",
+          "text-right": card.style.titleAlign == "right",
+          "left-2":
+            padded() &&
+            card.style.titleLocation == "floating" &&
+            card.style.titleAlign == "left",
+          "right-2":
+            padded() &&
+            card.style.titleLocation == "floating" &&
+            card.style.titleAlign == "right",
+          "left-1":
+            !padded() &&
+            card.style.titleLocation == "floating" &&
+            card.style.titleAlign == "left",
+          "right-1":
+            !padded() &&
+            card.style.titleLocation == "floating" &&
+            card.style.titleAlign == "right",
+          "left-0":
+            card.style.titleLocation == "floating-anchored" &&
+            card.style.titleAlign == "left",
+          "pl-2":
+            card.style.titleLocation == "floating-anchored" &&
+            card.style.titleAlign == "left",
+          "right-0":
+            card.style.titleLocation == "floating-anchored" &&
+            card.style.titleAlign == "right",
+          "pr-2":
+            card.style.titleLocation == "floating-anchored" &&
+            card.style.titleAlign == "right",
+          "left-1/2": floating() && card.style.titleAlign == "center",
+          "-translate-x-1/2": floating() && card.style.titleAlign == "center",
+          "rounded-tr-xl":
+            card.style.titleLocation == "floating" &&
+            !padded() &&
+            card.style.roundCard &&
+            card.style.titleAlign == "right",
+          "rounded-tl-xl":
+            card.style.titleLocation == "floating" &&
+            !padded() &&
+            card.style.roundCard &&
+            card.style.titleAlign == "left",
+          "rounded-tr-lg":
+            card.style.titleLocation == "floating" &&
+            padded() &&
+            card.style.roundCard &&
+            card.style.titleAlign == "right",
+          "rounded-tl-lg":
+            card.style.titleLocation == "floating" &&
+            padded() &&
+            card.style.roundCard &&
+            card.style.titleAlign == "left",
+          "rounded-tr-md":
+            card.style.titleLocation == "floating-anchored" &&
+            !padded() &&
+            card.style.titleAlign == "right",
+          "rounded-tl-md":
+            card.style.titleLocation == "floating-anchored" &&
+            !padded() &&
+            card.style.titleAlign == "left",
+          "rounded-br-none":
+            card.style.titleLocation == "floating-anchored" &&
+            !padded() &&
+            card.style.titleAlign == "right",
+          "rounded-bl-none":
+            card.style.titleLocation == "floating-anchored" &&
+            !padded() &&
+            card.style.titleAlign == "left",
+        }}
       >
         {card.title}
       </div>

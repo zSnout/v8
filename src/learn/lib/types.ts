@@ -618,6 +618,9 @@ export const ChartTitleLocation = v.picklist([
 export type ChartTitleBorder = v.InferOutput<typeof ChartTitleBorder>
 export const ChartTitleBorder = v.picklist(["normal", "none"])
 
+export type ChartTitleAlign = v.InferOutput<typeof ChartTitleAlign>
+export const ChartTitleAlign = v.picklist(["left", "center", "right"])
+
 export interface ChartStyle extends v.InferOutput<typeof ChartStyle> {}
 export const ChartStyle = v.object({
   /** Whether the chart is padded. */
@@ -643,6 +646,9 @@ export const ChartStyle = v.object({
 
   /** Whether the title has a border or not. */
   titleBorder: ChartTitleBorder,
+
+  /** The alignment of the title text. */
+  titleAlign: ChartTitleAlign,
 })
 
 export interface StatCard extends v.InferOutput<typeof StatCard> {}

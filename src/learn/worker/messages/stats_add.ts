@@ -7,7 +7,7 @@ export function stats_add(title: string, query: string) {
   const tx = db.tx()
   try {
     const max = db.selectValue("SELECT max(id) FROM stats")
-    const next = typeof max == 'number' ? max+1:0
+    const next = typeof max == "number" ? max + 1 : 0
 
     const stat: StatCard = {
       id: idOf(next),
@@ -35,6 +35,7 @@ export function stats_add(title: string, query: string) {
         width: 1,
         titleLocation: "floating",
         titleBorder: "normal",
+        titleAlign: "center",
       },
     }
 

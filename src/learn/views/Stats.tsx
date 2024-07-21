@@ -23,6 +23,7 @@ import {
   type JSX,
 } from "solid-js"
 import { createStore } from "solid-js/store"
+import { parse } from "valibot"
 import type { Worker } from "../db/worker"
 import { Action } from "../el/BottomButtons"
 import { DrawStatCard } from "../el/charts"
@@ -30,7 +31,12 @@ import { IntegratedCodeField } from "../el/IntegratedField"
 import { useLayers, type LayerOutput } from "../el/Layers"
 import { InlineLoading } from "../el/Loading"
 import { groupData, type Colors, type Data } from "../lib/charts"
-import type { StatCard } from "../lib/types"
+import {
+  ChartTitleAlign,
+  ChartTitleBorder,
+  ChartTitleLocation,
+  type StatCard,
+} from "../lib/types"
 import { Query } from "./Query"
 
 const COLORS: Colors = [
@@ -283,6 +289,73 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
                 value={card.title}
                 onInput={(x) => setCard("title", x.currentTarget.value)}
               />
+            </label>
+
+            <label class="flex w-full items-baseline gap-2">
+              <p class="flex-1 text-right text-sm text-z-subtitle">
+                Title position:
+              </p>
+
+              <select
+                class="z-field flex-[3] rounded border-transparent bg-z-body px-1 py-0.5 shadow-none"
+                value={card.style.titleLocation}
+                onInput={(x) => {
+                  setCard(
+                    "style",
+                    "titleLocation",
+                    parse(ChartTitleLocation, x.currentTarget.value),
+                  )
+                }}
+              >
+                <option value="hidden">Hidden</option>
+                <option value="floating">Floating</option>
+                <option value="floating-anchored">Floating at top</option>
+                <option value="inline">Above chart</option>
+                <option value="inline-big">Above chart, but big</option>
+              </select>
+            </label>
+
+            <label class="flex w-full items-baseline gap-2">
+              <p class="flex-1 text-right text-sm text-z-subtitle">
+                Title border:
+              </p>
+
+              <select
+                class="z-field flex-[3] rounded border-transparent bg-z-body px-1 py-0.5 shadow-none"
+                value={card.style.titleBorder}
+                onInput={(x) => {
+                  setCard(
+                    "style",
+                    "titleBorder",
+                    parse(ChartTitleBorder, x.currentTarget.value),
+                  )
+                }}
+              >
+                <option value="normal">Normal</option>
+                <option value="none">Hidden</option>
+              </select>
+            </label>
+
+            <label class="flex w-full items-baseline gap-2">
+              <p class="flex-1 text-right text-sm text-z-subtitle">
+                Title align:
+              </p>
+
+              <select
+                class="z-field flex-[3] rounded border-transparent bg-z-body px-1 py-0.5 shadow-none"
+                value={card.style.titleAlign}
+                onInput={(x) => {
+                  setCard(
+                    "style",
+                    "titleAlign",
+                    parse(ChartTitleAlign, x.currentTarget.value),
+                  )
+                }}
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
             </label>
 
             <label class="flex w-full items-baseline gap-2">
