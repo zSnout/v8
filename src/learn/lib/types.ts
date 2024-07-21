@@ -562,31 +562,90 @@ export const Core = v.object({
   tags: v.string(),
 })
 
+export type ChartLabelFormat = v.InferOutput<typeof ChartLabelFormat>
+export const ChartLabelFormat = v.picklist([
+  "preserve",
+  "numeric",
+  "date",
+  "time",
+])
+
+export type ChartLabelFrequency = v.InferOutput<typeof ChartLabelFrequency>
+export const ChartLabelFrequency = v.union([
+  // Will show a label every `each` labels.
+  v.object({ by: v.literal("count"), each: v.number() }),
+
+  // Will show a label every `each`rem.
+  v.object({ by: v.literal("rem"), each: v.number() }),
+
+  // Will show all labels.
+  v.object({ by: v.literal("all"), each: v.literal(1) }),
+])
+
+export type ChartLabelOverflow = v.InferOutput<typeof ChartLabelOverflow>
+export const ChartLabelOverflow = v.picklist(["overflow", "cutoff", "ellipsis"])
+
+export type ChartLabelDisplay = v.InferOutput<typeof ChartLabelDisplay>
+export const ChartLabelDisplay = v.picklist(["hidden", "separate", "inline"])
+
+export interface ChartLabel extends v.InferOutput<typeof ChartLabel> {}
+export const ChartLabel = v.object({
+  /** How to format the label. */
+  format: ChartLabelFormat,
+
+  /** How to handle overflowing labels. */
+  overflow: ChartLabelOverflow,
+
+  /** How often to show labels. */
+  frequency: ChartLabelFrequency,
+
+  /** How to display the labels. */
+  display: ChartLabelDisplay,
+})
+
+export interface ChartMainAxis extends v.InferOutput<typeof ChartMainAxis> {}
+export const ChartMainAxis = v.object({
+  /** The minimum value, or `null` to automatically determine. */
+  min: v.nullable(v.number()),
+
+  /** The maximum value, or `null` to automatically determine. */
+  max: v.nullable(v.number()),
+
+  /** The group size, or `null` to avoid grouping. */
+  groupSize: v.nullable(v.number()),
+
+  /** Whether the group size is a percentage. */
+  groupSizeIsPercentage: v.boolean(),
+
+  /** Settings for the main axis labels. */
+  label: ChartLabel,
+})
+
+export interface ChartCrossAxis extends v.InferOutput<typeof ChartCrossAxis> {}
+export const ChartCrossAxis = v.object({
+  /** The minimum value, or `null` to automatically determine. */
+  min: v.nullable(v.number()),
+
+  /** The maximum value, or `null` to automatically determine. */
+  max: v.nullable(v.number()),
+
+  /** Settings for the cross axis labels. */
+  label: ChartLabel,
+})
+
 export interface ChartBase extends v.InferOutput<typeof ChartBase> {}
 export const ChartBase = v.object({
-  /** How many decimal places to show. */
-  decimalPlaces: v.number(),
+  /** Settings related to the chart's main axis. */
+  mainAxis: ChartMainAxis,
 
-  /** Show labels in each bar. */
-  inlineLabels: v.boolean(),
-
-  /** Group entries into chunks of this value. */
-  chunkSize: v.nullish(v.number()),
-
-  /** @deprecated Every nth entry gets a label. */
-  labelsEach: v.number(),
-
-  /** @deprecated Show values above each bar. */
-  persistentValues: v.boolean(),
+  /** Settings related to the chart's cross axis. */
+  crossAxis: ChartCrossAxis,
 
   /** @deprecated Show a cummulative total in the background. */
   showTotal: v.boolean(),
 
   /** @deprecated Stack bars when multiple values are present. */
   stacked: v.boolean(),
-
-  /** @deprecated Whether to use zero as the baseline value. */
-  zeroBaseline: v.boolean(),
 })
 
 export interface ChartBar extends v.InferOutput<typeof ChartBar> {}
@@ -667,8 +726,8 @@ export const ChartOptionCheckbox = v.object({
   name: v.string(),
 })
 
-export type OptionValue = v.InferOutput<typeof OptionValue>
-export const OptionValue = v.union([
+export type ChartOptionValue = v.InferOutput<typeof ChartOptionValue>
+export const ChartOptionValue = v.union([
   v.string(),
   v.number(),
   v.boolean(),
@@ -682,7 +741,7 @@ export const ChartOptionSelect = v.object({
   type: v.picklist(["select", "dropdown"]),
 
   /** The current value of this chart option. */
-  value: OptionValue,
+  value: ChartOptionValue,
 
   /** A label for this chart option. */
   label: v.string(),
@@ -691,14 +750,14 @@ export const ChartOptionSelect = v.object({
   name: v.string(),
 
   /** Possible values for this option and their labels. */
-  values: v.array(v.tuple([v.string(), OptionValue])),
+  values: v.array(v.tuple([v.string(), ChartOptionValue])),
 })
 
 export type ChartOption = v.InferOutput<typeof ChartOption>
 export const ChartOption = v.union([ChartOptionCheckbox, ChartOptionSelect])
 
-export interface StatCard extends v.InferOutput<typeof StatCard> {}
-export const StatCard = v.object({
+export interface ChartCard extends v.InferOutput<typeof ChartCard> {}
+export const ChartCard = v.object({
   /** The id of the stat card. */
   id: Id,
 
@@ -718,7 +777,7 @@ export const StatCard = v.object({
   style: ChartStyle,
 
   /** An array of chart options. */
-  // TODO:
+  options: v.array(ChartOption),
 })
 
 export interface Collection extends v.InferOutput<typeof Collection> {}
@@ -733,7 +792,7 @@ export const Collection = v.object({
   decks: v.array(Deck),
   confs: v.array(Conf),
   prefs: Prefs,
-  stats: v.nullish(v.array(StatCard), []),
+  charts: v.nullish(v.array(ChartCard), []),
 })
 
 export interface RepeatItem {

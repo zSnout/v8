@@ -170,11 +170,12 @@ CREATE TABLE IF NOT EXISTS
   );
 
 CREATE TABLE IF NOT EXISTS
-  stats (
+  charts (
     id INTEGER PRIMARY KEY NOT NULL,
     last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
     title TEXT NOT NULL,
     query TEXT NOT NULL,
     chart TEXT NOT NULL,
-    style TEXT NOT NULL
+    style TEXT NOT NULL,
+    options TEXT NOT NULL
   );

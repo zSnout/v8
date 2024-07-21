@@ -4,6 +4,7 @@ import { MatchResult } from "@/components/MatchResult"
 import { confirm, ModalDescription } from "@/components/Modal"
 import { Unmain } from "@/components/Prose"
 import { error, ok, type Result } from "@/components/result"
+import { json as jsonLang } from "@codemirror/lang-json"
 import { sql, SQLite } from "@codemirror/lang-sql"
 import { EditorView } from "@codemirror/view"
 import { faFaceMehBlank } from "@fortawesome/free-regular-svg-icons"
@@ -36,10 +37,10 @@ import { useLayers, type LayerOutput } from "../el/Layers"
 import { InlineLoading } from "../el/Loading"
 import { groupData, type Colors, type Data } from "../lib/charts"
 import {
+  ChartCard,
   ChartTitleAlign,
   ChartTitleBorder,
   ChartTitleLocation,
-  type StatCard,
 } from "../lib/types"
 import { Query } from "./Query"
 
@@ -53,10 +54,11 @@ const COLORS: Colors = [
 
 export function Stats(worker: Worker, pop: () => void): LayerOutput {
   const layers = useLayers()
-  const [stats, setStats] = createSignal(fetch())
+  const [charts, setCharts] = createSignal(fetch())
   const [editing, setEditing] = createSignal(false)
+  const [json, setJson] = createSignal(true)
   const owner = getOwner()
-  let current: StatCard[] | undefined
+  let current: ChartCard[] | undefined
 
   return {
     el: (
@@ -66,11 +68,11 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
       </div>
     ),
     onForcePop: () => true,
-    onReturn: () => setStats(fetch()),
+    onReturn: () => setCharts(fetch()),
   }
 
   function fetch() {
-    return worker.post("stats_get")
+    return worker.post("charts_get")
   }
 
   function TopActions() {
@@ -99,7 +101,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
           onClick={() => {
             if (editing()) {
               setEditing(false)
-              setStats(fetch())
+              setCharts(fetch())
             } else {
               setEditing(true)
             }
@@ -117,7 +119,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
     )
   }
 
-  function Stat(card: StatCard) {
+  function Stat(card: ChartCard) {
     const data = worker
       .post("user_query_safe", card.query)
       .then((x) => ok(x), error)
@@ -144,7 +146,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
   }
 
   function StatEditing(props: {
-    card: StatCard
+    card: ChartCard
     data: Result<{ columns: string[]; values: SqlValue[][] }[]>
   }) {
     const [card, rawSetCard] = createStore(props.card)
@@ -163,6 +165,87 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
     return (
       <div class="flex flex-col gap-1">
         <div class="relative flex transform flex-col rounded-lg bg-z-body-selected pb-2">
+          <Show when={json()} fallback={<NormalEditView />}>
+            <JsonEditView />
+          </Show>
+        </div>
+
+        {StatDisplayed({ ...card }, data())}
+      </div>
+    )
+
+    function DeleteButton() {
+      return (
+        <button
+          class="fixed right-1 top-1 size-6 rounded bg-red-500 p-1"
+          onClick={async () => {
+            if (
+              !(await confirm({
+                owner,
+                title: "Are you sure?",
+                get description() {
+                  return (
+                    <>
+                      <ModalDescription>
+                        This will delete the statistic{" "}
+                        <strong class="text-z underline">{card.title}</strong>{" "}
+                        from your statistics page. You can always add it back
+                        later, but it might take a while to set up the correct
+                        configuration. For reference, its query is this:
+                      </ModalDescription>
+
+                      <pre class="mt-2 whitespace-pre-wrap rounded-md bg-z-body-selected px-2 py-1 text-sm text-z">
+                        {card.query}
+                      </pre>
+                    </>
+                  )
+                },
+                cancelText: "No, cancel",
+                okText: "Yes, delete",
+              }))
+            ) {
+              return
+            }
+            current?.splice(current.indexOf(props.card, 1))
+            save()
+            setCharts(fetch())
+          }}
+        >
+          <Fa class="size-4 icon-white" icon={faTrash} title="Delete Card" />
+        </button>
+      )
+    }
+
+    function JsonEditView() {
+      return (
+        <>
+          <div class="-mb-2 flex max-h-72 min-h-48 w-full overflow-auto pl-0 pr-8">
+            {IntegratedCodeField(
+              {
+                value: untrack(() => JSON.stringify(card, undefined, 2)),
+                onInput: (q) => {
+                  try {
+                    setCard(parse(ChartCard, JSON.parse(q)))
+                  } catch {}
+                },
+              },
+              {
+                alone: true,
+                noBorderTop: true,
+                lang: jsonLang(),
+                exts: [EditorView.lineWrapping],
+              },
+            )}
+          </div>
+
+          <DeleteButton />
+        </>
+      )
+    }
+
+    function NormalEditView() {
+      return (
+        <>
           <div class="flex min-h-20 w-full overflow-auto border-b border-z pl-0 pr-8">
             {IntegratedCodeField(
               {
@@ -178,43 +261,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
             )}
           </div>
 
-          <button
-            class="fixed right-1 top-1 size-6 rounded bg-red-500 p-1"
-            onClick={async () => {
-              if (
-                !(await confirm({
-                  owner,
-                  title: "Are you sure?",
-                  get description() {
-                    return (
-                      <>
-                        <ModalDescription>
-                          This will delete the statistic{" "}
-                          <strong class="text-z underline">{card.title}</strong>{" "}
-                          from your statistics page. You can always add it back
-                          later, but it might take a while to set up the correct
-                          configuration. For reference, its query is this:
-                        </ModalDescription>
-
-                        <pre class="mt-2 whitespace-pre-wrap rounded-md bg-z-body-selected px-2 py-1 text-sm text-z">
-                          {card.query}
-                        </pre>
-                      </>
-                    )
-                  },
-                  cancelText: "No, cancel",
-                  okText: "Yes, delete",
-                }))
-              ) {
-                return
-              }
-              current?.splice(current.indexOf(props.card, 1))
-              save()
-              setStats(fetch())
-            }}
-          >
-            <Fa class="size-4 icon-white" icon={faTrash} title="Delete Card" />
-          </button>
+          <DeleteButton />
 
           <div class="grid grid-cols-2 gap-2 px-2 pb-1 pt-1">
             <div class="flex flex-col gap-1">
@@ -229,29 +276,11 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
 
               <label class="flex w-full gap-2">
                 <Checkbox
-                  checked={card.chart.inlineLabels}
-                  onInput={(x) => setCard("chart", "inlineLabels", x)}
-                />
-
-                <p>Inline labels?</p>
-              </label>
-
-              <label class="flex w-full gap-2">
-                <Checkbox
                   checked={card.chart.space}
                   onInput={(x) => setCard("chart", "space", x)}
                 />
 
                 <p>Spaced bars?</p>
-              </label>
-
-              <label class="flex w-full gap-2">
-                <Checkbox
-                  checked={card.chart.persistentValues}
-                  onInput={(x) => setCard("chart", "persistentValues", x)}
-                />
-
-                <p>Persistent values?</p>
               </label>
 
               <label class="flex w-full gap-2">
@@ -270,15 +299,6 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
                 />
 
                 <p>Stack bars?</p>
-              </label>
-
-              <label class="flex w-full gap-2">
-                <Checkbox
-                  checked={card.chart.zeroBaseline}
-                  onInput={(x) => setCard("chart", "zeroBaseline", x)}
-                />
-
-                <p>Zero baseline?</p>
               </label>
             </div>
 
@@ -401,77 +421,67 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
               </select>
             </label>
 
-            <label class="flex w-full items-baseline gap-2">
-              <p class="flex-1 text-right text-sm text-z-subtitle">
-                Chunk size:
-              </p>
-
-              <input
-                class="z-field flex-[3] rounded border-transparent bg-z-body px-1 py-0 shadow-none"
-                type="number"
-                value={card.chart.chunkSize?.toString()}
-                onInput={(x) => {
-                  const v = +x.currentTarget.valueAsNumber
-                  if (Number.isFinite(v) && v > 0) {
-                    setCard("chart", "chunkSize", v)
-                  } else {
-                    setCard("chart", "chunkSize", null)
-                  }
-                }}
-              />
-            </label>
-
-            <label class="flex w-full items-baseline gap-2">
-              <p class="flex-1 text-right text-sm text-z-subtitle">
-                Digits shown:
-              </p>
-
-              <input
-                class="z-field flex-[3] rounded border-transparent bg-z-body px-1 py-0 shadow-none"
-                type="number"
-                value={card.chart.decimalPlaces?.toString()}
-                onInput={(x) => {
-                  const v = +x.currentTarget.valueAsNumber
-                  if (Number.isSafeInteger(v) && v > 0) {
-                    setCard("chart", "decimalPlaces", v)
-                  } else {
-                    setCard("chart", "decimalPlaces", 0)
-                  }
-                }}
-              />
-            </label>
-
-            <label class="flex w-full items-baseline gap-2">
-              <p class="flex-1 text-right text-sm text-z-subtitle">
-                Labels each:
-              </p>
-
-              <input
-                class="z-field flex-[3] rounded border-transparent bg-z-body px-1 py-0 shadow-none"
-                type="number"
-                value={card.chart.labelsEach?.toString()}
-                onInput={(x) => {
-                  const v = +x.currentTarget.valueAsNumber
-                  if (Number.isSafeInteger(v) && v > 1) {
-                    setCard("chart", "labelsEach", v)
-                  } else {
-                    setCard("chart", "labelsEach", 1)
-                  }
-                }}
-              />
-            </label>
+            <Field
+              name="Label group size:"
+              get={() => card.chart.mainAxis.groupSize}
+              set={int((x) => setCard("chart", "mainAxis", "groupSize", x), 1)}
+              numeric
+            />
           </div>
-        </div>
+        </>
+      )
+    }
 
-        {StatDisplayed(card, data(), () => card.chart.chunkSize)}
-      </div>
-    )
+    function float(
+      set: (x: number) => void,
+      minValue: number,
+      defaultValue = 0,
+    ) {
+      return (value: string) => {
+        const v = +value
+        if (Number.isFinite(v) && v >= minValue) {
+          set(v)
+        } else {
+          set(defaultValue)
+        }
+      }
+    }
+
+    function int(set: (x: number) => void, minValue: number, defaultValue = 0) {
+      return (value: string) => {
+        const v = +value
+        if (Number.isSafeInteger(v) && v >= minValue) {
+          set(v)
+        } else {
+          set(defaultValue)
+        }
+      }
+    }
+
+    function Field(props: {
+      name: string
+      get: () => string | number | null | undefined
+      set: (x: string) => void
+      numeric?: boolean
+    }) {
+      return (
+        <label class="flex w-full items-baseline gap-2">
+          <p class="flex-1 text-right text-sm text-z-subtitle">{props.name}</p>
+
+          <input
+            class="z-field flex-[3] rounded border-transparent bg-z-body px-1 py-0 shadow-none"
+            type={props.numeric ? "number" : "text"}
+            value={props.get()?.toString() ?? ""}
+            onInput={(x) => props.set(x.currentTarget.value)}
+          />
+        </label>
+      )
+    }
   }
 
   function StatDisplayed(
-    card: StatCard,
+    card: ChartCard,
     data: Result<{ columns: string[]; values: SqlValue[][] }[]>,
-    chunkSize = () => card.chart.chunkSize,
   ) {
     return (
       <MatchResult fallback={(err) => <Error>{err()}</Error>} result={data}>
@@ -496,14 +506,9 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
               }
             })
 
-            const data = createMemo(() => {
-              const cs = chunkSize()
-              if (cs) {
-                return groupData(raw, cs)
-              } else {
-                return raw
-              }
-            })
+            const data = createMemo(() =>
+              groupData(raw, { ...card.chart.mainAxis }),
+            )
 
             function Inner() {
               return DrawStatCard(card, data(), COLORS)
@@ -524,22 +529,22 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
       return
     }
 
-    worker.post("stats_set", current)
+    worker.post("charts_set", current)
   }
 
   async function create() {
     await worker.post(
-      "stats_add",
+      "charts_add",
       "# of cards by number of reviews",
       "SELECT reps, COUNT() from cards GROUP BY reps",
     )
-    setStats(fetch())
+    setCharts(fetch())
   }
 
   function Charts() {
     return (
       <InlineLoading
-        data={stats()}
+        data={charts()}
         fallback={
           <div class="flex w-full flex-1 flex-col items-center justify-center gap-8 rounded-lg bg-z-body-selected">
             <Fa
@@ -550,11 +555,11 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
           </div>
         }
       >
-        {(stats) => {
-          current = stats
+        {(charts) => {
+          current = charts
           return (
             <Show
-              when={stats.length > 0 || editing()}
+              when={charts.length > 0 || editing()}
               fallback={
                 <div class="flex w-full flex-1 flex-col items-center justify-center gap-4 rounded-lg">
                   <Fa class="size-12" icon={faFaceMehBlank} title={false} />
@@ -575,7 +580,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
               <Unmain>
                 <div class="flex px-6">
                   <div class="mx-auto grid w-full max-w-[80rem] grid-cols-[repeat(auto-fill,minmax(min(24rem,100%),1fr))] gap-4">
-                    <For each={stats}>{Stat}</For>
+                    <For each={charts}>{Stat}</For>
                     <Show when={editing()}>
                       <button
                         class="flex aspect-video flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-z"

@@ -10,7 +10,7 @@ import {
   Note,
   Prefs,
   Review,
-  type StatCard,
+  type ChartCard,
 } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { parse } from "valibot"
@@ -371,16 +371,16 @@ export const stmts = {
       ] satisfies SqlValue[]
     },
   },
-  stats: {
-    insert: "INSERT INTO stats VALUES (?, ?, ?, ?, ?, ?)",
+  charts: {
+    insert: "INSERT INTO charts VALUES (?, ?, ?, ?, ?, ?, ?)",
     update:
-      "UPDATE stats SET last_edited = ?, title = ?, query = ?, chart = ?, style = ? WHERE id = ?",
+      "UPDATE charts SET last_edited = ?, title = ?, query = ?, chart = ?, style = ?, options = ? WHERE id = ?",
     /**
      * Expects data from SELECT *.
      *
      * Not compatiable with makeArgs.
      */
-    interpret(data: SqlValue[]): StatCard {
+    interpret(data: SqlValue[]): ChartCard {
       return {
         id: data[0],
         last_edited: data[1],
@@ -388,14 +388,15 @@ export const stmts = {
         query: data[3],
         chart: JSON.parse(data[4] as string),
         style: JSON.parse(data[5] as string),
-      } as StatCard
+        options: JSON.parse(data[6] as string),
+      } as ChartCard
     },
     /**
      * Prepares arguments for INSERT.
      *
      * Not compatiable with interpret.
      */
-    insertArgs(card: StatCard) {
+    insertArgs(card: ChartCard) {
       return [
         card.id,
         card.last_edited,
@@ -403,6 +404,7 @@ export const stmts = {
         card.query,
         JSON.stringify(card.chart),
         JSON.stringify(card.style),
+        JSON.stringify(card.options),
       ] satisfies SqlValue[]
     },
     /**
@@ -410,13 +412,14 @@ export const stmts = {
      *
      * Not compatiable with interpret.
      */
-    updateArgs(card: StatCard) {
+    updateArgs(card: ChartCard) {
       return [
         card.last_edited,
         card.title,
         card.query,
         JSON.stringify(card.chart),
         JSON.stringify(card.style),
+        JSON.stringify(card.options),
         card.id,
       ] satisfies SqlValue[]
     },

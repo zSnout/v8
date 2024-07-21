@@ -1,12 +1,29 @@
 import { isDark } from "@/stores/theme"
 import { For, Show } from "solid-js"
 import type { Colors, Data } from "../lib/charts"
-import type { ChartBar, ChartStyle, StatCard } from "../lib/types"
+import type {
+  ChartBar,
+  ChartLabelFormat,
+  ChartStyle,
+  ChartCard,
+} from "../lib/types"
 
-// The v-axis is the value-axis, and the l-axis is the label-axis.
+function display(value: string | number, format: ChartLabelFormat) {
+  if (format == "preserve") {
+    return value
+  }
 
-function display(value: number, places: number) {
-  return places ? value.toPrecision(places) : value
+  if (format == "numeric") {
+    const str = (+value).toString()
+    if ((str.match(/\d/g)?.length ?? 0) > 3) {
+      return (+value).toPrecision(3)
+    } else {
+      return str
+    }
+  }
+
+  // TODO:
+  return value
 }
 
 export function DrawChartBar(
@@ -17,9 +34,11 @@ export function DrawChartBar(
 ) {
   const color = (index: number) => colors[index % colors.length]?.[+isDark()]
 
-  // TODO: these should be affected by baselineZero
-  const minV = () => data.reduce((a, [, b]) => Math.min(a, ...b), 0)
-  const maxV = () => data.reduce((a, [, b]) => Math.max(a, ...b), 0)
+  const minV = () =>
+    chart.crossAxis.min ?? data.reduce((a, [, b]) => Math.min(a, ...b), 0)
+
+  const maxV = () =>
+    chart.crossAxis.max ?? data.reduce((a, [, b]) => Math.max(a, ...b), 0)
 
   return (
     <div
@@ -123,21 +142,21 @@ export function DrawChartBar(
             </div>
 
             <div
-              class="relative bottom-0 w-full max-w-full transform overflow-hidden py-0.5 text-center text-sm"
+              class="bottom-0 w-full max-w-full transform overflow-hidden py-0.5 text-center text-sm"
               classList={{
-                "text-z-subtitle": !chart.inlineLabels,
-                "text-z-bg-body": chart.inlineLabels,
-                fixed: chart.inlineLabels,
-                "pb-1": chart.inlineLabels,
-                "[text-shadow:_0_1px_0_var(--tw-shadow-color)]":
-                  chart.inlineLabels,
+                hidden: chart.mainAxis.label.display == "hidden",
+                "text-z-subtitle": chart.mainAxis.label.display != "inline",
+                "text-z-bg-body": chart.mainAxis.label.display == "inline",
+                relative: chart.mainAxis.label.display != "inline",
+                fixed: chart.mainAxis.label.display == "inline",
+                "pb-1": chart.mainAxis.label.display == "inline",
+                // "[text-shadow:_0_1px_0_var(--tw-shadow-color)]":
+                //   chart.mainAxis.label.display == "inline",
               }}
             >
               &nbsp;
               <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
-                {typeof label == "string" ?
-                  label
-                : display(label, chart.decimalPlaces)}
+                {display(label, chart.mainAxis.label.format)}
               </div>
             </div>
           </div>
@@ -148,7 +167,7 @@ export function DrawChartBar(
 }
 
 export function DrawStatCard(
-  card: Omit<StatCard, "query">,
+  card: Omit<ChartCard, "query">,
   data: Data,
   colors: Colors,
 ) {
@@ -161,7 +180,7 @@ export function DrawStatCard(
       classList={{
         "bg-z-body-selected": card.style.layered,
         "p-2": padded(),
-        "pb-0": !card.chart.inlineLabels,
+        "pb-0": card.chart.mainAxis.label.display != "inline",
         "rounded-2xl": card.style.roundCard,
         border: card.style.bordered,
       }}
