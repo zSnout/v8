@@ -7,6 +7,9 @@ import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
 import { latest } from "./version"
 
+import { notNull } from "@/components/pray"
+import { startOfDaySync } from "../db/day"
+import { randomId } from "../lib/id"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 
@@ -147,6 +150,68 @@ async function init() {
     }
 
     const db = new WorkerDB(DB_FILENAME)
+
+    db.createFunction({
+      name: "random_id",
+      xFunc() {
+        return randomId()
+      },
+      directOnly: true,
+    })
+
+    db.createFunction({
+      name: "start_of_day",
+      xFunc(_ctxPtr, now, dayStart) {
+        if (now == null) return null
+        if (typeof now != "number") {
+          throw new Error("Expected argument 1 `now` to be a number.")
+        }
+        if (typeof dayStart != "number") {
+          throw new Error("Expected argument 2 `day_start` to be a number.")
+        }
+        return startOfDaySync(dayStart, now)
+      },
+    })
+
+    db.createFunction({
+      name: "start_of_day",
+      xFunc(_ctxPtr, now) {
+        if (now == null) return null
+        if (typeof now != "number") {
+          throw new Error("Expected argument 1 `now` to be a number.")
+        }
+        return startOfDaySync(
+          notNull(
+            db.selectValue(
+              "SELECT day_start FROM prefs WHERE id = 0",
+              undefined,
+              1,
+            ),
+            "The preferences object does not exist.",
+          ),
+          now,
+        )
+      },
+    })
+
+    db.createFunction({
+      name: "start_of_day",
+      xFunc(_ctxPtr) {
+        console.log(_ctxPtr)
+        return startOfDaySync(
+          notNull(
+            db.selectValue(
+              "SELECT day_start FROM prefs WHERE id = 0",
+              undefined,
+              1,
+            ),
+            "The preferences object does not exist.",
+          ),
+          Date.now(),
+        )
+      },
+    })
+
     db.exec(query_init)
     checkVersion(db)
     return db

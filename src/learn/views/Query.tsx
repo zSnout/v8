@@ -1,4 +1,4 @@
-import { confirm, ModalDescription } from "@/components/Modal"
+import { ModalDescription, prompt } from "@/components/Modal"
 import { Unmain } from "@/components/Prose"
 import { sql, SQLite } from "@codemirror/lang-sql"
 import {
@@ -234,14 +234,18 @@ export function Query(
               return
             }
 
-            const result = await confirm({
+            const code = Math.random().toString(10).slice(-6)
+
+            const result = await prompt({
               owner,
               title: "Enable unsafe mode? (DANGEROUS)",
               description: (
                 <>
                   <ModalDescription>
-                    Unsafe mode lets you use arbitrary SQLite commands. If you
-                    don't know SQLite, you should not use unsafe mode.
+                    Unsafe mode lets you use arbitrary SQLite commands.
+                    <strong class="text-z underline">
+                      If you don't know SQLite, you should not use unsafe mode.
+                    </strong>
                   </ModalDescription>
 
                   <ModalDescription>
@@ -254,13 +258,21 @@ export function Query(
                     highly recommend exporting your current data before you use
                     unsafe mode, just in case.
                   </ModalDescription>
+
+                  <ModalDescription>
+                    Enter{" "}
+                    <code class="rounded bg-z-body-selected px-1 text-z">
+                      {code}
+                    </code>{" "}
+                    below to confirm you want to enter unsafe mode.
+                  </ModalDescription>
                 </>
               ),
               cancelText: "Nope, stay safe",
               okText: "Yes, let me query",
             })
 
-            if (!result) {
+            if (result !== code) {
               return
             }
 
