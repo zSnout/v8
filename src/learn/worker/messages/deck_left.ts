@@ -19,11 +19,13 @@ export function deck_left_txless(decks: Id[]) {
       if (stmtNew.step()) {
         new_left += stmtNew.get(0) as number
       }
+      stmtNew.reset()
 
       stmtRev.bind([did])
       if (stmtRev.step()) {
         rev_left += stmtRev.get(0) as number
       }
+      stmtRev.reset()
     }
 
     return { new_left, rev_left }

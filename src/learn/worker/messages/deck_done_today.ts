@@ -27,6 +27,7 @@ export function deck_done_today_txless(decks: Id[], dayStart: number) {
           rev_today += (JSON.parse(value[2]) as number[]).length
         }
       }
+      stmt.reset()
     }
 
     return { new_today, rev_today }
