@@ -976,11 +976,9 @@ function s7_parseBigSymbolContents(tokens: Step5[]): Step5[] {
       } else {
         throw new MathError(
           `What do you want to take the ${
-            token.op == "prod"
-              ? "product"
-              : token.op == "int"
-              ? "integral"
-              : token.op
+            token.op == "prod" ? "product"
+            : token.op == "int" ? "integral"
+            : token.op
           } of?`,
         )
       }

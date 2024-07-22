@@ -1,13 +1,13 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { error } from "@/components/result"
-import { DB, open } from "@/learn/db"
 import { Error } from "@/learn/el/Error"
-import { Layers } from "@/learn/el/Layers"
+import { Layers, useLayers } from "@/learn/el/Layers"
 import { createLoadingBase } from "@/learn/el/Loading"
-import { Home } from "@/learn/views/Home"
 import { createSignal, JSX, onMount, Show } from "solid-js"
-import { Toasts, useToasts } from "./el/Toast"
+import { Worker } from "./db"
+import { Toasts } from "./el/Toast"
 import { ShortcutManager } from "./lib/shortcuts"
+import { Home } from "./views/Home"
 
 function ErrorHandler(props: { children: JSX.Element }) {
   const [reason, setError] = createSignal<unknown>()
@@ -31,36 +31,68 @@ function ErrorHandler(props: { children: JSX.Element }) {
   )
 }
 
-function UndoManager(db: DB) {
-  const undoFn = async () => {
-    const undoData = db.undo()
-    if (!undoData) {
-      toasts.create({ body: "Nothing to undo." })
-      return
-    }
+function UndoManager(worker: Worker) {
+  // TODO: make undos work again
+  // const undoFn = async () => {
+  //   const undoData = db.undo()
+  //   if (!undoData) {
+  //     toasts.create({ body: "Nothing to undo." })
+  //     return
+  //   }
 
-    const { last, done } = undoData
-    const detail = { redo: last.redo, reason: last.reason }
-    dispatchEvent(new CustomEvent("z-db-beforeundo", { detail }))
-    await done
-    toasts.create({
-      body: `${last.redo ? "Redoed" : "Undid"} "${last.reason}"`,
-    })
-    dispatchEvent(new CustomEvent("z-db-undo", { detail }))
-  }
+  //   const { last, done } = undoData
+  //   const detail = { redo: last.redo, reason: last.reason }
+  //   dispatchEvent(new CustomEvent("z-db-beforeundo", { detail }))
+  //   await done
+  //   toasts.create({
+  //     body: `${last.redo ? "Redoed" : "Undid"} "${last.reason}"`,
+  //   })
+  //   dispatchEvent(new CustomEvent("z-db-undo", { detail }))
+  // }
 
-  const toasts = useToasts()
-  const manager = new ShortcutManager()
-  manager.scoped({ key: "Z" }, undoFn)
-  manager.scoped({ key: "Z", mod: "macctrl" }, undoFn)
+  // const toasts = useToasts()
+  const layers = useLayers()
+  const shortcuts = new ShortcutManager()
+  // TODO: no pop when modal is active
+  shortcuts.scoped(
+    { key: "Escape" },
+    () => {
+      let dialog
+      if (
+        (document.activeElement instanceof HTMLElement ||
+          document.activeElement instanceof SVGElement) &&
+        document.activeElement != document.body
+      ) {
+        document.activeElement.blur()
+      } else if (
+        (dialog = document.querySelector<HTMLDialogElement>("dialog[open]"))
+      ) {
+        dialog.dispatchEvent(new Event("cancel"))
+      } else if (document.activeElement == document.body) {
+        layers.popLatest()
+      }
+    },
+    true,
+  )
+  // manager.scoped({ key: "Z" }, undoFn)
+  // manager.scoped({ key: "Z", mod: "macctrl" }, undoFn)
 
-  return Home(db)
+  // TODO: remove this once <Stats /> is done
+  // if (import.meta.env.DEV) {
+  // return Stats(worker, () => {})
+  // } else {
+  return Home(worker)
+  // }
 }
 
-const InsideErrorHandler = createLoadingBase<void, DB>(
-  () => open("learn:Main", Date.now()),
-  (_, db) => {
-    return <Toasts.Root>{Layers.Root(UndoManager, db)}</Toasts.Root>
+const InsideErrorHandler = createLoadingBase<void, Worker>(
+  async () => {
+    const worker = new Worker()
+    await worker.post("ready")
+    return worker
+  },
+  (_, worker) => {
+    return <Toasts.Root>{Layers.Root(UndoManager, worker)}</Toasts.Root>
   },
   "Opening database...",
 )

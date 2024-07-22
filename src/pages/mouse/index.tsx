@@ -244,7 +244,9 @@ async function run(
       const position = INITIAL_SPACE + index * SPACE_BETWEEN_LINES + TIME
       const rounding = MAX - position + 64
       const opacity =
-        index == 0 ? TIME / 64 : index == LINE_COUNT - 1 ? 1 - TIME / 64 : 1
+        index == 0 ? TIME / 64
+        : index == LINE_COUNT - 1 ? 1 - TIME / 64
+        : 1
 
       context.strokeStyle = `rgba(${255 * (1 - opacity)} ${
         255 * (1 - opacity)

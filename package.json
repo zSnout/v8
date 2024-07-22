@@ -19,25 +19,29 @@
     "@codemirror/lang-css": "^6.2.1",
     "@codemirror/lang-html": "^6.4.9",
     "@codemirror/lang-json": "^6.0.1",
+    "@codemirror/lang-sql": "^6.7.0",
     "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.28.4",
     "@fortawesome/free-regular-svg-icons": "^6.3.0",
     "@fortawesome/free-solid-svg-icons": "^6.3.0",
     "@solid-primitives/media": "^2.1.3",
+    "@sqlite.org/sqlite-wasm": "^3.46.0-build2",
     "@supabase/supabase-js": "^2.43.4",
     "@tailwindcss/container-queries": "^0.1.0",
     "@tailwindcss/typography": "^0.5.9",
     "@thisbeyond/solid-dnd": "^0.7.5",
     "@types/color-diff": "^1.2.5",
+    "@types/core-js": "^2.5.8",
     "@types/dompurify": "^3.0.5",
     "@types/moo": "^0.5.9",
     "@types/nearley": "^2.11.5",
     "@zsnout/ithkuil": "^0.1.98",
-    "@zsnout/tailwind": "^0.1.6",
+    "@zsnout/tailwind": "^0.1.11",
     "astro": "^2.5.5",
     "codemirror": "^6.0.1",
     "color-diff": "^1.4.0",
+    "core-js": "^3.37.1",
     "dompurify": "^3.1.5",
     "fast-fuzzy": "^1.12.0",
     "fastest-levenshtein": "^1.0.16",
@@ -45,6 +49,11 @@
     "katex": "^0.16.4",
     "nearley": "^2.20.1",
     "pdfjs-dist": "^4.2.67",
+    "prettier": "^3.3.3",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-glsl": "^0.2.0",
+    "prettier-plugin-sql": "^0.18.1",
+    "prettier-plugin-tailwindcss": "^0.6.5",
     "rehype-katex": "^6.0.2",
     "remark-math": "^5.1.1",
     "solid-js": "^1.6.12",
@@ -57,17 +66,14 @@
     "typescript": "^5.5.3",
     "unzipit": "^1.4.3",
     "valibot": "^0.35.0",
-    "vite-plugin-glsl": "^1.1.2"
+    "vite": "^5.0.0-beta.11",
+    "vite-plugin-glsl": "^1.1.2",
+    "vite-tsconfig-paths": "^4.3.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.6.0",
     "@types/sortablejs": "^1.15.8",
     "eslint": "^9.6.0",
-    "prettier": "^2.8.4",
-    "prettier-plugin-astro": "^0.8.0",
-    "prettier-plugin-glsl": "^0.0.9",
-    "prettier-plugin-tailwindcss": "^0.2.4",
-    "solid-devtools": "^0.30.1",
     "typescript-eslint": "^7.14.1"
   },
   "prettier": {
@@ -76,12 +82,11 @@
     "plugins": [
       "prettier-plugin-astro",
       "prettier-plugin-glsl",
+      "prettier-plugin-sql",
       "prettier-plugin-tailwindcss"
     ],
-    "pluginSearchDirs": [
-      "."
-    ],
-    "trailingComma": "all"
+    "trailingComma": "all",
+    "experimentalTernaries": true
   },
   "overrides": {
     "eslint": "^9.6.0"

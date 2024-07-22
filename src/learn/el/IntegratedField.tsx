@@ -136,6 +136,7 @@ export function IntegratedCodeField(
     alone?: boolean
     lang?: language.LanguageSupport
     exts?: state.Extension
+    noBorderTop?: boolean
   },
 ) {
   return untrack(() => {
@@ -145,7 +146,8 @@ export function IntegratedCodeField(
 
     return (
       <div
-        class="flex flex-1 border-t border-z *:flex-1 focus-within:*:outline-none"
+        class="flex flex-1 border-z *:flex-1 focus-within:*:outline-none"
+        classList={{ "border-t": !moreProps?.noBorderTop }}
         ref={(el) => {
           editor = new EditorView({
             doc: props.value,
@@ -327,7 +329,7 @@ export function IntegratedField(props: IntegratedFieldProps) {
         </Show>
       </div>
 
-      {props.type == "html" ? (
+      {props.type == "html" ?
         <>
           <div
             ref={(self) => {
@@ -354,14 +356,13 @@ export function IntegratedField(props: IntegratedFieldProps) {
 
           <Show when={props.showHtml}>{IntegratedCodeField(props)}</Show>
         </>
-      ) : props.type == "html-only" ? (
+      : props.type == "html-only" ?
         IntegratedCodeField(props, { alone: true })
-      ) : props.type == "css-only" ? (
+      : props.type == "css-only" ?
         IntegratedCodeField(props, { alone: true, lang: css() })
-      ) : props.type == "tags" ? (
+      : props.type == "tags" ?
         IntegratedTagField(props, id)
-      ) : (
-        <input
+      : <input
           ref={(e) => (el = e)}
           type={props.type}
           class="z-field-number -mt-1 block w-full bg-transparent px-2 pb-1 placeholder:text-z-subtitle placeholder:opacity-30 focus:outline-none"
@@ -374,7 +375,7 @@ export function IntegratedField(props: IntegratedFieldProps) {
             "font-size": props.sizePx ? `${props.sizePx / 16}rem` : "",
           }}
         />
-      )}
+      }
     </div>
   )
 }

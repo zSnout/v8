@@ -1,7 +1,6 @@
-type Reason<R extends string> = R extends ""
-  ? never
-  : string extends R
-  ? never
+type Reason<R extends string> =
+  R extends "" ? never
+  : string extends R ? never
   : R
 
 export function pray<R extends string>(

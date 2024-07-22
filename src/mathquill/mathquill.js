@@ -179,16 +179,20 @@ function closest(el, s) {
   do {
     if (matches.call(match, s)) return match
     match =
-      (_c =
-        (_b =
-          match === null || match === void 0 ? void 0 : match.parentElement) !==
-          null && _b !== void 0
-          ? _b
-          : match === null || match === void 0
-          ? void 0
+      (
+        (_c =
+          (
+            (_b =
+              match === null || match === void 0 ?
+                void 0
+              : match.parentElement) !== null && _b !== void 0
+          ) ?
+            _b
+          : match === null || match === void 0 ? void 0
           : match.parentNode) !== null && _c !== void 0
-        ? _c
-        : null
+      ) ?
+        _c
+      : null
   } while (match !== null && match.nodeType === 1)
   return null
 }
@@ -230,8 +234,8 @@ function getScrollX() {
   // Previous versions of IE had neither property and use scrollLeft instead
   //
   // https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollX#notes
-  return globalThis.pageXOffset !== undefined
-    ? globalThis.pageXOffset
+  return globalThis.pageXOffset !== undefined ?
+      globalThis.pageXOffset
     : (document.documentElement || document.body.parentNode || document.body)
         .scrollLeft
 }
@@ -244,8 +248,8 @@ function getScrollY() {
   // Previous versions of IE had neither property and use scrollTop instead
   //
   // https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollX#notes
-  return globalThis.pageYOffset !== undefined
-    ? globalThis.pageYOffset
+  return globalThis.pageYOffset !== undefined ?
+      globalThis.pageYOffset
     : (document.documentElement || document.body.parentNode || document.body)
         .scrollTop
 }
@@ -1472,8 +1476,8 @@ var Fragment = /** @class */ (function () {
   }
   // like Cursor::withDirInsertAt(dir, parent, withDir, oppDir)
   Fragment.prototype.withDirAdopt = function (dir, parent, withDir, oppDir) {
-    return dir === L
-      ? this.adopt(parent, withDir, oppDir)
+    return dir === L ?
+        this.adopt(parent, withDir, oppDir)
       : this.adopt(parent, oppDir, withDir)
   }
   /**
@@ -1987,14 +1991,14 @@ var ControllerBase = /** @class */ (function () {
     var _c
     var handlers = this.options.handlers
     var handler =
-      (_c = this.options.handlers) === null || _c === void 0
-        ? void 0
-        : _c.fns[name]
+      (_c = this.options.handlers) === null || _c === void 0 ?
+        void 0
+      : _c.fns[name]
     if (handler) {
       var APIClass =
-        handlers === null || handlers === void 0
-          ? void 0
-          : handlers.APIClasses[this.KIND_OF_MQ]
+        handlers === null || handlers === void 0 ?
+          void 0
+        : handlers.APIClasses[this.KIND_OF_MQ]
       pray("APIClass is defined", APIClass)
       var mq = new APIClass(this) // cast to any bedcause APIClass needs the final Controller subclass.
       if (dir === L || dir === R) handler(dir, mq)
@@ -2248,15 +2252,15 @@ function getInterface(v) {
     }
   }
   var BaseOptions =
-    version < 3
-      ? Options
-      : /** @class */ (function (_super) {
-          __extends(BaseOptions, _super)
-          function BaseOptions() {
-            return (_super !== null && _super.apply(this, arguments)) || this
-          }
-          return BaseOptions
-        })(Options)
+    version < 3 ? Options : (
+      /** @class */ (function (_super) {
+        __extends(BaseOptions, _super)
+        function BaseOptions() {
+          return (_super !== null && _super.apply(this, arguments)) || this
+        }
+        return BaseOptions
+      })(Options)
+    )
   var AbstractMathQuill = /** @class */ (function (_super) {
     __extends(AbstractMathQuill, _super)
     function AbstractMathQuill(ctrlr) {
@@ -2886,8 +2890,8 @@ var saneKeyboardEvents = (function () {
       return WHICH_TO_MQ_KEY_STEM[which] || String.fromCharCode(which)
     }
     if (isLowercaseAlphaCharacter(evt.key)) return evt.key.toUpperCase()
-    return (_c = KEY_TO_MQ_KEY_STEM[evt.key]) !== null && _c !== void 0
-      ? _c
+    return (_c = KEY_TO_MQ_KEY_STEM[evt.key]) !== null && _c !== void 0 ?
+        _c
       : evt.key
   }
   /** To the extent possible, create a normalized string representation
@@ -4319,15 +4323,15 @@ var Controller_mouse = /** @class */ (function (_super) {
       // won't be inside this root, so don't mislead Controller::seek with it
       function unbindListeners() {
         // delete the mouse handlers now that we're not dragging anymore
-        rootElement === null || rootElement === void 0
-          ? void 0
-          : rootElement.removeEventListener("mousemove", mousemove)
-        ownerDocument === null || ownerDocument === void 0
-          ? void 0
-          : ownerDocument.removeEventListener("mousemove", onDocumentMouseMove)
-        ownerDocument === null || ownerDocument === void 0
-          ? void 0
-          : ownerDocument.removeEventListener("mouseup", onDocumentMouseUp)
+        rootElement === null || rootElement === void 0 ?
+          void 0
+        : rootElement.removeEventListener("mousemove", mousemove)
+        ownerDocument === null || ownerDocument === void 0 ?
+          void 0
+        : ownerDocument.removeEventListener("mousemove", onDocumentMouseMove)
+        ownerDocument === null || ownerDocument === void 0 ?
+          void 0
+        : ownerDocument.removeEventListener("mouseup", onDocumentMouseUp)
         cancelSelectionOnEdit = undefined
       }
       function updateCursor() {
@@ -4370,15 +4374,15 @@ var Controller_mouse = /** @class */ (function (_super) {
       }
       cursor.blink = noop
       ctrlr.seek(e.target, e.clientX, e.clientY).cursor.startSelection()
-      rootElement === null || rootElement === void 0
-        ? void 0
-        : rootElement.addEventListener("mousemove", mousemove)
-      ownerDocument === null || ownerDocument === void 0
-        ? void 0
-        : ownerDocument.addEventListener("mousemove", onDocumentMouseMove)
-      ownerDocument === null || ownerDocument === void 0
-        ? void 0
-        : ownerDocument.addEventListener("mouseup", onDocumentMouseUp)
+      rootElement === null || rootElement === void 0 ?
+        void 0
+      : rootElement.addEventListener("mousemove", mousemove)
+      ownerDocument === null || ownerDocument === void 0 ?
+        void 0
+      : ownerDocument.addEventListener("mousemove", onDocumentMouseMove)
+      ownerDocument === null || ownerDocument === void 0 ?
+        void 0
+      : ownerDocument.addEventListener("mouseup", onDocumentMouseUp)
       // listen on document not just body to not only hear about mousemove and
       // mouseup on page outside field, but even outside page, except iframes: https://github.com/mathquill/mathquill/commit/8c50028afcffcace655d8ae2049f6e02482346c5#commitcomment-6175800
     }
@@ -4529,8 +4533,10 @@ var Controller_scrollHoriz = /** @class */ (function (_super) {
   }
   Controller_scrollHoriz.prototype.getScrollAnimationDuration = function () {
     var _c
-    return (_c = this.options.scrollAnimationDuration) !== null && _c !== void 0
-      ? _c
+    return (
+        (_c = this.options.scrollAnimationDuration) !== null && _c !== void 0
+      ) ?
+        _c
       : 100
   }
   return Controller_scrollHoriz
@@ -4712,9 +4718,8 @@ var Controller = /** @class */ (function (_super) {
     var ctrlr = this
     // If the controller's ARIA label doesn't end with a punctuation mark, add a colon by default to better separate it from mathspeak.
     var ariaLabel = ctrlr.getAriaLabel()
-    var labelWithSuffix = /[A-Za-z0-9]$/.test(ariaLabel)
-      ? ariaLabel + ":"
-      : ariaLabel
+    var labelWithSuffix =
+      /[A-Za-z0-9]$/.test(ariaLabel) ? ariaLabel + ":" : ariaLabel
     var mathspeak = ctrlr.root.mathspeak().trim()
     this.aria.clear()
     var textarea = ctrlr.getTextareaOrThrow()
@@ -5057,11 +5062,11 @@ var MQSymbol = /** @class */ (function (_super) {
     var _this_1 = _super.call(this) || this
     _this_1.setCtrlSeqHtmlTextAndMathspeak(
       ctrlSeq,
-      html
-        ? new DOMView(0, function () {
-            return html.cloneNode(true)
-          })
-        : undefined,
+      html ?
+        new DOMView(0, function () {
+          return html.cloneNode(true)
+        })
+      : undefined,
       text,
       mathspeak,
     )
@@ -5328,12 +5333,14 @@ var MathBlock = /** @class */ (function (_super) {
     var cons
     // extract customCharacters early so we can easily default it to 'f'
     var customCharacters =
-      (_c =
-        options === null || options === void 0
-          ? void 0
+      (
+        (_c =
+          options === null || options === void 0 ?
+            void 0
           : options.customCharacters) !== null && _c !== void 0
-        ? _c
-        : "f"
+      ) ?
+        _c
+      : "f"
     if (
       customCharacters.indexOf(ch) >= 0 &&
       (cons = CharCmds[ch] || LatexCmds[ch])
@@ -7060,9 +7067,9 @@ var Digit = /** @class */ (function (_super) {
     var cursorL = cursor[L]
     var cursorLL = cursorL && cursorL[L]
     var cursorParentParentSub =
-      cursor.parent.parent instanceof SupSub
-        ? cursor.parent.parent.sub
-        : undefined
+      cursor.parent.parent instanceof SupSub ?
+        cursor.parent.parent.sub
+      : undefined
     if (
       cursor.options.autoSubscriptNumerals &&
       cursor.parent !== cursorParentParentSub &&
@@ -7082,9 +7089,9 @@ var Digit = /** @class */ (function (_super) {
       var cursorL = cursor[L]
       var cursorLL = cursorL && cursorL[L]
       var cursorParentParentSub =
-        cursor.parent.parent instanceof SupSub
-          ? cursor.parent.parent.sub
-          : undefined
+        cursor.parent.parent instanceof SupSub ?
+          cursor.parent.parent.sub
+        : undefined
       if (
         cursor.options.autoSubscriptNumerals &&
         cursor.parent !== cursorParentParentSub &&
@@ -7258,10 +7265,12 @@ var Letter = /** @class */ (function (_super) {
       // want longest possible autocommand, so join together longest
       // sequence of letters
       var str =
-        (_c = letterSequenceEndingAtNode(this, maxLength)) !== null &&
-        _c !== void 0
-          ? _c
-          : ""
+        (
+          (_c = letterSequenceEndingAtNode(this, maxLength)) !== null &&
+          _c !== void 0
+        ) ?
+          _c
+        : ""
       // check for an autocommand, going thru substrings longest to shortest
       while (str.length) {
         if (autoCmds.hasOwnProperty(str)) {
@@ -8013,9 +8022,8 @@ var PlusMinus = /** @class */ (function (_super) {
   }
   class_7.prototype.sharedSiblingMethod = function (_opts, dir) {
     if (dir === R) return // ignore if sibling only changed on the right
-    this.domFrag().oneElement().className = plusMinusIsBinaryOperator(this)
-      ? "mq-binary-operator"
-      : ""
+    this.domFrag().oneElement().className =
+      plusMinusIsBinaryOperator(this) ? "mq-binary-operator" : ""
     return this
   }
   return class_7
@@ -9397,8 +9405,8 @@ var Token = /** @class */ (function (_super) {
         if (typeof label === "string" && label !== "")
           ariaLabelArray.push(label)
       })
-    return ariaLabelArray.length > 0
-      ? ariaLabelArray.join(" ").trim()
+    return ariaLabelArray.length > 0 ?
+        ariaLabelArray.join(" ").trim()
       : "token " + this.tokenId
   }
   Token.prototype.parser = function () {
@@ -9815,9 +9823,9 @@ var Bracket = /** @class */ (function (_super) {
         cursor.insDirOf(-side, sib)
       } // didn't auto-expand, cursor goes just outside or just inside parens
       else
-        outward
-          ? cursor.insDirOf(side, this)
-          : cursor.insAtDirEnd(side, this.getEnd(L))
+        outward ?
+          cursor.insDirOf(side, this)
+        : cursor.insAtDirEnd(side, this.getEnd(L))
     }
   }
   Bracket.prototype.replaceBracket = function (brackFrag, side) {

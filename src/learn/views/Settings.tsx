@@ -1,53 +1,50 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { alert, confirm, ModalDescription } from "@/components/Modal"
 import {
-  faDatabase,
   faDownload,
   faRightFromBracket,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { getOwner, Show } from "solid-js"
-import { DB } from "../db"
-import { createPrefsStore } from "../db/prefs/store"
-import { exportDb, importJson } from "../db/save"
-import { SingleBottomAction } from "../el/BottomButtons"
+import { getOwner } from "solid-js"
+import { createPrefsStore } from "../db/prefs"
+import type { Worker } from "../db"
+import { Action } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
-import { Icon, Icons } from "../el/IconButton"
-import { useLayers } from "../el/Layers"
 import { createLoading } from "../el/Loading"
-import { ShortcutManager } from "../lib/shortcuts"
-import { JsonData } from "./JsonData"
+import { UploadButton } from "../el/upload"
 
 export const Settings = createLoading(
-  async (db: DB) => {
-    const [prefs, setPrefs, ready] = createPrefsStore(db)
+  async (worker: Worker) => {
+    const [prefs, setPrefs, ready] = createPrefsStore(worker)
     await ready
     return [prefs, setPrefs] as const
   },
-  (db, [prefs, setPrefs], pop) => {
-    new ShortcutManager().scoped({ key: "Escape" }, pop)
-    const layers = useLayers()
-
+  (worker, [prefs, setPrefs], pop) => {
     const owner = getOwner()
-
-    let filePicker!: HTMLInputElement
 
     return {
       el: (
-        <div class="flex min-h-full w-full flex-col gap-8">
-          <Icons>
-            <Icon icon={faRightFromBracket} label="Back" onClick={pop} />
-            <input
-              type="file"
-              class="sr-only"
-              accept="application/json"
-              ref={filePicker}
-              onChange={async (event) => {
-                const file = event.currentTarget.files?.[0]
-                if (!file) {
-                  return
-                }
-                event.currentTarget.value = ""
+        <div class="mx-auto flex min-h-full w-full max-w-xl flex-col gap-4">
+          {/* TODO: show all available options, not just booleans */}
+
+          <div class="grid w-full grid-cols-2 gap-1 xs:grid-cols-3">
+            <Action
+              class="col-span-2 xs:col-span-1"
+              center
+              icon={faRightFromBracket}
+              label="Back"
+              onClick={pop}
+            />
+            <UploadButton
+              accept=".json,.sqlite3,.sqlite,application/json,application/x-sqlite3,application/vnd.sqlite3"
+              onUpload={async ([file]) => {
+                const mode =
+                  (
+                    file.name.endsWith(".json") ||
+                    file.type == "application/json"
+                  ) ?
+                    "json"
+                  : "sqlite3"
 
                 const result = await confirm({
                   owner,
@@ -69,7 +66,11 @@ export const Settings = createLoading(
                   return
                 }
 
-                await importJson(db, await file.text())
+                if (mode == "json") {
+                  await worker.post("import_json_unparsed", await file.text())
+                } else {
+                  await worker.post("import_sqlite", await file.arrayBuffer())
+                }
 
                 await alert({
                   owner,
@@ -81,17 +82,23 @@ export const Settings = createLoading(
                   ),
                 })
               }}
-            />
-            <Icon
-              icon={faUpload}
-              label="Import"
-              onClick={() => filePicker.click()}
-            />
-            <Icon
+            >
+              {(trigger) => (
+                <Action
+                  center
+                  icon={faUpload}
+                  label="Import"
+                  onClick={trigger}
+                />
+              )}
+            </UploadButton>
+
+            <Action
+              center
               icon={faDownload}
               label="Export"
               onClick={async () => {
-                const file = await exportDb(db, Date.now())
+                const file = await worker.post("export_sqlite")
                 const url = URL.createObjectURL(file)
                 const a = document.createElement("a")
                 a.style.display = "none"
@@ -102,16 +109,7 @@ export const Settings = createLoading(
                 a.remove()
               }}
             />
-            <Show when={prefs.debug}>
-              <Icon
-                icon={faDatabase}
-                label="Internals"
-                onClick={() => layers.push(JsonData, db)}
-              />
-            </Show>
-          </Icons>
-
-          {/* TODO: show all available options, not just booleans */}
+          </div>
 
           <CheckboxContainer label="Other options">
             <label class="flex w-full gap-2">
@@ -151,13 +149,6 @@ export const Settings = createLoading(
               <p>Enable debug features</p>
             </label>
           </CheckboxContainer>
-
-          <SingleBottomAction
-            icon={faRightFromBracket}
-            label="Back"
-            center
-            onClick={pop}
-          />
         </div>
       ),
       onForcePop: () => true,

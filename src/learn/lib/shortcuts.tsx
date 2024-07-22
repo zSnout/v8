@@ -45,6 +45,7 @@ type Key =
   | "ArrowDown"
   | "Escape"
   | "Backspace"
+  | "Enter"
   | " "
   | "`"
   | "~"
@@ -92,6 +93,7 @@ const SPECIAL_KEY_STRINGS: { [K in Key]?: string } = {
   " ": "Space",
   Escape: "Esc",
   Backspace: BACKSPACE,
+  Enter: "↩",
 }
 
 let internalIsMac: boolean | undefined
@@ -156,11 +158,11 @@ export function Write(props: { shortcut: Shortcut }) {
   return (
     <span class="text-right text-sm text-z-subtitle">
       {shortcutToString(props.shortcut)
-        .match(/[⇧⌘⌥⌫]/g)
+        .match(/[⇧⌘⌥⌫↩]/g)
         ?.join("") ?? ""}
       <span class="font-mono">
         {shortcutToString(props.shortcut)
-          .match(/[^⇧⌘⌥⌫]/g)
+          .match(/[^⇧⌘⌥⌫↩]/g)
           ?.join("") ?? ""}
       </span>
     </span>
@@ -175,17 +177,23 @@ export class ShortcutManager {
 
   constructor() {
     if (typeof window != "undefined") {
-      createEventListener(window, "keydown", (event) => {
-        const field = isField(event)
+      createEventListener(
+        window,
+        "keydown",
+        (event) => {
+          const field = isField(event)
 
-        for (const [shortcut, action, worksInFields] of this.map.values()) {
-          if ((!field || worksInFields) && matchesShortcut(event, shortcut)) {
-            event.preventDefault()
-            action()
-            return
+          for (const [shortcut, action, worksInFields] of this.map.values()) {
+            if ((!field || worksInFields) && matchesShortcut(event, shortcut)) {
+              event.preventDefault()
+              event.stopPropagation()
+              action()
+              return
+            }
           }
-        }
-      })
+        },
+        { capture: true },
+      )
     }
   }
 
@@ -201,8 +209,8 @@ export class ShortcutManager {
     }
   }
 
-  scoped(shortcut: Shortcut, action: () => void) {
-    onMount(() => this.set(shortcut, action))
+  scoped(shortcut: Shortcut, action: () => void, worksInFields?: boolean) {
+    onMount(() => this.set(shortcut, action, worksInFields))
     onCleanup(() => this.unset(shortcut, action))
   }
 }

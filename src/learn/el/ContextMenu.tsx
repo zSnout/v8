@@ -1,6 +1,14 @@
 import { createEventListener } from "@/components/create-event-listener"
-import { createEffect, createMemo, createSignal, type JSX } from "solid-js"
-import { Portal } from "solid-js/web"
+import type { CtxCreateMenu } from "@/env2"
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Show,
+  type JSX,
+} from "solid-js"
+import { Dynamic, Portal } from "solid-js/web"
 import { randomId } from "../lib/id"
 import { createElementSize, createRemSize, createScreenSize } from "../lib/size"
 
@@ -58,15 +66,27 @@ export function ContextMenu(props: {
       style={pos()}
       ref={el!}
       inert={!props.active}
+      onMouseDown={(event) => event.stopImmediatePropagation()}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        event.stopImmediatePropagation()
+      }}
     >
       {props.children}
     </div>
   )
 }
 
-export function ContextMenuItem(props: { children: JSX.Element }) {
+export function ContextMenuItem(props: {
+  children: JSX.Element
+  onClick: () => void
+}) {
   return (
-    <div class="rounded px-2 text-z hover:bg-z-body-selected">
+    <div
+      class="rounded px-2 text-z hover:bg-z-body-selected"
+      onClick={() => props.onClick?.()}
+      onContextMenu={() => props.onClick?.()}
+    >
       {props.children}
     </div>
   )
@@ -76,20 +96,57 @@ export function ContextMenuLine() {
   return <hr class="mx-1 my-1 border-0 border-t border-z" />
 }
 
-export function ContextMenuTrigger(props: { children: JSX.Element }) {
+export function ContextMenuTrigger() {
   const [x, setX] = createSignal(50)
   const [y, setY] = createSignal(50)
   const [active, setActive] = createSignal(false)
+  const [content, setContent] = createSignal<(() => JSX.Element)[]>([])
 
   if (typeof document != "undefined") {
     createEventListener(document, "contextmenu", (event) => {
+      for (const el of document.querySelectorAll(".ctx")) {
+        el.classList.remove("ctx")
+      }
+
+      const menus: (() => JSX.Element)[] = []
+      const findCtxEvent = new CustomEvent<CtxCreateMenu>("ctx", {
+        detail(m) {
+          menus.push(m)
+        },
+        bubbles: true,
+      })
+      event.target?.dispatchEvent(findCtxEvent)
+      if (!menus.length) {
+        setActive(false)
+        return
+      }
+
+      setContent(menus)
+
+      event
+        .composedPath()
+        .filter((x) => x instanceof Element)
+        .map((x) => x.classList.add("ctx"))
+
       event.preventDefault()
       setX(event.clientX)
       setY(event.clientY)
       setActive(true)
     })
 
+    createEventListener(document, "mousedown", () => {
+      for (const el of document.querySelectorAll(".ctx")) {
+        el.classList.remove("ctx")
+      }
+
+      setActive(false)
+    })
+
     createEventListener(document, "click", () => {
+      for (const el of document.querySelectorAll(".ctx")) {
+        el.classList.remove("ctx")
+      }
+
       setActive(false)
     })
   }
@@ -97,10 +154,19 @@ export function ContextMenuTrigger(props: { children: JSX.Element }) {
   return (
     <Portal>
       <ContextMenu x={x()} y={y()} active={active()}>
-        {props.children}
+        <For each={content()}>
+          {(items, index) => (
+            <>
+              <Show when={index() != 0}>
+                <ContextMenuLine />
+              </Show>
+              <Dynamic component={items} />
+            </>
+          )}
+        </For>
       </ContextMenu>
     </Portal>
   )
 }
 
-// TODO: context menus everywherew
+// TODO: context menus everywhere

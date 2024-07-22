@@ -33,9 +33,9 @@ export function AutocompleteBox<T extends string>(
       },
 ): JSX.Element {
   const [field, setField] = createSignal(
-    !!props.allowArbitrary || props.options.includes(props.value as T)
-      ? props.value ?? ""
-      : "",
+    !!props.allowArbitrary || props.options.includes(props.value as T) ?
+      (props.value ?? "")
+    : "",
   )
 
   const matchingRaw = createMemo(() => {

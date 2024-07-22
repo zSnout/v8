@@ -7,7 +7,7 @@
 ```ts
 export interface DBTypes extends DBSchema {
   cards: { key: Id; value: AnyCard; indexes: { nid: Id; did: Id } }
-  graves: { key: number; value: Grave; indexes: {} }
+  graves: { key: Id; value: Grave; indexes: {} }
   notes: { key: Id; value: Note; indexes: { mid: Id } }
   rev_log: { key: Id; value: Review; indexes: { cid: Id } }
   core: { key: Id; value: Core; indexes: {} }
@@ -38,3 +38,17 @@ export interface DBTypes extends DBSchema {
 # v6
 
 - the `Review.type` property can now only be 0, 3, or 4
+
+# v7
+
+- the `Deck` type now has a `creation` property
+
+# v8
+
+- the `Grave` type now has the `id` property
+- the `Deck.revlogs_today` property is now a number instead of an array
+- the `Prefs.active_decks` property has been removed
+
+# v9
+
+- the `Prefs.last_unburied` property is now required

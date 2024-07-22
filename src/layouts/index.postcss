@@ -4,20 +4,23 @@
 
 @font-face {
   font-family: "nasin-nanpa";
-  src: local("nasin-nanpa"),
+  src:
+    local("nasin-nanpa"),
     url("../assets/fonts/nasin-nanpa-2.7.1.otf") format("opentype");
 }
 
 @font-face {
   font-family: "Fairfax HD";
-  src: local("Fairfax HD"),
+  src:
+    local("Fairfax HD"),
     url("../assets/fonts/FairfaxHD.eot") format("embedded-opentype"),
     url("../assets/fonts/FairfaxHD.ttf") format("truetype");
 }
 
 @font-face {
   font-family: "sitelen seli kiwen juniko";
-  src: local("sitelen seli kiwen juniko"),
+  src:
+    local("sitelen seli kiwen juniko"),
     url("../assets/fonts/sitelenselikiwenjuniko.eot")
       format("embedded-opentype"),
     url("../assets/fonts/sitelenselikiwenjuniko.ttf") format("truetype");
@@ -25,14 +28,17 @@
 
 @font-face {
   font-family: "linja lipamanka";
-  src: local("linja lipamanka"),
+  src:
+    local("linja lipamanka"),
     url("../assets/fonts/linjalipamanka.otf") format("opentype"),
     url("../assets/fonts/linjalipamanka.woff") format("woff");
 }
 
 @font-face {
   font-family: "linja enki";
-  src: local("linja enki"), url("../assets/fonts/linjaEnki.sfd") format("sfd"),
+  src:
+    local("linja enki"),
+    url("../assets/fonts/linjaEnki.sfd") format("sfd"),
     url("../assets/fonts/linjaEnki.ttf") format("truetype");
 }
 
@@ -43,42 +49,37 @@
 
 :root,
 .light {
-  @apply z-light-slate z-light-focus-blue;
+  @apply z-light-mq z-light-slate z-light-focus-blue;
   color-scheme: light;
-  --z-mq-filled: var(--z-bg-body);
-  --z-mq-filled-selection: #b4d5fe;
-  --z-mq-filled-selection-blur: #d4d4d4;
-  --z-mq-empty: #d2d2d2;
-  --z-mq-empty-selection: #93afd2;
-  --z-mq-empty-selection-blur: #aeaeae;
   --z-bg-checkbox-selected: theme(colors.blue.400);
   --z-text-checkbox-selected: white;
   --z-bg-modal: var(--z-bg-body-partial);
   --z-text-learn-new: theme(colors.blue.600);
   --z-text-learn-learning: theme(colors.red.600);
   --z-text-learn-review: theme(colors.green.600);
+
   --z-table-row-alt: theme(colors.slate.100);
-  --z-bg-body-selected: theme(colors.slate.200);
-  --z-border-thin: theme(colors.slate.200);
+  --z-table-row-selected: theme(colors.blue.400);
+  --z-table-row-selected-alt: theme(colors.blue.400);
+  --z-table-row-selected-border: theme(colors.blue.300);
+  --z-table-row-selected-text: theme(colors.blue.950);
 }
 
 .dark {
-  @apply z-dark-slate z-dark-focus-blue;
+  @apply z-dark-mq z-dark-slate z-dark-focus-blue;
   color-scheme: dark;
-  --z-mq-filled: var(--z-bg-body);
-  --z-mq-filled-selection: #375578;
-  --z-mq-filled-selection-blur: #475569;
-  --z-mq-empty: #494f5c;
-  --z-mq-empty-selection: #4d6b8d;
-  --z-mq-empty-selection-blur: #5b6370;
   --z-bg-checkbox-selected: theme(colors.blue.500);
   --z-text-checkbox-selected: white;
   --z-bg-modal: rgb(1 3 12 / 0.75);
   --z-text-learn-new: theme(colors.blue.300);
   --z-text-learn-learning: theme(colors.red.300);
   --z-text-learn-review: theme(colors.green.300);
-  --z-table-row-alt: theme(colors.slate.800);
-  --z-border-thin: theme(colors.slate.700);
+
+  --z-table-row-alt: theme(colors.slate.950);
+  --z-table-row-selected: theme(colors.blue.700);
+  --z-table-row-selected-alt: theme(colors.blue.700);
+  --z-table-row-selected-border: theme(colors.blue.900);
+  --z-table-row-selected-text: theme(colors.blue.50);
 }
 
 :root {
@@ -119,16 +120,12 @@
   --z-mq-root-maybe-selected: var(--z-mq-filled-selection-blur);
 }
 
-.arc {
-  @apply z-arc;
-}
-
 .force-light {
-  @apply z-light-slate z-light-focus-blue;
+  @apply z-light-mq z-light-slate z-light-focus-blue;
 }
 
 .force-dark {
-  @apply z-dark-slate z-dark-focus-blue;
+  @apply z-dark-mq z-dark-slate z-dark-focus-blue;
 }
 
 html.no-transition,

@@ -110,14 +110,21 @@ export function Modal(props: {
                 el.close()
                 setOpen(false)
                 props.onCancel?.()
+                props.onClose?.("")
               },
             })
           }}
           onClose={(event) => {
+            event.currentTarget.close()
             setOpen(false)
             props.onClose?.(event.currentTarget.returnValue)
           }}
-          onCancel={() => props.onCancel?.()}
+          onCancel={(event) => {
+            event.currentTarget.close()
+            setOpen(false)
+            props.onCancel?.()
+            props.onClose?.("")
+          }}
           inert={!open()}
         >
           <div class="m-auto max-h-full w-full max-w-lg scale-95 overflow-y-auto rounded-lg bg-z-body px-6 py-6 opacity-0 shadow-lg transition group-open:scale-100 group-open:opacity-100">

@@ -55,7 +55,7 @@ export function createListEditor<
     data: Data
     items: Entry[]
   }) => Item,
-  sortId: ((data: Data) => Id | undefined) | undefined,
+  sortId: ((data: Data) => Id | null) | null,
   create: (name: string, selected: Entry) => Entry,
   internalProps: {
     add: string
@@ -137,20 +137,20 @@ export function createListEditor<
                     set={setEntries}
                     selectedId={selectedId()}
                     setSelectedId={setSelectedId}
-                    sortId={sortId?.(data)}
+                    sortId={sortId?.(data) ?? undefined}
                     fullHeight={!!internalProps.full}
                   />
                 }
               >
                 <PlainFieldList
                   get={
-                    internalProps.noSort == "by-name"
-                      ? entries().toSorted(compareWithName)
-                      : entries()
+                    internalProps.noSort == "by-name" ?
+                      entries().toSorted(compareWithName)
+                    : entries()
                   }
                   selectedId={selectedId()}
                   setSelectedId={setSelectedId}
-                  sortId={sortId?.(data)}
+                  sortId={sortId?.(data) ?? undefined}
                   fullHeight={!!internalProps.full}
                 />
               </Show>
@@ -213,12 +213,13 @@ export function createListEditor<
             await prompt({
               owner,
               title,
-              description: first ? undefined : (
-                <ModalDescription>
-                  That name is already used. Please pick a different name, or
-                  cancel the action.
-                </ModalDescription>
-              ),
+              description:
+                first ? undefined : (
+                  <ModalDescription>
+                    That name is already used. Please pick a different name, or
+                    cancel the action.
+                  </ModalDescription>
+                ),
             })
           )?.trim()
 

@@ -435,12 +435,13 @@ export function Full(props: {
     <>
       <div
         class={
-          props.layer
-            ? sidebarOpen() && width() >= 640
-              ? // TODO: this defn doesnt work on mobile
-                "grid flex-1 grid-cols-[auto,19.5rem] transition-[grid-template-columns]"
-              : "grid flex-1 grid-cols-[auto,0] transition-[grid-template-columns]"
-            : "flex flex-1 items-start"
+          props.layer ?
+            sidebarOpen() && width() >= 640 ?
+              // TODO: this defn doesnt work on mobile
+              "grid flex-1 grid-cols-[auto,19.5rem] transition-[grid-template-columns]"
+            : "grid flex-1 grid-cols-[auto,0] transition-[grid-template-columns]"
+
+          : "flex flex-1 items-start"
         }
       >
         <div class="flex h-full w-full flex-1 flex-col items-start">

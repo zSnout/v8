@@ -60,13 +60,12 @@ function Display(props: { die: number | "" }) {
     <div class="flex flex-col items-center">
       <span class="text-xl">{floor(die / low)}</span>
 
-      {label ? (
+      {label ?
         <span class="text-sm">{label}</span>
-      ) : (
-        <span class="text-sm">
+      : <span class="text-sm">
           × 10<sup>{power}</sup>
         </span>
-      )}
+      }
     </div>
   )
 }
@@ -107,9 +106,9 @@ export function Main(props: { count: number }) {
           (
             <Display
               die={
-                typeof props.die() == "object"
-                  ? (props.die() as { old: number | "" }).old
-                  : (props.die() as number | "")
+                typeof props.die() == "object" ?
+                  (props.die() as { old: number | "" }).old
+                : (props.die() as number | "")
               }
             />
           ))

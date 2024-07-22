@@ -104,9 +104,9 @@ export function PrimaryEditor(props: {
               onClick={() =>
                 set((x) => ({
                   ...x,
-                  configuration: (x.configuration?.startsWith("D")
-                    ? "D" + config
-                    : "M" + config) as Configuration,
+                  configuration: (x.configuration?.startsWith("D") ?
+                    "D" + config
+                  : "M" + config) as Configuration,
                 }))
               }
               label={config}
@@ -120,9 +120,9 @@ export function PrimaryEditor(props: {
               onClick={() =>
                 set((x) => ({
                   ...x,
-                  configuration: (x.configuration?.startsWith("D")
-                    ? "D" + config
-                    : "M" + config) as Configuration,
+                  configuration: (x.configuration?.startsWith("D") ?
+                    "D" + config
+                  : "M" + config) as Configuration,
                 }))
               }
               label={config}

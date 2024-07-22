@@ -11,6 +11,7 @@ import {
   Show,
   untrack,
 } from "solid-js"
+import type { MaybePromise } from "valibot"
 import { Action } from "./BottomButtons"
 import {
   ForcePopHandler,
@@ -136,4 +137,35 @@ export function createLoadingBase<T, U extends {}>(
   )
 
   return (props) => layerable(props, () => {})
+}
+
+export function InlineLoading<T>(props: {
+  data: MaybePromise<T>
+  children: (data: T) => JSX.Element
+  fallback?: JSX.Element
+}) {
+  const [result] = createResource(
+    () => props.data,
+    (x) => x,
+  )
+
+  return (
+    <Show
+      when={result()}
+      keyed
+      fallback={
+        props.fallback ?? (
+          <div class="flex aspect-video min-h-full w-full flex-1 flex-col items-center justify-center gap-8 rounded-lg bg-z-body-selected">
+            <Fa
+              class="size-8 animate-[faspinner_1s_linear_infinite]"
+              icon={faSpinner}
+              title={false}
+            />
+          </div>
+        )
+      }
+    >
+      {props.children}
+    </Show>
+  )
 }

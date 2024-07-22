@@ -301,11 +301,11 @@ function convertPrimary(primary: PrimaryCharacter, elidePrimaries: boolean) {
     ][primary.stem ?? 1]
 
   const bottomLeft =
-    !primary.configuration || primary.configuration.endsWith("PX")
-      ? ""
-      : CA_DIACRITICS[
-          primary.configuration.slice(1, 3) as keyof typeof CA_DIACRITICS
-        ]
+    !primary.configuration || primary.configuration.endsWith("PX") ?
+      ""
+    : CA_DIACRITICS[
+        primary.configuration.slice(1, 3) as keyof typeof CA_DIACRITICS
+      ]
 
   const topLeft =
     PRIMARY_TOP_LEFT[primary.perspective || "M"][primary.extension || "DEL"]
@@ -318,15 +318,11 @@ function convertPrimary(primary: PrimaryCharacter, elidePrimaries: boolean) {
   }[primary.context || "EXS"]
 
   const underposed: DiacriticName | "" =
-    primary.bottom == 1
-      ? "VERT_BAR"
-      : primary.bottom == 2
-      ? "HORIZ_WITH_BOTTOM_LINE"
-      : primary.bottom == "UNF/K"
-      ? "DOT"
-      : primary.bottom == "FRM"
-      ? "HORIZ_BAR"
-      : ""
+    primary.bottom == 1 ? "VERT_BAR"
+    : primary.bottom == 2 ? "HORIZ_WITH_BOTTOM_LINE"
+    : primary.bottom == "UNF/K" ? "DOT"
+    : primary.bottom == "FRM" ? "HORIZ_BAR"
+    : ""
 
   return (
     CORE[core] +
@@ -393,33 +389,31 @@ function convertQuaternary(quaternary: QuaternaryCharacter) {
     return convertSecondary({
       handwritten: quaternary.handwritten,
       superposed:
-        quaternary.type == 2
-          ? "DOT"
-          : quaternary.type == 3
-          ? "HORIZ_BAR"
-          : undefined,
+        quaternary.type == 2 ? "DOT"
+        : quaternary.type == 3 ? "HORIZ_BAR"
+        : undefined,
       top,
       core: "STRESSED_SYLLABLE_PLACEHOLDER",
       bottom,
-      underposed: quaternary.isInverse
-        ? quaternary.isSlotVIIAffix
-          ? "CURVE_TO_RIGHT_WITH_DOT"
+      underposed:
+        quaternary.isInverse ?
+          quaternary.isSlotVIIAffix ?
+            "CURVE_TO_RIGHT_WITH_DOT"
           : "CURVE_TO_RIGHT"
-        : quaternary.isSlotVIIAffix
-        ? "CURVE_TO_LEFT_WITH_DOT"
+        : quaternary.isSlotVIIAffix ? "CURVE_TO_LEFT_WITH_DOT"
         : "CURVE_TO_LEFT",
     })
   } else {
     return convertSecondary({
       handwritten: quaternary.handwritten,
-      superposed: quaternary.mood
-        ? MOOD_TO_DIACRITIC_MAP[quaternary.mood]
-        : undefined,
+      superposed:
+        quaternary.mood ? MOOD_TO_DIACRITIC_MAP[quaternary.mood] : undefined,
       top,
       core: "STRESSED_SYLLABLE_PLACEHOLDER",
       bottom,
-      underposed: quaternary.caseScope
-        ? CASE_SCOPE_TO_DIACRITIC_MAP[quaternary.caseScope]
+      underposed:
+        quaternary.caseScope ?
+          CASE_SCOPE_TO_DIACRITIC_MAP[quaternary.caseScope]
         : undefined,
     })
   }
@@ -567,9 +561,9 @@ export function Main() {
           <p
             class={
               "mx-auto max-w-full text-9xl text-z-heading transition " +
-              (calligraphic()
-                ? "font-['IthkuilBasic',sans-serif]"
-                : "font-['IthkuilFlow',sans-serif]")
+              (calligraphic() ?
+                "font-['IthkuilBasic',sans-serif]"
+              : "font-['IthkuilFlow',sans-serif]")
             }
           >
             {value()}

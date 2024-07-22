@@ -1,8 +1,14 @@
 export const RISOLI = "/viossa72.pdf"
 
 export function sortWords(a: string, b: string) {
-  const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
-  const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
+  const ax =
+    a.startsWith("-") ? 0
+    : a.endsWith("-") ? 1
+    : 2
+  const bx =
+    b.startsWith("-") ? 0
+    : b.endsWith("-") ? 1
+    : 2
 
   if (ax - bx != 0) {
     return ax - bx
@@ -248,8 +254,14 @@ export function makeWordList(): ReadonlyMap<string, Word> {
 
   return new Map(
     Array.from(map as any as Map<string, Word>).sort(([a], [b]) => {
-      const ax = a.startsWith("-") ? 0 : a.endsWith("-") ? 1 : 2
-      const bx = b.startsWith("-") ? 0 : b.endsWith("-") ? 1 : 2
+      const ax =
+        a.startsWith("-") ? 0
+        : a.endsWith("-") ? 1
+        : 2
+      const bx =
+        b.startsWith("-") ? 0
+        : b.endsWith("-") ? 1
+        : 2
 
       if (ax - bx != 0) {
         return ax - bx

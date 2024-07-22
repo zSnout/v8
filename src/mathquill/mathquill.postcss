@@ -39,7 +39,9 @@
 @font-face {
   font-family: Symbola;
   src: url(fonts/Symbola.eot);
-  src: local("Symbola Regular"), local("Symbola"),
+  src:
+    local("Symbola Regular"),
+    local("Symbola"),
     url(fonts/Symbola.woff2) format("woff2"),
     url(fonts/Symbola.woff) format("woff"),
     url(fonts/Symbola.ttf) format("truetype"),
@@ -68,9 +70,15 @@
     .mq-editable-field.mq-focused,
     .mq-math-mode .mq-editable-field.mq-focused
   ) {
-  -webkit-box-shadow: #8bd 0 0 1px 2px, inset #6ae 0 0 2px 0;
-  -moz-box-shadow: #8bd 0 0 1px 2px, inset #6ae 0 0 2px 0;
-  box-shadow: #8bd 0 0 1px 2px, inset #6ae 0 0 2px 0;
+  -webkit-box-shadow:
+    #8bd 0 0 1px 2px,
+    inset #6ae 0 0 2px 0;
+  -moz-box-shadow:
+    #8bd 0 0 1px 2px,
+    inset #6ae 0 0 2px 0;
+  box-shadow:
+    #8bd 0 0 1px 2px,
+    inset #6ae 0 0 2px 0;
   border-color: #709ac0;
 }
 :where(.mq-math-mode .mq-editable-field) {
@@ -246,7 +254,10 @@
   min-width: 1ex;
 }
 :where(.mq-math-mode .mq-font) {
-  font: 1em "Times New Roman", Symbola, serif;
+  font:
+    1em "Times New Roman",
+    Symbola,
+    serif;
 }
 :where(.mq-math-mode .mq-font *) {
   font-family: inherit;

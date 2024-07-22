@@ -434,9 +434,9 @@ function createFalnen(
       const falnensama = words.filter(
         (x) =>
           x.kotoba != word &&
-          (typeof x.falnen == "string"
-            ? x.falnen == falnen
-            : x.falnen.includes(fal)),
+          (typeof x.falnen == "string" ?
+            x.falnen == falnen
+          : x.falnen.includes(fal)),
       )
 
       if (falnensama.length) {
@@ -481,9 +481,9 @@ function KotoliSidebar(props: {
           <div class="relative -mx-6 -mb-4 mt-auto grid grid-cols-2 gap-px overflow-hidden rounded-b-xl border-t border-z bg-z-border transition">
             <For
               each={
-                props.maximized().tatoeba!?.length % 2
-                  ? props.maximized().tatoeba?.concat("")
-                  : props.maximized().tatoeba
+                props.maximized().tatoeba!?.length % 2 ?
+                  props.maximized().tatoeba?.concat("")
+                : props.maximized().tatoeba
               }
             >
               {(tatoeba) => (
@@ -960,13 +960,12 @@ function Sirutingara(props: { namae: string; children: JSX.Element[] }) {
         {props.children.length} {props.namae}
       </h2>
 
-      {props.children.length ? (
+      {props.children.length ?
         <div class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2">
           {props.children}
         </div>
-      ) : (
-        <p class="rounded bg-z-body-selected px-3 py-2 italic">nai jam. bra!</p>
-      )}
+      : <p class="rounded bg-z-body-selected px-3 py-2 italic">nai jam. bra!</p>
+      }
     </div>
   )
 }

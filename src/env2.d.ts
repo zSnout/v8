@@ -1,5 +1,9 @@
-import { LatexTargetFindEvent } from "./components/graph/latex"
+import type { JSX } from "solid-js"
+import type { LatexTargetFindEvent } from "./components/graph/latex"
 import type { Reason } from "./learn/db/reason"
+
+export type CtxCreateMenu = (createMenu: () => JSX.Element) => void
+export type CtxEvent = CustomEvent<CtxCreateMenu>
 
 declare module "solid-js" {
   namespace JSX {
@@ -15,14 +19,16 @@ declare module "solid-js" {
 
     interface CustomEventHandlersCamelCase<T> {
       onLatexTargetFind?: EventHandlerUnion<T, LatexTargetFindEvent>
-      onConsider?: EventHandlerUnion<T, DndEvent>
-      onFinalize?: EventHandlerUnion<T, DndEvent>
+      onCtx?: EventHandlerUnion<T, CtxEvent>
+      // onConsider?: EventHandlerUnion<T, DndEvent>
+      // onFinalize?: EventHandlerUnion<T, DndEvent>
     }
 
     interface CustomEventHandlersLowerCase<T> {
       onlatextargetfind?: EventHandlerUnion<T, LatexTargetFindEvent>
-      onconsider?: EventHandlerUnion<T, DndEvent>
-      onfinalize?: EventHandlerUnion<T, DndEvent>
+      onctx?: EventHandlerUnion<T, CtxEvent>
+      // onconsider?: EventHandlerUnion<T, DndEvent>
+      // onfinalize?: EventHandlerUnion<T, DndEvent>
     }
   }
 }

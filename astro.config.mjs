@@ -6,6 +6,7 @@ import rehypeKatex from "rehype-katex"
 import remarkMath from "remark-math"
 import nesting from "tailwindcss/nesting"
 import glsl from "vite-plugin-glsl"
+import tsconfigPaths from "vite-tsconfig-paths"
 
 function escapeHTML(text) {
   return text
@@ -66,7 +67,7 @@ export default defineConfig({
     rehypePlugins: [rehypeKatex],
     remarkPlugins: [
       remarkMath,
-      () => (tree, file) => {
+      () => (tree) => {
         return {
           ...tree,
           children: tree.children.map(traverse),
@@ -88,12 +89,14 @@ export default defineConfig({
       }),
     ],
     optimizeDeps: {
-      esbuildOptions: {
-        target: "esnext",
-      },
+      esbuildOptions: { target: "es2022" },
+      exclude: ["@sqlite.org/sqlite-wasm"],
     },
-    build: {
-      target: "esnext",
+    esbuild: { target: "es2022" },
+    build: { target: "es2022" },
+    worker: {
+      format: "es",
+      plugins: [tsconfigPaths()],
     },
   },
   server: {

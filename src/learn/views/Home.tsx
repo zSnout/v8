@@ -1,7 +1,7 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { ModalDescription, prompt } from "@/components/Modal"
-import { NodeProps, TreeOf } from "@/components/tree"
+import { NodeProps } from "@/components/tree"
 import {
   faChartBar,
   faPlus,
@@ -12,22 +12,17 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, getOwner, onMount } from "solid-js"
-import { DB } from "../db"
-import { createDeckDB } from "../db/home/createDeck"
-import { Buckets, DeckHomeInfo, listDecks } from "../db/home/listDecks"
-import { setDeckExpanded } from "../db/home/setDeckExpanded"
+import { Worker } from "../db"
 import { Action, BottomButtons } from "../el/BottomButtons"
-import {
-  ContextMenuItem,
-  ContextMenuLine,
-  ContextMenuTrigger,
-} from "../el/ContextMenu"
+import { ContextMenuTrigger } from "../el/ContextMenu"
 import { useLayers } from "../el/Layers"
 import { createLoadingBase } from "../el/Loading"
 import { Id } from "../lib/id"
+import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../lib/types"
 import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
 import { Settings } from "./Settings"
+import { Stats } from "./Stats"
 import { Study } from "./Study"
 
 function nope(): never {
@@ -50,14 +45,14 @@ function SublinkHandler(): undefined {
 }
 
 export const Home = createLoadingBase(
-  async (db: DB) => {
-    const [decks, setDecks] = createSignal(await listDecks(db, Date.now()))
+  async (worker: Worker) => {
+    const [decks, setDecks] = createSignal(await worker.post("home_list_decks"))
     return [
       decks,
-      async () => setDecks(await listDecks(db, Date.now())),
+      async () => setDecks(await worker.post("home_list_decks")),
     ] as const
   },
-  (db, [decks, reloadDecks]) => {
+  (worker, [decks, reloadDecks]) => {
     const owner = getOwner()
     const layers = useLayers()
 
@@ -66,18 +61,7 @@ export const Home = createLoadingBase(
 
     return (
       <div class="flex min-h-full flex-1 flex-col gap-4">
-        <ContextMenuTrigger>
-          <ContextMenuItem>hello</ContextMenuItem>
-          <ContextMenuItem>world</ContextMenuItem>
-          <ContextMenuItem>goodbye</ContextMenuItem>
-          <ContextMenuItem>other</ContextMenuItem>
-          <ContextMenuLine />
-          <ContextMenuItem>people</ContextMenuItem>
-          <ContextMenuItem>of</ContextMenuItem>
-          <ContextMenuItem>this</ContextMenuItem>
-          <ContextMenuItem>strange</ContextMenuItem>
-          <ContextMenuItem>dimension</ContextMenuItem>
-        </ContextMenuTrigger>
+        <ContextMenuTrigger />
         <SublinkHandler />
         <TopActions />
         <DeckList />
@@ -95,20 +79,26 @@ export const Home = createLoadingBase(
             center
             icon={faPlus}
             label="Add"
-            onClick={() => layers.push(CreateNote, db)}
+            onClick={() => layers.push(CreateNote, worker)}
           />
           <Action
             center
             icon={faTableCellsLarge}
             label="Browse"
-            onClick={() => layers.push(Browse, db)}
+            onClick={() => layers.push(Browse, worker)}
           />
-          <Action center icon={faChartBar} label="Stats" onClick={nope} />
+          <Action
+            center
+            icon={faChartBar}
+            label="Stats"
+            onClick={() => layers.push(Stats, worker)}
+          />
+          {/* TODO: implement actual statistics page */}
           <Action
             center
             icon={faSliders}
             label="Settings"
-            onClick={() => layers.push(Settings, db)}
+            onClick={() => layers.push(Settings, worker)}
           />
           <Action center icon={faSync} label="Sync" onClick={nope} />
         </div>
@@ -141,14 +131,13 @@ export const Home = createLoadingBase(
           <MonotypeExpandableTree<DeckHomeInfo | undefined, DeckHomeInfo>
             z={10}
             shift
-            tree={decks().tree.tree}
-            isExpanded={({ data }) => !data?.deck.collapsed}
+            tree={decks().tree}
+            isExpanded={({ data }) => !data?.deck?.collapsed}
             setExpanded={async ({ data, parent, key }, expanded) => {
-              await setDeckExpanded(
-                db,
-                data?.deck.id ?? parent.map((x) => x + "::").join("") + key,
+              await worker.post(
+                "home_set_deck_expanded",
+                data?.deck?.id ?? parent.map((x) => x + "::").join("") + key,
                 expanded,
-                Date.now(),
               )
             }}
             node={DeckEl}
@@ -184,7 +173,7 @@ export const Home = createLoadingBase(
                 return
               }
 
-              await createDeckDB(db, name)
+              await worker.post("create_deck", name)
               reloadDecks()
             }}
           />
@@ -203,7 +192,7 @@ export const Home = createLoadingBase(
       data,
       subtree,
       key,
-    }: NodeProps<DeckHomeInfo | undefined>) {
+    }: NodeProps<DeckHomeInfo | undefined, DeckHomeInfo>) {
       let buckets: Buckets = [0, 0, 0]
       if (data) {
         buckets = data.self
@@ -219,24 +208,20 @@ export const Home = createLoadingBase(
             (subtree ? " -ml-6" : "")
           }
           onClick={() => {
-            const main = data?.deck.id
+            const root = data?.deck?.id ?? null
 
-            const dids: Id[] = []
-            if (main != null) dids.push(main)
+            const all: Id[] = []
+            if (root != null) all.push(root)
             collectDeckIds(subtree)
 
-            layers.push(Study, { db, main, dids })
+            layers.push(Study, { worker, root, all })
 
-            function collectDeckIds(
-              subtree:
-                | TreeOf<DeckHomeInfo | undefined, DeckHomeInfo | undefined>
-                | undefined,
-            ) {
+            function collectDeckIds(subtree: DeckHomeTree | undefined) {
               if (subtree == null) return
 
               for (const value of Object.values(subtree)) {
-                if (value.data) {
-                  dids.push(value.data.deck.id)
+                if (value.data?.deck) {
+                  all.push(value.data.deck.id)
                 }
 
                 if (value.subtree) {

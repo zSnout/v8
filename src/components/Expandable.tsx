@@ -195,8 +195,9 @@ export function ExpandableTree<T, U>(props: {
     noGap,
   } = props
 
-  const sort = __coreUnsafeSort
-    ? (entries: [string, NodeOf<T, U>][]): [string, NodeOf<T, U>][] =>
+  const sort =
+    __coreUnsafeSort ?
+      (entries: [string, NodeOf<T, U>][]): [string, NodeOf<T, U>][] =>
         entries.sort(__coreUnsafeSort)
     : (entries: [string, NodeOf<T, U>][]) => entries
 

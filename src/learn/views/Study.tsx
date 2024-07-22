@@ -1,6 +1,5 @@
 /// <reference types="../../env" />
 
-import { createEventListener } from "@/components/create-event-listener"
 import { Fa } from "@/components/Fa"
 import {
   Modal,
@@ -62,22 +61,14 @@ import {
   runWithOwner,
   Show,
 } from "solid-js"
-import { Grade, Rating } from "ts-fsrs"
-import { DB } from "../db"
-import { createPrefsStore } from "../db/prefs/store"
+import { Grade, Rating, State } from "ts-fsrs"
+import { createPrefsStore } from "../db/prefs"
 import { Reason } from "../db/reason"
-import { gather } from "../db/study/gather"
-import { putCard, putNote } from "../db/study/merge"
-import {
-  checkBucket,
-  saveForget,
-  saveReview,
-  select,
-  selectById,
-} from "../db/study/select"
+import type { Worker } from "../db"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
+import { Render } from "../lib/render"
 import { ShortcutManager, Write, type Shortcut } from "../lib/shortcuts"
 import * as Template from "../lib/template"
 import { AnyCard, Note } from "../lib/types"
@@ -87,38 +78,32 @@ import { AnyCard, Note } from "../lib/types"
 // FEAT: improve screen for when no cards are left
 
 export const Study = createLoading(
-  async (
-    { db, main, dids }: { db: DB; main: Id | undefined; dids: Id[] },
-    _,
-  ) => {
-    const [prefs, setPrefs, ready] = createPrefsStore(db)
-    const [info] = await Promise.all([
-      gather(db, main, dids, Date.now()),
-      ready,
-    ])
-    return { info, prefs, setPrefs }
+  async ({ worker }: { worker: Worker; root: Id | null; all: Id[] }, _) => {
+    const [prefs, setPrefs, ready] = createPrefsStore(worker)
+    await ready
+    return { prefs, setPrefs }
   },
   (
-    { db, main, dids },
-    { info, prefs, setPrefs },
+    { worker, root, all },
+    { prefs, setPrefs },
     pop,
     state: { lastCid?: Id },
   ) => {
-    createEventListener(window, "z-db-undo", async ({ detail }) => {
-      const now = Date.now()
-      setAnswerShown(false)
-      info = await gather(db, main, dids, now)
+    // TODO: createEventListener(window, "z-db-undo", async ({ detail }) => {
+    //   const now = Date.now()
+    //   setAnswerShown(false)
+    //   info = await gather(db, main, dids, now)
 
-      const last = detail.reason.includes("card")
-        ? state.lastCid
-        : getData()?.data?.card.id
+    //   const last = detail.reason.includes("card")
+    //     ? state.lastCid
+    //     : getData()?.data?.card.id
 
-      if (last != null) {
-        state.lastCid = getData()?.data?.card.id ?? last
-        const data = await selectById(db, main, dids, now, info, last)
-        mutate({ data, shownAt: now })
-      }
-    })
+    //   if (last != null) {
+    //     state.lastCid = getData()?.data?.card.id ?? last
+    //     const data = await selectById(db, main, dids, now, info, last)
+    //     mutate({ data, shownAt: now })
+    //   }
+    // })
 
     const shortcuts = new ShortcutManager()
     const owner = getOwner()
@@ -126,10 +111,12 @@ export const Study = createLoading(
 
     const [getData, { mutate, refetch: unsafeRawRefetch }] = createResource(
       async () => {
-        console.log("run")
         const now = Date.now()
         setAnswerShown(false)
-        return { data: await select(db, main, dids, now, info), shownAt: now }
+        return {
+          data: await worker.post("study_select", root, all),
+          shownAt: now,
+        }
       },
     )
 
@@ -236,7 +223,7 @@ export const Study = createLoading(
               fullFront
               source={prefs.show_deck_name && tmpl().source}
               front={
-                <Template.Render
+                <Render
                   html={tmpl()[answerShown() ? "ahtml" : "qhtml"]}
                   css={tmpl().css}
                   class="flex-1"
@@ -311,7 +298,15 @@ export const Study = createLoading(
       prayTruthy(c, "Cannot answer a `null` card.")
       state.lastCid = c.card.id
       const now = Date.now()
-      await saveReview(db, c, info, now, now - shownAt, grade)
+      await worker.post(
+        "study_save_review",
+        // TODO: if review takes a very long time it might be the next day, so make sure that the log is updated properly
+        // we only do this to avoid fuzz showing the wrong time but we can probably control fuzz manually somehow
+        c.repeat[grade].card,
+        c.repeat[grade].log,
+        c.card.state == State.New,
+        now - shownAt,
+      )
       batch(() => {
         refetch()
         setAnswerShown(false)
@@ -345,7 +340,7 @@ export const Study = createLoading(
           {props.label}
           <br />
           {(() => {
-            const r = getData()?.data?.repeatInfo
+            const r = getData()?.data?.repeat
             if (!r) {
               return "<null>"
             }
@@ -411,9 +406,8 @@ export const Study = createLoading(
                     updateCurrentCard(
                       `Toggle ${flag.color} card flag`,
                       (card) => ({
-                        flags: Flags.has(card.flags, flag)
-                          ? 0
-                          : 1 << flag.valueOf(),
+                        flags:
+                          Flags.has(card.flags, flag) ? 0 : 1 << flag.valueOf(),
                       }),
                     )
                   }}
@@ -442,6 +436,7 @@ export const Study = createLoading(
             icon={faRightFromBracket}
             label="Exit Session"
             shortcut={{ key: "Escape" }}
+            noShortcut
             onClick={pop}
           />
           <QuickAction
@@ -661,7 +656,7 @@ export const Study = createLoading(
             Congratulations! You have finished this deck for now.
           </h1>
           <div class="mx-auto flex w-full max-w-md flex-col gap-2">
-            <Show when={info.cards.b0.length}>
+            {/* TODO: <Show when={info.cards.b0.length}>
               <NullMoreNewAvailable />
             </Show>
             <Show when={info.cards.b1.length}>
@@ -669,7 +664,7 @@ export const Study = createLoading(
             </Show>
             <Show when={info.cards.b2.length}>
               <NullMoreReviewBacklogAvailable />
-            </Show>
+            </Show> */}
             <p>
               If you wish to study outside of the regular schedule, you can use
               the{" "}
@@ -716,16 +711,17 @@ export const Study = createLoading(
     }
 
     function NullMoreLearningAvailable() {
-      const earliest = info.cards.b1.length
-        ? info.cards.b1.reduce((a, b) => (a.due < b.due ? a : b))
+      const earliest =
+        info.cards.b1.length ?
+          info.cards.b1.reduce((a, b) => (a.due < b.due ? a : b))
         : undefined
 
       return (
         <p>
           There are still some learning cards left, but they aren't due for{" "}
-          {earliest
-            ? timestampDist((earliest.due - now()) / 1000)
-            : "<unknown time>"}
+          {earliest ?
+            timestampDist((earliest.due - now()) / 1000)
+          : "<unknown time>"}
           .
         </p>
       )
@@ -777,7 +773,11 @@ async function selectForgetMode(owner: Owner | null) {
         ref={(e) => (modal = e)}
         refPortal={(e) => (portal = e)}
         onClose={(value) => {
-          resolve(value == "false" ? false : value == "true" ? true : null)
+          resolve(
+            value == "false" ? false
+            : value == "true" ? true
+            : null,
+          )
           portal.ontransitionend = () => portal.remove()
         }}
       >

@@ -278,16 +278,18 @@ export function treeToLatex(tree: Tree): {
         const written = write(tree.value[1])
         return {
           value: written + "i",
-          precedence: written.startsWith("-")
-            ? Precedence.UnaryFunction
+          precedence:
+            written.startsWith("-") ?
+              Precedence.UnaryFunction
             : Precedence.TightImplicitMultiplication,
         }
       } else {
         const written = write(tree.value[0])
         return {
           value: written,
-          precedence: written.startsWith("-")
-            ? Precedence.UnaryFunction
+          precedence:
+            written.startsWith("-") ?
+              Precedence.UnaryFunction
             : Precedence.Leaf,
         }
       }
@@ -313,9 +315,9 @@ export function treeToLatex(tree: Tree): {
 
       if (tree.name == "sqr" || tree.name == "cube") {
         const arg =
-          precedence < Precedence.Exponentiation
-            ? value
-            : `\\left(${value}\\right)`
+          precedence < Precedence.Exponentiation ?
+            value
+          : `\\left(${value}\\right)`
 
         return {
           value: `${arg}^{${tree.name == "sqr" ? "2" : "3"}}`,
@@ -324,9 +326,9 @@ export function treeToLatex(tree: Tree): {
       }
 
       const arg =
-        precedence <= Precedence.UnaryFunction
-          ? value
-          : `\\left(${value}\\right)`
+        precedence <= Precedence.UnaryFunction ?
+          value
+        : `\\left(${value}\\right)`
 
       const fn = {
         sin: "\\sin ",

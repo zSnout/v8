@@ -6,11 +6,9 @@ import openGraphImage from "./open-graph.jpg"
 
 const blog = (await getCollection("blog", (entry) => !entry.data.draft)).sort(
   (a, b) =>
-    a.data.published < b.data.published
-      ? 1
-      : a.data.published > b.data.published
-      ? -1
-      : 0,
+    a.data.published < b.data.published ? 1
+    : a.data.published > b.data.published ? -1
+    : 0,
 )
 ---
 

@@ -34,7 +34,23 @@ export function renameFieldAccessesInTemplates(
         afmt = tmpl.afmt
       }
 
-      return { id: tmpl.id, name: tmpl.name, qfmt, afmt }
+      const qbc = tmpl.qb ? Template.parse(tmpl.qb) : null
+      let qb
+      if (qbc?.ok) {
+        qb = Template.toSource(Template.renameFields(qbc.value, renames))
+      } else {
+        qb = tmpl.qb
+      }
+
+      const abc = tmpl.ab ? Template.parse(tmpl.ab) : null
+      let ab
+      if (abc?.ok) {
+        ab = Template.toSource(Template.renameFields(abc.value, renames))
+      } else {
+        ab = tmpl.ab
+      }
+
+      return { id: tmpl.id, name: tmpl.name, qfmt, afmt, qb, ab }
     }),
   )
 }

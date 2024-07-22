@@ -196,14 +196,18 @@ function ref(canvas: HTMLCanvasElement) {
       const { x: x0, y: y0 } = convertGraphToCanvas(0, 0)
 
       const xp =
-        (Math.abs(x0 / scale() - event.clientX) < THEME_ZOOM_ZERO_SNAP_DISTANCE
-          ? x0 / scale()
-          : event.clientX) / canvas.clientWidth
+        ((
+          Math.abs(x0 / scale() - event.clientX) < THEME_ZOOM_ZERO_SNAP_DISTANCE
+        ) ?
+          x0 / scale()
+        : event.clientX) / canvas.clientWidth
 
       const yp =
-        (Math.abs(y0 / scale() - event.clientY) < THEME_ZOOM_ZERO_SNAP_DISTANCE
-          ? y0 / scale()
-          : event.clientY) / canvas.clientHeight
+        ((
+          Math.abs(y0 / scale() - event.clientY) < THEME_ZOOM_ZERO_SNAP_DISTANCE
+        ) ?
+          y0 / scale()
+        : event.clientY) / canvas.clientHeight
 
       const n = event.deltaY > 0 ? 1.08 : 0.92
 
@@ -381,11 +385,9 @@ function ref(canvas: HTMLCanvasElement) {
     const { y } = convertGraphToCanvas(0, 0)
 
     const pos =
-      y + 7.5 * scale() + letterSize > height()
-        ? "bottom"
-        : y + 1.5 * scale() < 0
-        ? "top"
-        : "middle"
+      y + 7.5 * scale() + letterSize > height() ? "bottom"
+      : y + 1.5 * scale() < 0 ? "top"
+      : "middle"
 
     if (pos == "middle") {
       ctx.fillStyle = THEME_AXIS_NUMBER_ONSCREEN

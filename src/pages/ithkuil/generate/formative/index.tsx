@@ -659,33 +659,22 @@ function VnSelector(props: { get(): VN; set(value: VN): void }) {
           const previousGroup = getVnGroup(previous)
 
           const previousIndex =
-            (previousGroup == "Valence"
-              ? ALL_VALENCES
-              : previousGroup == "Phase"
-              ? ALL_PHASES
-              : previousGroup == "Effect"
-              ? ALL_EFFECTS
-              : previousGroup == "Level"
-              ? ALL_LEVELS
-              : ALL_ASPECTS
+            (previousGroup == "Valence" ? ALL_VALENCES
+            : previousGroup == "Phase" ? ALL_PHASES
+            : previousGroup == "Effect" ? ALL_EFFECTS
+            : previousGroup == "Level" ? ALL_LEVELS
+            : ALL_ASPECTS
             ).indexOf(previous as any as never) % 9
 
           props.set(
-            (value == "Valence"
-              ? ALL_VALENCES
-              : value == "Phase"
-              ? ALL_PHASES
-              : value == "Effect"
-              ? ALL_EFFECTS
-              : value == "Level"
-              ? ALL_LEVELS
-              : value == "Aspects I"
-              ? ALL_ASPECTS
-              : value == "Aspects II"
-              ? ALL_ASPECTS.slice(9, 18)
-              : value == "Aspects III"
-              ? ALL_ASPECTS.slice(18, 27)
-              : ALL_ASPECTS.slice(27, 36))[previousIndex] || "MNO",
+            (value == "Valence" ? ALL_VALENCES
+            : value == "Phase" ? ALL_PHASES
+            : value == "Effect" ? ALL_EFFECTS
+            : value == "Level" ? ALL_LEVELS
+            : value == "Aspects I" ? ALL_ASPECTS
+            : value == "Aspects II" ? ALL_ASPECTS.slice(9, 18)
+            : value == "Aspects III" ? ALL_ASPECTS.slice(18, 27)
+            : ALL_ASPECTS.slice(27, 36))[previousIndex] || "MNO",
           )
         }}
       />
@@ -715,21 +704,16 @@ function VnSelector(props: { get(): VN; set(value: VN): void }) {
 
           const group = getVnGroup(value)
 
-          return group == "Valence"
-            ? ALL_VALENCES
-            : group == "Phase"
-            ? ALL_PHASES
-            : group == "Effect"
-            ? ALL_EFFECTS
-            : group == "Level"
-            ? ALL_LEVELS
-            : group == "Aspects I"
-            ? ALL_ASPECTS.slice(0, 9)
-            : group == "Aspects II"
-            ? ALL_ASPECTS.slice(9, 18)
-            : group == "Aspects III"
-            ? ALL_ASPECTS.slice(18, 27)
+          return (
+            group == "Valence" ? ALL_VALENCES
+            : group == "Phase" ? ALL_PHASES
+            : group == "Effect" ? ALL_EFFECTS
+            : group == "Level" ? ALL_LEVELS
+            : group == "Aspects I" ? ALL_ASPECTS.slice(0, 9)
+            : group == "Aspects II" ? ALL_ASPECTS.slice(9, 18)
+            : group == "Aspects III" ? ALL_ASPECTS.slice(18, 27)
             : ALL_ASPECTS.slice(27, 36)
+          )
         })()}
         set={props.set}
       />
@@ -800,9 +784,9 @@ function IllocutionOrValidationSelector(props: {
     <div
       class={
         "[&>:first-child>:nth-child(2)]:rounded-b-none [&>:nth-child(2)>:first-child]:rounded-t-none [&>:nth-child(2)>:first-child]:border-t-0" +
-        (has(ALL_VALIDATIONS, props.get())
-          ? ""
-          : " [&>:nth-child(2)>:first-child]:opacity-30")
+        (has(ALL_VALIDATIONS, props.get()) ? "" : (
+          " [&>:nth-child(2)>:first-child]:opacity-30"
+        ))
       }
     >
       <SelectField
@@ -915,9 +899,9 @@ function AffixGroupSelector(props: {
         icon={faAdd}
         title="Add Affix"
         class={
-          props.get().length
-            ? "left-[100%] top-[calc(100%_-_0.5rem)]"
-            : "left-[100%] top-[calc(50%_+_0.125rem)]"
+          props.get().length ?
+            "left-[100%] top-[calc(100%_-_0.5rem)]"
+          : "left-[100%] top-[calc(50%_+_0.125rem)]"
         }
       />
     </div>
@@ -1008,27 +992,26 @@ export function Main() {
     }
 
     const finalSlotVIIAffix: Affix | undefined =
-      affixShortcut_ == "NEG/4"
-        ? { cs: "r", degree: 4, type: 1 }
-        : affixShortcut_ == "DCD/4"
-        ? { cs: "t", degree: 4, type: 1 }
-        : affixShortcut_ == "DCD/5"
-        ? { cs: "t", degree: 5, type: 1 }
-        : undefined
+      affixShortcut_ == "NEG/4" ? { cs: "r", degree: 4, type: 1 }
+      : affixShortcut_ == "DCD/4" ? { cs: "t", degree: 4, type: 1 }
+      : affixShortcut_ == "DCD/5" ? { cs: "t", degree: 5, type: 1 }
+      : undefined
 
     return {
       type: rel == "UNF/K" || rel == "FRM" ? rel : "UNF/C",
-      shortcut: affixShortcut_
-        ? otherShortcut_ == "MCS"
-          ? "VII+VIII"
+      shortcut:
+        affixShortcut_ ?
+          otherShortcut_ == "MCS" ?
+            "VII+VIII"
           : "VII"
-        : otherShortcut_ == "MCS"
-        ? "VIII"
-        : otherShortcut_ == "Ca"
-        ? "IV/VI"
+        : otherShortcut_ == "MCS" ? "VIII"
+        : otherShortcut_ == "Ca" ? "IV/VI"
         : undefined,
 
-      concatenationType: rel == "T1" ? 1 : rel == "T2" ? 2 : undefined,
+      concatenationType:
+        rel == "T1" ? 1
+        : rel == "T2" ? 2
+        : undefined,
 
       version: version(),
       stem: stem(),
@@ -1061,9 +1044,9 @@ export function Main() {
       <div
         class={
           "bottom-0 mt-4 -translate-x-8 bg-z-body px-8 py-4 shadow-[0_-15px_10px_-10px_rgba(0,0,0,0.1)] transition " +
-          (sticky
-            ? "invisible sticky w-[calc(100%_+_4rem)]"
-            : "fixed w-[calc(min(64rem,100%)_+_4rem)]")
+          (sticky ?
+            "invisible sticky w-[calc(100%_+_4rem)]"
+          : "fixed w-[calc(min(64rem,100%)_+_4rem)]")
         }
         aria-hidden={sticky}
       >

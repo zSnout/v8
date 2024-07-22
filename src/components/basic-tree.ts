@@ -157,9 +157,9 @@ export class BasicTree<T> {
         const val = (tree as Record<string, unknown>)[key]
 
         if (
-          typeof val == "object"
-            ? !checkIsBoolTree(val)
-            : typeof val != "boolean"
+          typeof val == "object" ?
+            !checkIsBoolTree(val)
+          : typeof val != "boolean"
         ) {
           return false
         }

@@ -345,10 +345,10 @@ LatexCmds.piecewise = LatexCmds.switch = class extends Extendable {
           "span",
           {
             class:
-              index % 2
-                ? "mq-non-leaf mq-piecewise-right" +
-                  (index == size - 1 ? " mq-piecewise-final" : "")
-                : "mq-non-leaf mq-piecewise-left",
+              index % 2 ?
+                "mq-non-leaf mq-piecewise-right" +
+                (index == size - 1 ? " mq-piecewise-final" : "")
+              : "mq-non-leaf mq-piecewise-left",
           },
           block,
         ),
@@ -731,13 +731,13 @@ class AlignBar extends MQSymbol {
     const extendable = cursor.parent.parent
 
     const left =
-      cursor[L] && block.getEnd(L)
-        ? new Fragment(block.getEnd(L), cursor[L], L)
-        : new Fragment(0, 0, 1)
+      cursor[L] && block.getEnd(L) ?
+        new Fragment(block.getEnd(L), cursor[L], L)
+      : new Fragment(0, 0, 1)
     const right =
-      cursor[R] && block.getEnd(R)
-        ? new Fragment(cursor[R], block.getEnd(R), L)
-        : new Fragment(0, 0, 1)
+      cursor[R] && block.getEnd(R) ?
+        new Fragment(cursor[R], block.getEnd(R), L)
+      : new Fragment(0, 0, 1)
     const blockLeft = new MathBlock()
     left.adopt(blockLeft, 0, 0)
     const blockRight = new MathBlock()

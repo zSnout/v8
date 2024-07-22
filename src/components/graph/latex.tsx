@@ -319,11 +319,9 @@ export function spliceSymbolsInPlace(
           type: "number",
           value: self.value + next.value,
           cursor:
-            self.cursor != null
-              ? self.cursor
-              : next.cursor != null
-              ? next.cursor + self.value.length
-              : undefined,
+            self.cursor != null ? self.cursor
+            : next.cursor != null ? next.cursor + self.value.length
+            : undefined,
         })
         end -= 1
         continue
@@ -391,19 +389,17 @@ export function spliceSymbolsInPlace(
       }
 
       const symbol: Symbol[] =
-        typeof all == "string"
-          ? [
-              {
-                type: "fn",
-                value: word,
-                cursor: cursorIndex == null ? undefined : cursorIndex - index,
-              },
-            ]
-          : cursorIndex == index
-          ? [{ type: "cursor" }, structuredClone(all[1])]
-          : cursorIndex != null
-          ? [structuredClone(all[1]), { type: "cursor" }]
-          : [structuredClone(all[1])]
+        typeof all == "string" ?
+          [
+            {
+              type: "fn",
+              value: word,
+              cursor: cursorIndex == null ? undefined : cursorIndex - index,
+            },
+          ]
+        : cursorIndex == index ? [{ type: "cursor" }, structuredClone(all[1])]
+        : cursorIndex != null ? [structuredClone(all[1]), { type: "cursor" }]
+        : [structuredClone(all[1])]
 
       const deleted = subindex - index + (cursorIndex == subindex ? 0 : 1)
       current.splice(index, deleted, ...symbol)
@@ -559,14 +555,14 @@ export function SymbolList(props: {
 
           case "fn": {
             const prev =
-              props.symbols[index() - 1]?.type == "cursor"
-                ? props.symbols[index() - 2]?.type
-                : props.symbols[index() - 1]?.type
+              props.symbols[index() - 1]?.type == "cursor" ?
+                props.symbols[index() - 2]?.type
+              : props.symbols[index() - 1]?.type
 
             const next =
-              props.symbols[index() + 1]?.type == "cursor"
-                ? props.symbols[index() + 2]?.type
-                : props.symbols[index() + 1]?.type
+              props.symbols[index() + 1]?.type == "cursor" ?
+                props.symbols[index() + 2]?.type
+              : props.symbols[index() + 1]?.type
 
             const spaceBefore = !(
               prev == null ||
@@ -600,9 +596,9 @@ export function SymbolList(props: {
           case "sub":
           case "supsub": {
             const prev =
-              props.symbols[index() - 1]?.type == "cursor"
-                ? props.symbols[index() - 2]?.type
-                : props.symbols[index() - 1]?.type
+              props.symbols[index() - 1]?.type == "cursor" ?
+                props.symbols[index() - 2]?.type
+              : props.symbols[index() - 1]?.type
 
             return drawSymbol(
               { ...symbol, spaceAfter: prev == "fn" },
@@ -1667,7 +1663,10 @@ export function getTargetInfo(
   const type = node.getAttribute("data-latex")
 
   const score =
-    type == "leaf" ? 0 : type == "shape" ? 1 : type == "group" ? 2 : 3
+    type == "leaf" ? 0
+    : type == "shape" ? 1
+    : type == "group" ? 2
+    : 3
 
   const box = node.getBoundingClientRect()
 
@@ -1678,8 +1677,14 @@ export function getTargetInfo(
 
   return {
     node,
-    x: clientX < xmin ? xmin - clientX : clientX > xmax ? clientX - xmax : 0,
-    y: clientY < ymin ? ymin - clientY : clientY > ymax ? clientY - ymax : 0,
+    x:
+      clientX < xmin ? xmin - clientX
+      : clientX > xmax ? clientX - xmax
+      : 0,
+    y:
+      clientY < ymin ? ymin - clientY
+      : clientY > ymax ? clientY - ymax
+      : 0,
     type: (["leaf", "shape", "group", ,] as const)[score],
     score: score,
   }

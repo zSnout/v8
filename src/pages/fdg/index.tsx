@@ -712,26 +712,26 @@ export function Main() {
         >
           <strong>left button can:</strong>
           <p>
-            {makeLinksOnClick()
-              ? "click a node to delete it"
-              : "click a node to lock it"}
+            {makeLinksOnClick() ?
+              "click a node to delete it"
+            : "click a node to lock it"}
           </p>
           <p>
-            {makeLinksOnClick()
-              ? "drag to connect nodes"
-              : "drag a node to to move it"}
+            {makeLinksOnClick() ?
+              "drag to connect nodes"
+            : "drag a node to to move it"}
           </p>
           <p>click empty space to make a node</p>
           <strong>right button can:</strong>
           <p>
-            {makeLinksOnClick()
-              ? "click a node to lock it"
-              : "click a node to delete it"}
+            {makeLinksOnClick() ?
+              "click a node to lock it"
+            : "click a node to delete it"}
           </p>
           <p>
-            {makeLinksOnClick()
-              ? "drag a node to move it"
-              : "drag to connect nodes"}
+            {makeLinksOnClick() ?
+              "drag a node to move it"
+            : "drag to connect nodes"}
           </p>
           <strong>click here to toggle mouse buttons</strong>
         </button>
