@@ -9,9 +9,10 @@ export function isInteractive(event: Event) {
       el instanceof HTMLElement &&
       (typableTags.includes(el.tagName) ||
         el.dataset.zInteractive != null ||
-        el.contentEditable ||
+        el.isContentEditable ||
         el.classList.contains("mq-editable-field"))
     ) {
+      console.log({ el })
       return true
     }
   }
@@ -56,6 +57,8 @@ export function draggable(element: HTMLElement) {
   createEventListener(element, "pointerdown", init)
 
   function init(event: PointerEvent) {
+    console.log(event, isInteractive(event))
+
     if (isInteractive(event)) {
       return
     }
