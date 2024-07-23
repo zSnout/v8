@@ -3,18 +3,16 @@ import { int } from "../checks"
 import { db } from "../db"
 
 export function manage_models_count(mid: Id) {
-  const tx = db.tx()
+  const tx = db.read()
   try {
-    const nids = db.val("SELECT COUNT() FROM notes WHERE mid = ?", int, [mid])
-
-    const cids = db.val(
-      "SELECT COUNT() FROM cards WHERE (SELECT mid FROM notes WHERE notes.id = cards.nid) = ?",
-      int,
-      [mid],
-    )
-
-    tx.commit()
-    return { nids, cids }
+    return {
+      nids: db.val("SELECT COUNT() FROM notes WHERE mid = ?", int, [mid]),
+      cids: db.val(
+        "SELECT COUNT() FROM cards WHERE (SELECT mid FROM notes WHERE notes.id = cards.nid) = ?",
+        int,
+        [mid],
+      ),
+    }
   } finally {
     tx.dispose()
   }

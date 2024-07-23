@@ -1,15 +1,17 @@
+// @ts-ignore shut up typescript. this makes vite happy
+import sqlite3InitModule from "../../../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
+
+import { notNull } from "@/components/pray"
 import type { Cloneable } from "@/learn/message"
 import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
 import type { Handler, ToScript, ToWorker } from "."
-// @ts-ignore shut up typescript. this makes vite happy
-import sqlite3InitModule from "../../../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
+import { startOfDaySync } from "../db/day"
+import type { Reason } from "../db/reason"
+import { randomId } from "../lib/id"
 import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
 import { latest } from "./version"
 
-import { notNull } from "@/components/pray"
-import { startOfDaySync } from "../db/day"
-import { randomId } from "../lib/id"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 
@@ -26,16 +28,12 @@ if (!("opfs" in sqlite3)) {
 }
 
 export class WorkerDB extends sqlite3.oo1.OpfsDb {
-  txReadonly() {
+  read() {
     return new TxReadonly()
   }
 
-  txReadwrite() {
+  readwrite(_reason: Reason) {
     return new TxReadwrite()
-  }
-
-  tx() {
-    return new Tx()
   }
 
   run(sql: string, params?: BindingSpec): SqlValue[][] {
@@ -298,7 +296,7 @@ export class Tx {
   }
 }
 
-export class TxReadonly {
+class TxReadonly {
   private done = false
 
   constructor() {
@@ -320,7 +318,7 @@ export class TxReadonly {
   }
 }
 
-export class TxReadwrite {
+class TxReadwrite {
   private done = false
 
   constructor() {
@@ -392,24 +390,6 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
   }
 })
 
-export class DbWrapper {
-  readonly #db
-
-  constructor(db: WorkerDB) {
-    this.#db = db
-  }
-
-  read(): [TxReadonly, WorkerDB] {
-    const tx = new TxReadonly()
-    return [tx, this.#db]
-  }
-
-  readwrite(): [TxReadwrite, WorkerDB] {
-    const tx = new TxReadwrite()
-    return [tx, this.#db]
-  }
-}
-
 /** This is a `let` binding so we can close and reopen it. */
 export let db = await init()
 
@@ -438,7 +418,7 @@ function createClosedDatabase(message: string) {
 
 export async function closeDatabaseTemporarily(
   message: string,
-  fn: () => Promise<void>,
+  fn: () => Promise<unknown>,
 ) {
   try {
     db.close()

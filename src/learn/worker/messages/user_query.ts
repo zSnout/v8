@@ -37,12 +37,32 @@ function split(text: string) {
   return output.filter((x) => x.trim())
 }
 
-export function user_query_unsafe(
+export function user_query(
   query: string,
+  commit: boolean,
   bindings?: BindingSpec,
 ): {
   columns: string[]
   values: SqlValue[][]
 }[] {
-  return split(query).map((query) => db.runWithColumns(query, bindings))
+  const isUnsafe = /begin|transaction|commit|rollback/i.test(query)
+
+  if (isUnsafe) {
+    throw new Error(
+      "User queries are automatically run in transactions. For manual control, use SAVEPOINT and RELEASE.",
+    )
+  }
+
+  const tx = db.readwrite(
+    `User query ${query.length > 20 ? query.slice(0, 20) + "..." : query}`,
+  )
+  try {
+    const data = split(query).map((query) => db.runWithColumns(query, bindings))
+    if (commit) {
+      tx.commit()
+    }
+    return data
+  } finally {
+    tx.dispose()
+  }
 }

@@ -37,11 +37,9 @@ export function deck_done_today_txless(decks: Id[], dayStart: number) {
 }
 
 export function deck_done_today(decks: Id[], dayStart: number) {
-  const tx = db.tx()
+  const tx = db.read()
   try {
-    const value = deck_done_today_txless(decks, dayStart)
-    tx.commit()
-    return value
+    return deck_done_today_txless(decks, dayStart)
   } finally {
     tx.dispose()
   }

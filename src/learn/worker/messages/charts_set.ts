@@ -3,7 +3,7 @@ import { db } from "../db"
 import { stmts } from "../stmts"
 
 export function charts_set(data: ChartCard[]) {
-  const tx = db.tx()
+  const tx = db.readwrite("Set charts")
   try {
     db.exec("DELETE FROM charts")
     const stmt = db.prepare(stmts.charts.insert)

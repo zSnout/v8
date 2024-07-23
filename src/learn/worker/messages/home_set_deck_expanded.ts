@@ -5,7 +5,7 @@ export function home_set_deck_expanded(
   idOrName: Id | string,
   expanded: boolean,
 ) {
-  const tx = db.tx()
+  const tx = db.readwrite("Toggle whether deck is collapsed")
 
   try {
     if (typeof idOrName == "number") {

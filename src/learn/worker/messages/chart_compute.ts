@@ -6,7 +6,7 @@ import type {
   ChartOption,
 } from "@/learn/lib/types"
 import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
-import { user_query_safe } from "./user_query_safe"
+import { user_query } from "./user_query"
 
 function axis(
   label: `${"main" | "cross"} axis ${"minimum" | "maximum" | "group size"}`,
@@ -22,7 +22,7 @@ function axis(
     return numeric
   }
 
-  const row = user_query_safe(value, binding).at(-1)?.values
+  const row = user_query(value, false, binding).at(-1)?.values
   if (!row || !row[0] || row.length != 1 || row[0].length != 1) {
     throw new Error("Query for " + label + " must return exactly one value.")
   }
@@ -132,7 +132,7 @@ function groupData(
 export function chart_compute(chart: ChartCard): ChartComputedInfo | null {
   const bindings = options(chart.options)
 
-  const raw = user_query_safe(chart.query, bindings).at(-1)
+  const raw = user_query(chart.query, false, bindings).at(-1)
   if (!raw) {
     throw new Error("The main query returned no data.")
   }

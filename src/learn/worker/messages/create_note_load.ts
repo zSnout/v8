@@ -6,7 +6,7 @@ import { stmts } from "../stmts"
 import { prefs_get } from "./prefs_get"
 
 export function create_note_load(state: { did?: Id; mid?: Id }) {
-  const tx = db.tx()
+  const tx = db.read()
 
   try {
     const prefs = prefs_get()
@@ -39,7 +39,6 @@ export function create_note_load(state: { did?: Id; mid?: Id }) {
       decksByName: nameToRecord(allDecks),
       modelsByName: nameToRecord(allModels),
     }
-    tx.commit()
     return value
   } finally {
     tx.dispose()

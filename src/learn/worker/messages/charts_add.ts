@@ -4,7 +4,7 @@ import { db } from "../db"
 import { stmts } from "../stmts"
 
 export function charts_add(title: string, query: string) {
-  const tx = db.tx()
+  const tx = db.readwrite("Create chart")
   try {
     const max = db.selectValue("SELECT max(id) FROM charts")
     const next = typeof max == "number" ? max + 1 : 0

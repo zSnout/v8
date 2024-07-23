@@ -7,7 +7,7 @@ export function manage_models_save(
   added: AddedModel[],
   removed: RemovedModel[],
 ) {
-  const tx = db.tx()
+  const tx = db.readwrite("Manage models")
   try {
     if (added.length) {
       const stmt = db.prepare(stmts.models.insert)

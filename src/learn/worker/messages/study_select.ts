@@ -115,12 +115,10 @@ export function study_select_txless(root: Id | null, all: Id[]) {
 }
 
 export function study_select(root: Id | null, all: Id[]) {
-  const tx = db.tx()
+  const tx = db.read()
 
   try {
-    const value = study_select_txless(root, all)
-    tx.commit()
-    return value
+    return study_select_txless(root, all)
   } finally {
     tx.dispose()
   }

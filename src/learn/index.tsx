@@ -86,11 +86,7 @@ function UndoManager(worker: Worker) {
 }
 
 const InsideErrorHandler = createLoadingBase<void, Worker>(
-  async () => {
-    const worker = new Worker()
-    await worker.post("ready")
-    return worker
-  },
+  () => new Worker().ready,
   (_, worker) => {
     return <Toasts.Root>{Layers.Root(UndoManager, worker)}</Toasts.Root>
   },

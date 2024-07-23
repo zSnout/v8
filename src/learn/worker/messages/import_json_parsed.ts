@@ -17,7 +17,7 @@ function inner<T>(
 }
 
 export function import_json_parsed(data: Collection) {
-  const tx = db.tx()
+  const tx = db.readwrite("Import collection JSON")
   try {
     db.exec(query_reset)
     db.exec(query_schema)

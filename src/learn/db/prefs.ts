@@ -1,8 +1,8 @@
 import { createPrefs } from "@/learn/lib/defaults"
 import { Prefs } from "@/learn/lib/types"
 import { createStore, SetStoreFunction, unwrap } from "solid-js/store"
-import { Reason } from "./reason"
 import type { Worker } from "."
+import { Reason } from "./reason"
 
 export function createPrefsStore(
   worker: Worker,
@@ -22,11 +22,11 @@ export function createPrefsStore(
 
   return [
     get,
-    (_reason) =>
+    (reason: Reason) =>
       function (this: any) {
         // TODO: implement undo-redo
         set.apply(this, arguments as never)
-        worker.post("prefs_set", unwrap(get))
+        worker.post("prefs_set", unwrap(get), reason)
       } as SetStoreFunction<Prefs>,
     ready,
   ]

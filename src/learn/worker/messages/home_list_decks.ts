@@ -40,7 +40,7 @@ function bucketOfArray(
 }
 
 export function home_list_decks() {
-  const tx = db.tx()
+  const tx = db.read()
 
   try {
     const dayStart = db.val("SELECT day_start FROM prefs WHERE id = 0", int)
@@ -128,7 +128,6 @@ export function home_list_decks() {
 
     delete tree.tree[""]
 
-    tx.commit()
     return { tree: tree.tree, global: sub.get("") ?? [0, 0, 0] }
   } finally {
     tx.dispose()

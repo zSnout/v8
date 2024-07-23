@@ -74,7 +74,9 @@ function mostPopularId(dids: Id[]) {
 }
 
 export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
-  const tx = db.tx()
+  const tx = db.readwrite(
+    `Update ${editStyle ? "templates" : "fields"} for model ${model.name}`,
+  )
 
   try {
     const now = Date.now()

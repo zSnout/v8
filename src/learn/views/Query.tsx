@@ -285,11 +285,7 @@ export function Query(
 
   async function run() {
     try {
-      if (safe()) {
-        setResult(await worker.post("user_query_safe", untrack(query)))
-      } else {
-        setResult(await worker.post("user_query_unsafe", untrack(query)))
-      }
+      setResult(await worker.post("user_query", untrack(query), !safe()))
     } catch (err) {
       console.error(err)
       setResult(String(err))
@@ -298,7 +294,7 @@ export function Query(
 
   async function runSafely(q = untrack(query)) {
     try {
-      setResult(await worker.post("user_query_safe", q))
+      setResult(await worker.post("user_query", q, false))
     } catch (err) {
       console.error(err)
       setResult(String(err))

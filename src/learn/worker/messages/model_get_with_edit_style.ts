@@ -6,9 +6,9 @@ import { db } from "../db"
 import { stmts } from "../stmts"
 
 export function model_get_with_edit_style(mid: Id) {
-  const tx = db.tx()
+  const tx = db.read()
   try {
-    const data = {
+    return {
       model: stmts.models.interpret(
         db.row("SELECT * FROM models WHERE id = ?", [mid]),
       ),
@@ -19,8 +19,6 @@ export function model_get_with_edit_style(mid: Id) {
         ),
       ),
     }
-    tx.commit()
-    return data
   } finally {
     tx.dispose()
   }

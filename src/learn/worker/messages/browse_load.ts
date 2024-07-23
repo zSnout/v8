@@ -144,7 +144,7 @@ export function makeColumns(
 }
 
 export function browse_load() {
-  const tx = db.tx()
+  const tx = db.read()
 
   try {
     const decks = db.run("SELECT * FROM decks").map(stmts.decks.interpret)
@@ -186,7 +186,6 @@ export function browse_load() {
         }
       }),
     }
-    tx.commit()
     return result
   } finally {
     tx.dispose()

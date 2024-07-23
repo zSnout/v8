@@ -8,10 +8,14 @@ export type Reason =
   | "Toggle debug features"
   | "Toggle whether due counts are shown during reviews"
   | "Toggle whether due dates are shown above review buttons"
-  | "Import collection"
+  | "Import collection JSON"
   | "Toggle sidebar"
   | "Toggle flag visibility in sidebar"
   | "Toggle whether note is marked"
+  | "Set card due date"
+  | "Create chart"
+  | "Set charts"
+  | "Manage models"
   | `Toggle ${string} column visibility in browser`
   | `Review card as ${string}`
   | `Toggle ${string} card flag`
@@ -19,6 +23,4 @@ export type Reason =
   | `Update ${"fields" | "templates"} for model ${string}`
   | `Create note in ${string}`
   | `Create deck ${string}`
-  | `Create model(s) ${string}`
-  | `Delete model(s) ${string}`
-  | `Create model(s) ${string} and delete ${string}`
+  | `User query ${string}`

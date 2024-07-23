@@ -70,7 +70,7 @@ export function create_note(
     throw new Error("Note generated no cards.")
   }
 
-  const tx = db.tx()
+  const tx = db.readwrite(`Create note in ${deck.name}`)
   try {
     db.run(stmts.notes.insert, stmts.notes.insertArgs(note))
 

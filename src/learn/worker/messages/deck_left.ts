@@ -35,11 +35,9 @@ export function deck_left_txless(decks: Id[]) {
 }
 
 export function deck_left(decks: Id[]) {
-  const tx = db.tx()
+  const tx = db.read()
   try {
-    const value = deck_left_txless(decks)
-    tx.commit()
-    return value
+    return deck_left_txless(decks)
   } finally {
     tx.dispose()
   }
