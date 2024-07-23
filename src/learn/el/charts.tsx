@@ -95,7 +95,7 @@ export function DrawChartBar(
 
   return (
     <div
-      class="relative flex aspect-video transform"
+      class="relative flex flex-1 transform"
       classList={{ "gap-2": chart.space }}
     >
       <Bars />
@@ -117,7 +117,7 @@ export function DrawChartBar(
   }
 
   function GridY() {
-    const d = (max - min) / 10
+    const d = (max - min) / 6
     const exp = 10 ** Math.floor(Math.log10(d))
     const q = Math.ceil(d / exp) * exp
     const A = Math.floor(min / q) * q
@@ -303,7 +303,7 @@ export function DrawStatCard(
   const padded = () => card.style.padded
   return (
     <div
-      class="relative transform overflow-hidden border-z transition"
+      class="relative flex aspect-[16/10] transform flex-col overflow-hidden border-z transition"
       classList={{
         "bg-z-body-selected": card.style.layered,
         "p-2": padded(),

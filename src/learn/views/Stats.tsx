@@ -573,7 +573,7 @@ export function Stats(worker: Worker, pop: () => void): LayerOutput {
             >
               <Unmain>
                 <div class="flex px-6">
-                  <div class="mx-auto grid w-full max-w-[80rem] grid-cols-[repeat(auto-fill,minmax(min(24rem,100%),1fr))] gap-4">
+                  <div class="mx-auto grid w-full max-w-[100rem] grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3">
                     <For each={charts}>{Stat}</For>
                     <Show when={editing()}>
                       <button

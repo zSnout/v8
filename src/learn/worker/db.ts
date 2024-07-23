@@ -197,7 +197,6 @@ async function init() {
     db.createFunction({
       name: "start_of_day",
       xFunc(_ctxPtr) {
-        console.log(_ctxPtr)
         return startOfDaySync(
           notNull(
             db.selectValue(
