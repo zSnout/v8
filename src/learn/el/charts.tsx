@@ -1,12 +1,14 @@
+import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { timestampDist } from "@/pages/quiz/shared"
 import { isDark } from "@/stores/theme"
-import { For, Show } from "solid-js"
+import { For, Match, Show, Switch } from "solid-js"
 import type {
   Chart,
   ChartCard,
   ChartColors,
   ChartComputedInfo,
   ChartLabelFormat,
+  ChartOption,
   ChartStyle,
 } from "../lib/types"
 
@@ -96,7 +98,6 @@ export function DrawChartBar(
       class="relative flex aspect-video transform"
       classList={{ "gap-2": chart.space }}
     >
-      {/* <GridLines /> */}
       <Bars />
       <GridY />
     </div>
@@ -123,10 +124,11 @@ export function DrawChartBar(
 
     return (
       <div
-        class="fixed left-0 right-0 top-0 transform"
+        class="fixed left-0 right-0 top-0 transform border-z-grid-line"
         classList={{
           "bottom-6": chart.mainAxis.label.display == "separate",
           "bottom-0": chart.mainAxis.label.display != "separate",
+          "border-b": chart.mainAxis.label.display == "separate",
         }}
       >
         <For each={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
@@ -147,8 +149,8 @@ export function DrawChartBar(
           class="fixed left-2 w-full -translate-y-1/2 transform items-center gap-2 whitespace-nowrap even:hidden xs:even:block"
           style={{ top: height + "%" }}
         >
-          <div class="text-sm text-z-heading">{props.value}</div>
-          <div class="fixed -left-2 top-1/2 h-px w-full border-b border-slate-950/10 dark:border-slate-50/10" />
+          <div class="text-sm text-z-grid-label">{props.value}</div>
+          <div class="fixed -left-2 top-1/2 h-px w-full border-b border-z-grid-line" />
         </div>
       )
     }
@@ -254,16 +256,11 @@ export function DrawChartBar(
   function DrawLabel(label: string | number) {
     return (
       <div
-        class="bottom-0 w-full max-w-full transform overflow-hidden py-0.5 text-center text-sm"
+        class="bottom-0 w-full max-w-full transform overflow-hidden py-0.5 text-center text-sm text-z-grid-label"
         classList={{
           hidden: chart.mainAxis.label.display == "hidden",
-          "text-z-subtitle": chart.mainAxis.label.display != "inline",
-          "text-z-bg-body": chart.mainAxis.label.display == "inline",
           relative: chart.mainAxis.label.display != "inline",
           fixed: chart.mainAxis.label.display == "inline",
-          "pb-1": chart.mainAxis.label.display == "inline",
-          // "[text-shadow:_0_1px_0_var(--tw-shadow-color)]":
-          //   chart.mainAxis.label.display == "inline",
         }}
       >
         &nbsp;
@@ -273,6 +270,27 @@ export function DrawChartBar(
       </div>
     )
   }
+}
+
+export function DrawChartOption(props: { option: ChartOption }) {
+  return (
+    <Switch>
+      <Match when={props.option.type == "checkbox" ? props.option : undefined}>
+        {(x) => (
+          <div>
+            <label class="flex w-full gap-2">
+              <Checkbox
+                checked={x().value}
+                // onInput={() => props.set("sort_field", idOf(props.selected.id))}
+              />
+
+              <p>{props.option.label}</p>
+            </label>
+          </div>
+        )}
+      </Match>
+    </Switch>
+  )
 }
 
 export function DrawStatCard(
@@ -294,8 +312,22 @@ export function DrawStatCard(
         border: card.style.bordered,
       }}
     >
+      <ChartTitle />
+      <Show when={card.options.length}>
+        <div class="-mb-px mt-8 flex w-full flex-col gap-1 border-b border-z-grid-line px-2 pb-1">
+          <For each={card.options}>
+            {(option) => <DrawChartOption option={option} />}
+          </For>
+        </div>
+      </Show>
+      {DrawChartBar(card.chart, card.style, data, colors)}
+    </div>
+  )
+
+  function ChartTitle() {
+    return (
       <div
-        class="fixed z-10 max-w-full whitespace-nowrap border-z"
+        class="fixed z-10 max-w-[calc(100%_-_2rem)] overflow-hidden whitespace-nowrap border-z"
         classList={{
           "bg-z-body": floating() && card.style.layered,
           "bg-z-body-selected": floating() && !card.style.layered,
@@ -389,7 +421,6 @@ export function DrawStatCard(
       >
         {card.title}
       </div>
-      {DrawChartBar(card.chart, card.style, data, colors)}
-    </div>
-  )
+    )
+  }
 }

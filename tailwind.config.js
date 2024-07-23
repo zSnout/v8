@@ -22,6 +22,16 @@ export default {
         "sp-sans":
           'var(--font-sp), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
       },
+      colors: {
+        "z-border-grid-line": "var(--z-border-grid-line)",
+        "z-text-grid-label": "var(--z-text-grid-label)",
+      },
+      textColor: {
+        "z-grid-label": "var(--z-text-grid-label)",
+      },
+      borderColor: {
+        "z-grid-line": "var(--z-border-grid-line)",
+      },
     },
   },
   plugins: [
