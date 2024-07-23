@@ -115,56 +115,9 @@ export function DrawChartBar(
     )
   }
 
-  function GridLines() {
-    const exp = Math.floor(Math.log10(max - min))
-    const lineSolid = 10 ** exp
-    const lineDashed = lineSolid / 2
-    const lineDotted = lineSolid / 10
-    const min2 = lineDotted * Math.floor(min / lineDotted)
-    const max2 = lineDotted * Math.floor(max / lineDotted)
-
-    console.warn("break")
-    return (
-      <div
-        class="fixed left-0 right-0 top-0 transform"
-        classList={{
-          "bottom-6": chart.mainAxis.label.display == "separate",
-          "bottom-0": chart.mainAxis.label.display != "separate",
-        }}
-      >
-        <For
-          each={Array.from({ length: 20 }, (_, i) => {
-            const height = (i / 20) * (max2 - min2) + min2
-            const mantissa = Math.round(
-              height / 10 ** Math.floor(Math.log10(height)),
-            )
-            if (mantissa == 1) {
-              console.log({ height, mantissa })
-            }
-
-            return {
-              bottom: 100 * ((height - min) / (max - min)) + "%",
-              color:
-                mantissa == 1 ? "red"
-                : mantissa == 2 ? "green"
-                : "var(--z-border)",
-            }
-          })}
-        >
-          {({ bottom, color }) => (
-            <div
-              class="fixed left-0 h-px w-full border-b border-dashed border-z"
-              style={{ bottom, "border-color": color }}
-            />
-          )}
-        </For>
-      </div>
-    )
-  }
-
   function GridY() {
     const d = (max - min) / 10
-    const exp = 10 ** Math.floor(Math.log(d))
+    const exp = 10 ** Math.floor(Math.log10(d))
     const q = Math.ceil(d / exp) * exp
     const A = Math.floor(min / q) * q
 
