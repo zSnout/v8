@@ -26,6 +26,14 @@ if (!("opfs" in sqlite3)) {
 }
 
 export class WorkerDB extends sqlite3.oo1.OpfsDb {
+  txReadonly() {
+    return new TxReadonly()
+  }
+
+  txReadwrite() {
+    return new TxReadwrite()
+  }
+
   tx() {
     return new Tx()
   }
@@ -290,6 +298,68 @@ export class Tx {
   }
 }
 
+export class TxReadonly {
+  private done = false
+
+  constructor() {
+    db.exec("BEGIN TRANSACTION")
+    if (import.meta.env.DEV) {
+      setTimeout(() => {
+        if (!this.done) {
+          console.warn("Readonly transaction was never completed.")
+        }
+      })
+    }
+  }
+
+  dispose() {
+    if (!this.done) {
+      this.done = true
+      db.exec("ROLLBACK")
+    }
+  }
+}
+
+export class TxReadwrite {
+  private done = false
+
+  constructor() {
+    db.exec("BEGIN TRANSACTION")
+    if (import.meta.env.DEV) {
+      setTimeout(() => {
+        if (!this.done) {
+          console.warn("Readwrite transaction was never completed.")
+        }
+      })
+    }
+  }
+
+  commit() {
+    if (this.done) {
+      throw new Error("Cannot commit a transaction after it is finished.")
+    }
+
+    db.exec("COMMIT")
+    this.done = true
+  }
+
+  rollback() {
+    if (this.done) {
+      throw new Error("Cannot rollback a transaction after it is finished.")
+    }
+
+    db.exec("ROLLBACK")
+    this.done = true
+  }
+
+  dispose() {
+    if (!this.done) {
+      console.warn("Rolling back transaction due to failure.")
+      this.rollback()
+    }
+  }
+}
+
 addEventListener("message", async ({ data }: { data: unknown }) => {
   if (typeof data != "object" || data == null || !("zTag" in data)) {
     return
@@ -321,6 +391,24 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
     return
   }
 })
+
+export class DbWrapper {
+  readonly #db
+
+  constructor(db: WorkerDB) {
+    this.#db = db
+  }
+
+  read(): [TxReadonly, WorkerDB] {
+    const tx = new TxReadonly()
+    return [tx, this.#db]
+  }
+
+  readwrite(): [TxReadwrite, WorkerDB] {
+    const tx = new TxReadwrite()
+    return [tx, this.#db]
+  }
+}
 
 /** This is a `let` binding so we can close and reopen it. */
 export let db = await init()
