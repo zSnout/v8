@@ -636,12 +636,12 @@ export const ChartCrossAxis = v.object({
 })
 
 export interface ChartComputedAxis
-  extends v.InferOutput<typeof ChartComputedAxis> {}
-export const ChartComputedAxis = v.object({
-  /** The minimum value, or `null` to automatically determine. */
+  extends v.InferOutput<typeof ChartComputedCrossAxis> {}
+export const ChartComputedCrossAxis = v.object({
+  /** The minimum value of the chart's cross axis. */
   min: v.number(),
 
-  /** The maximum value, or `null` to automatically determine. */
+  /** The maximum value of the chart's cross axis. */
   max: v.number(),
 })
 
@@ -800,7 +800,7 @@ export const ChartComputedInfo = v.object({
   data: ChartData,
 
   /** A computed definition of the chart's cross axis. */
-  crossAxis: ChartComputedAxis,
+  crossAxis: ChartComputedCrossAxis,
 })
 
 export interface ChartColorEntry

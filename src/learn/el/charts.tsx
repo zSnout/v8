@@ -96,6 +96,14 @@ export function DrawChartBar(
       class="relative flex aspect-video transform"
       classList={{ "gap-2": chart.space }}
     >
+      {/* <GridLines /> */}
+      <Bars />
+      <GridY />
+    </div>
+  )
+
+  function Bars() {
+    return (
       <For each={data}>
         {([label, values], labelIndex) => (
           <div class="relative flex h-full flex-1 transform flex-col">
@@ -104,20 +112,93 @@ export function DrawChartBar(
           </div>
         )}
       </For>
-      <GridLines />
-    </div>
-  )
+    )
+  }
 
   function GridLines() {
+    const exp = Math.floor(Math.log10(max - min))
+    const lineSolid = 10 ** exp
+    const lineDashed = lineSolid / 2
+    const lineDotted = lineSolid / 10
+    const min2 = lineDotted * Math.floor(min / lineDotted)
+    const max2 = lineDotted * Math.floor(max / lineDotted)
+
+    console.warn("break")
     return (
       <div
-        class="fixed left-0 right-0 top-0 bg-red-500/50"
+        class="fixed left-0 right-0 top-0 transform"
         classList={{
           "bottom-6": chart.mainAxis.label.display == "separate",
           "bottom-0": chart.mainAxis.label.display != "separate",
         }}
-      ></div>
+      >
+        <For
+          each={Array.from({ length: 20 }, (_, i) => {
+            const height = (i / 20) * (max2 - min2) + min2
+            const mantissa = Math.round(
+              height / 10 ** Math.floor(Math.log10(height)),
+            )
+            if (mantissa == 1) {
+              console.log({ height, mantissa })
+            }
+
+            return {
+              bottom: 100 * ((height - min) / (max - min)) + "%",
+              color:
+                mantissa == 1 ? "red"
+                : mantissa == 2 ? "green"
+                : "var(--z-border)",
+            }
+          })}
+        >
+          {({ bottom, color }) => (
+            <div
+              class="fixed left-0 h-px w-full border-b border-dashed border-z"
+              style={{ bottom, "border-color": color }}
+            />
+          )}
+        </For>
+      </div>
     )
+  }
+
+  function GridY() {
+    const d = (max - min) / 10
+    const exp = 10 ** Math.floor(Math.log(d))
+    const q = Math.ceil(d / exp) * exp
+    const A = Math.floor(min / q) * q
+
+    return (
+      <div
+        class="fixed left-0 right-0 top-0 transform"
+        classList={{
+          "bottom-6": chart.mainAxis.label.display == "separate",
+          "bottom-0": chart.mainAxis.label.display != "separate",
+        }}
+      >
+        <For each={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+          {(x) => <Label value={A + x * q} />}
+        </For>
+      </div>
+    )
+
+    function Label(props: { value: number }) {
+      const height = (1 - (props.value - min) / (max - min)) * 100
+
+      if (height >= 100 || height <= 0) {
+        return <></>
+      }
+
+      return (
+        <div
+          class="fixed left-2 w-full -translate-y-1/2 transform whitespace-nowrap"
+          style={{ top: height + "%" }}
+        >
+          <div class="fixed -left-2 top-1/2 h-px w-full border-b border-slate-950/10 dark:border-slate-50/10" />
+          <div class="relative">{props.value}</div>
+        </div>
+      )
+    }
   }
 
   function DrawValues(values: number[], labelIndex: () => number) {
