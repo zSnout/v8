@@ -144,11 +144,11 @@ export function DrawChartBar(
 
       return (
         <div
-          class="fixed left-2 w-full -translate-y-1/2 transform whitespace-nowrap"
+          class="fixed left-2 w-full -translate-y-1/2 transform items-center gap-2 whitespace-nowrap even:hidden xs:even:block"
           style={{ top: height + "%" }}
         >
+          <div class="text-sm text-z-heading">{props.value}</div>
           <div class="fixed -left-2 top-1/2 h-px w-full border-b border-slate-950/10 dark:border-slate-50/10" />
-          <div class="relative">{props.value}</div>
         </div>
       )
     }

@@ -28,7 +28,6 @@ function axis(
   }
 
   const cell = row[0][0]
-  console.log(cell)
   if (Number.isFinite(cell)) {
     return cell as number
   } else if (cell == null) {
@@ -93,7 +92,6 @@ function groupData(
     !Number.isFinite(size) ||
     size <= (max - min) / 200
   ) {
-    console.log("group size too small", size, max - min)
     return data
   }
 
