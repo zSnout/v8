@@ -20,7 +20,10 @@ import {
   RootLayerable,
 } from "./Layers"
 
-function Loading(props: { message: string; pop: (() => void) | undefined }) {
+export function Loading(props: {
+  message: string
+  pop: (() => void) | undefined
+}) {
   return (
     <div class="flex min-h-full w-full flex-1 flex-col items-center justify-center gap-8">
       <Fa

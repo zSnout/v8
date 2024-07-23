@@ -7,7 +7,7 @@ import { createSignal, JSX, onMount, Show } from "solid-js"
 import { Worker } from "./db"
 import { Toasts } from "./el/Toast"
 import { ShortcutManager } from "./lib/shortcuts"
-import { Home } from "./views/Home"
+import { Home } from "./layers/Home"
 
 function ErrorHandler(props: { children: JSX.Element }) {
   const [reason, setError] = createSignal<unknown>()

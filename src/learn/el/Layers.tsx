@@ -269,3 +269,6 @@ export type Layerable<T> = (props: T, pop: () => void) => LayerOutput
 
 /** A thing which can be a root layer. */
 export type RootLayerable<T> = (props: T) => RootLayerOutput
+
+/** A type which might be a promise-like resolving to the given value. */
+export type Awaitable<T> = T | PromiseLike<T>

@@ -21,7 +21,7 @@ import { Id } from "../lib/id"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../lib/types"
 import { Browse } from "./Browse"
 import { CreateNote } from "./CreateNote"
-import { Settings } from "./Settings"
+import { LAYER_SETTINGS } from "./Settings"
 import { Stats } from "./Stats"
 import { Study } from "./Study"
 
@@ -98,7 +98,7 @@ export const Home = createLoadingBase(
             center
             icon={faSliders}
             label="Settings"
-            onClick={() => layers.push(Settings, worker)}
+            onClick={() => layers.push(LAYER_SETTINGS, worker)}
           />
           <Action center icon={faSync} label="Sync" onClick={nope} />
         </div>
