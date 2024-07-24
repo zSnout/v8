@@ -45,27 +45,17 @@ export function user_query(
   columns: string[]
   values: SqlValue[][]
 }[] {
-  const isUnsafe = /begin|transaction|commit|rollback/i.test(query)
+  const isUnsafe = /begin|end|transaction|commit|rollback/i.test(query)
 
-  if (isUnsafe) {
+  if (isUnsafe && !commit) {
     throw new Error(
-      "User queries are automatically run in transactions. For manual control, use SAVEPOINT and RELEASE.",
+      "Safe queries are automatically run in ROLLBACKd transactions. For manual control, use SAVEPOINT and RELEASE.",
     )
   }
 
   if (commit) {
-    const tx = db.readwrite(
-      `User query ${query.length > 20 ? query.slice(0, 20) + "..." : query}`,
-    )
-    try {
-      const data = split(query).map((query) =>
-        db.runWithColumns(query, bindings),
-      )
-      tx.commit()
-      return data
-    } finally {
-      tx.dispose()
-    }
+    // TODO: manual undo logic since we don't have transactions
+    return split(query).map((query) => db.runWithColumns(query, bindings))
   } else {
     const tx = db.read()
     try {
