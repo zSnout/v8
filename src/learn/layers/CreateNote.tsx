@@ -15,7 +15,7 @@ import { fieldRecord } from "../lib/template"
 import { Model, type Deck, type NoteFields } from "../lib/types"
 import { LAYER_EDIT_MODEL_FIELDS } from "./EditModelFields"
 import { LAYER_EDIT_MODEL_TEMPLATES } from "./EditModelTemplates"
-import { ManageModels } from "./ManageModels"
+import { LAYER_MANAGE_MODELS } from "./ManageModels"
 
 // FEAT: fields can be collapsed
 
@@ -116,7 +116,7 @@ export const LAYER_CREATE_NOTE = defineLayer({
 
             <button
               class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
-              onClick={() => layers.push(ManageModels, worker)}
+              onClick={() => layers.push(LAYER_MANAGE_MODELS, worker)}
             >
               Manage...
             </button>
