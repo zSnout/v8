@@ -177,7 +177,6 @@ export class ShortcutManager {
     if (typeof window != "undefined") {
       createEventListener(window, "keydown", (event) => {
         const field = isField(event)
-        console.log("field", field)
 
         for (const [shortcut, action, worksInFields] of this.map.values()) {
           if ((!field || worksInFields) && matchesShortcut(event, shortcut)) {
