@@ -48,13 +48,9 @@ export const stmts = {
     },
   },
   graves: {
-    insert: "INSERT INTO graves VALUES (?, ?, ?)",
+    insert: "INSERT INTO graves VALUES (?, ?)",
     insertArgs(grave: Grave): SqlValue[] {
-      return [
-        grave.id satisfies INTEGER,
-        grave.oid satisfies INTEGER,
-        grave.type satisfies INTEGER,
-      ]
+      return [grave.oid satisfies INTEGER, grave.type satisfies INTEGER]
     },
   },
   confs: {

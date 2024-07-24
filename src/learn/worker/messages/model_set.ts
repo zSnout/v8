@@ -91,11 +91,6 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
       ])
     }
 
-    // const models = tx.objectStore("models")
-    // const cards = tx.objectStore("cards")
-    // const graves = tx.objectStore("graves")
-    // const cardsByNid = cards.index("nid")
-
     const prevRaw = db.checked(
       "SELECT tmpls, sort_field, fields FROM models WHERE id = ?",
       [text, qid, text],
@@ -196,10 +191,6 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
           const cid = cs.find((x) => x.tid == id)?.id
           if (cid != null) {
             db.run("DELETE FROM cards WHERE id = ?", [cid])
-            db.run("INSERT INTO graves (id, oid, type) VALUES (?, ?, 0)", [
-              randomId(),
-              cid,
-            ])
           }
         }
       }

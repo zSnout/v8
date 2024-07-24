@@ -30,10 +30,6 @@ export function manage_models_save(
       )
 
       for (const [mid] of removed) {
-        db.run(
-          "INSERT INTO graves (oid, type) SELECT id, 1 FROM notes WHERE mid = ?",
-          [mid],
-        )
         db.run("DELETE FROM notes WHERE mid = ?", [mid])
         db.run("DELETE FROM models WHERE id = ?", [mid])
       }

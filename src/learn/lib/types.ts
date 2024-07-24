@@ -2,7 +2,7 @@
 import type { TreeOf } from "@/components/tree-structure"
 import { type Grade, Rating, State } from "ts-fsrs"
 import * as v from "valibot"
-import { Id, IdKey, randomId } from "./id"
+import { Id, IdKey } from "./id"
 
 export function makeCard<
   T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
@@ -83,15 +83,14 @@ export const AnyCard = makeCard(
 
 export interface Grave extends v.InferOutput<typeof Grave> {}
 export const Grave = v.object({
-  /** The id of the grave */
-  // DB: added in v8
-  id: v.optional(v.nullable(Id, randomId), null),
-
   /** The original id of the item to delete */
   oid: Id,
 
-  /** The type of item to delete: 0=card, 1=note, 2=deck, 3=model */
-  type: v.picklist([0, 1, 2, 3]),
+  /**
+   * The type of item to delete. 0=card, 1=note, 2=deck, 3=model, 4=pref,
+   * 5=chart.
+   */
+  type: v.picklist([0, 1, 2, 3, 4, 5]),
 })
 
 export interface NoteFields extends v.InferOutput<typeof NoteFields> {}

@@ -10,7 +10,7 @@ import type { Reason } from "../db/reason"
 import { randomId } from "../lib/id"
 import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
-import { latest } from "./version"
+import { latest, upgrade } from "./version"
 
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
@@ -247,21 +247,6 @@ function checkVersion(db: WorkerDB) {
     db.run("UPDATE core SET version = ? WHERE id = 0", [latest])
   }
   db.exec("COMMIT")
-}
-
-// this function cannot access external `db` since that variable isn't set yet
-// this handles the main part of upgrading, while `checkVersion` takes the meta
-function upgrade(db: WorkerDB, current: number) {
-  // if version < 1, we have no data
-  if (current < 1) {
-    db.exec(
-      `INSERT INTO core (id, version) VALUES (0, :version);
-INSERT INTO prefs (id) VALUES (0);
-INSERT INTO confs (id, name) VALUES (0, 'Default');
-INSERT INTO decks (id, name, is_filtered) VALUES (0, 'Default', 0);`,
-      { bind: { ":version": latest } },
-    )
-  }
 }
 
 export class Tx {
