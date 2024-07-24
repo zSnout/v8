@@ -50,8 +50,9 @@ function UndoManager(db: DB) {
   }
 
   const toasts = useToasts()
-  new ShortcutManager().scoped({ key: "Z" }, undoFn)
-  new ShortcutManager().scoped({ key: "Z", mod: "macctrl" }, undoFn)
+  const manager = new ShortcutManager()
+  manager.scoped({ key: "Z" }, undoFn)
+  manager.scoped({ key: "Z", mod: "macctrl" }, undoFn)
 
   return Home(db)
 }

@@ -27,7 +27,7 @@ export function isField(event: Event) {
       el instanceof HTMLElement &&
       (fieldTags.includes(el.tagName) ||
         el.dataset.zInteractive != null ||
-        el.contentEditable ||
+        el.isContentEditable ||
         el.classList.contains("mq-editable-field"))
     ) {
       return true
