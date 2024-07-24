@@ -13,7 +13,7 @@ import type { Id } from "../lib/id"
 import { mapRecord } from "../lib/record"
 import { fieldRecord } from "../lib/template"
 import { Model, type Deck, type NoteFields } from "../lib/types"
-import { EditModelFields } from "./EditModelFields"
+import { LAYER_EDIT_MODEL_FIELDS } from "./EditModelFields"
 import { EditModelTemplates } from "./EditModelTemplates"
 import { ManageModels } from "./ManageModels"
 
@@ -92,7 +92,7 @@ export const LAYER_CREATE_NOTE = defineLayer({
             <button
               class="z-field border-transparent bg-z-body-selected px-2 py-1 shadow-none"
               onClick={() => {
-                layers.push(EditModelFields, {
+                layers.push(LAYER_EDIT_MODEL_FIELDS, {
                   worker,
                   mid: model().id,
                 })
