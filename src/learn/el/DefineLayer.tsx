@@ -7,6 +7,7 @@ import {
   type JSX,
   type Owner,
 } from "solid-js"
+import { ShortcutManager } from "../lib/shortcuts"
 import { useLayers, type Awaitable, type Layerable } from "./Layers"
 import { Loading } from "./Loading"
 
@@ -15,7 +16,7 @@ export interface LayerLoadInfo<Props, State> {
   /** The props passed to this layer. */
   props: Props
 
-  /** The state created by `init`. Not reactive. */
+  /** The state created by `init`. Possibly reactive, depending on config. */
   state: State
 
   /** Whether this is reloading. */
@@ -45,7 +46,7 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
   /** The props passed to this layer. Passed as-is, so likely reactive. */
   props: Props
 
-  /** The state created by `init`. Reactive getter and setter. */
+  /** The state created by `init`. Possibly reactive, depending on config. */
   state: State
 
   /** The async data. Reactive getter. */
@@ -81,6 +82,9 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
 
   /** The `Owner` of the reactive tree. */
   owner: Owner | null
+
+  /** A `ShortcutsManager` specific to this render instance.  */
+  readonly shortcuts: ShortcutManager
 }
 
 /** A complete layer definition. */
@@ -93,16 +97,28 @@ export interface Layer<Props, State, AsyncData> {
 
   /**
    * Loads asynchronous information required to render this layer. Called when
-   * the layer is first shown and when it is returned to, although the
-   * application may return `info.data` to keep the last result if it exists.
+   * the layer is first shown and when it is returned to.
    */
   load?(info: LayerLoadInfo<Props, State>): AsyncData
 
   /**
    * Renders this layer, and can register hooks which are called when exiting
    * the layer. Common utilities like `push` and `owner` are also available.
+   * Called whenever the layer is re-rendered.
    */
   render(info: LayerRenderInfo<Props, State, AsyncData>): JSX.Element
+
+  /** What reactivity system to use for `state`, if any. */
+  state?: "signal" | undefined
+}
+
+function createStatic<T>(value: T) {
+  return [
+    () => value,
+    (x: T) => {
+      value = x
+    },
+  ] as const
 }
 
 export function defineLayer<Props, State, AsyncData>(
@@ -114,16 +130,20 @@ export function defineLayer<Props, State, AsyncData>(
 
     const layers = useLayers()
     const owner = getOwner()
-    const [state, setState] = createSignal(layer.init?.(props) as State)
+    const initialState = layer.init?.(props) as State
+    const [state, setState] =
+      layer.state == "signal" ?
+        createSignal(initialState)
+      : createStatic(initialState)
     const [message, setMessage] = createSignal("Loading...")
 
     const layerLoadInfo: LayerLoadInfo<Props, State> = {
       props,
       get state() {
-        return untrack(state)
+        return state()
       },
       set state(v) {
-        setState(() => v)
+        setState(v)
       },
       get reloading() {
         // try-catch because of TDZ
@@ -148,13 +168,15 @@ export function defineLayer<Props, State, AsyncData>(
         layer.load?.(layerLoadInfo) as Awaited<AsyncData>,
     )
 
+    const shortcuts = new ShortcutManager()
+
     const layerRenderInfo: LayerRenderInfo<Props, State, AsyncData> = {
       props,
       get state() {
-        return untrack(state)
+        return state()
       },
       set state(v) {
-        setState(() => v)
+        setState(v)
       },
       get data() {
         const d = data()!
@@ -188,6 +210,7 @@ export function defineLayer<Props, State, AsyncData>(
         layers.push(layer, props)
       },
       owner,
+      shortcuts,
     }
 
     return {

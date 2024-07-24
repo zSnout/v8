@@ -55,21 +55,20 @@ import {
   createResource,
   createSignal,
   For,
-  getOwner,
   JSX,
   Owner,
   runWithOwner,
   Show,
 } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
+import type { Worker } from "../db"
 import { createPrefsStore } from "../db/prefs"
 import { Reason } from "../db/reason"
-import type { Worker } from "../db"
-import { createLoading } from "../el/Loading"
+import { defineLayer } from "../el/DefineLayer"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
 import { Render } from "../lib/render"
-import { ShortcutManager, Write, type Shortcut } from "../lib/shortcuts"
+import { Write, type Shortcut } from "../lib/shortcuts"
 import * as Template from "../lib/template"
 import { AnyCard, Note } from "../lib/types"
 
@@ -77,18 +76,25 @@ import { AnyCard, Note } from "../lib/types"
 // TODO: adjust shortcuts for mac/windows
 // FEAT: improve screen for when no cards are left
 
-export const Study = createLoading(
-  async ({ worker }: { worker: Worker; root: Id | null; all: Id[] }, _) => {
+export const LAYER_STUDY = defineLayer({
+  init(_: { worker: Worker; root: Id | null; all: Id[] }): {
+    lastCid?: Id | undefined
+  } {
+    return {}
+  },
+  async load({ props: { worker } }) {
     const [prefs, setPrefs, ready] = createPrefsStore(worker)
     await ready
     return { prefs, setPrefs }
   },
-  (
-    { worker, root, all },
-    { prefs, setPrefs },
+  render({
+    props: { worker, root, all },
+    data: { prefs, setPrefs },
     pop,
-    state: { lastCid?: Id },
-  ) => {
+    state,
+    shortcuts,
+    owner,
+  }) {
     // TODO: createEventListener(window, "z-db-undo", async ({ detail }) => {
     //   const now = Date.now()
     //   setAnswerShown(false)
@@ -105,8 +111,6 @@ export const Study = createLoading(
     //   }
     // })
 
-    const shortcuts = new ShortcutManager()
-    const owner = getOwner()
     const [answerShown, setAnswerShown] = createSignal(false)
 
     const [getData, { mutate, refetch: unsafeRawRefetch }] = createResource(
@@ -155,25 +159,20 @@ export const Study = createLoading(
     const [now, setNow] = createSignal(Date.now())
     setInterval(() => setNow(Date.now()), 30_000)
 
-    return {
-      el: (
-        <div class="flex min-h-full w-full flex-1 flex-col">
-          <Full
-            layer
-            responses={Responses()}
-            content={Content()}
-            sidebar={Sidebar()}
-            sidebarState={prefs.sidebar_state}
-            onSidebarState={(state) =>
-              setPrefs("Toggle sidebar")("sidebar_state", state)
-            }
-          />
-        </div>
-      ),
-      onForcePop() {
-        return true
-      },
-    }
+    return (
+      <div class="flex min-h-full w-full flex-1 flex-col">
+        <Full
+          layer
+          responses={Responses()}
+          content={Content()}
+          sidebar={Sidebar()}
+          sidebarState={prefs.sidebar_state}
+          onSidebarState={(state) =>
+            setPrefs("Toggle sidebar")("sidebar_state", state)
+          }
+        />
+      </div>
+    )
 
     async function updateCurrentCard(
       reason: Reason,
@@ -760,8 +759,7 @@ export const Study = createLoading(
       )
     }
   },
-  "Gathering cards...",
-)
+})
 
 async function selectForgetMode(owner: Owner | null) {
   return await new Promise<null | boolean>((resolve) => {

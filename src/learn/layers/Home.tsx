@@ -17,13 +17,13 @@ import { Action, BottomButtons } from "../el/BottomButtons"
 import { ContextMenuTrigger } from "../el/ContextMenu"
 import { useLayers } from "../el/Layers"
 import { createLoadingBase } from "../el/Loading"
-import { Id } from "../lib/id"
+import type { Id } from "../lib/id"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../lib/types"
-import { Browse } from "./Browse"
-import { CreateNote } from "./CreateNote"
+import { LAYER_BROWSE } from "./Browse"
+import { LAYER_CREATE_NOTE } from "./CreateNote"
 import { LAYER_SETTINGS } from "./Settings"
-import { Stats } from "./Stats"
-import { Study } from "./Study"
+import { LAYER_STATS } from "./Stats"
+import { LAYER_STUDY } from "./Study"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -79,19 +79,19 @@ export const Home = createLoadingBase(
             center
             icon={faPlus}
             label="Add"
-            onClick={() => layers.push(CreateNote, worker)}
+            onClick={() => layers.push(LAYER_CREATE_NOTE, worker)}
           />
           <Action
             center
             icon={faTableCellsLarge}
             label="Browse"
-            onClick={() => layers.push(Browse, worker)}
+            onClick={() => layers.push(LAYER_BROWSE, worker)}
           />
           <Action
             center
             icon={faChartBar}
             label="Stats"
-            onClick={() => layers.push(Stats, worker)}
+            onClick={() => layers.push(LAYER_STATS, worker)}
           />
           {/* TODO: implement actual statistics page */}
           <Action
@@ -214,7 +214,7 @@ export const Home = createLoadingBase(
             if (root != null) all.push(root)
             collectDeckIds(subtree)
 
-            layers.push(Study, { worker, root, all })
+            layers.push(LAYER_STUDY, { worker, root, all })
 
             function collectDeckIds(subtree: DeckHomeTree | undefined) {
               if (subtree == null) return

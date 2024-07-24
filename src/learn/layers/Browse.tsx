@@ -6,57 +6,55 @@ import {
   createSignal,
   For,
   untrack,
-  type Accessor,
   type JSX,
-  type Setter,
 } from "solid-js"
-import { createStore, unwrap, type SetStoreFunction } from "solid-js/store"
-import { createPrefsStore } from "../db/prefs"
+import { createStore, unwrap } from "solid-js/store"
 import { Worker } from "../db"
+import { createPrefsStore } from "../db/prefs"
 import { ContextMenuItem } from "../el/ContextMenu"
-import { createLoading } from "../el/Loading"
+import { defineLayer } from "../el/DefineLayer"
 import { createExpr } from "../lib/expr"
 import { idOf, type Id } from "../lib/id"
 import { BrowserColumn } from "../lib/types"
 
-// TODO: add escape key to all pages
-
-export const Browse = createLoading(
-  async (
-    worker: Worker,
-    _,
-    state: {
-      selected?: Record<string, boolean>
-      setSelected?: SetStoreFunction<Record<string, boolean>>
-      selectFrom?: Accessor<Id | undefined>
-      setSelectFrom?: Setter<Id | undefined>
-      selectTo?: Accessor<Id | undefined>
-      setSelectTo?: Setter<Id | undefined>
-      selectInvert?: Accessor<boolean>
-      setSelectInvert?: Setter<boolean>
-    },
-  ) => {
+export const LAYER_BROWSE = defineLayer({
+  init(_: Worker) {
+    const [selected, setSelected] = createStore<Record<string, boolean>>({})
+    const [selectFrom, setSelectFrom] = createSignal<Id>()
+    const [selectTo, setSelectTo] = createSignal<Id>()
+    const [selectInvert, setSelectInvert] = createSignal(false)
+    return {
+      selected,
+      setSelected,
+      selectFrom,
+      setSelectFrom,
+      selectTo,
+      setSelectTo,
+      selectInvert,
+      setSelectInvert,
+    }
+  },
+  async load({ props: worker }) {
     const data = await worker.post("browse_load")
     const [prefs, setPrefs, ready] = createPrefsStore(worker)
     await ready
     const [sorted, reloadSorted] = createExpr(() => data.cards)
-    if (!state.selected) {
-      ;[state.selected, state.setSelected] = createStore({})
-      ;[state.selectFrom, state.setSelectFrom] = createSignal()
-      ;[state.selectTo, state.setSelectTo] = createSignal()
-      ;[state.selectInvert, state.setSelectInvert] = createSignal(false)
-    }
     return [data, { prefs, setPrefs, sorted, reloadSorted }] as const
   },
-  (worker, [, { prefs, setPrefs, sorted, reloadSorted }], pop, state) => {
-    const selected = state.selected!
-    const setSelected = state.setSelected!
-    const selectFrom = state.selectFrom!
-    const setSelectFrom = state.setSelectFrom!
-    const selectTo = state.selectTo!
-    const setSelectTo = state.setSelectTo!
-    const selectInvert = state.selectInvert!
-    const setSelectInvert = state.setSelectInvert!
+  render({
+    props: worker,
+    data: [, { prefs, setPrefs, sorted, reloadSorted }],
+    state: {
+      selected,
+      setSelected,
+      selectFrom,
+      setSelectFrom,
+      selectTo,
+      setSelectTo,
+      selectInvert,
+      setSelectInvert,
+    },
+  }) {
     const [mousedown, setMousedown] = createSignal(false)
     const ids = createMemo(() => sorted().map((x) => x.card.id))
     const selectFromIndex = createMemo(() => {
@@ -78,19 +76,16 @@ export const Browse = createLoading(
 
     addEventListener("mouseup", () => setMousedown(false))
 
-    return {
-      el: (
-        <div class="-my-8">
-          <Unmain class="flex h-[calc(100vh_-_3rem)]">
-            <div class="flex h-[calc(100vh_-_3rem)] w-full">
-              <Sidebar />
-              <Grid />
-            </div>
-          </Unmain>
-        </div>
-      ),
-      onForcePop: () => true,
-    }
+    return (
+      <div class="-my-8">
+        <Unmain class="flex h-[calc(100vh_-_3rem)]">
+          <div class="flex h-[calc(100vh_-_3rem)] w-full">
+            <Sidebar />
+            <Grid />
+          </div>
+        </Unmain>
+      </div>
+    )
 
     function getSelected() {
       const output = structuredClone(unwrap(selected))
@@ -341,4 +336,4 @@ export const Browse = createLoading(
       )
     }
   },
-)
+})
