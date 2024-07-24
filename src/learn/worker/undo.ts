@@ -74,7 +74,7 @@ export class UndoRedoManager {
     }
 
     let end = db.selectValue(
-      "SELECT coalesce(max(seq),0)) FROM undolog",
+      "SELECT coalesce(max(seq),0) FROM undolog",
       undefined,
       1,
     )!
@@ -113,13 +113,13 @@ export class UndoRedoManager {
     try {
       db.exec("DROP TABLE undolog")
     } catch {}
-    db.exec("CREATE TEMP TABLE undolog (seq integer primary key, sql text)")
+    let sql = "CREATE TEMP TABLE undolog (seq integer primary key, sql text);\n"
     for (const tbl of args) {
       const colList = db
         .run(`pragma table_info(${tbl})`)
         .map((x) => x[1] as string)
 
-      let sql = `CREATE TEMP TRIGGER _${tbl}_it AFTER INSERT ON ${tbl} BEGIN
+      sql += `CREATE TEMP TRIGGER _${tbl}_it AFTER INSERT ON ${tbl} BEGIN
 INSERT INTO undolog VALUES (NULL, 'DELETE FROM ${tbl} WHERE rowid='||new.rowid);
 END;`
 
@@ -144,9 +144,8 @@ INSERT INTO undolog VALUES (NULL, 'INSERT INTO ${tbl}(rowid`
       }
       sql += `)');
 END;`
-
-      // eval sql
     }
+    db.exec(sql)
   }
 
   private dropTriggers() {
@@ -179,18 +178,25 @@ END;`
   private step(v1: Item[], v2: Item[]) {
     let [begin, end] = v1.pop()!
     db.exec("BEGIN")
-    const q1 = `SELECT sql FROM undolog WHERE seq>=${begin} AND seq<=${end} ORDER BY seq DESC`
-    const sqllist = db.run(q1).map((x) => x[0] as string)
-    db.exec(`DELETE FROM undolog WHERE seq>=${begin} AND seq<=${end}`)
-    this.firstlog = db.selectValue(
-      "SELECT coalesce(max(seq),0)+1 FROM undolog",
-      undefined,
-      1,
-    )!
-    for (const sql of sqllist) {
-      db.exec(sql)
+    try {
+      const q1 = `SELECT sql FROM undolog WHERE seq>=${begin} AND seq<=${end} ORDER BY seq DESC`
+      const sqllist = db.run(q1).map((x) => x[0] as string)
+      db.exec(`DELETE FROM undolog WHERE seq>=${begin} AND seq<=${end}`)
+      this.firstlog = db.selectValue(
+        "SELECT coalesce(max(seq),0)+1 FROM undolog",
+        undefined,
+        1,
+      )!
+      for (const sql of sqllist) {
+        console.log(sql)
+        db.exec(sql)
+      }
+      db.exec("COMMIT")
+    } catch (err) {
+      db.exec("ROLLBACK")
+      throw err
     }
-    db.exec("COMMIT")
+
     this.reloadAll()
 
     end = db.selectValue(
@@ -205,4 +211,4 @@ END;`
   }
 }
 
-export const manager = new UndoRedoManager()
+export const undoRedo = new UndoRedoManager()
