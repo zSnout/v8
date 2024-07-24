@@ -43,15 +43,17 @@ export const LAYER_SETTINGS = defineLayer({
               const result = await confirm({
                 owner,
                 title: "Confirm import?",
-                description: (
-                  <ModalDescription>
-                    This will{" "}
-                    <strong class="text-z underline">irreversibly</strong>{" "}
-                    replace your entire collection with data from the imported
-                    file. We highly recommend exporting your current data before
-                    you import, just in case.
-                  </ModalDescription>
-                ),
+                get description() {
+                  return (
+                    <ModalDescription>
+                      This will{" "}
+                      <strong class="text-z underline">irreversibly</strong>{" "}
+                      replace your entire collection with data from the imported
+                      file. We highly recommend exporting your current data
+                      before you import, just in case.
+                    </ModalDescription>
+                  )
+                },
                 cancelText: "No, cancel",
                 okText: "Yes, import",
               })
@@ -69,11 +71,13 @@ export const LAYER_SETTINGS = defineLayer({
               await alert({
                 owner,
                 title: "Imported successfully",
-                description: (
-                  <ModalDescription>
-                    The collection was imported successfully.
-                  </ModalDescription>
-                ),
+                get description() {
+                  return (
+                    <ModalDescription>
+                      The collection was imported successfully.
+                    </ModalDescription>
+                  )
+                },
               })
             }}
           >

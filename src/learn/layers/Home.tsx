@@ -160,13 +160,15 @@ export const Home = createLoadingBase(
               const name = await prompt({
                 owner,
                 title: "New deck name",
-                description: (
-                  <ModalDescription>
-                    Use :: in your deck name to create nested decks. For
-                    example, Math::Geometry will create a deck called 'Geometry'
-                    inside the deck called 'Math'.
-                  </ModalDescription>
-                ),
+                get description() {
+                  return (
+                    <ModalDescription>
+                      Use :: in your deck name to create nested decks. For
+                      example, Math::Geometry will create a deck called
+                      'Geometry' inside the deck called 'Math'.
+                    </ModalDescription>
+                  )
+                },
               })
 
               if (!name) {

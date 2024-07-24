@@ -268,11 +268,13 @@ export function defineListEditor<
                 await alert({
                   owner,
                   title: "Unable to delete",
-                  description: (
-                    <ModalDescription>
-                      {internalProps.needAtLeastOne}
-                    </ModalDescription>
-                  ),
+                  get description() {
+                    return (
+                      <ModalDescription>
+                        {internalProps.needAtLeastOne}
+                      </ModalDescription>
+                    )
+                  },
                 })
                 return
               }

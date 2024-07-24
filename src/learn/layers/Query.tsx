@@ -255,36 +255,38 @@ export const LAYER_QUERY = defineLayer({
               const result = await prompt({
                 owner,
                 title: "Enable unsafe mode? (DANGEROUS)",
-                description: (
-                  <>
-                    <ModalDescription>
-                      Unsafe mode lets you use arbitrary SQLite commands.
-                      <strong class="text-z underline">
-                        If you don't know SQLite, you should not use unsafe
-                        mode.
-                      </strong>
-                    </ModalDescription>
+                get description() {
+                  return (
+                    <>
+                      <ModalDescription>
+                        Unsafe mode lets you use arbitrary SQLite commands.
+                        <strong class="text-z underline">
+                          If you don't know SQLite, you should not use unsafe
+                          mode.
+                        </strong>
+                      </ModalDescription>
 
-                    <ModalDescription>
-                      Anything you do in unsafe mode can affect the database{" "}
-                      <strong class="text-z underline">
-                        permanently and irreversibly
-                      </strong>
-                      . This could destroy years of reviews, make the
-                      application inaccessible, or any other number of terrible
-                      things. We highly recommend exporting your current data
-                      before you use unsafe mode, just in case.
-                    </ModalDescription>
+                      <ModalDescription>
+                        Anything you do in unsafe mode can affect the database{" "}
+                        <strong class="text-z underline">
+                          permanently and irreversibly
+                        </strong>
+                        . This could destroy years of reviews, make the
+                        application inaccessible, or any other number of
+                        terrible things. We highly recommend exporting your
+                        current data before you use unsafe mode, just in case.
+                      </ModalDescription>
 
-                    <ModalDescription>
-                      Enter{" "}
-                      <code class="rounded bg-z-body-selected px-1 text-z">
-                        {code}
-                      </code>{" "}
-                      below to confirm you want to enter unsafe mode.
-                    </ModalDescription>
-                  </>
-                ),
+                      <ModalDescription>
+                        Enter{" "}
+                        <code class="rounded bg-z-body-selected px-1 text-z">
+                          {code}
+                        </code>{" "}
+                        below to confirm you want to enter unsafe mode.
+                      </ModalDescription>
+                    </>
+                  )
+                },
                 cancelText: "Nope, stay safe",
                 okText: "Yes, let me query",
               })
