@@ -32,13 +32,7 @@ function ErrorHandler(props: { children: JSX.Element }) {
 }
 
 function UndoManager(db: DB) {
-  const toasts = useToasts()
-  new ShortcutManager().scoped({ key: "Z" }, undo)
-  new ShortcutManager().scoped({ key: "Z", mod: "macctrl" }, undo)
-
-  return Home(db)
-
-  async function undo() {
+  const undoFn = async () => {
     const undoData = db.undo()
     if (!undoData) {
       toasts.create({ body: "Nothing to undo." })
@@ -54,6 +48,12 @@ function UndoManager(db: DB) {
     })
     dispatchEvent(new CustomEvent("z-db-undo", { detail }))
   }
+
+  const toasts = useToasts()
+  new ShortcutManager().scoped({ key: "Z" }, undoFn)
+  new ShortcutManager().scoped({ key: "Z", mod: "macctrl" }, undoFn)
+
+  return Home(db)
 }
 
 const InsideErrorHandler = createLoadingBase<void, DB>(

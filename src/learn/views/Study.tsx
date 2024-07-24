@@ -47,6 +47,7 @@ import {
   faSync,
   faTags,
   faTrash,
+  faUndo,
   IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import {
@@ -363,8 +364,9 @@ export const Study = createLoading(
       onClick?: () => void
       shortcut: Shortcut
       disabled?: boolean
+      noShortcut?: true
     }) {
-      if (props.onClick) {
+      if (props.onClick && !props.noShortcut) {
         shortcuts.scoped(props.shortcut, props.onClick)
       }
 
@@ -441,6 +443,17 @@ export const Study = createLoading(
             label="Exit Session"
             shortcut={{ key: "Escape" }}
             onClick={pop}
+          />
+          <QuickAction
+            icon={faUndo}
+            label="Undo"
+            shortcut={{ key: "Z" }}
+            noShortcut
+            onClick={() =>
+              document.body.dispatchEvent(
+                new KeyboardEvent("keydown", { key: "z", bubbles: true }),
+              )
+            }
           />
           <QuickAction icon={faSync} label="Sync" shortcut={{ key: "Y" }} />
           <QuickActionLine />
