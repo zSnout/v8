@@ -15,17 +15,17 @@ import { Render } from "../lib/render"
 import * as Template from "../lib/template"
 import { Model, ModelTemplate, TemplateEditStyle } from "../lib/types"
 
-type Data<M> = {
+interface Data {
   editStyle: TemplateEditStyle
   fields: Template.FieldsRecord
   html: Record<string, boolean>
-  model: M
+  model: Model
 }
 
 export const LAYER_EDIT_MODEL_TEMPLATES = defineListEditorLayer<
   { worker: Worker; mid: Id; fields: Template.FieldsRecord },
   { selected?: Id },
-  Promise<Data<Model>>,
+  Promise<Data>,
   ModelTemplate
 >(
   {
