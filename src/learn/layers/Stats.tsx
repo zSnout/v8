@@ -55,6 +55,7 @@ const COLORS: ChartColors = [
 
 export const LAYER_STATS = defineLayer({
   init(_: Worker) {},
+  load() {},
   render({ onReturn, props: worker, pop }) {
     onReturn(() => {
       setCharts(fetch())

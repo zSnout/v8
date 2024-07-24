@@ -28,6 +28,7 @@ export const LAYER_QUERY = defineLayer({
   init(props: { worker: Worker; initial?: string }) {
     return props.initial ?? ""
   },
+  load() {},
   render(info) {
     const {
       owner,
