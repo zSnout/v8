@@ -187,7 +187,7 @@ export function checkBucket(
     }
   }
 
-  return prevBucket
+  return [prevBucket, nextBucket] as const
 }
 
 async function save(
@@ -234,7 +234,7 @@ export async function saveReview(
   const item = info[grade]
   const { card } = item
 
-  const prevBucket = await save(
+  const [prevBucket] = await save(
     db,
     item,
     selectInfo,
@@ -280,4 +280,62 @@ export async function saveForget(
     )
 
   await save(db, item, selectInfo, gatherInfo, now, "Forget card")
+}
+
+export async function selectById(
+  db: DB,
+  main: Id | undefined,
+  dids: Id[],
+  now: number,
+  info: GatherInfo,
+  cid: Id,
+): Promise<SelectInfo | null> {
+  for (const bucket of [0, 1, 2] as const) {
+    {
+      const index = info.cards[`b${bucket}`].findIndex((x) => x.id == cid)
+      if (index != -1) {
+        const card = info.cards[`b${bucket}`][index]!
+        const deck = notNull(
+          await db.read("decks").store.get(card.did),
+          "Card must be associated with a deck which exists.",
+        )
+        const note = notNull(
+          await db.read("notes").store.get(card.nid),
+          "Card must be associated with a note which exists.",
+        )
+        const model = notNull(
+          await db.read("models").store.get(note.mid),
+          "Card must be associated with a model which exists.",
+        )
+        return {
+          bucket,
+          card,
+          deck,
+          index,
+          note,
+          model,
+          tmpl: notNull(
+            model.tmpls[card.tid],
+            "Card must be associated with a template which exists.",
+          ),
+          repeatInfo:
+            __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered(
+              card,
+              info.limits.conf,
+              info.prefs.day_start,
+              new FSRS({
+                enable_fuzz: info.limits.conf.review.enable_fuzz,
+                maximum_interval: info.limits.conf.review.max_review_interval,
+                request_retention: info.limits.conf.review.requested_retention,
+                w: info.limits.conf.review.w,
+              }),
+              now,
+              0,
+            ),
+        }
+      }
+    }
+  }
+
+  return await select(db, main, dids, now, info)
 }

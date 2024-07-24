@@ -14,8 +14,8 @@ export type Reason =
   | "Toggle whether note is marked"
   | `Toggle ${string} column visibility in browser`
   | `Review card as ${string}`
-  | `Toggle ${string} flag`
-  | `Toggle ${string} mark`
+  | `Toggle ${string} card flag`
+  | `Toggle ${string} note mark`
   | `Update ${"fields" | "templates"} for model ${string}`
   | `Create note in ${string}`
   | `Create deck ${string}`

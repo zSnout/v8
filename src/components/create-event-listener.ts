@@ -14,6 +14,15 @@ export function createEventListener<K extends keyof DocumentEventMap>(
   options?: AddEventListenerOptions,
 ): void
 
+export function createEventListener<K extends keyof HTMLBodyElementEventMap>(
+  target: HTMLBodyElement,
+  name: K,
+  callback: (
+    event: HTMLBodyElementEventMap[K] & { currentTarget: Document },
+  ) => void,
+  options?: AddEventListenerOptions,
+): void
+
 export function createEventListener<
   T extends HTMLElement,
   K extends keyof HTMLElementEventMap,

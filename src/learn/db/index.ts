@@ -67,7 +67,7 @@ export class DB {
       redo: !last.redo,
       undo: async () => (await redo)(),
     }
-    return last
+    return { last, done: redo.then(() => {}) }
   }
 
   read<Name extends StoreNames<Ty>>(

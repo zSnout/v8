@@ -38,17 +38,21 @@ function UndoManager(db: DB) {
 
   return Home(db)
 
-  function undo() {
-    const last = db.undo()
-    if (!last) {
+  async function undo() {
+    const undoData = db.undo()
+    if (!undoData) {
       toasts.create({ body: "Nothing to undo." })
-    } else if (last.redo) {
-      document.body.dispatchEvent(new CustomEvent("z-db-redo"))
-      toasts.create({ body: `Redid "${last.reason}"` })
-    } else {
-      document.body.dispatchEvent(new CustomEvent("z-db-undo"))
-      toasts.create({ body: `Undid "${last.reason}"` })
+      return
     }
+
+    const { last, done } = undoData
+    const detail = { redo: last.redo, reason: last.reason }
+    dispatchEvent(new CustomEvent("z-db-beforeundo", { detail }))
+    await done
+    toasts.create({
+      body: `${last.redo ? "Redoed" : "Undid"} "${last.reason}"`,
+    })
+    dispatchEvent(new CustomEvent("z-db-undo", { detail }))
   }
 }
 

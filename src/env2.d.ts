@@ -1,4 +1,5 @@
 import { LatexTargetFindEvent } from "./components/graph/latex"
+import type { Reason } from "./learn/db/reason"
 
 declare module "solid-js" {
   namespace JSX {
@@ -23,5 +24,12 @@ declare module "solid-js" {
       onconsider?: EventHandlerUnion<T, DndEvent>
       onfinalize?: EventHandlerUnion<T, DndEvent>
     }
+  }
+}
+
+declare global {
+  interface WindowEventMap {
+    "z-db-beforeundo": CustomEvent<{ redo: boolean; reason: Reason }>
+    "z-db-undo": CustomEvent<{ redo: boolean; reason: Reason }>
   }
 }

@@ -1,3 +1,6 @@
+/// <reference types="../../env" />
+
+import { createEventListener } from "@/components/create-event-listener"
 import { Fa } from "@/components/Fa"
 import {
   Modal,
@@ -14,10 +17,10 @@ import {
   ContentCard,
   ContentIcon,
   Full,
-  ShortcutLabel,
   Response,
   ResponseGray,
   ResponsesGrid,
+  ShortcutLabel,
 } from "@/pages/quiz/layout"
 import { timestampDist } from "@/pages/quiz/shared"
 import {
@@ -64,7 +67,13 @@ import { createPrefsStore } from "../db/prefs/store"
 import { Reason } from "../db/reason"
 import { gather } from "../db/study/gather"
 import { putCard, putNote } from "../db/study/merge"
-import { checkBucket, saveForget, saveReview, select } from "../db/study/select"
+import {
+  checkBucket,
+  saveForget,
+  saveReview,
+  select,
+  selectById,
+} from "../db/study/select"
 import { createLoading } from "../el/Loading"
 import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
@@ -79,9 +88,8 @@ import { AnyCard, Note } from "../lib/types"
 export const Study = createLoading(
   async (
     { db, main, dids }: { db: DB; main: Id | undefined; dids: Id[] },
-    setMessage,
+    _,
   ) => {
-    setMessage("Gathering cards...")
     const [prefs, setPrefs, ready] = createPrefsStore(db)
     const [info] = await Promise.all([
       gather(db, main, dids, Date.now()),
@@ -89,16 +97,45 @@ export const Study = createLoading(
     ])
     return { info, prefs, setPrefs }
   },
-  ({ db, main, dids }, { info, prefs, setPrefs }, pop) => {
+  (
+    { db, main, dids },
+    { info, prefs, setPrefs },
+    pop,
+    state: { lastCid?: Id },
+  ) => {
+    createEventListener(window, "z-db-undo", async ({ detail }) => {
+      const now = Date.now()
+      setAnswerShown(false)
+      info = await gather(db, main, dids, now)
+
+      const last = detail.reason.includes("card")
+        ? state.lastCid
+        : getData()?.data?.card.id
+
+      if (last != null) {
+        state.lastCid = getData()?.data?.card.id ?? last
+        const data = await selectById(db, main, dids, now, info, last)
+        mutate({ data, shownAt: now })
+      }
+    })
+
     const shortcuts = new ShortcutManager()
     const owner = getOwner()
     const [answerShown, setAnswerShown] = createSignal(false)
 
-    const [getData, { mutate, refetch }] = createResource(async () => {
-      const now = Date.now()
-      setAnswerShown(false)
-      return { data: await select(db, main, dids, now, info), shownAt: now }
-    })
+    const [getData, { mutate, refetch: unsafeRawRefetch }] = createResource(
+      async () => {
+        console.log("run")
+        const now = Date.now()
+        setAnswerShown(false)
+        return { data: await select(db, main, dids, now, info), shownAt: now }
+      },
+    )
+
+    async function refetch() {
+      state.lastCid = getData()?.data?.card.id
+      return await unsafeRawRefetch()
+    }
 
     function notifyOfDataUpdate() {
       mutate((x) => (x ? { ...x } : undefined))
@@ -155,15 +192,16 @@ export const Study = createLoading(
       data: (card: AnyCard) => Partial<AnyCard>,
     ) {
       const selectInfo = getData()?.data
-      if (selectInfo == null) {
+      if (!selectInfo) {
         return
       }
 
       const { card } = selectInfo
+      state.lastCid = card.id
       const merged = data(card)
       Object.assign(card, merged)
       const now = Date.now()
-      await putCard(db, card, reason, now)
+      await putCard(db, card, reason)
       checkBucket(card, selectInfo, info, now)
       notifyOfDataUpdate()
     }
@@ -182,10 +220,10 @@ export const Study = createLoading(
       }
 
       const { note } = info.data
+      state.lastCid = info.data.card.id
       const merged = data(note)
       Object.assign(note, merged)
-      const now = Date.now()
-      await putNote(db, note, reason, now)
+      await putNote(db, note, reason)
       notifyOfDataUpdate()
     }
 
@@ -270,6 +308,7 @@ export const Study = createLoading(
         "Cannot answer before a card has been drawn.",
       )
       prayTruthy(c, "Cannot answer a `null` card.")
+      state.lastCid = c.card.id
       const now = Date.now()
       await saveReview(db, c, info, now, now - shownAt, grade)
       batch(() => {
@@ -367,11 +406,14 @@ export const Study = createLoading(
                   aria-checked={checked()}
                   aria-label={flag.color + " flag"}
                   onClick={() => {
-                    updateCurrentCard(`Toggle ${flag.color} flag`, (card) => ({
-                      flags: Flags.has(card.flags, flag)
-                        ? 0
-                        : 1 << flag.valueOf(),
-                    }))
+                    updateCurrentCard(
+                      `Toggle ${flag.color} card flag`,
+                      (card) => ({
+                        flags: Flags.has(card.flags, flag)
+                          ? 0
+                          : 1 << flag.valueOf(),
+                      }),
+                    )
                   }}
                 >
                   <Show when={checked()}>
@@ -709,6 +751,7 @@ export const Study = createLoading(
       )
     }
   },
+  "Gathering cards...",
 )
 
 async function selectForgetMode(owner: Owner | null) {
