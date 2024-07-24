@@ -28,12 +28,7 @@ import { Layerable } from "./Layers"
 import { createLoading } from "./Loading"
 import { PlainFieldList, SortableFieldList } from "./Sortable"
 
-interface DefineListEditorProps<
-  Props,
-  State extends { selected?: string | number },
-  AsyncData,
-  Entry extends { id: Id; name: string; deleted?: boolean },
-> {
+export interface DefineListEditorProps<Props, State, AsyncData, Entry> {
   tags(info: LayerRenderInfo<Props, State, AsyncData>): {
     title: string
     subtitle: string
@@ -41,10 +36,10 @@ interface DefineListEditorProps<
   getEntries(info: LayerRenderInfo<Props, State, AsyncData>): Entry[]
   save(
     info: LayerRenderInfo<Props, State, AsyncData>,
-    state: State,
+    state: Awaited<AsyncData>,
     entries: Entry[],
   ): void
-  sortId(info: LayerRenderInfo<Props, State, AsyncData>): Id | null
+  sortId?(info: LayerRenderInfo<Props, State, AsyncData>): Id | null
   create(
     info: LayerRenderInfo<Props, State, AsyncData>,
     name: string,
@@ -52,8 +47,8 @@ interface DefineListEditorProps<
   ): Entry
   options: (info: {
     info: LayerRenderInfo<Props, State, AsyncData>
-    get: Store<State>
-    set: SetStoreFunction<State>
+    get: Store<Awaited<AsyncData>>
+    set: SetStoreFunction<Awaited<AsyncData>>
     selected: Entry
     setSelected: Setter<Entry>
   }) => JSX.Element
@@ -75,21 +70,21 @@ interface DefineListEditorProps<
 export function defineListEditor<
   Props,
   State extends { selected?: string | number },
-  AsyncData,
-  Entry extends { id: Id; name: string; deleted?: boolean },
+  AsyncData extends object | PromiseLike<object>,
+  Entry extends { id: Id; name: string },
 >(
   list: DefineListEditorProps<Props, State, AsyncData, Entry>,
 ): Layer<Props, State, AsyncData>["render"] {
   const { internalProps, sortId, create, options: Options } = list
   return (info) => {
-    const { pop, props } = info
+    const { pop } = info
     const { title, subtitle } = list.tags(info)
     const owner = getOwner()
     const [entries, setEntries] = createSignal(list.getEntries(info))
-    const [state, setState] = createStore(info.state)
+    const [state, setState] = createStore(info.data)
     const [selectedId, setSelectedId] = createSignal(
       notNull(
-        state.selected ?? entries()[0]?.id,
+        info.state.selected ?? entries()[0]?.id,
         internalProps.needAtLeastOne as never,
       ),
     )
@@ -338,8 +333,8 @@ export function defineListEditor<
 export function defineListEditorLayer<
   Props,
   State extends { selected?: string | number },
-  AsyncData,
-  Entry extends { id: Id; name: string; deleted?: boolean },
+  AsyncData extends object | PromiseLike<object>,
+  Entry extends { id: Id; name: string },
 >(
   layer: Omit<Layer<Props, State, AsyncData>, "render">,
   list: DefineListEditorProps<Props, State, AsyncData, Entry>,
@@ -352,7 +347,7 @@ export function createListEditor<
   AsyncProps,
   Item,
   Data extends Cloneable & object,
-  Entry extends { id: Id; name: string; deleted?: boolean },
+  Entry extends { id: Id; name: string },
 >(
   load: (
     props: Props,

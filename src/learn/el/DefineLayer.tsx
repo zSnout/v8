@@ -87,19 +87,20 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
   readonly shortcuts: ShortcutManager
 }
 
+// TODO: remove mentions of undefined from `init` and `load`'s history
 /** A complete layer definition. */
 export interface Layer<Props, State, AsyncData> {
   /**
    * Initializes this layer's state. Only ever called once. If this method is
    * not defined, the layer's state will be `undefined` unless set elsewhere.
    */
-  init?(props: Props): State
+  init(props: Props): State
 
   /**
    * Loads asynchronous information required to render this layer. Called when
    * the layer is first shown and when it is returned to.
    */
-  load?(info: LayerLoadInfo<Props, State>): AsyncData
+  load(info: LayerLoadInfo<Props, State>): AsyncData
 
   /**
    * Renders this layer, and can register hooks which are called when exiting
