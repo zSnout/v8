@@ -14,7 +14,7 @@ import { latest } from "./version"
 
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
-import { undoRedo } from "./undo"
+import { state } from "./undo"
 
 export const sqlite3 = await (
   sqlite3InitModule as typeof import("@sqlite.org/sqlite-wasm").default
@@ -432,4 +432,9 @@ export async function closeDatabaseTemporarily(
 
 postMessage("zdb:resolve")
 
-Object.assign(globalThis, { undoRedo, db })
+Object.assign(globalThis, {
+  undoRedo: state,
+  get db() {
+    return db
+  },
+})

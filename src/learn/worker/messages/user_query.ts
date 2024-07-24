@@ -53,16 +53,25 @@ export function user_query(
     )
   }
 
-  const tx = db.readwrite(
-    `User query ${query.length > 20 ? query.slice(0, 20) + "..." : query}`,
-  )
-  try {
-    const data = split(query).map((query) => db.runWithColumns(query, bindings))
-    if (commit) {
+  if (commit) {
+    const tx = db.readwrite(
+      `User query ${query.length > 20 ? query.slice(0, 20) + "..." : query}`,
+    )
+    try {
+      const data = split(query).map((query) =>
+        db.runWithColumns(query, bindings),
+      )
       tx.commit()
+      return data
+    } finally {
+      tx.dispose()
     }
-    return data
-  } finally {
-    tx.dispose()
+  } else {
+    const tx = db.read()
+    try {
+      return split(query).map((query) => db.runWithColumns(query, bindings))
+    } finally {
+      tx.dispose()
+    }
   }
 }

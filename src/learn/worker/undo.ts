@@ -5,13 +5,12 @@ import { db } from "./db"
 
 export type Item = [start: number, end: number]
 
-export class UndoRedoManager {
+export class StateManager {
   private undoStack: Item[] = []
   private redoStack: Item[] = []
   private active = false
   private freeze = -1
   private firstlog = 1
-  private pending = false
 
   constructor() {}
 
@@ -59,17 +58,9 @@ export class UndoRedoManager {
     this.freeze = -1
   }
 
-  event() {
-    if (this.pending == false) {
-      this.pending = true
-      setTimeout(() => this.barrier())
-    }
-  }
-
-  barrier() {
-    this.pending = false
+  mark() {
     if (!this.active) {
-      this.refresh()
+      this.refreshButtons()
       return
     }
 
@@ -84,13 +75,13 @@ export class UndoRedoManager {
     const begin = this.firstlog
     this.startInterval()
     if (begin == this.firstlog) {
-      this.refresh()
+      this.refreshButtons()
       return
     }
 
     this.undoStack.push([begin, end])
     this.redoStack = []
-    this.refresh()
+    this.refreshButtons()
   }
 
   undo() {
@@ -101,12 +92,12 @@ export class UndoRedoManager {
     this.step(this.redoStack, this.undoStack)
   }
 
-  refresh() {
-    // TODO: refresh undo/redo buttons in interface
+  private refreshButtons() {
+    postMessage("zdb:refresh-undoredo")
   }
 
-  reloadAll() {
-    // TODO: reload interfaces
+  private refreshInterfaces() {
+    postMessage("zdb:refresh-interfaces")
   }
 
   private createTriggers(args: string[]) {
@@ -133,12 +124,12 @@ INSERT INTO undolog VALUES (NULL, 'UPDATE ${tbl} `
       sql += ` WHERE rowid='||old.rowid);
 END;`
 
-      sql += `CREATE TEMP TRIGGER _${tbl}_dt BEFORE DELETE ON ${tbl} BEGIN
+      sql += `CREATE TEMP TRIGGER _${tbl}_dt AFTER DELETE ON ${tbl} BEGIN
 INSERT INTO undolog VALUES (NULL, 'INSERT INTO ${tbl}(rowid`
       for (const name of colList) {
         sql += `,${name}`
       }
-      sql += `) VALUES '||old.rowid||'`
+      sql += `) VALUES ('||old.rowid||'`
       for (const name of colList) {
         sql += `,'||quote(old.${name})||'`
       }
@@ -188,7 +179,6 @@ END;`
         1,
       )!
       for (const sql of sqllist) {
-        console.log(sql)
         db.exec(sql)
       }
       db.exec("COMMIT")
@@ -197,7 +187,7 @@ END;`
       throw err
     }
 
-    this.reloadAll()
+    this.refreshInterfaces()
 
     end = db.selectValue(
       "SELECT coalesce(max(seq),0)+1 FROM undolog",
@@ -207,8 +197,8 @@ END;`
     begin = this.firstlog
     v2.push([begin, end])
     this.startInterval()
-    this.refresh()
+    this.refreshButtons()
   }
 }
 
-export const undoRedo = new UndoRedoManager()
+export const state = new StateManager()
