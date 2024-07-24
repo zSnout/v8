@@ -9,6 +9,25 @@ export function isInteractive(event: Event) {
       el instanceof HTMLElement &&
       (typableTags.includes(el.tagName) ||
         el.dataset.zInteractive != null ||
+        el.contentEditable ||
+        el.classList.contains("mq-editable-field"))
+    ) {
+      return true
+    }
+  }
+
+  return false
+}
+
+const fieldTags = ["INPUT", "TEXTAREA"]
+
+export function isField(event: Event) {
+  for (const el of event.composedPath()) {
+    if (
+      el instanceof HTMLElement &&
+      (fieldTags.includes(el.tagName) ||
+        el.dataset.zInteractive != null ||
+        el.contentEditable ||
         el.classList.contains("mq-editable-field"))
     ) {
       return true

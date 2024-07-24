@@ -1,4 +1,5 @@
 import { createEventListener } from "@/components/create-event-listener"
+import { isField } from "@/components/draggable"
 import { onCleanup, onMount } from "solid-js"
 
 type Key =
@@ -167,13 +168,18 @@ export function Write(props: { shortcut: Shortcut }) {
 }
 
 export class ShortcutManager {
-  private map = new Map<string, [Shortcut, () => void]>()
+  private map = new Map<
+    string,
+    [Shortcut, () => void, worksInFields: boolean]
+  >()
 
   constructor() {
     if (typeof window != "undefined") {
       createEventListener(window, "keydown", (event) => {
-        for (const [shortcut, action] of this.map.values()) {
-          if (matchesShortcut(event, shortcut)) {
+        const field = isField(event)
+
+        for (const [shortcut, action, worksInFields] of this.map.values()) {
+          if ((!field || worksInFields) && matchesShortcut(event, shortcut)) {
             event.preventDefault()
             action()
             return
@@ -183,9 +189,9 @@ export class ShortcutManager {
     }
   }
 
-  private set(shortcut: Shortcut, action: () => void) {
+  private set(shortcut: Shortcut, action: () => void, worksInFields?: boolean) {
     const str = shortcutToString(shortcut)
-    this.map.set(str, [shortcut, action])
+    this.map.set(str, [shortcut, action, !!worksInFields])
   }
 
   private unset(shortcut: Shortcut, action: () => void) {
