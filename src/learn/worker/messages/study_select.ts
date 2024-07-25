@@ -167,7 +167,7 @@ function pickNew(includeBuried: boolean, randomWithinDeck: boolean, all: Id[]) {
 
   try {
     for (const did of all) {
-      stmt.bind([did])
+      stmt.clearBindings().bind([did])
       if (stmt.step()) {
         return stmt.get(0) as Id
       }
@@ -193,7 +193,7 @@ function pickLearningToday(includeBuried: boolean, now: number, all: Id[]) {
   try {
     const cids = all
       .map((did) => {
-        stmt.bind([did])
+        stmt.clearBindings().bind([did])
         if (stmt.step()) {
           return stmt.get(0) as Id
         }
@@ -225,7 +225,7 @@ function pickReviewToday(
   try {
     const cids = all
       .map((did) => {
-        stmt.bind([did])
+        stmt.clearBindings().bind([did])
         if (stmt.step()) {
           return stmt.get(0) as Id
         }

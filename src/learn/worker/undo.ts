@@ -5,9 +5,9 @@ import type { WorkerDB } from "."
 import type { Reason } from "../db/reason"
 import type { Id } from "../lib/id"
 import {
-  ZDB_UNDO_FAILED,
-  ZDB_UNDO_HAPPENED,
-  ZDB_UNDO_STACK_CHANGED,
+  ZID_UNDO_FAILED,
+  ZID_UNDO_HAPPENED,
+  ZID_UNDO_STACK_CHANGED,
   type UndoType,
   type WorkerNotification,
 } from "../shared"
@@ -103,17 +103,18 @@ export class StateManager {
     this.msgStackChanged()
   }
 
-  dispatch(type: UndoType) {
+  dispatch(type: UndoType, meta: UndoMeta) {
     return this.step(
       type == "undo" ? this.undoStack : this.redoStack,
       type == "undo" ? this.redoStack : this.undoStack,
       type,
+      meta,
     )
   }
 
   private msgStackChanged() {
     postMessage({
-      zid: ZDB_UNDO_STACK_CHANGED,
+      zid: ZID_UNDO_STACK_CHANGED,
       canUndo: this.active && this.undoStack.length > 0,
       canRedo: this.active && this.redoStack.length > 0,
     } satisfies WorkerNotification)
@@ -125,7 +126,7 @@ export class StateManager {
     meta: UndoMeta,
   ) {
     postMessage({
-      zid: ZDB_UNDO_HAPPENED,
+      zid: ZID_UNDO_HAPPENED,
       type,
       reason,
       meta,
@@ -134,15 +135,13 @@ export class StateManager {
 
   private msgUndoFailed(type: UndoType) {
     postMessage({
-      zid: ZDB_UNDO_FAILED,
+      zid: ZID_UNDO_FAILED,
       type,
     } satisfies WorkerNotification)
   }
 
   private createTriggers(args: string[]) {
-    try {
-      this.db.exec("DROP TABLE undolog")
-    } catch {}
+    this.db.exec("DROP TABLE IF EXISTS undolog")
     let sql = "CREATE TEMP TABLE undolog (seq integer primary key, sql text);\n"
     for (const tbl of args) {
       const colList = this.db
@@ -192,9 +191,7 @@ END;`
       this.db.exec(`DROP TRIGGER ${trigger}`)
     }
 
-    try {
-      this.db.exec("DROP TABLE undolog")
-    } catch {}
+    this.db.exec("DROP TABLE IF EXISTS undolog")
   }
 
   private startInterval() {
@@ -205,7 +202,12 @@ END;`
     )!
   }
 
-  private step(v1: Item[], v2: Item[], type: UndoType) {
+  private step(
+    v1: Item[],
+    v2: Item[],
+    type: UndoType,
+    metaForThisState: UndoMeta,
+  ) {
     const first = v1.pop()
     if (!first) {
       this.msgUndoFailed(type)
@@ -239,7 +241,7 @@ END;`
       1,
     )!
     begin = this.firstlog
-    v2.push([begin, end, reason, meta])
+    v2.push([begin, end, reason, metaForThisState])
     this.startInterval()
     this.msgStackChanged()
 

@@ -16,7 +16,7 @@ export function manage_models_save(
       try {
         for (const a of added) {
           const model = cloneModel(a.id, a.name, a.cloned)
-          stmt.bind(stmts.models.insertArgs(model)).stepReset()
+          stmt.clearBindings().bind(stmts.models.insertArgs(model)).stepReset()
         }
       } finally {
         stmt.finalize()

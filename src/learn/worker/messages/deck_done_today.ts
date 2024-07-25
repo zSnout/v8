@@ -12,7 +12,7 @@ export function deck_done_today_txless(decks: Id[], dayStart: number) {
 
   try {
     for (const did of decks) {
-      stmt.bind([did])
+      stmt.clearBindings().bind([did])
       if (stmt.step()) {
         const value = stmt.get([]) as [
           today: number,

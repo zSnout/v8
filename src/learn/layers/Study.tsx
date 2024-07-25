@@ -79,6 +79,7 @@ export const LAYER_STUDY = defineLayer({
     state,
     shortcuts,
     onUndo,
+    onBeforeUndo,
   }) {
     const [answerShown, setAnswerShown] = createSignal(false)
 
@@ -93,6 +94,10 @@ export const LAYER_STUDY = defineLayer({
       state.lastCid = data?.cid
       return { data, shownAt: now }
     }
+
+    onBeforeUndo((_, { meta }) => {
+      meta.currentCard = getData()?.data?.cid
+    })
 
     onUndo(async (_, { meta: { currentCard } }) => {
       if (currentCard == null) {

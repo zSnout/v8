@@ -7,10 +7,13 @@ export function browse_due_date_set(cids: Id[], due: number) {
     const stmt = db.prepare(
       "UPDATE cards SET due = ? WHERE id = ? AND state != 0",
     )
-    for (const id of cids) {
-      stmt.bind([due, id]).stepReset()
+    try {
+      for (const id of cids) {
+        stmt.clearBindings().bind([due, id]).stepReset()
+      }
+    } finally {
+      stmt.finalize()
     }
-    stmt.finalize()
     tx.commit()
   } finally {
     tx.dispose()

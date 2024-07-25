@@ -78,7 +78,7 @@ export function create_note(
     const stmt = db.prepare(stmts.cards.insert)
     try {
       for (const card of cards) {
-        stmt.bind(stmts.cards.insertArgs(card)).stepReset()
+        stmt.clearBindings().bind(stmts.cards.insertArgs(card)).stepReset()
       }
     } finally {
       stmt.finalize()

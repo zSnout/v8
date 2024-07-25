@@ -2,11 +2,12 @@ import { createEventListener } from "@/components/create-event-listener"
 import { randomId } from "../lib/id"
 import type {
   Handlers,
+  MainThreadToItselfNotification,
   WorkerNotification,
   WorkerRequest,
   WorkerResponse,
 } from "../shared"
-import { ZDB_REJECT, ZDB_RESOLVE } from "../shared"
+import { ZID_REJECT, ZID_RESOLVE } from "../shared"
 import ActualWorker from "../worker?worker&url"
 
 export class Worker {
@@ -17,7 +18,8 @@ export class Worker {
     number,
     [(data: any) => void, (reason: any) => void]
   >()
-  private target = new EventTarget()
+  private targetWorker = new EventTarget()
+  private targetMain = new EventTarget()
   readonly ready
   private isReady = false
 
@@ -32,11 +34,13 @@ export class Worker {
         const res = data as unknown as WorkerResponse | WorkerNotification
 
         if (typeof res.zid == "string") {
-          this.target.dispatchEvent(new CustomEvent(res.zid, { detail: res }))
-          if (res.zid == ZDB_RESOLVE) {
+          this.targetWorker.dispatchEvent(
+            new CustomEvent(res.zid, { detail: res }),
+          )
+          if (res.zid == ZID_RESOLVE) {
             this.isReady = true
             resolve(this)
-          } else if (res.zid == ZDB_REJECT) {
+          } else if (res.zid == ZID_REJECT) {
             reject(res.reason)
           }
           return
@@ -66,9 +70,25 @@ export class Worker {
     event: E,
     fn: (data: WorkerNotification & { zid: E }) => unknown,
   ) {
-    createEventListener(this.target, event, (event) => {
+    createEventListener(this.targetWorker, event, (event) => {
       fn((event as CustomEvent<WorkerNotification & { zid: E }>).detail)
     })
+  }
+
+  onMain<E extends MainThreadToItselfNotification["zid"]>(
+    event: E,
+    fn: (data: MainThreadToItselfNotification & { zid: E }) => unknown,
+  ) {
+    createEventListener(this.targetMain, event, (event) => {
+      fn(
+        (event as CustomEvent<MainThreadToItselfNotification & { zid: E }>)
+          .detail,
+      )
+    })
+  }
+
+  triggerMain(data: MainThreadToItselfNotification) {
+    this.targetMain.dispatchEvent(new CustomEvent(data.zid, { detail: data }))
   }
 
   private postNow<K extends keyof Handlers>(

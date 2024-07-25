@@ -7,7 +7,7 @@ import { startOfDaySync } from "../db/day"
 import type { Reason } from "../db/reason"
 import { randomId } from "../lib/id"
 import {
-  ZDB_REJECT,
+  ZID_REJECT,
   type Handler,
   type WorkerNotification,
   type WorkerRequest,
@@ -238,10 +238,10 @@ async function init() {
     return [db, state] as const
   } catch (reason) {
     try {
-      postMessage({ zid: ZDB_REJECT, reason } satisfies WorkerNotification)
+      postMessage({ zid: ZID_REJECT, reason } satisfies WorkerNotification)
     } catch {
       postMessage({
-        zid: ZDB_REJECT,
+        zid: ZID_REJECT,
         reason: "Error is unable to be reported.",
       } satisfies WorkerNotification)
     }
@@ -365,13 +365,13 @@ class TxReadwrite {
 }
 
 declare global {
-  var __zdb__handled: Set<number> | undefined
+  var __ZID__handled: Set<number> | undefined
 }
 
 // somehow this module code ends up getting run twice, even though the worker is
 // only created once. this means requests are duplicated, so we add a simple
 // check here to ensure that we don't handle the same request twice
-const handled = (globalThis.__zdb__handled ??= new Set<number>())
+const handled = (globalThis.__ZID__handled ??= new Set<number>())
 
 addEventListener("message", async ({ data }: { data: unknown }) => {
   if (

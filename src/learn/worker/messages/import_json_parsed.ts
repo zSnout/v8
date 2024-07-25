@@ -10,10 +10,13 @@ function inner<T>(
   items: T[],
 ) {
   const stmt = db.prepare(meta.insert)
-  for (const item of items) {
-    stmt.bind(meta.insertArgs(item)).stepReset()
+  try {
+    for (const item of items) {
+      stmt.clearBindings().bind(meta.insertArgs(item)).stepReset()
+    }
+  } finally {
+    stmt.finalize()
   }
-  stmt.finalize()
 }
 
 export function import_json_parsed(data: Collection) {

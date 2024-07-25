@@ -7,11 +7,14 @@ export function charts_set(data: ChartCard[]) {
   try {
     db.exec("DELETE FROM charts")
     const stmt = db.prepare(stmts.charts.insert)
-    for (const stat of data) {
-      stmt.bind(stmts.charts.insertArgs(stat))
-      stmt.stepReset()
+    try {
+      for (const stat of data) {
+        stmt.clearBindings().bind(stmts.charts.insertArgs(stat))
+        stmt.stepReset()
+      }
+    } finally {
+      stmt.finalize()
     }
-    stmt.finalize()
     tx.commit()
   } finally {
     tx.dispose()

@@ -10,7 +10,8 @@ import type { Reason } from "./db/reason"
 import { Toasts, useToasts } from "./el/Toast"
 import { ROOT_LAYER_HOME } from "./layers/Home"
 import { ShortcutManager } from "./lib/shortcuts"
-import type { UndoType } from "./shared"
+import { ZID_BEFORE_UNDO, type UndoType } from "./shared"
+import type { UndoMeta } from "./worker/undo"
 
 function ErrorHandler(props: { children: JSX.Element }) {
   const [reason, setError] = createSignal<unknown>()
@@ -35,24 +36,6 @@ function ErrorHandler(props: { children: JSX.Element }) {
 }
 
 function UndoManager(worker: Worker) {
-  // TODO: make undos work again
-  // const undoFn = async () => {
-  //   const undoData = db.undo()
-  //   if (!undoData) {
-  //     toasts.create({ body: "Nothing to undo." })
-  //     return
-  //   }
-
-  //   const { last, done } = undoData
-  //   const detail = { redo: last.redo, reason: last.reason }
-  //   dispatchEvent(new CustomEvent("z-db-beforeundo", { detail }))
-  //   await done
-  //   toasts.create({
-  //     body: `${last.redo ? "Redoed" : "Undid"} "${last.reason}"`,
-  //   })
-  //   dispatchEvent(new CustomEvent("z-db-undo", { detail }))
-  // }
-
   const toasts = useToasts()
   const layers = useLayers()
   const shortcuts = new ShortcutManager()
@@ -87,6 +70,8 @@ function UndoManager(worker: Worker) {
 
   function undoFn(type: UndoType) {
     return async () => {
+      const meta: UndoMeta = {}
+      worker.triggerMain({ zid: ZID_BEFORE_UNDO, meta })
       const [state, setState] = createSignal<Result<Reason | null>>()
       toasts.create({
         get body() {
@@ -106,7 +91,7 @@ function UndoManager(worker: Worker) {
           )
         },
       })
-      setState(await worker.post("undo", type))
+      setState(await worker.post("undo", type, meta))
     }
   }
 }

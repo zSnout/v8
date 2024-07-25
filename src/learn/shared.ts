@@ -20,12 +20,12 @@ export type WorkerResponse = {
 }[keyof Handlers]
 
 export type WorkerNotification =
-  | { zid: typeof ZDB_RESOLVE }
-  | { zid: typeof ZDB_REJECT; reason: unknown }
-  | { zid: typeof ZDB_UNDO_STACK_CHANGED; canUndo: boolean; canRedo: boolean }
-  | { zid: typeof ZDB_UNDO_FAILED; type: UndoType }
+  | { zid: typeof ZID_RESOLVE }
+  | { zid: typeof ZID_REJECT; reason: unknown }
+  | { zid: typeof ZID_UNDO_STACK_CHANGED; canUndo: boolean; canRedo: boolean }
+  | { zid: typeof ZID_UNDO_FAILED; type: UndoType }
   | {
-      zid: typeof ZDB_UNDO_HAPPENED
+      zid: typeof ZID_UNDO_HAPPENED
       type: UndoType
       reason: Reason | null
       meta: UndoMeta
@@ -34,19 +34,27 @@ export type WorkerNotification =
 export type UndoType = "undo" | "redo"
 
 /** Indicates the worker is ready. */
-export const ZDB_RESOLVE = "zdb:resolve"
+export const ZID_RESOLVE = "zdb:resolve"
 
 /** Indicates the worker failed to start up. */
-export const ZDB_REJECT = "zdb:reject"
+export const ZID_REJECT = "zdb:reject"
 
 /** Indicates the undo/redo buttons should be updated. */
-export const ZDB_UNDO_STACK_CHANGED = "zdb:undo-stack-changed"
+export const ZID_UNDO_STACK_CHANGED = "zdb:undo-stack-changed"
 
 /** Indicates the user interface should be updated. */
-export const ZDB_UNDO_HAPPENED = "zdb:undo-happened"
+export const ZID_UNDO_HAPPENED = "zdb:undo-happened"
 
 /** Indicates that an undo or redo action failed. */
-export const ZDB_UNDO_FAILED = "zdb:undo-failed"
+export const ZID_UNDO_FAILED = "zdb:undo-failed"
+
+export type MainThreadToItselfNotification = {
+  zid: typeof ZID_BEFORE_UNDO
+  meta: UndoMeta
+}
+
+/** Indicates that the main thread is preparing to save the current state. */
+export const ZID_BEFORE_UNDO = "zdb:before-undo"
 
 export type Cloneable =
   | Array<Cloneable>

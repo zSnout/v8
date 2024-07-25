@@ -9,7 +9,12 @@ import {
 } from "solid-js"
 import { Worker } from "../db"
 import { ShortcutManager } from "../lib/shortcuts"
-import { ZDB_UNDO_HAPPENED, type WorkerNotification } from "../shared"
+import {
+  ZID_BEFORE_UNDO,
+  ZID_UNDO_HAPPENED,
+  type MainThreadToItselfNotification,
+  type WorkerNotification,
+} from "../shared"
 import {
   useLayers,
   type Awaitable,
@@ -72,8 +77,14 @@ export type LayerOnReturn<Props, State, AsyncData> = (
 /** Called when the database performs an undo or redo. */
 export type LayerOnUndo<Props, State, AsyncData> = (
   info: LayerCallbackInfo<Props, State, AsyncData>,
-  undo: WorkerNotification & { zid: typeof ZDB_UNDO_HAPPENED },
+  notif: WorkerNotification & { zid: typeof ZID_UNDO_HAPPENED },
 ) => Awaitable<LayerOnUndoRetVal>
+
+/** Called before the database performs an undo or redo. */
+export type LayerOnBeforeUndo<Props, State, AsyncData> = (
+  info: LayerCallbackInfo<Props, State, AsyncData>,
+  notif: MainThreadToItselfNotification & { zid: typeof ZID_BEFORE_UNDO },
+) => undefined
 
 /** Data passed to the `render()` function on a layer. */
 export interface LayerRenderInfo<Props, State, AsyncData> {
@@ -107,6 +118,14 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
    * data is not reloaded.
    */
   onUndo(fn: LayerOnUndo<Props, State, AsyncData>): void
+
+  /**
+   * Sets a function to be called before the database performs an undo or redo
+   * operation, replacing past `onBeforeUndo` calls. The callback may modify the
+   * metadata associated with the current application state, which will be put
+   * back if the undo/redo mechanism goes back to this state.
+   */
+  onBeforeUndo(fn: LayerOnBeforeUndo<Props, State, AsyncData>): void
 
   /** Pops the current layer. If `force` is called, ignores `onPop` handlers. */
   pop(force?: boolean): Promise<void>
@@ -182,6 +201,16 @@ export interface Layer<Props, State, AsyncData> {
    * data is not reloaded.
    */
   onUndo?: LayerOnUndo<Props, State, AsyncData> | undefined
+
+  /**
+   * Sets the default `onBeforeUndo` callback, described below.
+   *
+   * Sets a function to be called before the database performs an undo or redo
+   * operation, replacing past `onBeforeUndo` calls. The callback may modify the
+   * metadata associated with the current application state, which will be put
+   * back if the undo/redo mechanism goes back to this state.
+   */
+  onBeforeUndo?: LayerOnBeforeUndo<Props, State, AsyncData> | undefined
 }
 
 function createStatic<T>(value: T) {
@@ -197,7 +226,9 @@ function createStatic<T>(value: T) {
  *
  * **TL;DR: A layer has preserved state, volatile async data, and goes over other
  * parts of the page. Put configuration in props, stuff you need to preserve in
- * `state`, and stuff from the database in `load` (which returns async data).**
+ * `state`, stuff from the database in `load` (which returns async data), and
+ * store state which changes across undo/redo actions in the `onBeforeUndo`
+ * handler.**
  *
  * ---
  *
@@ -249,9 +280,13 @@ export function defineLayer<
 >(layer: Layer<Props, State, AsyncData>): Layerable<Props> {
   return (props, popRaw) => {
     const worker = props instanceof Worker ? props : props.worker
-    let { onReturn, onPop, onUndo } = layer
+    let { onReturn, onPop, onUndo, onBeforeUndo } = layer
 
-    worker.on(ZDB_UNDO_HAPPENED, async (data) => {
+    worker.onMain(ZID_BEFORE_UNDO, async (data) => {
+      onBeforeUndo?.(layerCallbackInfo, data)
+    })
+
+    worker.on(ZID_UNDO_HAPPENED, async (data) => {
       if (
         !onUndo ||
         (await onUndo(layerCallbackInfo, data)) !== "preserve-data"
@@ -326,6 +361,9 @@ export function defineLayer<
       },
       onUndo(fn) {
         onUndo = fn
+      },
+      onBeforeUndo(fn) {
+        onBeforeUndo = fn
       },
       refetchData() {
         mutate(undefined)
