@@ -1,5 +1,5 @@
 // @ts-ignore shut up typescript. this makes vite happy
-import sqlite3InitModule from "@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
+import sqlite3InitModule from "../../../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
 
 import { notNull } from "@/components/pray"
 import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
