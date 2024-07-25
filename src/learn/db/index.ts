@@ -1,3 +1,4 @@
+import { createEventListener } from "@/components/create-event-listener"
 import { randomId } from "../lib/id"
 import type {
   Handlers,
@@ -5,12 +6,7 @@ import type {
   WorkerRequest,
   WorkerResponse,
 } from "../shared"
-import {
-  ZDB_REFRESH_INTERFACES,
-  ZDB_REFRESH_UNDOREDO,
-  ZDB_REJECT,
-  ZDB_RESOLVE,
-} from "../shared"
+import { ZDB_REJECT, ZDB_RESOLVE } from "../shared"
 import ActualWorker from "../worker?worker&url"
 
 export class Worker {
@@ -35,22 +31,14 @@ export class Worker {
 
         const res = data as unknown as WorkerResponse | WorkerNotification
 
-        if (res.zid == ZDB_RESOLVE) {
-          this.isReady = true
-          resolve(this)
-          return
-        } else if (res.zid == ZDB_REJECT) {
-          reject(res.reason)
-          return
-        } else if (res.zid == ZDB_REFRESH_UNDOREDO) {
-          this.target.dispatchEvent(
-            new CustomEvent("refresh-undoredo", { detail: res }),
-          )
-          return
-        } else if (res.zid == ZDB_REFRESH_INTERFACES) {
-          this.target.dispatchEvent(
-            new CustomEvent("refresh-interfaces", { detail: res }),
-          )
+        if (typeof res.zid == "string") {
+          this.target.dispatchEvent(new CustomEvent(res.zid, { detail: res }))
+          if (res.zid == ZDB_RESOLVE) {
+            this.isReady = true
+            resolve(this)
+          } else if (res.zid == ZDB_REJECT) {
+            reject(res.reason)
+          }
           return
         }
 
@@ -71,6 +59,15 @@ export class Worker {
         console.error("The database failed to load.")
         reject(event.error)
       })
+    })
+  }
+
+  on<E extends WorkerNotification["zid"]>(
+    event: E,
+    fn: (data: WorkerNotification & { zid: E }) => unknown,
+  ) {
+    createEventListener(this.target, event, (event) => {
+      fn((event as CustomEvent<WorkerNotification & { zid: E }>).detail)
     })
   }
 

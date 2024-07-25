@@ -20,8 +20,8 @@ export type WorkerResponse = {
 export type WorkerNotification =
   | { zid: typeof ZDB_RESOLVE }
   | { zid: typeof ZDB_REJECT; reason: unknown }
-  | { zid: typeof ZDB_REFRESH_UNDOREDO; canUndo: boolean; canRedo: boolean }
-  | { zid: typeof ZDB_REFRESH_INTERFACES }
+  | { zid: typeof ZDB_UNDO_STACK_CHANGED; canUndo: boolean; canRedo: boolean }
+  | { zid: typeof ZDB_UNDO_HAPPENED }
 
 /** Indicates the worker is ready. */
 export const ZDB_RESOLVE = "zdb:resolve"
@@ -30,10 +30,10 @@ export const ZDB_RESOLVE = "zdb:resolve"
 export const ZDB_REJECT = "zdb:reject"
 
 /** Indicates the undo/redo buttons should be updated. */
-export const ZDB_REFRESH_UNDOREDO = "zdb:refresh-undoredo"
+export const ZDB_UNDO_STACK_CHANGED = "zdb:undo-stack-changed"
 
 /** Indicates the user interface should be updated. */
-export const ZDB_REFRESH_INTERFACES = "zdb:refresh-interfaces"
+export const ZDB_UNDO_HAPPENED = "zdb:undo-happened"
 
 export type Cloneable =
   | Array<Cloneable>

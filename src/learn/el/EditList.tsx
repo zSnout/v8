@@ -19,6 +19,7 @@ import {
   untrack,
 } from "solid-js"
 import { createStore, SetStoreFunction, Store, unwrap } from "solid-js/store"
+import type { Worker } from "../db"
 import { compareWithName } from "../lib/compare"
 import type { Id } from "../lib/id"
 import { Action, TwoBottomButtons } from "./BottomButtons"
@@ -330,7 +331,7 @@ export function defineListEditor<
 }
 
 export function defineListEditorLayer<
-  Props,
+  Props extends Worker | { worker: Worker },
   State extends { selected?: string | number },
   AsyncData extends object | PromiseLike<object>,
   Entry extends { id: Id; name: string },

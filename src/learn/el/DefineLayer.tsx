@@ -7,7 +7,9 @@ import {
   type JSX,
   type Owner,
 } from "solid-js"
+import { Worker } from "../db"
 import { ShortcutManager } from "../lib/shortcuts"
+import { ZDB_UNDO_HAPPENED } from "../shared"
 import { useLayers, type Awaitable, type Layerable } from "./Layers"
 import { Loading } from "./Loading"
 
@@ -35,11 +37,37 @@ export type LayerOnPopRetVal = "stop" | undefined
 /** A value which can be returned from an `onReturn` handler. */
 export type LayerOnReturnRetVal = "preserve-data" | undefined
 
+/** A value which can be returned from an `onUndo` handler. */
+export type LayerOnUndoRetVal = "preserve-data" | undefined
+
+export interface LayerCallbackInfo<Props, State, AsyncData> {
+  /** The props passed to the layer. */
+  props: Props
+
+  /** Possibly reactive getter and setter (depending on `info.state`). */
+  state: State
+
+  /** The async data of this layer. */
+  data: Awaited<AsyncData> | undefined
+
+  /** The owner of this reactive tree. */
+  owner: Owner | null
+}
+
 /** Called when a layer is popped. */
-export type LayerOnPop = () => Awaitable<LayerOnPopRetVal>
+export type LayerOnPop<Props, State, AsyncData> = (
+  info: LayerCallbackInfo<Props, State, AsyncData>,
+) => Awaitable<LayerOnPopRetVal>
 
 /** Called when a layer is returned to. */
-export type LayerOnReturn = () => Awaitable<LayerOnReturnRetVal>
+export type LayerOnReturn<Props, State, AsyncData> = (
+  info: LayerCallbackInfo<Props, State, AsyncData>,
+) => Awaitable<LayerOnReturnRetVal>
+
+/** Called when the database performs an undo or redo. */
+export type LayerOnUndo<Props, State, AsyncData> = (
+  info: LayerCallbackInfo<Props, State, AsyncData>,
+) => Awaitable<LayerOnUndoRetVal>
 
 /** Data passed to the `render()` function on a layer. */
 export interface LayerRenderInfo<Props, State, AsyncData> {
@@ -54,16 +82,25 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
 
   /**
    * Sets a function to be called when this layer is returned to, replacing past
-   * `onReturn` calls.
+   * `onReturn` calls. If the function returns `"preserve-data"` or a promise
+   * resolving to `"preserve-data"`, the async data is not reloaded.
    */
-  onReturn(fn: LayerOnReturn): void
+  onReturn(fn: LayerOnReturn<Props, State, AsyncData>): void
 
   /**
    * Sets a function to be called when exiting this layer, replacing past
    * `onPop` calls. If the function returns `"stop"`, the pop is cancelled. If a
    * promise is returned, the pop is delayed until the promise resolves.
    */
-  onPop(fn: LayerOnPop): void
+  onPop(fn: LayerOnPop<Props, State, AsyncData>): void
+
+  /**
+   * Sets a function to be called when the database performs an undo or redo
+   * operation, replacing past `onUndo` calls. If the function returns
+   * `"preserve-data"` or a promise resolving to `"preserve-data"`, the async
+   * data is not reloaded.
+   */
+  onUndo(fn: LayerOnUndo<Props, State, AsyncData>): void
 
   /** Pops the current layer. If `force` is called, ignores `onPop` handlers. */
   pop(force?: boolean): Promise<void>
@@ -111,6 +148,34 @@ export interface Layer<Props, State, AsyncData> {
 
   /** What reactivity system to use for `state`, if any. */
   state?: "signal" | undefined
+
+  /**
+   * Sets the default `onReturn` callback, described below.
+   *
+   * Sets a function to be called when this layer is returned to, replacing past
+   * `onReturn` calls. If the function returns `"preserve-data"` or a promise
+   * resolving to `"preserve-data"`, the async data is not reloaded.
+   */
+  onReturn?: LayerOnReturn<Props, State, AsyncData> | undefined
+
+  /**
+   * Sets the default `onPop` callback, described below.
+   *
+   * Sets a function to be called when exiting this layer, replacing past
+   * `onPop` calls. If the function returns `"stop"`, the pop is cancelled. If a
+   * promise is returned, the pop is delayed until the promise resolves.
+   */
+  onPop?: LayerOnPop<Props, State, AsyncData> | undefined
+
+  /**
+   * Sets the default `onUndo` callback, described below.
+   *
+   * Sets a function to be called when the database performs an undo or redo
+   * operation, replacing past `onUndo` calls. If the function returns
+   * `"preserve-data"` or a promise resolving to `"preserve-data"`, the async
+   * data is not reloaded.
+   */
+  onUndo?: LayerOnUndo<Props, State, AsyncData> | undefined
 }
 
 function createStatic<T>(value: T) {
@@ -171,12 +236,21 @@ function createStatic<T>(value: T) {
  * 2. The async data is refetched.
  * 3. The layer is re-rendered.
  */
-export function defineLayer<Props, State, AsyncData>(
-  layer: Layer<Props, State, AsyncData>,
-): Layerable<Props> {
+export function defineLayer<
+  Props extends Worker | { worker: Worker },
+  State,
+  AsyncData,
+>(layer: Layer<Props, State, AsyncData>): Layerable<Props> {
   return (props, popRaw) => {
-    let onReturn: LayerOnReturn | undefined
-    let onPop: LayerOnPop | undefined
+    const worker = props instanceof Worker ? props : props.worker
+    let { onReturn, onPop, onUndo } = layer
+
+    worker.on(ZDB_UNDO_HAPPENED, async () => {
+      if (!onUndo || (await onUndo(layerCallbackInfo)) !== "preserve-data") {
+        mutate(undefined)
+        refetch()
+      }
+    })
 
     const layers = useLayers()
     const owner = getOwner()
@@ -241,6 +315,9 @@ export function defineLayer<Props, State, AsyncData>(
       onPop(fn) {
         onPop = fn
       },
+      onUndo(fn) {
+        onUndo = fn
+      },
       refetchData() {
         mutate(undefined)
         refetch()
@@ -263,6 +340,20 @@ export function defineLayer<Props, State, AsyncData>(
       shortcuts,
     }
 
+    const layerCallbackInfo: LayerCallbackInfo<Props, State, AsyncData> = {
+      props,
+      get state() {
+        return state()
+      },
+      set state(v) {
+        setState(v)
+      },
+      get data() {
+        return data()
+      },
+      owner,
+    }
+
     return {
       el: <El />,
       async onForcePop() {
@@ -270,10 +361,13 @@ export function defineLayer<Props, State, AsyncData>(
           return true
         }
 
-        return (await onPop()) !== "stop"
+        return (await onPop(layerCallbackInfo)) !== "stop"
       },
       async onReturn() {
-        if (!onReturn || (await onReturn()) !== "preserve-data") {
+        if (
+          !onReturn ||
+          (await onReturn(layerCallbackInfo)) !== "preserve-data"
+        ) {
           mutate(undefined)
           refetch()
         }
@@ -296,7 +390,7 @@ export function defineLayer<Props, State, AsyncData>(
     }
 
     async function pop(force: boolean) {
-      if (force || !onPop || (await onPop()) !== "stop") {
+      if (force || !onPop || (await onPop(layerCallbackInfo)) !== "stop") {
         popRaw()
       }
     }
