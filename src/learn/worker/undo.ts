@@ -1,10 +1,18 @@
 // adapted from https://www.sqlite.org/undoredo.html
 
-import { type WorkerNotification } from "../shared"
+import { error, ok } from "@/components/result"
+import type { WorkerDB } from "."
+import type { Reason } from "../db/reason"
+import {
+  ZDB_UNDO_FAILED,
+  ZDB_UNDO_HAPPENED,
+  ZDB_UNDO_STACK_CHANGED,
+  type UndoType,
+  type WorkerNotification,
+} from "../shared"
 import { text } from "./checks"
-import { db } from "."
 
-export type Item = [start: number, end: number]
+export type Item = [start: number, end: number, reason: Reason | null]
 
 export class StateManager {
   private undoStack: Item[] = []
@@ -13,7 +21,7 @@ export class StateManager {
   private freeze = -1
   private firstlog = 1
 
-  constructor() {}
+  constructor(private readonly db: WorkerDB) {}
 
   activate(args: string[]) {
     if (this.active) {
@@ -43,7 +51,7 @@ export class StateManager {
       throw new Error("Recursive call to `freeze`.")
     }
 
-    this.freeze = db.selectValue(
+    this.freeze = this.db.selectValue(
       "SELECT coalesce(max(seq),0) FROM undolog",
       undefined,
       1,
@@ -55,17 +63,17 @@ export class StateManager {
       throw new Error("Called `unfreeze` while not frozen.")
     }
 
-    db.exec("DELETE FROM undolog WHERE seq > ?", { bind: [this.freeze] })
+    this.db.exec("DELETE FROM undolog WHERE seq > ?", { bind: [this.freeze] })
     this.freeze = -1
   }
 
-  mark() {
+  mark(reason: Reason | null) {
     if (!this.active) {
-      this.refreshButtons()
+      this.msgStackChanged()
       return
     }
 
-    let end = db.selectValue(
+    let end = this.db.selectValue(
       "SELECT coalesce(max(seq),0) FROM undolog",
       undefined,
       1,
@@ -76,42 +84,53 @@ export class StateManager {
     const begin = this.firstlog
     this.startInterval()
     if (begin == this.firstlog) {
-      this.refreshButtons()
+      this.msgStackChanged()
       return
     }
 
-    this.undoStack.push([begin, end])
+    this.undoStack.push([begin, end, reason])
     this.redoStack = []
-    this.refreshButtons()
+    this.msgStackChanged()
   }
 
-  undo() {
-    this.step(this.undoStack, this.redoStack)
+  dispatch(type: UndoType) {
+    return this.step(
+      type == "undo" ? this.undoStack : this.redoStack,
+      type == "undo" ? this.redoStack : this.undoStack,
+      type,
+    )
   }
 
-  redo() {
-    this.step(this.redoStack, this.undoStack)
-  }
-
-  private refreshButtons() {
+  private msgStackChanged() {
     postMessage({
-      zid: "zdb:refresh-undoredo",
+      zid: ZDB_UNDO_STACK_CHANGED,
       canUndo: this.active && this.undoStack.length > 0,
       canRedo: this.active && this.redoStack.length > 0,
     } satisfies WorkerNotification)
   }
 
-  private refreshInterfaces() {
-    postMessage({ zid: "zdb:refresh-interfaces" } satisfies WorkerNotification)
+  private msgUndoHappened(type: UndoType, reason: Reason | null) {
+    postMessage({
+      zid: ZDB_UNDO_HAPPENED,
+      type,
+      reason,
+    } satisfies WorkerNotification)
+  }
+
+  private msgUndoFailed(type: UndoType) {
+    postMessage({
+      zid: ZDB_UNDO_FAILED,
+      type,
+    } satisfies WorkerNotification)
   }
 
   private createTriggers(args: string[]) {
     try {
-      db.exec("DROP TABLE undolog")
+      this.db.exec("DROP TABLE undolog")
     } catch {}
     let sql = "CREATE TEMP TABLE undolog (seq integer primary key, sql text);\n"
     for (const tbl of args) {
-      const colList = db
+      const colList = this.db
         .run(`pragma table_info(${tbl})`)
         .map((x) => x[1] as string)
 
@@ -141,11 +160,11 @@ INSERT INTO undolog VALUES (NULL, 'INSERT INTO ${tbl}(rowid`
       sql += `)');
 END;`
     }
-    db.exec(sql)
+    this.db.exec(sql)
   }
 
   private dropTriggers() {
-    const tlist = db.checked(
+    const tlist = this.db.checked(
       "SELECT name FROM sqlite_temp_schema WHERE type='trigger'",
       [text],
     )
@@ -155,55 +174,60 @@ END;`
         continue
       }
 
-      db.exec(`DROP TRIGGER ${trigger}`)
+      this.db.exec(`DROP TRIGGER ${trigger}`)
     }
 
     try {
-      db.exec("DROP TABLE undolog")
+      this.db.exec("DROP TABLE undolog")
     } catch {}
   }
 
   private startInterval() {
-    this.firstlog = db.selectValue(
+    this.firstlog = this.db.selectValue(
       "SELECT coalesce(max(seq),0)+1 FROM undolog",
       undefined,
       1,
     )!
   }
 
-  private step(v1: Item[], v2: Item[]) {
-    let [begin, end] = v1.pop()!
-    db.exec("BEGIN")
+  private step(v1: Item[], v2: Item[], type: UndoType) {
+    const first = v1.pop()
+    if (!first) {
+      this.msgUndoFailed(type)
+      return error("Nothing left in " + type + " stack.")
+    }
+    let [begin, end, reason] = first
+    this.db.exec("BEGIN")
     try {
       const q1 = `SELECT sql FROM undolog WHERE seq>=${begin} AND seq<=${end} ORDER BY seq DESC`
-      const sqllist = db.run(q1).map((x) => x[0] as string)
-      db.exec(`DELETE FROM undolog WHERE seq>=${begin} AND seq<=${end}`)
-      this.firstlog = db.selectValue(
+      const sqllist = this.db.run(q1).map((x) => x[0] as string)
+      this.db.exec(`DELETE FROM undolog WHERE seq>=${begin} AND seq<=${end}`)
+      this.firstlog = this.db.selectValue(
         "SELECT coalesce(max(seq),0)+1 FROM undolog",
         undefined,
         1,
       )!
       for (const sql of sqllist) {
-        db.exec(sql)
+        this.db.exec(sql)
       }
-      db.exec("COMMIT")
+      this.db.exec("COMMIT")
     } catch (err) {
-      db.exec("ROLLBACK")
+      this.db.exec("ROLLBACK")
       throw err
     }
 
-    this.refreshInterfaces()
+    this.msgUndoHappened(type, reason)
 
-    end = db.selectValue(
+    end = this.db.selectValue(
       "SELECT coalesce(max(seq),0)+1 FROM undolog",
       undefined,
       1,
     )!
     begin = this.firstlog
-    v2.push([begin, end])
+    v2.push([begin, end, reason])
     this.startInterval()
-    this.refreshButtons()
+    this.msgStackChanged()
+
+    return ok(reason)
   }
 }
-
-export const state = new StateManager()

@@ -19,7 +19,7 @@ import { latest, upgrade } from "./version"
 import { ZDB_REJECT } from "../shared"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
-import { state } from "./undo"
+import { StateManager } from "./undo"
 
 export const sqlite3 = await (
   sqlite3InitModule as typeof import("@sqlite.org/sqlite-wasm").default
@@ -38,8 +38,8 @@ export class WorkerDB extends sqlite3.oo1.OpfsDb {
     return new TxReadonly()
   }
 
-  readwrite(_reason: Reason) {
-    return new TxReadwrite()
+  readwrite(reason: Reason) {
+    return new TxReadwrite(reason)
   }
 
   run(sql: string, params?: BindingSpec): SqlValue[][] {
@@ -225,7 +225,22 @@ async function init() {
 
     db.exec(query_init)
     checkVersion(db)
-    return db
+    const state = new StateManager(db)
+
+    state.activate([
+      "core",
+      "graves",
+      "confs",
+      "decks",
+      "models",
+      "notes",
+      "cards",
+      "rev_log",
+      "prefs",
+      "charts",
+    ])
+
+    return [db, state] as const
   } catch (reason) {
     try {
       postMessage({ zid: ZDB_REJECT, reason } satisfies WorkerNotification)
@@ -315,7 +330,7 @@ class TxReadonly {
 class TxReadwrite {
   private done = false
 
-  constructor() {
+  constructor(private readonly reason: Reason) {
     db.exec("BEGIN TRANSACTION")
     if (import.meta.env.DEV) {
       setTimeout(() => {
@@ -324,6 +339,7 @@ class TxReadwrite {
         }
       })
     }
+    state.mark(null)
   }
 
   commit() {
@@ -332,6 +348,7 @@ class TxReadwrite {
     }
 
     db.exec("COMMIT")
+    state.mark(this.reason)
     this.done = true
   }
 
@@ -380,8 +397,8 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
   return
 })
 
-/** This is a `let` binding so we can close and reopen it. */
-export let db = await init()
+/** These are `let` bindings so we can close and reopen them. */
+export let [db, state] = await init()
 
 function createClosedDatabase(message: string) {
   function dbImporting(): never {
@@ -412,18 +429,11 @@ export async function closeDatabaseTemporarily(
 ) {
   try {
     db.close()
-    db = createClosedDatabase(message)
+    state = db = createClosedDatabase(message)
     await fn()
   } finally {
-    db = await init()
+    ;[db, state] = await init()
   }
 }
 
 postMessage({ zid: "zdb:resolve" } satisfies WorkerNotification)
-
-Object.assign(globalThis, {
-  undoRedo: state,
-  get db() {
-    return db
-  },
-})

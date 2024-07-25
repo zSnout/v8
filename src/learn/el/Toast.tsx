@@ -36,8 +36,8 @@ export class Toasts {
     )
   }
 
-  toasts
-  setToasts
+  private toasts
+  private setToasts
 
   constructor(private owner: Owner | null) {
     ;[this.toasts, this.setToasts] = createSignal<JSX.Element[]>([])
@@ -70,7 +70,7 @@ export class Toasts {
     return closeNow
   }
 
-  create(props: { title?: string; body: string }) {
+  create(props: { title?: string; readonly body: JSX.Element }) {
     return this.of((closeNow, hiding) => (
       <div
         class="pointer-events-auto w-64 max-w-full transform transition-[opacity,transform,max-height,margin]"

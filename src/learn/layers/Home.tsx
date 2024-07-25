@@ -11,12 +11,12 @@ import {
   faTableCellsLarge,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { createSignal, getOwner, onMount } from "solid-js"
+import { createSignal, onMount } from "solid-js"
 import { Worker } from "../db"
 import { Action, BottomButtons } from "../el/BottomButtons"
 import { ContextMenuTrigger } from "../el/ContextMenu"
+import { defineRootLayer } from "../el/DefineLayer"
 import { useLayers } from "../el/Layers"
-import { createLoadingBase } from "../el/Loading"
 import type { Id } from "../lib/id"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../lib/types"
 import { LAYER_BROWSE } from "./Browse"
@@ -44,18 +44,16 @@ function SublinkHandler(): undefined {
   })
 }
 
-export const Home = createLoadingBase(
-  async (worker: Worker) => {
+export const ROOT_LAYER_HOME = defineRootLayer({
+  init(_: Worker) {},
+  async load({ props: worker }) {
     const [decks, setDecks] = createSignal(await worker.post("home_list_decks"))
     return [
       decks,
       async () => setDecks(await worker.post("home_list_decks")),
     ] as const
   },
-  (worker, [decks, reloadDecks]) => {
-    const owner = getOwner()
-    const layers = useLayers()
-
+  render({ props: worker, data: [decks, reloadDecks], owner, push }) {
     // TODO: add decks to icon list and put all of them in the navbar when any
     // layers are active
 
@@ -70,8 +68,6 @@ export const Home = createLoadingBase(
     )
 
     function TopActions() {
-      const layers = useLayers()
-
       return (
         <div class="mx-auto grid w-full max-w-xl grid-cols-2 justify-center gap-1 xs:grid-cols-3 sm:grid-cols-5">
           <Action
@@ -79,26 +75,26 @@ export const Home = createLoadingBase(
             center
             icon={faPlus}
             label="Add"
-            onClick={() => layers.push(LAYER_CREATE_NOTE, worker)}
+            onClick={() => push(LAYER_CREATE_NOTE, worker)}
           />
           <Action
             center
             icon={faTableCellsLarge}
             label="Browse"
-            onClick={() => layers.push(LAYER_BROWSE, worker)}
+            onClick={() => push(LAYER_BROWSE, worker)}
           />
           <Action
             center
             icon={faChartBar}
             label="Stats"
-            onClick={() => layers.push(LAYER_STATS, worker)}
+            onClick={() => push(LAYER_STATS, worker)}
           />
           {/* TODO: implement actual statistics page */}
           <Action
             center
             icon={faSliders}
             label="Settings"
-            onClick={() => layers.push(LAYER_SETTINGS, worker)}
+            onClick={() => push(LAYER_SETTINGS, worker)}
           />
           <Action center icon={faSync} label="Sync" onClick={nope} />
         </div>
@@ -216,7 +212,7 @@ export const Home = createLoadingBase(
             if (root != null) all.push(root)
             collectDeckIds(subtree)
 
-            layers.push(LAYER_STUDY, { worker, root, all })
+            push(LAYER_STUDY, { worker, root, all })
 
             function collectDeckIds(subtree: DeckHomeTree | undefined) {
               if (subtree == null) return
@@ -274,4 +270,4 @@ export const Home = createLoadingBase(
       )
     }
   },
-)
+})

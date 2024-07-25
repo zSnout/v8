@@ -10,7 +10,12 @@ import {
 import { Worker } from "../db"
 import { ShortcutManager } from "../lib/shortcuts"
 import { ZDB_UNDO_HAPPENED } from "../shared"
-import { useLayers, type Awaitable, type Layerable } from "./Layers"
+import {
+  useLayers,
+  type Awaitable,
+  type Layerable,
+  type RootLayerable,
+} from "./Layers"
 import { Loading } from "./Loading"
 
 /** Data passed to the `load()` function on a layer. */
@@ -42,16 +47,16 @@ export type LayerOnUndoRetVal = "preserve-data" | undefined
 
 export interface LayerCallbackInfo<Props, State, AsyncData> {
   /** The props passed to the layer. */
-  props: Props
+  readonly props: Props
 
   /** Possibly reactive getter and setter (depending on `info.state`). */
   state: State
 
   /** The async data of this layer. */
-  data: Awaited<AsyncData> | undefined
+  readonly data: Awaited<AsyncData> | undefined
 
   /** The owner of this reactive tree. */
-  owner: Owner | null
+  readonly owner: Owner | null
 }
 
 /** Called when a layer is popped. */
@@ -72,7 +77,7 @@ export type LayerOnUndo<Props, State, AsyncData> = (
 /** Data passed to the `render()` function on a layer. */
 export interface LayerRenderInfo<Props, State, AsyncData> {
   /** The props passed to this layer. Passed as-is, so likely reactive. */
-  props: Props
+  readonly props: Props
 
   /** The state created by `init`. Possibly reactive, depending on config. */
   state: State
@@ -118,7 +123,7 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
   push<T>(layer: Layerable<T>, props: T): void
 
   /** The `Owner` of the reactive tree. */
-  owner: Owner | null
+  readonly owner: Owner | null
 
   /** A `ShortcutsManager` specific to this render instance.  */
   readonly shortcuts: ShortcutManager
@@ -395,4 +400,13 @@ export function defineLayer<
       }
     }
   }
+}
+
+export function defineRootLayer<
+  Props extends Worker | { worker: Worker },
+  State,
+  AsyncData,
+>(layer: Layer<Props, State, AsyncData>): RootLayerable<Props> {
+  const layerable = defineLayer(layer)
+  return (props) => layerable(props, () => {})
 }

@@ -1,13 +1,16 @@
 import { createEventListener } from "@/components/create-event-listener"
-import { error } from "@/components/result"
+import { MatchResult } from "@/components/MatchResult"
+import { error, type Result } from "@/components/result"
 import { Error } from "@/learn/el/Error"
 import { Layers, useLayers } from "@/learn/el/Layers"
 import { createLoadingBase } from "@/learn/el/Loading"
 import { createSignal, JSX, onMount, Show } from "solid-js"
 import { Worker } from "./db"
-import { Toasts } from "./el/Toast"
+import type { Reason } from "./db/reason"
+import { Toasts, useToasts } from "./el/Toast"
+import { ROOT_LAYER_HOME } from "./layers/Home"
 import { ShortcutManager } from "./lib/shortcuts"
-import { Home } from "./layers/Home"
+import type { UndoType } from "./shared"
 
 function ErrorHandler(props: { children: JSX.Element }) {
   const [reason, setError] = createSignal<unknown>()
@@ -50,39 +53,62 @@ function UndoManager(worker: Worker) {
   //   dispatchEvent(new CustomEvent("z-db-undo", { detail }))
   // }
 
-  // const toasts = useToasts()
+  const toasts = useToasts()
   const layers = useLayers()
   const shortcuts = new ShortcutManager()
-  // TODO: no pop when modal is active
-  shortcuts.scoped(
-    { key: "Escape" },
-    () => {
-      let dialog
-      if (
-        (document.activeElement instanceof HTMLElement ||
-          document.activeElement instanceof SVGElement) &&
-        document.activeElement != document.body
-      ) {
-        document.activeElement.blur()
-      } else if (
-        (dialog = document.querySelector<HTMLDialogElement>("dialog[open]"))
-      ) {
-        dialog.dispatchEvent(new Event("cancel"))
-      } else if (document.activeElement == document.body) {
-        layers.popLatest()
-      }
-    },
-    true,
-  )
-  // manager.scoped({ key: "Z" }, undoFn)
-  // manager.scoped({ key: "Z", mod: "macctrl" }, undoFn)
 
-  // TODO: remove this once <Stats /> is done
-  // if (import.meta.env.DEV) {
-  // return Stats(worker, () => {})
-  // } else {
-  return Home(worker)
-  // }
+  shortcuts.scoped({ key: "Escape" }, escapeFn, true)
+
+  shortcuts.scoped({ key: "Z", shift: false }, undoFn("undo"))
+  shortcuts.scoped({ key: "Z", mod: "macctrl", shift: false }, undoFn("undo"))
+  shortcuts.scoped({ key: "Z", shift: true }, undoFn("redo"))
+  shortcuts.scoped({ key: "Z", mod: "macctrl", shift: true }, undoFn("redo"))
+  shortcuts.scoped({ key: "Y" }, undoFn("redo"))
+  shortcuts.scoped({ key: "Y", mod: "macctrl" }, undoFn("redo"))
+
+  return ROOT_LAYER_HOME(worker)
+
+  function escapeFn() {
+    let dialog
+    if (
+      (document.activeElement instanceof HTMLElement ||
+        document.activeElement instanceof SVGElement) &&
+      document.activeElement != document.body
+    ) {
+      document.activeElement.blur()
+    } else if (
+      (dialog = document.querySelector<HTMLDialogElement>("dialog[open]"))
+    ) {
+      dialog.dispatchEvent(new Event("cancel"))
+    } else if (document.activeElement == document.body) {
+      layers.popLatest()
+    }
+  }
+
+  function undoFn(type: UndoType) {
+    return async () => {
+      const [state, setState] = createSignal<Result<Reason | null>>()
+      toasts.create({
+        get body() {
+          return (
+            <Show when={state()} fallback={`Attempting to ${type}...`}>
+              {(x) => (
+                <MatchResult
+                  result={x()}
+                  fallback={() => "Nothing left to " + type}
+                >
+                  {(x) =>
+                    `${type == "undo" ? "Undid" : "Redid"} '${x() ?? "<unknown action>"}'`
+                  }
+                </MatchResult>
+              )}
+            </Show>
+          )
+        },
+      })
+      setState(await worker.post("undo", type))
+    }
+  }
 }
 
 const InsideErrorHandler = createLoadingBase<void, Worker>(

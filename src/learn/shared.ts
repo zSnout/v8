@@ -1,3 +1,4 @@
+import type { Reason } from "./db/reason"
 import type { Awaitable } from "./el/Layers"
 import type * as messages from "./worker/messages"
 
@@ -21,7 +22,10 @@ export type WorkerNotification =
   | { zid: typeof ZDB_RESOLVE }
   | { zid: typeof ZDB_REJECT; reason: unknown }
   | { zid: typeof ZDB_UNDO_STACK_CHANGED; canUndo: boolean; canRedo: boolean }
-  | { zid: typeof ZDB_UNDO_HAPPENED }
+  | { zid: typeof ZDB_UNDO_HAPPENED; type: UndoType; reason: Reason | null }
+  | { zid: typeof ZDB_UNDO_FAILED; type: UndoType }
+
+export type UndoType = "undo" | "redo"
 
 /** Indicates the worker is ready. */
 export const ZDB_RESOLVE = "zdb:resolve"
@@ -34,6 +38,9 @@ export const ZDB_UNDO_STACK_CHANGED = "zdb:undo-stack-changed"
 
 /** Indicates the user interface should be updated. */
 export const ZDB_UNDO_HAPPENED = "zdb:undo-happened"
+
+/** Indicates that an undo or redo action failed. */
+export const ZDB_UNDO_FAILED = "zdb:undo-failed"
 
 export type Cloneable =
   | Array<Cloneable>
