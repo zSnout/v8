@@ -191,14 +191,17 @@ function pickLearningToday(includeBuried: boolean, now: number, all: Id[]) {
   )
 
   try {
-    const cids = all
+    const cids: Id[] = all
       .map((did) => {
-        stmt.clearBindings().bind([did])
-        if (stmt.step()) {
-          return stmt.get(0) as Id
+        try {
+          if (stmt.bind([did]).step()) {
+            return stmt.get(0) as Id
+          } else {
+            return
+          }
+        } finally {
+          stmt.reset(true)
         }
-        stmt.reset()
-        return
       })
       .filter((x) => x != null)
 
@@ -223,14 +226,17 @@ function pickReviewToday(
   )
 
   try {
-    const cids = all
+    const cids: Id[] = all
       .map((did) => {
-        stmt.clearBindings().bind([did])
-        if (stmt.step()) {
-          return stmt.get(0) as Id
+        try {
+          if (stmt.bind([did]).step()) {
+            return stmt.get(0) as Id
+          } else {
+            return
+          }
+        } finally {
+          stmt.reset(true)
         }
-        stmt.reset()
-        return
       })
       .filter((x) => x != null)
 
