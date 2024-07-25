@@ -8,6 +8,19 @@ import nesting from "tailwindcss/nesting"
 import glsl from "vite-plugin-glsl"
 import tsconfigPaths from "vite-tsconfig-paths"
 
+Promise.withResolvers ??= () => {
+  let resolve
+  let reject
+  return {
+    promise: new Promise((a, b) => {
+      resolve = a
+      reject = b
+    }),
+    resolve,
+    reject,
+  }
+}
+
 function escapeHTML(text) {
   return text
     .replaceAll("&", "&amp;")
