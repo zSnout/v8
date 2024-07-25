@@ -1,4 +1,4 @@
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 /** Does not create a transaction. */

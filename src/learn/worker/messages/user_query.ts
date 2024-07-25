@@ -1,5 +1,5 @@
 import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
-import { db } from "../db"
+import { db } from ".."
 
 function split(text: string) {
   let current = ""

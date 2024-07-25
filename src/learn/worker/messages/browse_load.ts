@@ -12,7 +12,7 @@ import {
 } from "@/learn/lib/types"
 import { timestampDist } from "@/pages/quiz/shared"
 import { State } from "ts-fsrs"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 import { prefs_get } from "./prefs_get"
 

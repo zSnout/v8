@@ -1,5 +1,5 @@
 import { Id, randomId } from "@/learn/lib/id"
-import { db } from "../db"
+import { db } from ".."
 
 export function home_set_deck_expanded(
   idOrName: Id | string,

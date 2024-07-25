@@ -1,6 +1,6 @@
 import type { Reason } from "@/learn/db/reason"
 import type { Prefs } from "@/learn/lib/types"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 export function prefs_set(prefs: Prefs, reason: Reason) {

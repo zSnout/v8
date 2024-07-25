@@ -1,5 +1,5 @@
 import type { Id } from "@/learn/lib/id"
-import { db } from "../db"
+import { db } from ".."
 
 export function browse_due_date_set(cids: Id[], due: number) {
   const tx = db.readwrite("Set card due date")

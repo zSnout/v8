@@ -1,6 +1,6 @@
 import type { Id } from "@/learn/lib/id"
 import { int } from "../checks"
-import { db } from "../db"
+import { db } from ".."
 
 export function manage_models_count(mid: Id) {
   const tx = db.read()

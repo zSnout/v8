@@ -12,7 +12,7 @@ import {
 import { createEmptyCard, State } from "ts-fsrs"
 import { parse } from "valibot"
 import { text } from "../checks"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 export function create_note(

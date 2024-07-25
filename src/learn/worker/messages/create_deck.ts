@@ -1,5 +1,5 @@
 import { randomId } from "@/learn/lib/id"
-import { db } from "../db"
+import { db } from ".."
 
 /** Does not create a transaction. */
 export function create_deck(name: string) {

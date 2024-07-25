@@ -1,6 +1,6 @@
 import { idOf } from "@/learn/lib/id"
 import type { ChartCard } from "@/learn/lib/types"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 export function charts_add(title: string, query: string) {

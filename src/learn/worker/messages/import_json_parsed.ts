@@ -1,6 +1,6 @@
 import type { Collection } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
-import { db } from "../db"
+import { db } from ".."
 import query_reset from "../query/reset.sql?raw"
 import query_schema from "../query/schema.sql?raw"
 import { stmts } from "../stmts"

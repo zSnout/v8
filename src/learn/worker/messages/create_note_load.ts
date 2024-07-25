@@ -1,7 +1,7 @@
 import { notNull } from "@/components/pray"
 import { ID_ZERO, type Id } from "@/learn/lib/id"
 import { nameToRecord } from "@/learn/lib/record"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 import { prefs_get } from "./prefs_get"
 

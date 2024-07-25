@@ -2,7 +2,7 @@ import type { Id } from "@/learn/lib/id"
 import { TemplateEditStyle } from "@/learn/lib/types"
 import { parse } from "valibot"
 import { text } from "../checks"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 export function model_get_with_edit_style(mid: Id) {

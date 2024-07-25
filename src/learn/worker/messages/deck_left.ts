@@ -1,5 +1,5 @@
 import type { Id } from "@/learn/lib/id"
-import { db } from "../db"
+import { db } from ".."
 
 export function deck_left_txless(decks: Id[]) {
   const stmtNew = db.prepare(

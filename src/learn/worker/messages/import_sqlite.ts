@@ -1,4 +1,4 @@
-import { closeDatabaseTemporarily, DB_FILENAME, sqlite3 } from "../db"
+import { closeDatabaseTemporarily, DB_FILENAME, sqlite3 } from ".."
 
 export async function import_sqlite(data: Uint8Array | ArrayBuffer) {
   await closeDatabaseTemporarily(

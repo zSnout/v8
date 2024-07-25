@@ -1,9 +1,12 @@
 import { randomId } from "../lib/id"
-import type { Handlers, ToScript, ToWorker } from "../worker"
+import type { Handlers, WorkerRequest, WorkerResponse } from "../shared"
+import { ZDB_REJECT, ZDB_RESOLVE } from "../shared"
 import ActualWorker from "../worker?worker&url"
 
 export class Worker {
-  private readonly worker
+  private readonly worker: Omit<globalThis.Worker, "postMessage"> & {
+    postMessage(message: WorkerRequest): void
+  }
   private readonly handlers = new Map<
     number,
     [(data: any) => void, (reason: any) => void]
@@ -15,7 +18,7 @@ export class Worker {
     this.worker = new globalThis.Worker(ActualWorker, { type: "module" })
     this.ready = new Promise<this>((resolve, reject) => {
       this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
-        if (data == "zdb:resolve") {
+        if (data == ZDB_RESOLVE) {
           this.isReady = true
           resolve(this)
           return
@@ -25,21 +28,21 @@ export class Worker {
           return
         }
 
-        if ("zdb:reject" in data) {
-          reject(data["zdb:reject"])
+        if (ZDB_REJECT in data) {
+          reject(data[ZDB_REJECT])
           return
         }
 
-        if (!("zTag" in data)) {
+        if (!("zid" in data)) {
           return
         }
 
-        const res = data as unknown as ToScript
-        const handler = this.handlers.get(res.id)
+        const res = data as unknown as WorkerResponse
+        const handler = this.handlers.get(res.zid)
         if (!handler) {
           return
         }
-        this.handlers.delete(res.id)
+        this.handlers.delete(res.zid)
 
         if (res.ok) {
           handler[0](res.value)
@@ -61,9 +64,8 @@ export class Worker {
   ): Promise<ReturnType<Handlers[K]>> {
     return new Promise<ReturnType<Handlers[K]>>((resolve, reject) => {
       const id = randomId()
-      const req: ToWorker = {
-        zTag: 0,
-        id,
+      const req: WorkerRequest = {
+        zid: id,
         type: type as any,
         data: data as any,
       }

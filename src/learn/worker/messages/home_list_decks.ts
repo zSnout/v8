@@ -7,7 +7,7 @@ import type {
   DeckHomeInfo,
 } from "@/learn/lib/types"
 import { bool, id, int, text } from "../checks"
-import { db } from "../db"
+import { db } from ".."
 
 function bucketOfArray(
   today: number,

@@ -1,4 +1,4 @@
-import { db, sqlite3 } from "../db"
+import { db, sqlite3 } from ".."
 
 export function export_sqlite() {
   return new File(

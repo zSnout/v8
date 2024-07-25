@@ -13,7 +13,7 @@ import {
 import { createEmptyCard, State } from "ts-fsrs"
 import { parse } from "valibot"
 import { id, qid, text } from "../checks"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 function requiresOneWaySync(

@@ -1,6 +1,6 @@
 import { isSameDaySync } from "@/learn/db/day"
 import type { Id } from "@/learn/lib/id"
-import { db } from "../db"
+import { db } from ".."
 
 export function deck_done_today_txless(decks: Id[], dayStart: number) {
   const stmt = db.prepare(

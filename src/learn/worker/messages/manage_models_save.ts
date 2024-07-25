@@ -1,7 +1,7 @@
 import type { Id } from "@/learn/lib/id"
 import { cloneModel } from "@/learn/lib/models"
 import type { AddedModel, RemovedModel } from "@/learn/lib/types"
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 export function manage_models_save(

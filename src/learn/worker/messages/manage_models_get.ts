@@ -1,4 +1,4 @@
-import { db } from "../db"
+import { db } from ".."
 import { stmts } from "../stmts"
 
 export function manage_models_get() {
