@@ -1,5 +1,5 @@
 import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
-import { db } from ".."
+import { db, state } from ".."
 
 function split(text: string) {
   let current = ""
@@ -45,23 +45,29 @@ export function user_query(
   columns: string[]
   values: SqlValue[][]
 }[] {
-  const isUnsafe = /begin|end|transaction|commit|rollback/i.test(query)
+  if (!commit) {
+    if (/begin|end|transaction|commit|rollback/i.test(query)) {
+      throw new Error(
+        "Safe queries are automatically run in ROLLBACKd transactions. For manual control, use SAVEPOINT and RELEASE.",
+      )
+    }
 
-  if (isUnsafe && !commit) {
-    throw new Error(
-      "Safe queries are automatically run in ROLLBACKd transactions. For manual control, use SAVEPOINT and RELEASE.",
-    )
-  }
-
-  if (commit) {
-    // TODO: manual undo logic since we don't have transactions
-    return split(query).map((query) => db.runWithColumns(query, bindings))
-  } else {
     const tx = db.read()
     try {
       return split(query).map((query) => db.runWithColumns(query, bindings))
     } finally {
       tx.dispose()
     }
+  }
+
+  // check that `commit=false` never reaches this branch
+  commit satisfies true
+
+  try {
+    state.mark(null)
+    // TODO: manual undo logic since we don't have transactions
+    return split(query).map((query) => db.runWithColumns(query, bindings))
+  } finally {
+    state.mark(`${query} (user query)`)
   }
 }
