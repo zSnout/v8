@@ -3,8 +3,7 @@ import { MatchResult } from "@/components/MatchResult"
 import { error, type Result } from "@/components/result"
 import { Error } from "@/learn/el/Error"
 import { Layers, useLayers } from "@/learn/el/Layers"
-import { createLoadingBase } from "@/learn/el/Loading"
-import { createSignal, JSX, onMount, Show } from "solid-js"
+import { createSignal, JSX, onMount, Show, untrack } from "solid-js"
 import { Worker } from "./db"
 import type { Reason } from "./db/reason"
 import { Toasts, useToasts } from "./el/Toast"
@@ -35,7 +34,7 @@ function ErrorHandler(props: { children: JSX.Element }) {
   )
 }
 
-function UndoManager(worker: Worker) {
+function CoreApplicationShortcuts(worker: Worker) {
   const toasts = useToasts()
   const layers = useLayers()
   const shortcuts = new ShortcutManager()
@@ -96,18 +95,18 @@ function UndoManager(worker: Worker) {
   }
 }
 
-const InsideErrorHandler = createLoadingBase<void, Worker>(
-  () => new Worker().ready,
-  (_, worker) => {
-    return <Toasts.Root>{Layers.Root(UndoManager, worker)}</Toasts.Root>
-  },
-  "Opening database...",
-)
-
 export function Main() {
   onMount(() => {
     document.getElementById("needsjavascript")?.remove()
   })
 
-  return <ErrorHandler>{InsideErrorHandler().el}</ErrorHandler>
+  const worker = new Worker()
+
+  return (
+    <ErrorHandler>
+      <Toasts.Root>
+        {untrack(() => Layers.Root(CoreApplicationShortcuts, worker))}
+      </Toasts.Root>
+    </ErrorHandler>
+  )
 }

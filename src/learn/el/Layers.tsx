@@ -264,7 +264,11 @@ export type ForcePopHandler = () => boolean | PromiseLike<boolean>
 /** This callback should reload all data on the page. */
 export type ReturnHandler = () => void
 
-/** A thing which can be a layer. */
+/**
+ * A thing which can be a layer. These are often easier to create using the
+ * `defineLayer` utility, due to its built-in support for keyboard shortcuts,
+ * loading async data, automatic reloading, and other useful features.
+ */
 export type Layerable<T> = (props: T, pop: () => void) => LayerOutput
 
 /** A thing which can be a root layer. */
