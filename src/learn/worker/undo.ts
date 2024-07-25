@@ -1,7 +1,8 @@
 // adapted from https://www.sqlite.org/undoredo.html
 
+import { type WorkerNotification } from "../shared"
 import { text } from "./checks"
-import { db } from "./db"
+import { db } from "."
 
 export type Item = [start: number, end: number]
 
@@ -93,11 +94,15 @@ export class StateManager {
   }
 
   private refreshButtons() {
-    postMessage("zdb:refresh-undoredo")
+    postMessage({
+      zid: "zdb:refresh-undoredo",
+      canUndo: this.active && this.undoStack.length > 0,
+      canRedo: this.active && this.redoStack.length > 0,
+    } satisfies WorkerNotification)
   }
 
   private refreshInterfaces() {
-    postMessage("zdb:refresh-interfaces")
+    postMessage({ zid: "zdb:refresh-interfaces" } satisfies WorkerNotification)
   }
 
   private createTriggers(args: string[]) {

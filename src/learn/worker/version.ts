@@ -1,4 +1,4 @@
-import type { WorkerDB } from "./db"
+import type { WorkerDB } from "."
 import query_upgrade_v2 from "./query/upgrade_v2.sql?raw"
 
 export const latest = 2

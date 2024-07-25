@@ -1,6 +1,16 @@
 import { randomId } from "../lib/id"
-import type { Handlers, WorkerRequest, WorkerResponse } from "../shared"
-import { ZDB_REJECT, ZDB_RESOLVE } from "../shared"
+import type {
+  Handlers,
+  WorkerNotification,
+  WorkerRequest,
+  WorkerResponse,
+} from "../shared"
+import {
+  ZDB_REFRESH_INTERFACES,
+  ZDB_REFRESH_UNDOREDO,
+  ZDB_REJECT,
+  ZDB_RESOLVE,
+} from "../shared"
 import ActualWorker from "../worker?worker&url"
 
 export class Worker {
@@ -11,6 +21,7 @@ export class Worker {
     number,
     [(data: any) => void, (reason: any) => void]
   >()
+  private target = new EventTarget()
   readonly ready
   private isReady = false
 
@@ -18,26 +29,31 @@ export class Worker {
     this.worker = new globalThis.Worker(ActualWorker, { type: "module" })
     this.ready = new Promise<this>((resolve, reject) => {
       this.worker.addEventListener("message", ({ data }: { data: unknown }) => {
-        if (data == ZDB_RESOLVE) {
+        if (typeof data != "object" || data == null || !("zid" in data)) {
+          return
+        }
+
+        const res = data as unknown as WorkerResponse | WorkerNotification
+
+        if (res.zid == ZDB_RESOLVE) {
           this.isReady = true
           resolve(this)
           return
-        }
-
-        if (typeof data != "object" || data == null) {
+        } else if (res.zid == ZDB_REJECT) {
+          reject(res.reason)
+          return
+        } else if (res.zid == ZDB_REFRESH_UNDOREDO) {
+          this.target.dispatchEvent(
+            new CustomEvent("refresh-undoredo", { detail: res }),
+          )
+          return
+        } else if (res.zid == ZDB_REFRESH_INTERFACES) {
+          this.target.dispatchEvent(
+            new CustomEvent("refresh-interfaces", { detail: res }),
+          )
           return
         }
 
-        if (ZDB_REJECT in data) {
-          reject(data[ZDB_REJECT])
-          return
-        }
-
-        if (!("zid" in data)) {
-          return
-        }
-
-        const res = data as unknown as WorkerResponse
         const handler = this.handlers.get(res.zid)
         if (!handler) {
           return
