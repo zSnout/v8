@@ -211,9 +211,15 @@ END;
 CREATE TRIGGER IF NOT EXISTS delete_cards_on_template_deletion BEFORE
 UPDATE ON models BEGIN
 DELETE FROM cards
-JOIN notes ON notes.id = cards.nid
 WHERE
-  notes.mid = new.id
+  (
+    SELECT
+      mid
+    FROM
+      notes
+    WHERE
+      notes.id = cards.nid
+  ) = new.id
   AND new.tmpls -> cast(cards.tid as TEXT) IS NULL;
 
 END;
