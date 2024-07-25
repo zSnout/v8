@@ -1,7 +1,7 @@
 import type { AnyCard, Review } from "@/learn/lib/types"
 import { Rating } from "ts-fsrs"
-import { int, text } from "../checks"
 import { db } from ".."
+import { int, text } from "../checks"
 import { stmts } from "../stmts"
 
 export function study_save_review(
@@ -11,6 +11,7 @@ export function study_save_review(
   timeElapsedMs: number,
 ) {
   const tx = db.readwrite(`Review card as ${Rating[log.rating]}`)
+  tx.meta.currentCard = card.id
   try {
     db.run(
       "UPDATE cards SET due = ?, last_review = ?, reps = ?, state = ?, elapsed_days = ?, scheduled_days = ?, stability = ?, difficulty = ?, lapses = ? WHERE id = ?",
