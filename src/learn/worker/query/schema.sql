@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS core (
   id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
   version INTEGER NOT NULL,
-  creation INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
-  last_schema_edit INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
-  last_sync INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  creation INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
+  last_schema_edit INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
+  last_sync INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   tags TEXT NOT NULL DEFAULT ''
 );
 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS graves (
 CREATE TABLE IF NOT EXISTS confs (
   id INTEGER PRIMARY KEY NOT NULL,
   autoplay_audio BOOLEAN NOT NULL DEFAULT 1,
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   name TEXT NOT NULL UNIQUE,
   new_bury_related BOOLEAN NOT NULL DEFAULT 0,
   new_pick_at_random BOOLEAN NOT NULL DEFAULT 0,
@@ -44,14 +44,14 @@ CREATE TABLE IF NOT EXISTS decks (
   custom_newcard_limit INTEGER, -- can be null
   default_revcard_limit INTEGER, -- can be null
   default_newcard_limit INTEGER, -- can be null
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   new_today TEXT NOT NULL DEFAULT '[]', -- json array
   revcards_today TEXT NOT NULL DEFAULT '[]', -- json array
   revlogs_today INTEGER NOT NULL DEFAULT 0,
-  today INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  today INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   desc TEXT NOT NULL DEFAULT '',
   cfid INTEGER NOT NULL DEFAULT 0,
-  creation INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  creation INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   FOREIGN KEY (cfid) REFERENCES confs (id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
@@ -69,15 +69,15 @@ CREATE TABLE IF NOT EXISTS models (
   tmpls TEXT NOT NULL DEFAULT '{}', -- json
   tags TEXT NOT NULL DEFAULT '', -- space-separated tags
   type INTEGER NOT NULL, -- 0=standard, 1=cloze
-  creation INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now'))
+  creation INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now'))
 );
 
 CREATE TABLE IF NOT EXISTS notes (
   id INTEGER PRIMARY KEY NOT NULL,
-  creation INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  creation INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   mid INTEGER NOT NULL,
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   tags TEXT NOT NULL DEFAULT '', -- space-separated tags
   fields TEXT NOT NULL, -- json fields data
   sort_field TEXT, -- can be null
@@ -94,8 +94,8 @@ CREATE TABLE IF NOT EXISTS cards (
   tid INTEGER NOT NULL,
   did INTEGER NOT NULL,
   odid INTEGER,
-  creation INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  creation INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   queue INTEGER NOT NULL DEFAULT 0,
   due INTEGER NOT NULL,
   last_review INTEGER, -- can be null
@@ -118,6 +118,8 @@ CREATE INDEX IF NOT EXISTS cards_did ON cards (did);
 
 CREATE INDEX IF NOT EXISTS cards_due ON cards (due);
 
+CREATE UNIQUE INDEX IF NOT EXISTS cards_tid_nid ON cards (tid, nid);
+
 CREATE TABLE IF NOT EXISTS rev_log (
   id INTEGER PRIMARY KEY NOT NULL,
   cid INTEGER NOT NULL,
@@ -138,7 +140,7 @@ CREATE INDEX IF NOT EXISTS rev_log_cid ON rev_log (cid);
 
 CREATE TABLE IF NOT EXISTS prefs (
   id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   current_deck INTEGER, -- can be null
   last_model_used INTEGER, -- can be null
   new_spread INTEGER NOT NULL DEFAULT 0,
@@ -148,7 +150,7 @@ CREATE TABLE IF NOT EXISTS prefs (
   show_remaining_due_counts BOOLEAN NOT NULL DEFAULT 1,
   show_deck_name BOOLEAN NOT NULL DEFAULT 1,
   next_new_card_position INTEGER NOT NULL DEFAULT 0,
-  last_unburied INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  last_unburied INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   day_start INTEGER NOT NULL DEFAULT (1000 * 60 * 60 * 4),
   debug BOOLEAN NOT NULL DEFAULT 0,
   sidebar_state INTEGER NOT NULL DEFAULT 1, -- auto=1, open=2, closed=3
@@ -162,10 +164,56 @@ CREATE TABLE IF NOT EXISTS prefs (
 
 CREATE TABLE IF NOT EXISTS charts (
   id INTEGER PRIMARY KEY NOT NULL,
-  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime ('%s', 'now')),
+  last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   title TEXT NOT NULL,
   query TEXT NOT NULL,
   chart TEXT NOT NULL,
   style TEXT NOT NULL,
   options TEXT NOT NULL
 );
+
+CREATE TRIGGER IF NOT EXISTS check_card_tmpl_on_insert BEFORE INSERT ON cards BEGIN
+SELECT
+  CASE
+    WHEN (
+      SELECT
+        tmpls -> cast(tid AS TEXT)
+      FROM
+        cards
+        JOIN notes ON notes.id = cards.nid
+        JOIN models ON models.id = notes.mid
+    ) IS NULL THEN RAISE (
+      ABORT,
+      'Card does not link to a valid template ID.'
+    )
+  END;
+
+END;
+
+CREATE TRIGGER IF NOT EXISTS check_card_tmpl_on_update BEFORE INSERT ON cards BEGIN
+SELECT
+  CASE
+    WHEN (
+      SELECT
+        tmpls -> cast(tid AS TEXT)
+      FROM
+        cards
+        JOIN notes ON notes.id = cards.nid
+        JOIN models ON models.id = notes.mid
+    ) IS NULL THEN RAISE (
+      ABORT,
+      'Card does not link to a valid template ID.'
+    )
+  END;
+
+END;
+
+CREATE TRIGGER IF NOT EXISTS delete_cards_on_template_deletion BEFORE
+UPDATE ON models BEGIN
+DELETE FROM cards
+JOIN notes ON notes.id = cards.nid
+WHERE
+  notes.mid = new.id
+  AND new.tmpls -> cast(cards.tid as TEXT) IS NULL;
+
+END;

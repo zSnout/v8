@@ -85,7 +85,8 @@
       "prettier-plugin-tailwindcss"
     ],
     "trailingComma": "all",
-    "experimentalTernaries": true
+    "experimentalTernaries": true,
+    "language": "sqlite"
   },
   "overrides": {
     "eslint": "^9.6.0"
