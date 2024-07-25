@@ -122,6 +122,55 @@ function createStatic<T>(value: T) {
   ] as const
 }
 
+/**
+ *
+ * **TL;DR: A layer has preserved state, volatile async data, and goes over other
+ * parts of the page. Put configuration in props, stuff you need to preserve in
+ * `state`, and stuff from the database in `load` (which returns async data).**
+ *
+ * ---
+ *
+ * A layer is like a page on a website. But instead of using regular pages, the
+ * learn page uses a "fake pages" system which support good transitions, loading
+ * views, keyboard shortcuts, and other good things. Layers can be pushed,
+ * popped, or forcefully popped via the "Learn" link in the navigation bar
+ * `Esc` key on a standard keyboard. Layers also provide a solid backdrop in
+ * case this application ever starts using multiple windows.
+ *
+ * Regarding data, a typical layer has:
+ *
+ * - **Props**, which are passed by the element creating the layer.
+ * - **State**, which is preserved when the layer is exited and returned to
+ * - **Async data**, which is initially fetched in a `load` function, and which
+ *   is automatically refetched whenever the layer is returned to (because it
+ *   could have potentially changed), unless this behavior is explicitly
+ *   disabled.
+ *
+ * If there is configuration required for your layer to work, it should likely
+ * be part of the layer's props.
+ *
+ * If you would like to preserve some state (for instance, the Browse layer
+ * should keep the proper cards selected even after an upper layer is removed),
+ * it must go in the `state` utility.
+ *
+ * If you would like to fetch something from the database, it must go in the
+ * `load` utility.
+ *
+ * ### Lifetime of a layer
+ *
+ * As a layer is created, it goes through these steps:
+ *
+ * 1. State is created. If `layer.state == "signal"`, it is transformed into a
+ *    signal.
+ * 2. The async data is fetched.
+ * 3. The layer is shown.
+ *
+ * When a layer above this one is removed, this layer goes through these steps:
+ *
+ * 1. The current layer is unloaded.
+ * 2. The async data is refetched.
+ * 3. The layer is re-rendered.
+ */
 export function defineLayer<Props, State, AsyncData>(
   layer: Layer<Props, State, AsyncData>,
 ): Layerable<Props> {
