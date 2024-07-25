@@ -12,7 +12,7 @@ import { CheckboxContainer } from "../el/CheckboxContainer"
 import { defineLayer } from "../el/DefineLayer"
 import { UploadButton } from "../el/upload"
 
-export const LAYER_SETTINGS = defineLayer({
+export default defineLayer({
   init(_: Worker) {},
   async load({ props }) {
     const [prefs, setPrefs, ready] = createPrefsStore(props)

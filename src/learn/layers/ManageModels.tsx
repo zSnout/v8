@@ -11,7 +11,7 @@ export type Item =
   | { type: "keep"; id: Id; name: string; model: Model }
   | { type: "create"; id: Id; name: string; model: Model }
 
-export const LAYER_MANAGE_MODELS = defineListEditorLayer<
+export default defineListEditorLayer<
   Worker,
   { selected?: string | number },
   Promise<{ models: Model[]; initial: RemovedModel[] }>,

@@ -12,18 +12,20 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, onMount } from "solid-js"
-import { Worker } from "../db"
-import { Action, BottomButtons } from "../el/BottomButtons"
-import { ContextMenuTrigger } from "../el/ContextMenu"
-import { defineRootLayer } from "../el/DefineLayer"
-import { useLayers } from "../el/Layers"
-import type { Id } from "../lib/id"
-import type { Buckets, DeckHomeInfo, DeckHomeTree } from "../lib/types"
-import { LAYER_BROWSE } from "./Browse"
-import { LAYER_CREATE_NOTE } from "./CreateNote"
-import { LAYER_SETTINGS } from "./Settings"
-import { LAYER_STATS } from "./Stats"
-import { LAYER_STUDY } from "./Study"
+import { Worker } from "./db"
+import { Action, BottomButtons } from "./el/BottomButtons"
+import { ContextMenuTrigger } from "./el/ContextMenu"
+import { defineRootLayer } from "./el/DefineLayer"
+import { useLayers } from "./el/Layers"
+import {
+  LAYER_BROWSE,
+  LAYER_CREATE_NOTE,
+  LAYER_SETTINGS,
+  LAYER_STATS,
+  LAYER_STUDY,
+} from "./layers"
+import type { Id } from "./lib/id"
+import type { Buckets, DeckHomeInfo, DeckHomeTree } from "./lib/types"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")

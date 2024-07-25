@@ -27,6 +27,7 @@ import {
 } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"
 import { parse } from "valibot"
+import { LAYER_QUERY } from "."
 import type { Worker } from "../db"
 import { Action } from "../el/BottomButtons"
 import { DrawStatCard } from "../el/Charts"
@@ -43,7 +44,6 @@ import {
   type ChartColors,
   type ChartComputedInfo,
 } from "../lib/types"
-import { LAYER_QUERY } from "./Query"
 
 const COLORS: ChartColors = [
   ["hsl(173 58% 39%)", "hsl(220 70% 50%)"],
@@ -53,7 +53,7 @@ const COLORS: ChartColors = [
   ["hsl(27 87% 67%)", "hsl(340 75% 55%)"],
 ]
 
-export const LAYER_STATS = defineLayer({
+export default defineLayer({
   init(_: Worker) {},
   load() {},
   render({ onReturn, props: worker, pop }) {

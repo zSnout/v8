@@ -23,7 +23,7 @@ const format = new Intl.ListFormat("en", {
   type: "conjunction",
 })
 
-export const LAYER_QUERY = defineLayer({
+export default defineLayer({
   state: "signal",
   init(props: { worker: Worker; initial?: string }) {
     return props.initial ?? ""

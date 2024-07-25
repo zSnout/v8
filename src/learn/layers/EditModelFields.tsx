@@ -8,7 +8,7 @@ import { createField } from "../lib/defaults"
 import { idOf, type Id } from "../lib/id"
 import { arrayToRecord } from "../lib/record"
 
-export const LAYER_EDIT_MODEL_FIELDS = defineListEditorLayer(
+export default defineListEditorLayer(
   {
     init(_: { worker: Worker; mid: Id }): {
       sort_field: Id | null

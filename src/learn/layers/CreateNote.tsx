@@ -3,6 +3,11 @@ import { notNull } from "@/components/pray"
 import { faPlus, faRightFromBracket } from "@fortawesome/free-solid-svg-icons"
 import { batch, createEffect, createSignal, For, untrack } from "solid-js"
 import { createStore } from "solid-js/store"
+import {
+  LAYER_EDIT_MODEL_FIELDS,
+  LAYER_EDIT_MODEL_TEMPLATES,
+  LAYER_MANAGE_MODELS,
+} from "."
 import type { Worker } from "../db"
 import { AutocompleteBox } from "../el/AutocompleteBox"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
@@ -13,13 +18,10 @@ import type { Id } from "../lib/id"
 import { mapRecord } from "../lib/record"
 import { fieldRecord } from "../lib/template"
 import { Model, type Deck, type NoteFields } from "../lib/types"
-import { LAYER_EDIT_MODEL_FIELDS } from "./EditModelFields"
-import { LAYER_EDIT_MODEL_TEMPLATES } from "./EditModelTemplates"
-import { LAYER_MANAGE_MODELS } from "./ManageModels"
 
 // FEAT: fields can be collapsed
 
-export const LAYER_CREATE_NOTE = defineLayer({
+export default defineLayer({
   init(_: Worker): { did?: Id; mid?: Id } {
     return {}
   },

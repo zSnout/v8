@@ -22,7 +22,7 @@ interface Data {
   model: Model
 }
 
-export const LAYER_EDIT_MODEL_TEMPLATES = defineListEditorLayer<
+export default defineListEditorLayer<
   { worker: Worker; mid: Id; fields: Template.FieldsRecord },
   { selected?: Id },
   Promise<Data>,

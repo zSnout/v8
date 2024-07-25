@@ -17,7 +17,7 @@ import { createExpr } from "../lib/expr"
 import { idOf, type Id } from "../lib/id"
 import { BrowserColumn } from "../lib/types"
 
-export const LAYER_BROWSE = defineLayer({
+export default defineLayer({
   init(_: Worker) {
     const [selected, setSelected] = createStore<Record<string, boolean>>({})
     const [selectFrom, setSelectFrom] = createSignal<Id>()

@@ -61,7 +61,7 @@ import * as Template from "../lib/template"
 // TODO: adjust shortcuts for mac/windows
 // FEAT: improve screen for when no cards are left
 
-export const LAYER_STUDY = defineLayer({
+export default defineLayer({
   init(_: { worker: Worker; root: Id | null; all: Id[] }): {
     lastCid?: Id | undefined
   } {
