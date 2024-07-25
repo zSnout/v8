@@ -6,28 +6,23 @@ import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
 import { startOfDaySync } from "../db/day"
 import type { Reason } from "../db/reason"
 import { randomId } from "../lib/id"
-import type {
-  Handler,
-  WorkerNotification,
-  WorkerRequest,
-  WorkerResponse,
+import {
+  ZDB_REJECT,
+  type Handler,
+  type WorkerNotification,
+  type WorkerRequest,
+  type WorkerResponse,
 } from "../shared"
 import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
-import { latest, upgrade } from "./version"
-
-import { ZDB_REJECT } from "../shared"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 import { StateManager, type UndoMeta } from "./undo"
+import { latest, upgrade } from "./version"
 
 export const sqlite3 = await (
   sqlite3InitModule as typeof import("@sqlite.org/sqlite-wasm").default
-)({
-  print: console.log,
-  printErr: console.error,
-  // locateFile: () => wasm
-})
+)()
 
 if (!("opfs" in sqlite3)) {
   throw new Error("OPFS is not supported on this browser.")
@@ -340,7 +335,6 @@ class TxReadwrite {
         }
       })
     }
-    state.mark(null, {})
   }
 
   commit() {
@@ -370,12 +364,33 @@ class TxReadwrite {
   }
 }
 
+declare global {
+  var __zdb__handled: Set<number> | undefined
+}
+
+// somehow this module code ends up getting run twice, even though the worker is
+// only created once. this means requests are duplicated, so we add a simple
+// check here to ensure that we don't handle the same request twice
+const handled = (globalThis.__zdb__handled ??= new Set<number>())
+
 addEventListener("message", async ({ data }: { data: unknown }) => {
-  if (typeof data != "object" || data == null || !("zid" in data)) {
+  if (
+    typeof data != "object" ||
+    data == null ||
+    !("zid" in data) ||
+    typeof data.zid != "number"
+  ) {
     return
   }
 
   const req = data as unknown as WorkerRequest
+
+  if (handled.has(req.zid)) {
+    return
+  } else {
+    handled.add(req.zid)
+  }
+
   try {
     const value = await (messages[req.type] as Handler)(...req.data)
 
@@ -393,6 +408,7 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
       ok: false,
       value: String(err),
     }
+
     postMessage(res)
   }
   return

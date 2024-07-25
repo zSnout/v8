@@ -64,7 +64,6 @@ export function user_query(
   commit satisfies true
 
   try {
-    state.mark(null, {})
     // TODO: manual undo logic since we don't have transactions
     return split(query).map((query) => db.runWithColumns(query, bindings))
   } finally {

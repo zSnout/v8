@@ -278,8 +278,10 @@ export const LAYER_STUDY = defineLayer({
       const now = Date.now()
       await worker.post(
         "study_save_review",
-        // TODO: if review takes a very long time it might be the next day, so make sure that the log is updated properly
-        // we only do this to avoid fuzz showing the wrong time but we can probably control fuzz manually somehow
+        // TODO: if a review takes a very long time it might be the next day, so
+        // make sure that the log is updated properly. we only do this to avoid
+        // fuzz showing the wrong time but we can probably control fuzz manually
+        // somehow
         c.repeat[grade].card,
         c.repeat[grade].log,
         c.card.state == State.New,
