@@ -2,13 +2,14 @@ import { notNull } from "@/components/pray"
 import { startOfDaySync } from "@/learn/db/day"
 import type { Id } from "@/learn/lib/id"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "@/learn/lib/repeat"
+import type { Conf, Prefs } from "@/learn/lib/types"
 import { FSRS } from "ts-fsrs"
 import { db } from ".."
 import { stmts } from "../stmts"
 import { conf_get_by_deck } from "./conf_get_by_deck"
 import { deck_done_today_txless } from "./deck_done_today"
 import { deck_left_txless } from "./deck_left"
-import { deck_limits_txless } from "./deck_limits"
+import { deck_limits_txless, type Limits } from "./deck_limits"
 import { prefs_get } from "./prefs_get"
 
 /** Selection algorithm
@@ -24,7 +25,34 @@ import { prefs_get } from "./prefs_get"
  * 5. A new card.
  */
 
-function pickCid(root: Id | null, all: Id[]) {
+function pickCid(
+  all: Id[],
+  prefs: Prefs,
+  now: number,
+  conf: Conf,
+  limits: Limits,
+  new_left: number,
+  rev_left: number,
+  new_today: number,
+  rev_today: number,
+) {
+  const todayStart = startOfDaySync(prefs.day_start, now)
+  const todayEnd = todayStart + 1000 * 60 * 60 * 24
+  const includeBuried = prefs.last_unburied < todayStart
+
+  const EXPECTED_REVIEWS_LEFT =
+    new_left * conf.new.learning_steps.length + rev_left
+
+  // TODO: what happens when .now is zero
+  const PREFER_NEW =
+    (
+      Math.max(0, limits.new.now - new_today) / limits.new.now >=
+      Math.max(0, Math.min(limits.rev.now - rev_today, EXPECTED_REVIEWS_LEFT)) /
+        limits.rev.now
+    ) ?
+      true
+    : null
+
   return (
     // 1. If PREFER_NEW, a new card.
     (PREFER_NEW && pickNew(includeBuried, conf.new.pick_at_random, all)) ??
@@ -46,36 +74,20 @@ function study_select_txless(root: Id | null, all: Id[], preferredCid?: Id) {
   const { new_today, rev_today } = deck_done_today_txless(all, prefs.day_start)
   const { new_left, rev_left } = deck_left_txless(all)
   const conf = conf_get_by_deck(root)
-  const todayStart = startOfDaySync(prefs.day_start, now)
-  const todayEnd = todayStart + 1000 * 60 * 60 * 24
-  const includeBuried = prefs.last_unburied < todayStart
-
-  const EXPECTED_REVIEWS_LEFT =
-    new_left * conf.new.learning_steps.length + rev_left
-
-  // TODO: what happens when .now is zero
-  const PREFER_NEW =
-    (
-      Math.max(0, limits.new.now - new_today) / limits.new.now >=
-      Math.max(0, Math.min(limits.rev.now - rev_today, EXPECTED_REVIEWS_LEFT)) /
-        limits.rev.now
-    ) ?
-      true
-    : null
 
   const cid =
-    // 0. The preferred card.
     preferredCid ??
-    // 1. If PREFER_NEW, a new card.
-    (PREFER_NEW && pickNew(includeBuried, conf.new.pick_at_random, all)) ??
-    // 2. A (re)learning card.
-    pickLearningToday(includeBuried, now, all) ??
-    // 3. A card that's due today.
-    pickReviewToday(includeBuried, todayEnd, all) ??
-    // 4. A (re)learning card due soon.
-    pickLearningToday(includeBuried, now + prefs.collapse_time * 1000, all) ??
-    // 5. A new card
-    pickNew(includeBuried, conf.new.pick_at_random, all)
+    pickCid(
+      all,
+      prefs,
+      now,
+      conf,
+      limits,
+      new_left,
+      rev_left,
+      new_today,
+      rev_today,
+    )
 
   if (cid == null) {
     return null
