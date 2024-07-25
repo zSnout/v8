@@ -19,7 +19,7 @@ import { latest, upgrade } from "./version"
 import { ZDB_REJECT } from "../shared"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
-import { StateManager } from "./undo"
+import { StateManager, type UndoMeta } from "./undo"
 
 export const sqlite3 = await (
   sqlite3InitModule as typeof import("@sqlite.org/sqlite-wasm").default
@@ -329,6 +329,7 @@ class TxReadonly {
 
 class TxReadwrite {
   private done = false
+  readonly meta: UndoMeta = {}
 
   constructor(private readonly reason: Reason) {
     db.exec("BEGIN TRANSACTION")
@@ -339,7 +340,7 @@ class TxReadwrite {
         }
       })
     }
-    state.mark(null)
+    state.mark(null, {})
   }
 
   commit() {
@@ -348,7 +349,7 @@ class TxReadwrite {
     }
 
     db.exec("COMMIT")
-    state.mark(this.reason)
+    state.mark(this.reason, this.meta)
     this.done = true
   }
 

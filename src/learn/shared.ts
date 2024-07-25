@@ -1,6 +1,7 @@
 import type { Reason } from "./db/reason"
 import type { Awaitable } from "./el/Layers"
 import type * as messages from "./worker/messages"
+import type { UndoMeta } from "./worker/undo"
 
 export type Handler = (this: void, ...data: any) => HandlerReturn
 
@@ -22,8 +23,13 @@ export type WorkerNotification =
   | { zid: typeof ZDB_RESOLVE }
   | { zid: typeof ZDB_REJECT; reason: unknown }
   | { zid: typeof ZDB_UNDO_STACK_CHANGED; canUndo: boolean; canRedo: boolean }
-  | { zid: typeof ZDB_UNDO_HAPPENED; type: UndoType; reason: Reason | null }
   | { zid: typeof ZDB_UNDO_FAILED; type: UndoType }
+  | {
+      zid: typeof ZDB_UNDO_HAPPENED
+      type: UndoType
+      reason: Reason | null
+      meta: UndoMeta
+    }
 
 export type UndoType = "undo" | "redo"
 

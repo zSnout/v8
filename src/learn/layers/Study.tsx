@@ -1,15 +1,6 @@
 /// <reference types="../../env" />
 
 import { Fa } from "@/components/Fa"
-import {
-  Modal,
-  ModalButtons,
-  ModalCancel,
-  ModalConfirm,
-  ModalDescription,
-  ModalRef,
-  ModalTitle,
-} from "@/components/Modal"
 import { notNull, prayTruthy } from "@/components/pray"
 import { unwrap } from "@/components/result"
 import {
@@ -54,23 +45,17 @@ import {
   createMemo,
   createResource,
   createSignal,
-  For,
   JSX,
-  Owner,
-  runWithOwner,
   Show,
 } from "solid-js"
 import { Grade, Rating, State } from "ts-fsrs"
 import type { Worker } from "../db"
 import { createPrefsStore } from "../db/prefs"
-import { Reason } from "../db/reason"
 import { defineLayer } from "../el/DefineLayer"
-import * as Flags from "../lib/flags"
 import { Id } from "../lib/id"
 import { Render } from "../lib/render"
 import { Write, type Shortcut } from "../lib/shortcuts"
 import * as Template from "../lib/template"
-import { AnyCard, Note } from "../lib/types"
 
 // TODO: keyboard shortcuts should have `keydown` listeners
 // TODO: adjust shortcuts for mac/windows
@@ -93,45 +78,39 @@ export const LAYER_STUDY = defineLayer({
     pop,
     state,
     shortcuts,
-    owner,
+    onUndo,
   }) {
-    // TODO: createEventListener(window, "z-db-undo", async ({ detail }) => {
-    //   const now = Date.now()
-    //   setAnswerShown(false)
-    //   info = await gather(db, main, dids, now)
-
-    //   const last = detail.reason.includes("card")
-    //     ? state.lastCid
-    //     : getData()?.data?.card.id
-
-    //   if (last != null) {
-    //     state.lastCid = getData()?.data?.card.id ?? last
-    //     const data = await selectById(db, main, dids, now, info, last)
-    //     mutate({ data, shownAt: now })
-    //   }
-    // })
-
     const [answerShown, setAnswerShown] = createSignal(false)
 
     const [getData, { mutate, refetch: unsafeRawRefetch }] = createResource(
-      async () => {
-        const now = Date.now()
-        setAnswerShown(false)
-        return {
-          data: await worker.post("study_select", root, all),
-          shownAt: now,
-        }
-      },
+      () => fetch(),
     )
+
+    async function fetch(cid?: Id) {
+      const now = Date.now()
+      setAnswerShown(false)
+      const data = await worker.post("study_select", root, all, cid)
+      state.lastCid = data?.cid
+      return { data, shownAt: now }
+    }
+
+    onUndo(async (_, { meta: { currentCard } }) => {
+      if (currentCard == null) {
+        mutate(await fetch(state.lastCid))
+      } else {
+        mutate(await fetch(currentCard))
+      }
+      return "preserve-data" as const
+    })
 
     async function refetch() {
       state.lastCid = getData()?.data?.card.id
       return await unsafeRawRefetch()
     }
 
-    function notifyOfDataUpdate() {
-      mutate((x) => (x ? { ...x } : undefined))
-    }
+    // function notifyOfDataUpdate() {
+    //   mutate((x) => (x ? { ...x } : undefined))
+    // }
 
     const tmpl = createMemo(() => {
       const data = getData()?.data
@@ -156,8 +135,8 @@ export const LAYER_STUDY = defineLayer({
       return { qhtml, ahtml, css: data.model.css, source: [data.deck.name] }
     })
 
-    const [now, setNow] = createSignal(Date.now())
-    setInterval(() => setNow(Date.now()), 30_000)
+    // const [now, setNow] = createSignal(Date.now())
+    // setInterval(() => setNow(Date.now()), 30_000)
 
     return (
       <div class="flex min-h-full w-full flex-1 flex-col">
@@ -174,45 +153,45 @@ export const LAYER_STUDY = defineLayer({
       </div>
     )
 
-    async function updateCurrentCard(
-      reason: Reason,
-      data: (card: AnyCard) => Partial<AnyCard>,
-    ) {
-      const selectInfo = getData()?.data
-      if (!selectInfo) {
-        return
-      }
+    // async function updateCurrentCard(
+    //   reason: Reason,
+    //   data: (card: AnyCard) => Partial<AnyCard>,
+    // ) {
+    //   const selectInfo = getData()?.data
+    //   if (!selectInfo) {
+    //     return
+    //   }
 
-      const { card } = selectInfo
-      state.lastCid = card.id
-      const merged = data(card)
-      Object.assign(card, merged)
-      const now = Date.now()
-      await putCard(db, card, reason)
-      checkBucket(card, selectInfo, info, now)
-      notifyOfDataUpdate()
-    }
+    //   const { card } = selectInfo
+    //   state.lastCid = card.id
+    //   const merged = data(card)
+    //   Object.assign(card, merged)
+    //   const now = Date.now()
+    //   await putCard(db, card, reason)
+    //   checkBucket(card, selectInfo, info, now)
+    //   notifyOfDataUpdate()
+    // }
 
-    async function updateCurrentNote(
-      reason: Reason,
-      data: (card: Note) => Partial<Note>,
-    ) {
-      const info = getData()
-      if (!info) {
-        return
-      }
+    // async function updateCurrentNote(
+    //   reason: Reason,
+    //   data: (card: Note) => Partial<Note>,
+    // ) {
+    //   const info = getData()
+    //   if (!info) {
+    //     return
+    //   }
 
-      if (!info.data) {
-        return
-      }
+    //   if (!info.data) {
+    //     return
+    //   }
 
-      const { note } = info.data
-      state.lastCid = info.data.card.id
-      const merged = data(note)
-      Object.assign(note, merged)
-      await putNote(db, note, reason)
-      notifyOfDataUpdate()
-    }
+    //   const { note } = info.data
+    //   state.lastCid = info.data.card.id
+    //   const merged = data(note)
+    //   Object.assign(note, merged)
+    //   await putNote(db, note, reason)
+    //   notifyOfDataUpdate()
+    // }
 
     function Content() {
       return (
@@ -312,21 +291,21 @@ export const LAYER_STUDY = defineLayer({
       })
     }
 
-    async function answerForget() {
-      const { data: c, shownAt } = notNull(
-        getData(),
-        "Cannot forget before a card has been drawn.",
-      )
-      prayTruthy(c, "Cannot answer a `null` card.")
-      const now = Date.now()
-      const resetCount = await selectForgetMode(owner)
-      if (resetCount == null) return
-      await saveForget(db, c, info, now, now - shownAt, resetCount)
-      batch(() => {
-        refetch()
-        setAnswerShown(false)
-      })
-    }
+    // async function answerForget() {
+    //   const { data: c, shownAt } = notNull(
+    //     getData(),
+    //     "Cannot forget before a card has been drawn.",
+    //   )
+    //   prayTruthy(c, "Cannot answer a `null` card.")
+    //   const now = Date.now()
+    //   const resetCount = await selectForgetMode(owner)
+    //   if (resetCount == null) return
+    //   await saveForget(db, c, info, now, now - shownAt, resetCount)
+    //   batch(() => {
+    //     refetch()
+    //     setAnswerShown(false)
+    //   })
+    // }
 
     function Button(props: {
       class: string
@@ -381,50 +360,50 @@ export const LAYER_STUDY = defineLayer({
       return <hr class="my-2 border-z" />
     }
 
-    function FlagsSelector() {
-      return (
-        <div class="mb-1 flex gap-2">
-          <For each={Flags.ALL_FLAGS}>
-            {(flag) => {
-              const checked = createMemo(() => {
-                const c = getData()?.data?.card
-                if (!c) {
-                  return false
-                }
-                return Flags.has(c.flags, flag)
-              })
+    // function FlagsSelector() {
+    //   return (
+    //     <div class="mb-1 flex gap-2">
+    //       <For each={Flags.ALL_FLAGS}>
+    //         {(flag) => {
+    //           const checked = createMemo(() => {
+    //             const c = getData()?.data?.card
+    //             if (!c) {
+    //               return false
+    //             }
+    //             return Flags.has(c.flags, flag)
+    //           })
 
-              return (
-                <button
-                  class={`flex aspect-square flex-1 items-center justify-center rounded-lg border border-current ${flag.text} ${flag.bg} z-field p-0 shadow-none`}
-                  classList={{ "opacity-30": !checked() }}
-                  role="checkbox"
-                  aria-checked={checked()}
-                  aria-label={flag.color + " flag"}
-                  onClick={() => {
-                    updateCurrentCard(
-                      `Toggle ${flag.color} card flag`,
-                      (card) => ({
-                        flags:
-                          Flags.has(card.flags, flag) ? 0 : 1 << flag.valueOf(),
-                      }),
-                    )
-                  }}
-                >
-                  <Show when={checked()}>
-                    <Fa
-                      class="h-4 w-4 icon-current"
-                      icon={faFlag}
-                      title={false}
-                    />
-                  </Show>
-                </button>
-              )
-            }}
-          </For>
-        </div>
-      )
-    }
+    //           return (
+    //             <button
+    //               class={`flex aspect-square flex-1 items-center justify-center rounded-lg border border-current ${flag.text} ${flag.bg} z-field p-0 shadow-none`}
+    //               classList={{ "opacity-30": !checked() }}
+    //               role="checkbox"
+    //               aria-checked={checked()}
+    //               aria-label={flag.color + " flag"}
+    //               onClick={() => {
+    //                 updateCurrentCard(
+    //                   `Toggle ${flag.color} card flag`,
+    //                   (card) => ({
+    //                     flags:
+    //                       Flags.has(card.flags, flag) ? 0 : 1 << flag.valueOf(),
+    //                   }),
+    //                 )
+    //               }}
+    //             >
+    //               <Show when={checked()}>
+    //                 <Fa
+    //                   class="h-4 w-4 icon-current"
+    //                   icon={faFlag}
+    //                   title={false}
+    //                 />
+    //               </Show>
+    //             </button>
+    //           )
+    //         }}
+    //       </For>
+    //     </div>
+    //   )
+    // }
 
     function Sidebar() {
       return (
@@ -478,9 +457,9 @@ export const LAYER_STUDY = defineLayer({
             shortcut={{ key: "A", shift: true }}
           />
           <QuickActionLine />
-          <Show when={prefs.show_flags_in_sidebar}>
+          {/* <Show when={prefs.show_flags_in_sidebar}>
             <FlagsSelector />
-          </Show>
+          </Show> */}
           <QuickAction
             icon={faFlag}
             label={prefs.show_flags_in_sidebar ? "Hide Flags" : "Show Flags"}
@@ -496,20 +475,20 @@ export const LAYER_STUDY = defineLayer({
             icon={faPersonDigging}
             label="Bury Card"
             shortcut={{ key: "-" }}
-            onClick={async () => {
-              await updateCurrentCard("Bury card", () => ({ queue: 1 }))
-              batch(() => {
-                refetch()
-                setAnswerShown(false)
-              })
-            }}
+            // onClick={async () => {
+            //   await updateCurrentCard("Bury card", () => ({ queue: 1 }))
+            //   batch(() => {
+            //     refetch()
+            //     setAnswerShown(false)
+            //   })
+            // }}
             disabled={!getData()?.data?.card}
           />
           <QuickAction
             icon={faBrain}
             label="Forget Card..."
             shortcut={{ key: "N", mod: "macctrl", alt: true }}
-            onClick={answerForget}
+            // onClick={answerForget}
             disabled={!getData()?.data?.card}
           />
           <QuickAction
@@ -521,13 +500,13 @@ export const LAYER_STUDY = defineLayer({
             icon={faEyeSlash}
             label="Suspend Card"
             shortcut={{ key: "@" }}
-            onClick={async () => {
-              await updateCurrentCard("Suspend card", () => ({ queue: 2 }))
-              batch(() => {
-                refetch()
-                setAnswerShown(false)
-              })
-            }}
+            // onClick={async () => {
+            //   await updateCurrentCard("Suspend card", () => ({ queue: 2 }))
+            //   batch(() => {
+            //     refetch()
+            //     setAnswerShown(false)
+            //   })
+            // }}
             disabled={!getData()?.data?.card}
           />
           <QuickAction
@@ -545,11 +524,11 @@ export const LAYER_STUDY = defineLayer({
             icon={faMarker}
             label={getData()?.data?.note.marks ? "Unmark Note" : "Mark Note"}
             disabled={!getData()?.data?.card}
-            onClick={() =>
-              updateCurrentNote("Toggle whether note is marked", (note) => ({
-                marks: note.marks ? 0 : 1,
-              }))
-            }
+            // onClick={() =>
+            //   updateCurrentNote("Toggle whether note is marked", (note) => ({
+            //     marks: note.marks ? 0 : 1,
+            //   }))
+            // }
             shortcut={{ key: "M" }}
           />
           <QuickAction
@@ -690,59 +669,59 @@ export const LAYER_STUDY = defineLayer({
       )
     }
 
-    function NullMoreNewAvailable() {
-      return (
-        <p>
-          There are more new cards available, but the daily limit has been
-          reached. You may{" "}
-          <InlineButton
-            onClick={() => {
-              // FEAT:
-              throw new Error("this doesn't do anything")
-            }}
-          >
-            increase today's limit
-          </InlineButton>{" "}
-          if you wish, but beware that adding too many new cards will make your
-          daily reviews in the near future skyrocket.
-        </p>
-      )
-    }
+    // function NullMoreNewAvailable() {
+    //   return (
+    //     <p>
+    //       There are more new cards available, but the daily limit has been
+    //       reached. You may{" "}
+    //       <InlineButton
+    //         onClick={() => {
+    //           // FEAT:
+    //           throw new Error("this doesn't do anything")
+    //         }}
+    //       >
+    //         increase today's limit
+    //       </InlineButton>{" "}
+    //       if you wish, but beware that adding too many new cards will make your
+    //       daily reviews in the near future skyrocket.
+    //     </p>
+    //   )
+    // }
 
-    function NullMoreLearningAvailable() {
-      const earliest =
-        info.cards.b1.length ?
-          info.cards.b1.reduce((a, b) => (a.due < b.due ? a : b))
-        : undefined
+    // function NullMoreLearningAvailable() {
+    //   const earliest =
+    //     info.cards.b1.length ?
+    //       info.cards.b1.reduce((a, b) => (a.due < b.due ? a : b))
+    //     : undefined
 
-      return (
-        <p>
-          There are still some learning cards left, but they aren't due for{" "}
-          {earliest ?
-            timestampDist((earliest.due - now()) / 1000)
-          : "<unknown time>"}
-          .
-        </p>
-      )
-    }
+    //   return (
+    //     <p>
+    //       There are still some learning cards left, but they aren't due for{" "}
+    //       {earliest ?
+    //         timestampDist((earliest.due - now()) / 1000)
+    //       : "<unknown time>"}
+    //       .
+    //     </p>
+    //   )
+    // }
 
-    function NullMoreReviewBacklogAvailable() {
-      return (
-        <p>
-          There are more review cards due today, but the daily limit has been
-          reached. You may{" "}
-          <InlineButton
-            onClick={() => {
-              // FEAT:
-              throw new Error("this doesn't do anything")
-            }}
-          >
-            increase today's limit
-          </InlineButton>{" "}
-          if you wish, which can help if you have a large backlog.
-        </p>
-      )
-    }
+    // function NullMoreReviewBacklogAvailable() {
+    //   return (
+    //     <p>
+    //       There are more review cards due today, but the daily limit has been
+    //       reached. You may{" "}
+    //       <InlineButton
+    //         onClick={() => {
+    //           // FEAT:
+    //           throw new Error("this doesn't do anything")
+    //         }}
+    //       >
+    //         increase today's limit
+    //       </InlineButton>{" "}
+    //       if you wish, which can help if you have a large backlog.
+    //     </p>
+    //   )
+    // }
 
     function InlineButton(props: {
       children: JSX.Element
@@ -761,41 +740,41 @@ export const LAYER_STUDY = defineLayer({
   },
 })
 
-async function selectForgetMode(owner: Owner | null) {
-  return await new Promise<null | boolean>((resolve) => {
-    let modal: ModalRef
-    let portal: HTMLDivElement
+// async function selectForgetMode(owner: Owner | null) {
+//   return await new Promise<null | boolean>((resolve) => {
+//     let modal: ModalRef
+//     let portal: HTMLDivElement
 
-    runWithOwner(owner, () => (
-      <Modal
-        ref={(e) => (modal = e)}
-        refPortal={(e) => (portal = e)}
-        onClose={(value) => {
-          resolve(
-            value == "false" ? false
-            : value == "true" ? true
-            : null,
-          )
-          portal.ontransitionend = () => portal.remove()
-        }}
-      >
-        <ModalTitle>Reset review and lapse counts?</ModalTitle>
-        <ModalDescription>
-          By the way, forgetting a card means that it will be treated as a new
-          card.
-        </ModalDescription>
-        <ModalButtons>
-          <ModalCancel onClick={() => modal.close("null")}>Cancel</ModalCancel>
-          <ModalCancel onClick={() => modal.close("false")}>
-            Yes, reset
-          </ModalCancel>
-          <ModalConfirm onClick={() => modal.close("true")}>
-            No, keep them
-          </ModalConfirm>
-        </ModalButtons>
-      </Modal>
-    ))
+//     runWithOwner(owner, () => (
+//       <Modal
+//         ref={(e) => (modal = e)}
+//         refPortal={(e) => (portal = e)}
+//         onClose={(value) => {
+//           resolve(
+//             value == "false" ? false
+//             : value == "true" ? true
+//             : null,
+//           )
+//           portal.ontransitionend = () => portal.remove()
+//         }}
+//       >
+//         <ModalTitle>Reset review and lapse counts?</ModalTitle>
+//         <ModalDescription>
+//           By the way, forgetting a card means that it will be treated as a new
+//           card.
+//         </ModalDescription>
+//         <ModalButtons>
+//           <ModalCancel onClick={() => modal.close("null")}>Cancel</ModalCancel>
+//           <ModalCancel onClick={() => modal.close("false")}>
+//             Yes, reset
+//           </ModalCancel>
+//           <ModalConfirm onClick={() => modal.close("true")}>
+//             No, keep them
+//           </ModalConfirm>
+//         </ModalButtons>
+//       </Modal>
+//     ))
 
-    setTimeout(() => modal!.showModal(), 1)
-  })
-}
+//     setTimeout(() => modal!.showModal(), 1)
+//   })
+// }

@@ -24,7 +24,22 @@ import { prefs_get } from "./prefs_get"
  * 5. A new card.
  */
 
-export function study_select_txless(root: Id | null, all: Id[]) {
+function pickCid(root: Id | null, all: Id[]) {
+  return (
+    // 1. If PREFER_NEW, a new card.
+    (PREFER_NEW && pickNew(includeBuried, conf.new.pick_at_random, all)) ??
+    // 2. A (re)learning card.
+    pickLearningToday(includeBuried, now, all) ??
+    // 3. A card that's due today.
+    pickReviewToday(includeBuried, todayEnd, all) ??
+    // 4. A (re)learning card due soon.
+    pickLearningToday(includeBuried, now + prefs.collapse_time * 1000, all) ??
+    // 5. A new card
+    pickNew(includeBuried, conf.new.pick_at_random, all)
+  )
+}
+
+function study_select_txless(root: Id | null, all: Id[], preferredCid?: Id) {
   const now = Date.now()
   const prefs = prefs_get()
   const limits = deck_limits_txless(root, prefs.day_start)
@@ -49,6 +64,8 @@ export function study_select_txless(root: Id | null, all: Id[]) {
     : null
 
   const cid =
+    // 0. The preferred card.
+    preferredCid ??
     // 1. If PREFER_NEW, a new card.
     (PREFER_NEW && pickNew(includeBuried, conf.new.pick_at_random, all)) ??
     // 2. A (re)learning card.
@@ -114,11 +131,11 @@ export function study_select_txless(root: Id | null, all: Id[]) {
   }
 }
 
-export function study_select(root: Id | null, all: Id[]) {
+export function study_select(root: Id | null, all: Id[], preferredCid?: Id) {
   const tx = db.read()
 
   try {
-    return study_select_txless(root, all)
+    return study_select_txless(root, all, preferredCid)
   } finally {
     tx.dispose()
   }

@@ -9,7 +9,7 @@ import {
 } from "solid-js"
 import { Worker } from "../db"
 import { ShortcutManager } from "../lib/shortcuts"
-import { ZDB_UNDO_HAPPENED } from "../shared"
+import { ZDB_UNDO_HAPPENED, type WorkerNotification } from "../shared"
 import {
   useLayers,
   type Awaitable,
@@ -72,6 +72,7 @@ export type LayerOnReturn<Props, State, AsyncData> = (
 /** Called when the database performs an undo or redo. */
 export type LayerOnUndo<Props, State, AsyncData> = (
   info: LayerCallbackInfo<Props, State, AsyncData>,
+  undo: WorkerNotification & { zid: typeof ZDB_UNDO_HAPPENED },
 ) => Awaitable<LayerOnUndoRetVal>
 
 /** Data passed to the `render()` function on a layer. */
@@ -250,8 +251,11 @@ export function defineLayer<
     const worker = props instanceof Worker ? props : props.worker
     let { onReturn, onPop, onUndo } = layer
 
-    worker.on(ZDB_UNDO_HAPPENED, async () => {
-      if (!onUndo || (await onUndo(layerCallbackInfo)) !== "preserve-data") {
+    worker.on(ZDB_UNDO_HAPPENED, async (data) => {
+      if (
+        !onUndo ||
+        (await onUndo(layerCallbackInfo, data)) !== "preserve-data"
+      ) {
         mutate(undefined)
         refetch()
       }

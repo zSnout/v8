@@ -3,6 +3,7 @@
 import { error, ok } from "@/components/result"
 import type { WorkerDB } from "."
 import type { Reason } from "../db/reason"
+import type { Id } from "../lib/id"
 import {
   ZDB_UNDO_FAILED,
   ZDB_UNDO_HAPPENED,
@@ -12,7 +13,16 @@ import {
 } from "../shared"
 import { text } from "./checks"
 
-export type Item = [start: number, end: number, reason: Reason | null]
+export interface UndoMeta {
+  currentCard?: Id
+}
+
+export type Item = [
+  start: number,
+  end: number,
+  reason: Reason | null,
+  meta: UndoMeta,
+]
 
 export class StateManager {
   private undoStack: Item[] = []
@@ -67,7 +77,7 @@ export class StateManager {
     this.freeze = -1
   }
 
-  mark(reason: Reason | null) {
+  mark(reason: Reason | null, meta: UndoMeta) {
     if (!this.active) {
       this.msgStackChanged()
       return
@@ -88,7 +98,7 @@ export class StateManager {
       return
     }
 
-    this.undoStack.push([begin, end, reason])
+    this.undoStack.push([begin, end, reason, meta])
     this.redoStack = []
     this.msgStackChanged()
   }
@@ -109,11 +119,16 @@ export class StateManager {
     } satisfies WorkerNotification)
   }
 
-  private msgUndoHappened(type: UndoType, reason: Reason | null) {
+  private msgUndoHappened(
+    type: UndoType,
+    reason: Reason | null,
+    meta: UndoMeta,
+  ) {
     postMessage({
       zid: ZDB_UNDO_HAPPENED,
       type,
       reason,
+      meta,
     } satisfies WorkerNotification)
   }
 
@@ -196,7 +211,7 @@ END;`
       this.msgUndoFailed(type)
       return error("Nothing left in " + type + " stack.")
     }
-    let [begin, end, reason] = first
+    let [begin, end, reason, meta] = first
     this.db.exec("BEGIN")
     try {
       const q1 = `SELECT sql FROM undolog WHERE seq>=${begin} AND seq<=${end} ORDER BY seq DESC`
@@ -216,7 +231,7 @@ END;`
       throw err
     }
 
-    this.msgUndoHappened(type, reason)
+    this.msgUndoHappened(type, reason, meta)
 
     end = this.db.selectValue(
       "SELECT coalesce(max(seq),0)+1 FROM undolog",
@@ -224,7 +239,7 @@ END;`
       1,
     )!
     begin = this.firstlog
-    v2.push([begin, end, reason])
+    v2.push([begin, end, reason, meta])
     this.startInterval()
     this.msgStackChanged()
 
