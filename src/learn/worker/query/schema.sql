@@ -49,10 +49,12 @@ CREATE TABLE IF NOT EXISTS decks (
   revcards_today TEXT NOT NULL DEFAULT '[]', -- json array
   revlogs_today INTEGER NOT NULL DEFAULT 0,
   today INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
-  desc TEXT NOT NULL DEFAULT '',
+  `desc` TEXT NOT NULL DEFAULT '',
   cfid INTEGER NOT NULL DEFAULT 0,
   creation INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
-  FOREIGN KEY (cfid) REFERENCES confs (id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (cfid) REFERENCES confs (id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS decks_name ON decks (name);
@@ -83,7 +85,9 @@ CREATE TABLE IF NOT EXISTS notes (
   sort_field TEXT, -- can be null
   csum INTEGER NOT NULL DEFAULT 0, -- FEAT: implement this
   marks INTEGER NOT NULL DEFAULT 0,
-  FOREIGN KEY (mid) REFERENCES models (id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (mid) REFERENCES models (id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS notes_mid ON notes (mid);
@@ -107,9 +111,15 @@ CREATE TABLE IF NOT EXISTS cards (
   lapses INTEGER NOT NULL DEFAULT 0,
   flags INTEGER NOT NULL DEFAULT 0,
   state INTEGER NOT NULL DEFAULT 0,
-  FOREIGN KEY (nid) REFERENCES notes (id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (did) REFERENCES decks (id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (odid) REFERENCES decks (id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (nid) REFERENCES notes (id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+  FOREIGN KEY (did) REFERENCES decks (id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE,
+  FOREIGN KEY (odid) REFERENCES decks (id)
+    ON UPDATE CASCADE
+    ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS cards_nid ON cards (nid);
@@ -158,68 +168,66 @@ CREATE TABLE IF NOT EXISTS prefs (
   show_flags_in_sidebar BOOLEAN NOT NULL DEFAULT 1,
   show_marks_in_sidebar BOOLEAN NOT NULL DEFAULT 1,
   browser TEXT NOT NULL DEFAULT '{"active_cols":["Sort Field","Due","Card","Tags","Deck"],"sort_field":"Sort Field","sort_backwards":false}', -- json data
-  FOREIGN KEY (current_deck) REFERENCES decks (id) ON UPDATE SET NULL ON DELETE SET NULL,
-  FOREIGN KEY (last_model_used) REFERENCES models (id) ON UPDATE SET NULL ON DELETE SET NULL
+  FOREIGN KEY (current_deck) REFERENCES decks (id)
+    ON UPDATE SET NULL
+    ON DELETE SET NULL,
+  FOREIGN KEY (last_model_used) REFERENCES models (id)
+    ON UPDATE SET NULL
+    ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS charts (
   id INTEGER PRIMARY KEY NOT NULL,
   last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
   title TEXT NOT NULL,
-  query TEXT NOT NULL,
+  `query` TEXT NOT NULL,
   chart TEXT NOT NULL,
   style TEXT NOT NULL,
   options TEXT NOT NULL
 );
 
-CREATE TRIGGER IF NOT EXISTS check_card_tmpl_on_insert BEFORE INSERT ON cards BEGIN
-SELECT
-  CASE
-    WHEN (
-      SELECT
-        tmpls -> cast(tid AS TEXT)
-      FROM
-        cards
-        JOIN notes ON notes.id = cards.nid
-        JOIN models ON models.id = notes.mid
-    ) IS NULL THEN RAISE (
-      ABORT,
-      'Card does not link to a valid template ID.'
-    )
-  END;
-
+CREATE TRIGGER IF NOT EXISTS check_card_tmpl_on_insert
+BEFORE INSERT ON cards
+BEGIN
+  SELECT
+    CASE
+      WHEN (
+        SELECT
+          tmpls -> CAST(tid AS TEXT)
+        FROM
+          cards
+          JOIN notes ON notes.id = cards.nid
+          JOIN models ON models.id = notes.mid
+      ) IS NULL THEN RAISE(ABORT, 'Card does not link to a valid template ID.')
+    END;
 END;
 
-CREATE TRIGGER IF NOT EXISTS check_card_tmpl_on_update BEFORE INSERT ON cards BEGIN
-SELECT
-  CASE
-    WHEN (
-      SELECT
-        tmpls -> cast(tid AS TEXT)
-      FROM
-        cards
-        JOIN notes ON notes.id = cards.nid
-        JOIN models ON models.id = notes.mid
-    ) IS NULL THEN RAISE (
-      ABORT,
-      'Card does not link to a valid template ID.'
-    )
-  END;
-
+CREATE TRIGGER IF NOT EXISTS check_card_tmpl_on_update
+BEFORE INSERT ON cards
+BEGIN
+  SELECT
+    CASE
+      WHEN (
+        SELECT
+          tmpls -> CAST(tid AS TEXT)
+        FROM
+          cards
+          JOIN notes ON notes.id = cards.nid
+          JOIN models ON models.id = notes.mid
+      ) IS NULL THEN RAISE(ABORT, 'Card does not link to a valid template ID.')
+    END;
 END;
 
-CREATE TRIGGER IF NOT EXISTS delete_cards_on_template_deletion BEFORE
-UPDATE ON models BEGIN
-DELETE FROM cards
-WHERE
-  (
-    SELECT
-      mid
-    FROM
-      notes
-    WHERE
-      notes.id = cards.nid
-  ) = new.id
-  AND new.tmpls -> cast(cards.tid as TEXT) IS NULL;
-
+CREATE TRIGGER IF NOT EXISTS delete_cards_on_template_deletion
+BEFORE UPDATE ON models
+BEGIN
+  DELETE FROM cards
+  WHERE
+    (
+      SELECT
+        mid
+      FROM notes
+      WHERE notes.id = cards.nid
+    ) = new.id
+    AND new.tmpls -> CAST(cards.tid AS TEXT) IS NULL;
 END;

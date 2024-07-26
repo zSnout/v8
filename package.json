@@ -50,8 +50,9 @@
     "pdfjs-dist": "^4.2.67",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-embed": "^0.4.15",
     "prettier-plugin-glsl": "^0.2.0",
-    "prettier-plugin-sql": "^0.18.1",
+    "prettier-plugin-sql-cst": "^0.11.5",
     "prettier-plugin-tailwindcss": "^0.6.5",
     "rehype-katex": "^6.0.2",
     "remark-math": "^5.1.1",
@@ -80,13 +81,14 @@
     "proseWrap": "always",
     "plugins": [
       "prettier-plugin-astro",
+      "prettier-plugin-embed",
       "prettier-plugin-glsl",
-      "prettier-plugin-sql",
+      "prettier-plugin-sql-cst",
       "prettier-plugin-tailwindcss"
     ],
     "trailingComma": "all",
     "experimentalTernaries": true,
-    "language": "sqlite"
+    "embeddedSqlPlugin": "prettier-plugin-sql-cst"
   },
   "overrides": {
     "eslint": "^9.6.0"
