@@ -2,7 +2,10 @@
 import sqlite3InitModule from "../../../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs"
 
 import { notNull } from "@/components/pray"
-import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
+import type {
+  default as initSqlite,
+  OpfsDatabase,
+} from "@sqlite.org/sqlite-wasm"
 import { startOfDaySync } from "../db/day"
 import type { Reason } from "../db/reason"
 import { randomId } from "../lib/id"
@@ -13,141 +16,21 @@ import {
   type WorkerRequest,
   type WorkerResponse,
 } from "../shared"
-import { int, type Check, type CheckResult } from "./checks"
+import { int } from "./checks"
 import * as messages from "./messages"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
-import { Stmt } from "./sql"
+import { createSqlFunction } from "./sql"
 import { StateManager, type UndoMeta } from "./undo"
 import { latest, upgrade } from "./version"
 
-export const sqlite3 = await (
-  sqlite3InitModule as typeof import("@sqlite.org/sqlite-wasm").default
-)()
+export const sqlite3 = await (sqlite3InitModule as typeof initSqlite)()
 
 if (!("opfs" in sqlite3)) {
   throw new Error("OPFS is not supported on this browser.")
 }
 
-export class WorkerDB extends sqlite3.oo1.OpfsDb {
-  read() {
-    return new TxReadonly()
-  }
-
-  readwrite(reason: Reason) {
-    return new TxReadwrite(reason)
-  }
-
-  run(sql: string, params?: BindingSpec): SqlValue[][] {
-    return this.exec(sql, {
-      bind: params,
-      returnValue: "resultRows",
-    })
-  }
-
-  row(sql: string, params?: BindingSpec): SqlValue[] {
-    const result = this.run(sql, params)
-    const first = result[0]
-    if (first == null) {
-      throw new Error("Expected exactly one row; got none.")
-    }
-    if (result.length > 1) {
-      throw new Error("Expected exactly one row; got more than one.")
-    }
-    return first
-  }
-
-  rowChecked<const T extends Check[]>(
-    sql: string,
-    checks: T,
-    params?: BindingSpec,
-  ): {
-    [K in keyof T]: T[K] extends (
-      ((x: SqlValue) => x is infer U extends SqlValue)
-    ) ?
-      U
-    : SqlValue
-  } {
-    const row = this.row(sql, params)
-    if (checks.length != row.length) {
-      throw new Error(
-        `Expected ${checks.length} column${checks.length == 1 ? "" : "s"}; received ${row.length}.`,
-      )
-    }
-    for (let index = 0; index < row.length; index++) {
-      if (!checks[index]!(row[index]!)) {
-        throw new Error("Query returned the wrong type.")
-      }
-    }
-    return row as any
-  }
-
-  runWithColumns(sql: string, params?: BindingSpec) {
-    const columns: string[] = []
-    return {
-      columns,
-      values: this.exec(sql, {
-        bind: params,
-        columnNames: columns,
-        returnValue: "resultRows",
-      }),
-    }
-  }
-
-  val<T extends Check>(
-    sql: string,
-    check: T,
-    params?: BindingSpec,
-  ): CheckResult<T>
-  val(sql: string, check?: undefined, params?: BindingSpec): SqlValue
-  val(sql: string, check?: Check, params?: BindingSpec): SqlValue {
-    const query = this.run(sql, params)
-    if (query.length != 1) {
-      throw new TypeError("Expected a single row to be returned.")
-    }
-
-    const row = query[0]!
-    if (row.length != 1) {
-      throw new TypeError("Expected a single column to be returned.")
-    }
-
-    const item = row[0] as SqlValue
-
-    if (check && !check(item)) {
-      throw new TypeError("The query returned an invalid type.")
-    }
-
-    return item
-  }
-
-  /** Runs a single query and checks the types of the first row of values. */
-  checked<const T extends Check[]>(
-    sql: string,
-    checks: T,
-    params?: BindingSpec,
-  ): {
-    [K in keyof T]: T[K] extends (
-      ((x: SqlValue) => x is infer U extends SqlValue)
-    ) ?
-      U
-    : SqlValue
-  }[] {
-    // TODO: possibly disable checks in prod
-
-    const data = this.run(sql, params)
-
-    const row = data[0]
-    if (row) {
-      for (let index = 0; index < row.length; index++) {
-        if (!checks[index]!(row[index]!)) {
-          throw new Error("Query returned the wrong type.")
-        }
-      }
-    }
-
-    return data as any
-  }
-}
+export type WorkerDB = OpfsDatabase
 
 export const DB_FILENAME = "/learn/User 1.sqlite3"
 
@@ -157,7 +40,7 @@ async function init() {
       throw new Error("OPFS is not supported on this browser.")
     }
 
-    const db = new WorkerDB(DB_FILENAME)
+    const db = new sqlite3.oo1.OpfsDb(DB_FILENAME)
 
     db.createFunction({
       name: "random_id",
@@ -254,18 +137,20 @@ async function init() {
 // this upgrades similarly to indexedDB since indexedDB does upgrades well
 // this handles the meta of upgrading, while `upgrade` is the main script
 function checkVersion(db: WorkerDB) {
-  // no rollback logic since if upgrading fails, nothing good will happen
-  db.exec("BEGIN TRANSACTION")
-  db.exec(query_schema)
-  const current =
-    db.val("SELECT EXISTS(SELECT 1 FROM core WHERE id = 0)", int) ?
-      db.val("SELECT version FROM core WHERE id = 0", int)
-    : 0
-  upgrade(db, current)
-  if (current != latest) {
-    db.run("UPDATE core SET version = ? WHERE id = 0", [latest])
+  const sql = createSqlFunction(db)
+  sql`BEGIN TRANSACTION;`.run()
+  try {
+    sql.of(query_schema).run()
+    const current =
+      sql`SELECT version FROM core WHERE id = 0;`.getValueSafe(int) ?? 0
+    upgrade(db, current)
+    if (current != latest) {
+      sql`UPDATE core SET version = ${latest} WHERE id = 0;`.run()
+    }
+    sql`COMMIT;`.run()
+  } finally {
+    sql`ROLLBACK;`.run()
   }
-  db.exec("COMMIT")
 }
 
 export class Tx {
@@ -418,15 +303,11 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
 /** These are `let` bindings so we can close and reopen them. */
 export let [db, state] = await init()
 
-export function sql(strings: TemplateStringsArray, ...bindings: SqlValue[]) {
-  const stmt = new Stmt(strings.join("?"))
-  if (bindings.length) {
-    stmt.bindNew(bindings)
-  }
-  return stmt
-}
-
-sql.of = (sql: string) => new Stmt(sql)
+export const sql = createSqlFunction({
+  prepare(query) {
+    return db.prepare(query)
+  },
+})
 
 export function readonly() {
   return new TxReadonly()

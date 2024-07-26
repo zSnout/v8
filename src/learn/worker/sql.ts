@@ -1,12 +1,15 @@
 import { notNull } from "@/components/pray"
-import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
-import { db } from "."
 import type {
-  Check,
-  CheckResult,
-  CheckResults,
-  CheckResultsWithColumns,
-  UncheckedWithColumns,
+  BindingSpec,
+  PreparedStatement,
+  SqlValue,
+} from "@sqlite.org/sqlite-wasm"
+import {
+  type Check,
+  type CheckResult,
+  type CheckResults,
+  type CheckResultsWithColumns,
+  type UncheckedWithColumns,
 } from "./checks"
 
 /**
@@ -14,12 +17,10 @@ import type {
  * stepping, but which automatically resets and disposes statements.
  */
 export class Stmt {
-  private readonly stmt
   private autoDisposes = true
   private used = false
 
-  constructor(sql: string) {
-    this.stmt = db.prepare(sql)
+  constructor(private readonly stmt: PreparedStatement) {
     queueMicrotask(() => {
       if (this.autoDisposes) {
         this.dispose()
@@ -246,4 +247,20 @@ export class Stmt {
       this.stmt.reset()
     }
   }
+}
+
+export function createSqlFunction(db: {
+  prepare(query: string): PreparedStatement
+}) {
+  function sql(strings: TemplateStringsArray, ...bindings: SqlValue[]) {
+    const stmt = new Stmt(db.prepare(strings.join("?")))
+    if (bindings.length) {
+      stmt.bindNew(bindings)
+    }
+    return stmt
+  }
+
+  sql.of = (query: string) => new Stmt(db.prepare(query))
+
+  return sql
 }
