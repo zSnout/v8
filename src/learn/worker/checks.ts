@@ -51,3 +51,7 @@ export type Check = (x: SqlValue) => boolean
 
 export type CheckResult<T extends Check> =
   T extends ((x: SqlValue) => x is infer U extends SqlValue) ? U : SqlValue
+
+export type CheckResults<T extends readonly Check[]> = {
+  [K in keyof T]: CheckResult<T[K]>
+}

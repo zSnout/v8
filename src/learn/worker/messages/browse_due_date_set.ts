@@ -1,18 +1,13 @@
 import type { Id } from "@/learn/lib/id"
-import { db } from ".."
+import { readwrite } from ".."
+import { sql } from "../sql"
 
 export function browse_due_date_set(cids: Id[], due: number) {
-  const tx = db.readwrite("Set card due date")
+  const tx = readwrite("Set card due date")
   try {
-    const stmt = db.prepare(
-      "UPDATE cards SET due = ? WHERE id = ? AND state != 0",
-    )
-    try {
-      for (const id of cids) {
-        stmt.clearBindings().bind([due, id]).stepReset()
-      }
-    } finally {
-      stmt.finalize()
+    const stmt = sql`UPDATE cards SET due = ? WHERE id = ? AND state != 0`
+    for (const id of cids) {
+      stmt.bindNew([due, id]).run()
     }
     tx.commit()
   } finally {

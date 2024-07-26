@@ -417,6 +417,14 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
 /** These are `let` bindings so we can close and reopen them. */
 export let [db, state] = await init()
 
+export function readonly() {
+  return new TxReadonly()
+}
+
+export function readwrite(reason: Reason) {
+  return new TxReadwrite(reason)
+}
+
 function createClosedDatabase(message: string) {
   function dbImporting(): never {
     throw new Error(message)
