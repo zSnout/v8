@@ -12,8 +12,8 @@ import {
 } from "@/learn/lib/types"
 import { createEmptyCard, State } from "ts-fsrs"
 import { parse } from "valibot"
+import { readwrite, sql } from ".."
 import { id, qid, text } from "../checks"
-import { db } from ".."
 import { stmts } from "../stmts"
 
 function requiresOneWaySync(
@@ -74,7 +74,7 @@ function mostPopularId(dids: Id[]) {
 }
 
 export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
-  const tx = db.readwrite(
+  const tx = readwrite(
     `Update ${editStyle ? "templates" : "fields"} for model ${model.name}`,
   )
 
@@ -86,19 +86,19 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
     }
 
     if (editStyle) {
-      db.run("UPDATE prefs SET template_edit_style = ? WHERE id = 0", [
-        JSON.stringify(editStyle),
-      ])
+      sql`
+        UPDATE prefs
+        SET template_edit_style = ${JSON.stringify(editStyle)}
+        WHERE id = 0;
+      `.run()
     }
 
-    const prevRaw = db.checked(
-      "SELECT tmpls, sort_field, fields FROM models WHERE id = ?",
-      [text, qid, text],
-      [model.id],
-    )[0]
+    const prevRaw = sql`
+      SELECT tmpls, sort_field, fields FROM models WHERE id = ${model.id};
+    `.getRow([text, qid, text])
 
     if (!prevRaw) {
-      db.run(stmts.models.insert, stmts.models.insertArgs(model))
+      stmts.models.insert().bindNew(stmts.models.insertArgs(model)).run()
       tx.commit()
       return
     }
@@ -112,19 +112,20 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
     const { add, del } = diffTmpls(prev.tmpls, model.tmpls)
 
     if (requiresOneWaySync(prev, model)) {
-      db.run(
-        "UPDATE core SET last_schema_edit = :now, last_edited = :now WHERE id = 0",
-        { ":now": Date.now() },
-      )
+      sql`
+        UPDATE core
+        SET
+          last_schema_edit = ${Date.now()},
+          last_edited = ?0
+        WHERE id = 0;
+      `.run()
     }
 
-    for (const note of db.run("SELECT * FROM notes WHERE mid = ?", [
-      model.id,
-    ])) {
+    for (const note of sql`SELECT * FROM notes WHERE mid = ${model.id};`) {
       inner(stmts.notes.interpret(note))
     }
 
-    db.run(stmts.models.update, stmts.models.updateArgs(model))
+    stmts.models.update().bindNew(stmts.models.updateArgs(model)).run()
     tx.commit()
     return
 
@@ -136,21 +137,23 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
       }
       const last_edited = now
       // FEAT: checksums
-      db.run(
-        "UPDATE notes SET sort_field = ?, fields = ?, last_edited = ? WHERE id = ?",
-        [sort_field, JSON.stringify(fields), last_edited, note.id],
-      )
+      sql`
+        UPDATE notes
+        SET
+          sort_field = ${sort_field},
+          fields = ${JSON.stringify(fields)},
+          last_edited = ${last_edited}
+        WHERE id = ${note.id};
+      `.run()
 
       if (!add.length && !del.length) {
         return
       }
 
-      const cs = db
-        .checked(
-          "SELECT tid, odid, did, id FROM cards WHERE nid = ?",
-          [id, qid, id, id],
-          [note.id],
-        )
+      const cs = sql`
+        SELECT tid, odid, did, id FROM cards WHERE nid = ${note.id};
+      `
+        .getAll([id, qid, id, id])
         .map(([tid, odid, did, id]) => ({ tid, odid, did, id }))
 
       if (add.length) {
@@ -181,7 +184,7 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
               flags: 0,
               odid: null,
             }
-            db.run(stmts.cards.insert, stmts.cards.insertArgs(card))
+            stmts.cards.insert().bindNew(stmts.cards.insertArgs(card)).run()
           }
         }
       }
@@ -190,7 +193,7 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
         for (const { id } of del) {
           const cid = cs.find((x) => x.tid == id)?.id
           if (cid != null) {
-            db.run("DELETE FROM cards WHERE id = ?", [cid])
+            sql`DELETE FROM cards WHERE id = ${cid};`.run()
           }
         }
       }

@@ -14,6 +14,7 @@ import {
 } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { parse } from "valibot"
+import { sql } from "."
 import { latest } from "./version"
 
 export type INTEGER = number
@@ -23,7 +24,9 @@ export type TEXT = string
 
 export const stmts = {
   core: {
-    insert: "INSERT INTO core VALUES (?, ?, ?, ?, ?, ?, ?)",
+    insert() {
+      return sql`INSERT INTO core VALUES (?, ?, ?, ?, ?, ?, ?);`
+    },
     interpret(data: SqlValue[]): Core {
       return {
         // data[0] is id
@@ -48,14 +51,20 @@ export const stmts = {
     },
   },
   graves: {
-    insert: "INSERT INTO graves VALUES (?, ?)",
+    insert() {
+      return sql`INSERT INTO graves VALUES (?, ?);`
+    },
     insertArgs(grave: Grave): SqlValue[] {
       return [grave.oid satisfies INTEGER, grave.type satisfies INTEGER]
     },
   },
   confs: {
-    insert:
-      "INSERT INTO confs VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    insert() {
+      return sql`
+        INSERT INTO confs
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `
+    },
     interpret(data: SqlValue[]): Conf {
       return {
         id: data[0],
@@ -108,8 +117,12 @@ export const stmts = {
     },
   },
   decks: {
-    insert:
-      "INSERT INTO decks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    insert() {
+      return sql`
+        INSERT INTO decks
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `
+    },
     /** Expects data from a `SELECT * FROM decks` statement. */
     interpret(data: SqlValue[]): Deck {
       return {
@@ -153,9 +166,26 @@ export const stmts = {
     },
   },
   models: {
-    insert: "INSERT INTO models VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    update:
-      "UPDATE models SET css = ?, fields = ?, latex = ?, name = ?, sort_field = ?, tmpls = ?, tags = ?, type = ?, creation = ?, last_edited = ? WHERE id = ?",
+    insert() {
+      return sql`INSERT INTO models VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
+    },
+    update() {
+      return sql`
+        UPDATE models
+        SET
+          css = ?,
+          fields = ?,
+          latex = ?,
+          name = ?,
+          sort_field = ?,
+          tmpls = ?,
+          tags = ?,
+          type = ?,
+          creation = ?,
+          last_edited = ?
+        WHERE id = ?;
+      `
+    },
     interpret(data: SqlValue[]): Model {
       return {
         id: data[0],
@@ -207,7 +237,9 @@ export const stmts = {
     },
   },
   notes: {
-    insert: "INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    insert() {
+      return sql`INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
+    },
     interpret(data: SqlValue[]): Note {
       return {
         id: data[0],
@@ -236,8 +268,12 @@ export const stmts = {
     },
   },
   cards: {
-    insert:
-      "INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    insert() {
+      return sql`
+        INSERT INTO cards
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `
+    },
     interpret(data: SqlValue[]): AnyCard {
       return {
         id: data[0],
@@ -284,8 +320,11 @@ export const stmts = {
     },
   },
   rev_log: {
-    insert:
-      "INSERT INTO rev_log VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    insert() {
+      return sql`
+        INSERT INTO rev_log VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `
+    },
     insertArgs(review: Review) {
       return [
         review.id satisfies INTEGER,
@@ -305,10 +344,37 @@ export const stmts = {
     },
   },
   prefs: {
-    insert:
-      "INSERT INTO prefs VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-    update:
-      "UPDATE prefs SET last_edited = ?, current_deck = ?, last_model_used = ?, new_spread = ?, collapse_time = ?, notify_after_time = ?, show_review_time_above_buttons = ?, show_remaining_due_counts = ?, show_deck_name = ?, next_new_card_position = ?, last_unburied = ?, day_start = ?, debug = ?, sidebar_state = ?, template_edit_style = ?, show_flags_in_sidebar = ?, show_marks_in_sidebar = ?, browser = ? WHERE id = 0",
+    insert() {
+      return sql`
+        INSERT INTO prefs
+        VALUES (0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `
+    },
+    update() {
+      return sql`
+        UPDATE prefs
+        SET
+          last_edited = ?,
+          current_deck = ?,
+          last_model_used = ?,
+          new_spread = ?,
+          collapse_time = ?,
+          notify_after_time = ?,
+          show_review_time_above_buttons = ?,
+          show_remaining_due_counts = ?,
+          show_deck_name = ?,
+          next_new_card_position = ?,
+          last_unburied = ?,
+          day_start = ?,
+          debug = ?,
+          sidebar_state = ?,
+          template_edit_style = ?,
+          show_flags_in_sidebar = ?,
+          show_marks_in_sidebar = ?,
+          browser = ?
+        WHERE id = 0;
+      `
+    },
     /**
      * Expects data from SELECT *.
      *
@@ -368,9 +434,12 @@ export const stmts = {
     },
   },
   charts: {
-    insert: "INSERT INTO charts VALUES (?, ?, ?, ?, ?, ?, ?)",
-    update:
-      "UPDATE charts SET last_edited = ?, title = ?, query = ?, chart = ?, style = ?, options = ? WHERE id = ?",
+    insert() {
+      return sql`INSERT INTO charts VALUES (?, ?, ?, ?, ?, ?, ?);`
+    },
+    update() {
+      return sql`UPDATE charts SET last_edited = ?, title = ?, query = ?, chart = ?, style = ?, options = ? WHERE id = ?`
+    },
     /**
      * Expects data from SELECT *.
      *

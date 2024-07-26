@@ -3,19 +3,16 @@ import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { db } from ".."
 import query_reset from "../query/reset.sql?raw"
 import query_schema from "../query/schema.sql?raw"
+import type { Stmt } from "../sql"
 import { stmts } from "../stmts"
 
 function inner<T>(
-  meta: { insert: string; insertArgs(item: T): SqlValue[] },
+  meta: { insert(): Stmt; insertArgs(item: T): SqlValue[] },
   items: T[],
 ) {
-  const stmt = db.prepare(meta.insert)
-  try {
-    for (const item of items) {
-      stmt.clearBindings().bind(meta.insertArgs(item)).stepReset()
-    }
-  } finally {
-    stmt.finalize()
+  const stmt = meta.insert()
+  for (const item of items) {
+    stmt.bindNew(meta.insertArgs(item)).run()
   }
 }
 

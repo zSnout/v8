@@ -55,3 +55,13 @@ export type CheckResult<T extends Check> =
 export type CheckResults<T extends readonly Check[]> = {
   [K in keyof T]: CheckResult<T[K]>
 }
+
+export type CheckResultsWithColumns<T extends readonly Check[]> = {
+  columns: { [K in keyof T]: string }
+  values: CheckResults<T>[]
+}
+
+export type UncheckedWithColumns = {
+  columns: string[]
+  values: SqlValue[][]
+}

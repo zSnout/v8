@@ -1,43 +1,33 @@
 import { isSameDaySync } from "@/learn/db/day"
 import type { Id } from "@/learn/lib/id"
-import { db } from ".."
+import { readonly, sql } from ".."
+import { int, text } from "../checks"
 
 export function deck_done_today_txless(decks: Id[], dayStart: number) {
-  const stmt = db.prepare(
-    "SELECT today, new_today, revcards_today FROM decks WHERE id = ?",
-  )
+  const stmt = sql`
+    SELECT today, new_today, revcards_today FROM decks WHERE id = ?;
+  `
 
   let new_today = 0
   let rev_today = 0
 
-  try {
-    for (const did of decks) {
-      stmt.clearBindings().bind([did])
-      if (stmt.step()) {
-        const value = stmt.get([]) as [
-          today: number,
-          new_today: string,
-          revcards_today: string,
-        ]
+  for (const did of decks) {
+    const row = stmt.bindNew([did]).getRowSafe([int, text, text])
+    if (row) {
+      const isToday = isSameDaySync(dayStart, Date.now(), row[0])
 
-        const isToday = isSameDaySync(dayStart, Date.now(), value[0])
-
-        if (isToday) {
-          new_today += (JSON.parse(value[1]) as number[]).length
-          rev_today += (JSON.parse(value[2]) as number[]).length
-        }
+      if (isToday) {
+        new_today += (JSON.parse(row[1]) as number[]).length
+        rev_today += (JSON.parse(row[2]) as number[]).length
       }
-      stmt.reset()
     }
-
-    return { new_today, rev_today }
-  } finally {
-    stmt.finalize()
   }
+
+  return { new_today, rev_today }
 }
 
 export function deck_done_today(decks: Id[], dayStart: number) {
-  const tx = db.read()
+  const tx = readonly()
   try {
     return deck_done_today_txless(decks, dayStart)
   } finally {

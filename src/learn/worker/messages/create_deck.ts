@@ -1,14 +1,13 @@
 import { randomId } from "@/learn/lib/id"
-import { db } from ".."
+import { readwrite, sql } from ".."
 
-/** Does not create a transaction. */
 export function create_deck(name: string) {
-  const tx = db.readwrite(`Create deck ${name}`)
+  const tx = readwrite(`Create deck ${name}`)
   try {
-    db.run(
-      "INSERT OR IGNORE INTO decks (id, name, is_filtered) VALUES (?, ?, 0)",
-      [randomId(), name],
-    )
+    sql`
+      INSERT OR IGNORE INTO decks (id, name, is_filtered)
+      VALUES (${randomId()}, ${name}, 0);
+    `.run()
     tx.commit()
   } finally {
     tx.dispose()

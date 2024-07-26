@@ -88,7 +88,15 @@
     ],
     "trailingComma": "all",
     "experimentalTernaries": true,
-    "embeddedSqlPlugin": "prettier-plugin-sql-cst"
+    "embeddedSqlPlugin": "prettier-plugin-sql-cst",
+    "sqlParamTypes": [
+      "?",
+      "?nr",
+      "$nr",
+      ":name",
+      "@name",
+      "$name"
+    ]
   },
   "overrides": {
     "eslint": "^9.6.0"

@@ -1,7 +1,7 @@
-import { db } from ".."
+import { sql } from ".."
 import { stmts } from "../stmts"
 
 /** Does not create a transaction. */
 export function core_get() {
-  return stmts.core.interpret(db.row("SELECT * FROM core WHERE id = 0"))
+  return stmts.core.interpret(sql`SELECT * FROM core WHERE id = 0;`.getRow())
 }

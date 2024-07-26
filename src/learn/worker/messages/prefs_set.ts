@@ -1,12 +1,12 @@
 import type { Reason } from "@/learn/db/reason"
 import type { Prefs } from "@/learn/lib/types"
-import { db } from ".."
+import { readwrite } from ".."
 import { stmts } from "../stmts"
 
 export function prefs_set(prefs: Prefs, reason: Reason) {
-  const tx = db.readwrite(reason)
+  const tx = readwrite(reason)
   try {
-    db.run(stmts.prefs.update, stmts.prefs.insertArgs(prefs))
+    stmts.prefs.update().bindNew(stmts.prefs.insertArgs(prefs)).run()
     tx.commit()
   } finally {
     tx.dispose()

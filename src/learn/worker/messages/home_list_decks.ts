@@ -7,11 +7,11 @@ import type {
   DeckHomeInfo,
 } from "@/learn/lib/types"
 import { bool, id, int, text } from "../checks"
-import { db } from ".."
+import { readonly, sql } from ".."
 
 function bucketOfArray(
   today: number,
-  card: [
+  card: readonly [
     queue: AnyCard["queue"],
     state: AnyCard["state"],
     last_edited: number,
@@ -40,13 +40,16 @@ function bucketOfArray(
 }
 
 export function home_list_decks() {
-  const tx = db.read()
+  const tx = readonly()
 
   try {
-    const dayStart = db.val("SELECT day_start FROM prefs WHERE id = 0", int)
+    const dayStart = sql`SELECT day_start FROM prefs WHERE id = 0;`.getValue(
+      int,
+    )
+
     const today = startOfDaySync(dayStart, Date.now())
 
-    const decks = db.checked("SELECT id, collapsed, name FROM decks", [
+    const decks = sql`SELECT id, collapsed, name FROM decks;`.getAll([
       id,
       bool,
       text,
@@ -55,17 +58,16 @@ export function home_list_decks() {
     const idToName = Object.fromEntries(decks.map((x) => [x[0], x]))
     const nameToDeck = Object.fromEntries(decks.map((x) => [x[2], x]))
 
-    const cards = db.checked(
-      "SELECT queue, state, last_edited, scheduled_days, due, did FROM cards",
-      [
-        (x) => x == 0 || x == 1 || x == 2,
-        (x) => x == 0 || x == 1 || x == 2 || x == 3,
-        int,
-        int,
-        int,
-        id,
-      ],
-    )
+    const cards = sql`
+      SELECT queue, state, last_edited, scheduled_days, due, did FROM cards;
+    `.getAll([
+      (x) => x == 0 || x == 1 || x == 2,
+      (x) => x == 0 || x == 1 || x == 2 || x == 3,
+      int,
+      int,
+      int,
+      id,
+    ])
 
     const self = new Map<string, Buckets>()
 

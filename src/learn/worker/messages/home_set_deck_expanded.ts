@@ -1,23 +1,23 @@
 import { Id, randomId } from "@/learn/lib/id"
-import { db } from ".."
+import { readwrite, sql } from ".."
 
 export function home_set_deck_expanded(
   idOrName: Id | string,
   expanded: boolean,
 ) {
-  const tx = db.readwrite("Toggle whether deck is collapsed")
+  const tx = readwrite("Toggle whether deck is collapsed")
 
   try {
     if (typeof idOrName == "number") {
-      db.run("UPDATE decks SET collapsed = ? WHERE id = ?", [
-        +!expanded,
-        idOrName,
-      ])
+      sql`
+        UPDATE decks SET collapsed = ${+!expanded} WHERE id = ${idOrName};
+      `.run()
     } else {
-      db.run(
-        "INSERT INTO decks (id, name, collapsed, is_filtered) VALUES (?, ?, ?, 0) ON CONFLICT(name) DO UPDATE SET is_filtered = excluded.is_filtered",
-        [randomId(), idOrName, +!expanded],
-      )
+      sql`
+        INSERT INTO decks (id, name, collapsed, is_filtered)
+        VALUES (${randomId()}, ${idOrName}, ${+!expanded}, 0)
+        ON CONFLICT (name) DO UPDATE SET is_filtered = excluded.is_filtered;
+      `.run()
     }
 
     tx.commit()

@@ -17,6 +17,7 @@ import { int, type Check, type CheckResult } from "./checks"
 import * as messages from "./messages"
 import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
+import { Stmt } from "./sql"
 import { StateManager, type UndoMeta } from "./undo"
 import { latest, upgrade } from "./version"
 
@@ -416,6 +417,16 @@ addEventListener("message", async ({ data }: { data: unknown }) => {
 
 /** These are `let` bindings so we can close and reopen them. */
 export let [db, state] = await init()
+
+export function sql(strings: TemplateStringsArray, ...bindings: SqlValue[]) {
+  const stmt = new Stmt(strings.join("?"))
+  if (bindings.length) {
+    stmt.bindNew(bindings)
+  }
+  return stmt
+}
+
+sql.of = (sql: string) => new Stmt(sql)
 
 export function readonly() {
   return new TxReadonly()

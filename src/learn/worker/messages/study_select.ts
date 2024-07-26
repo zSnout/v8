@@ -4,7 +4,8 @@ import type { Id } from "@/learn/lib/id"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "@/learn/lib/repeat"
 import type { Conf, Prefs } from "@/learn/lib/types"
 import { FSRS } from "ts-fsrs"
-import { db } from ".."
+import { readonly, sql } from ".."
+import { id } from "../checks"
 import { stmts } from "../stmts"
 import { conf_get_by_deck } from "./conf_get_by_deck"
 import { deck_done_today_txless } from "./deck_done_today"
@@ -94,19 +95,19 @@ function study_select_txless(root: Id | null, all: Id[], preferredCid?: Id) {
   }
 
   const card = stmts.cards.interpret(
-    db.row("SELECT * FROM cards WHERE id = ?", [cid]),
+    sql`SELECT * FROM cards WHERE id = ${cid};`.getRow(),
   )
 
   const note = stmts.notes.interpret(
-    db.row("SELECT * FROM notes WHERE id = ?", [card.nid]),
+    sql`SELECT * FROM notes WHERE id = ${card.nid};`.getRow(),
   )
 
   const model = stmts.models.interpret(
-    db.row("SELECT * FROM models WHERE id = ?", [note.mid]),
+    sql`SELECT * FROM models WHERE id = ${note.mid};`.getRow(),
   )
 
   const deck = stmts.decks.interpret(
-    db.row("SELECT * FROM decks WHERE id = ?", [card.did]),
+    sql`SELECT * FROM decks WHERE id = ${card.did};`.getRow(),
   )
 
   const tmpl = notNull(
@@ -144,7 +145,7 @@ function study_select_txless(root: Id | null, all: Id[], preferredCid?: Id) {
 }
 
 export function study_select(root: Id | null, all: Id[], preferredCid?: Id) {
-  const tx = db.read()
+  const tx = readonly()
 
   try {
     return study_select_txless(root, all, preferredCid)
@@ -154,61 +155,45 @@ export function study_select(root: Id | null, all: Id[], preferredCid?: Id) {
 }
 
 function createStmt(includeBuried: boolean, where: string) {
-  return `SELECT id FROM cards WHERE did = ? AND (CASE queue WHEN 0 THEN 1 WHEN 1 THEN ${+includeBuried} WHEN 2 THEN 0 END) AND ${where}`
+  return sql.of(
+    `SELECT id FROM cards WHERE did = ? AND (CASE queue WHEN 0 THEN 1 WHEN 1 THEN ${+includeBuried} WHEN 2 THEN 0 END) AND ${where}`,
+  )
 }
 
 function pickNew(includeBuried: boolean, randomWithinDeck: boolean, all: Id[]) {
-  const stmt = db.prepare(
-    createStmt(
-      includeBuried,
-      `state = 0 ORDER BY ${randomWithinDeck ? "RANDOM()" : "due"} LIMIT 1`,
-    ),
+  const stmt = createStmt(
+    includeBuried,
+    `state = 0 ORDER BY ${randomWithinDeck ? "RANDOM()" : "due"} LIMIT 1`,
   )
 
-  try {
-    for (const did of all) {
-      stmt.clearBindings().bind([did])
-      if (stmt.step()) {
-        return stmt.get(0) as Id
-      }
-      stmt.reset()
+  for (const did of all) {
+    stmt.bindNew([did])
+    const cid = stmt.getValueSafe(id)
+    if (cid != null) {
+      return cid
     }
-
-    return
-  } finally {
-    stmt.finalize()
   }
+
+  return
 }
 
 function pickLearningToday(includeBuried: boolean, now: number, all: Id[]) {
   // TODO: this is biased on deck size
 
-  const stmt = db.prepare(
-    createStmt(
-      includeBuried,
-      `(state = 1 OR state = 3) AND due <= ${now} AND scheduled_days = 0 ORDER BY RANDOM() LIMIT 1`,
-    ),
+  const stmt = createStmt(
+    includeBuried,
+    `(state = 1 OR state = 3) AND due <= ${now} AND scheduled_days = 0 ORDER BY RANDOM() LIMIT 1`,
   )
 
-  try {
-    const cids: Id[] = all
-      .map((did) => {
-        try {
-          if (stmt.bind([did]).step()) {
-            return stmt.get(0) as Id
-          } else {
-            return
-          }
-        } finally {
-          stmt.reset(true)
-        }
-      })
-      .filter((x) => x != null)
-
-    return cids[0]
-  } finally {
-    stmt.finalize()
+  for (const did of all) {
+    stmt.bindNew([did])
+    const cid = stmt.getValueSafe(id)
+    if (cid != null) {
+      return cid
+    }
   }
+
+  return
 }
 
 function pickReviewToday(
@@ -218,30 +203,18 @@ function pickReviewToday(
 ) {
   // TODO: this is biased on deck size
 
-  const stmt = db.prepare(
-    createStmt(
-      includeBuried,
-      `(state = 2 OR scheduled_days > 0) AND due <= ${endOfToday} ORDER BY RANDOM() LIMIT 1`,
-    ),
+  const stmt = createStmt(
+    includeBuried,
+    `(state = 2 OR scheduled_days > 0) AND due <= ${endOfToday} ORDER BY RANDOM() LIMIT 1`,
   )
 
-  try {
-    const cids: Id[] = all
-      .map((did) => {
-        try {
-          if (stmt.bind([did]).step()) {
-            return stmt.get(0) as Id
-          } else {
-            return
-          }
-        } finally {
-          stmt.reset(true)
-        }
-      })
-      .filter((x) => x != null)
-
-    return cids[0]
-  } finally {
-    stmt.finalize()
+  for (const did of all) {
+    stmt.bindNew([did])
+    const cid = stmt.getValueSafe(id)
+    if (cid != null) {
+      return cid
+    }
   }
+
+  return
 }

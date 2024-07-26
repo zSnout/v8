@@ -1,11 +1,11 @@
-import { db } from ".."
+import { readonly, sql } from ".."
 import { stmts } from "../stmts"
 
 export function charts_get() {
-  const tx = db.read()
+  const tx = readonly()
   try {
-    return db
-      .selectArrays("SELECT * FROM charts ORDER BY id")
+    return sql`SELECT * FROM charts ORDER BY id;`
+      .getAll()
       .map(stmts.charts.interpret)
   } finally {
     tx.dispose()

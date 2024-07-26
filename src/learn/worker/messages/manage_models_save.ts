@@ -1,7 +1,7 @@
 import type { Id } from "@/learn/lib/id"
 import { cloneModel } from "@/learn/lib/models"
 import type { AddedModel, RemovedModel } from "@/learn/lib/types"
-import { db } from ".."
+import { readwrite, sql } from ".."
 import { stmts } from "../stmts"
 
 export function manage_models_save(
@@ -9,35 +9,33 @@ export function manage_models_save(
   removed: RemovedModel[],
   idToNameMap: Record<Id, string>,
 ) {
-  const tx = db.readwrite("Manage models")
+  const tx = readwrite("Manage models")
   try {
     if (added.length) {
-      const stmt = db.prepare(stmts.models.insert)
-      try {
-        for (const a of added) {
-          const model = cloneModel(a.id, a.name, a.cloned)
-          stmt.clearBindings().bind(stmts.models.insertArgs(model)).stepReset()
-        }
-      } finally {
-        stmt.finalize()
+      const stmt = stmts.models.insert()
+      for (const a of added) {
+        const model = cloneModel(a.id, a.name, a.cloned)
+        stmt.bindNew(stmts.models.insertArgs(model)).run()
       }
     }
 
     if (removed.length) {
-      db.run(
-        "UPDATE core SET last_edited = ?, last_schema_edit = ? WHERE id = 0",
-        [Date.now(), Date.now()],
-      )
+      sql`
+        UPDATE core
+        SET
+          last_edited = ${Date.now()},
+          last_schema_edit = ?0
+        WHERE id = 0;
+      `.run()
 
       for (const [mid] of removed) {
-        db.run("DELETE FROM notes WHERE mid = ?", [mid])
-        db.run("DELETE FROM models WHERE id = ?", [mid])
+        sql`DELETE FROM models WHERE id = ${mid};`.run()
       }
     }
 
     if (Object.keys(idToNameMap).length) {
       for (const [id, name] of Object.entries(idToNameMap)) {
-        db.run("UPDATE models SET name = ? WHERE id = ?", [name, id])
+        sql`UPDATE models SET name = ${name} WHERE id = ${id};`.run()
       }
     }
 

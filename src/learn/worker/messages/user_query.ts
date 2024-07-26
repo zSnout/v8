@@ -1,5 +1,5 @@
 import type { BindingSpec, SqlValue } from "@sqlite.org/sqlite-wasm"
-import { db, state } from ".."
+import { readonly, sql, state } from ".."
 
 function split(text: string) {
   let current = ""
@@ -52,9 +52,11 @@ export function user_query(
       )
     }
 
-    const tx = db.read()
+    const tx = readonly()
     try {
-      return split(query).map((query) => db.runWithColumns(query, bindings))
+      return split(query).map((q) =>
+        sql.of(q).bindNew(bindings).getAllWithColumns(),
+      )
     } finally {
       tx.dispose()
     }
@@ -65,7 +67,9 @@ export function user_query(
 
   try {
     // TODO: manual undo logic since we don't have transactions
-    return split(query).map((query) => db.runWithColumns(query, bindings))
+    return split(query).map((query) =>
+      sql.of(query).bindNew(bindings).getAllWithColumns(),
+    )
   } finally {
     state.mark(`${query} (user query)`, {})
   }
