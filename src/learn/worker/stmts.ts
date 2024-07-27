@@ -57,6 +57,12 @@ export const stmts = {
     insertArgs(grave: Grave): SqlValue[] {
       return [grave.oid satisfies INTEGER, grave.type satisfies INTEGER]
     },
+    interpret(data: SqlValue[]): Grave {
+      return {
+        oid: data[0],
+        type: data[1],
+      } as Grave
+    },
   },
   confs: {
     insert() {
@@ -341,6 +347,23 @@ export const stmts = {
         review.scheduled_days satisfies INTEGER,
         review.review satisfies INTEGER,
       ]
+    },
+    interpret(data: SqlValue[]): Review {
+      return {
+        id: data[0],
+        cid: data[1],
+        time: data[2],
+        type: data[3],
+        rating: data[4],
+        state: data[5],
+        due: data[6],
+        stability: data[7],
+        difficulty: data[8],
+        elapsed_days: data[9],
+        last_elapsed_days: data[10],
+        scheduled_days: data[11],
+        review: data[12],
+      } as Review
     },
   },
   prefs: {

@@ -1,10 +1,7 @@
 import { Id, randomId } from "@/learn/lib/id"
 import { readwrite, sql } from ".."
 
-export function home_set_deck_expanded(
-  idOrName: Id | string,
-  expanded: boolean,
-) {
+export function deck_set_expanded(idOrName: Id | string, expanded: boolean) {
   const tx = readwrite("Toggle whether deck is collapsed")
 
   try {

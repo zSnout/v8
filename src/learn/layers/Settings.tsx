@@ -9,8 +9,10 @@ import type { Worker } from "../db"
 import { createPrefsStore } from "../db/prefs"
 import { Action } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
+import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
 import { UploadButton } from "../el/upload"
+import { download } from "../lib/download"
 
 export default defineLayer({
   init(_: Worker) {},
@@ -32,6 +34,7 @@ export default defineLayer({
             label="Back"
             onClick={pop}
           />
+
           <UploadButton
             accept=".json,.sqlite3,.sqlite,application/json,application/x-sqlite3,application/vnd.sqlite3"
             onUpload={async ([file]) => {
@@ -91,16 +94,28 @@ export default defineLayer({
             icon={faDownload}
             label="Export"
             onClick={async () => {
-              const file = await worker.post("export_sqlite")
-              const url = URL.createObjectURL(file)
-              const a = document.createElement("a")
-              a.style.display = "none"
-              document.body.append(a)
-              a.href = url
-              a.download = file.name
-              a.click()
-              a.remove()
+              download(await worker.post("export_json"))
             }}
+            onCtx={({ detail }) =>
+              detail(() => (
+                <>
+                  <ContextMenuItem
+                    onClick={async () => {
+                      download(await worker.post("export_sqlite"))
+                    }}
+                  >
+                    Export as SQLite database
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={async () => {
+                      download(await worker.post("export_json"))
+                    }}
+                  >
+                    Export as standard JSON
+                  </ContextMenuItem>
+                </>
+              ))
+            }
           />
         </div>
 

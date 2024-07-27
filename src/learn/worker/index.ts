@@ -105,7 +105,6 @@ async function init() {
     db.exec(query_init)
     checkVersion(db)
     const state = new StateManager(db)
-
     state.activate([
       "core",
       "graves",
@@ -118,7 +117,6 @@ async function init() {
       "prefs",
       "charts",
     ])
-
     return [db, state] as const
   } catch (reason) {
     try {
@@ -138,9 +136,9 @@ async function init() {
 // this handles the meta of upgrading, while `upgrade` is the main script
 function checkVersion(db: WorkerDB) {
   const sql = createSqlFunction(db)
+  db.exec(query_schema)
   sql`BEGIN TRANSACTION;`.run()
   try {
-    sql.of(query_schema).run()
     const current =
       sql`SELECT version FROM core WHERE id = 0;`.getValueSafe(int) ?? 0
     upgrade(db, current)
@@ -148,45 +146,13 @@ function checkVersion(db: WorkerDB) {
       sql`UPDATE core SET version = ${latest} WHERE id = 0;`.run()
     }
     sql`COMMIT;`.run()
-  } catch {
+  } catch (err) {
     sql`ROLLBACK;`.run()
+    throw err
   }
 }
 
-export class Tx {
-  private done = false
-
-  constructor() {
-    db.exec("BEGIN TRANSACTION")
-  }
-
-  commit() {
-    if (this.done) {
-      throw new Error("Cannot commit a transaction after it is finished.")
-    }
-
-    db.exec("COMMIT")
-    this.done = true
-  }
-
-  rollback() {
-    if (this.done) {
-      throw new Error("Cannot rollback a transaction after it is finished.")
-    }
-
-    db.exec("ROLLBACK")
-    this.done = true
-  }
-
-  dispose() {
-    if (!this.done) {
-      console.warn("Automatically rolling back transaction.")
-      this.rollback()
-    }
-  }
-}
-
-class TxReadonly {
+export class TxReadonly {
   private done = false
 
   constructor() {
@@ -208,7 +174,7 @@ class TxReadonly {
   }
 }
 
-class TxReadwrite {
+export class TxReadwrite {
   private done = false
   readonly meta: UndoMeta = {}
 

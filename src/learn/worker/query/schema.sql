@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS confs (
   id INTEGER PRIMARY KEY NOT NULL,
   autoplay_audio BOOLEAN NOT NULL DEFAULT 1,
   last_edited INTEGER NOT NULL DEFAULT (1000 * strftime('%s', 'now')),
-  name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE COLLATE NOCASE,
   new_bury_related BOOLEAN NOT NULL DEFAULT 0,
   new_pick_at_random BOOLEAN NOT NULL DEFAULT 0,
   new_per_day INTEGER NOT NULL DEFAULT 20,
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS confs (
 
 CREATE TABLE IF NOT EXISTS decks (
   id INTEGER PRIMARY KEY NOT NULL,
-  name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE COLLATE NOCASE,
   collapsed BOOLEAN NOT NULL DEFAULT 0,
   is_filtered BOOLEAN NOT NULL,
   custom_revcard_limit INTEGER, -- can be null
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS models (
   css TEXT NOT NULL DEFAULT '',
   fields TEXT NOT NULL DEFAULT '{}', -- json
   latex TEXT, -- json; can be null
-  name TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE COLLATE NOCASE,
   sort_field INTEGER, -- can be null
   tmpls TEXT NOT NULL DEFAULT '{}', -- json
   tags TEXT NOT NULL DEFAULT '', -- space-separated tags
@@ -193,27 +193,23 @@ BEGIN
     CASE
       WHEN (
         SELECT
-          tmpls -> CAST(tid AS TEXT)
-        FROM
-          cards
-          JOIN notes ON notes.id = cards.nid
-          JOIN models ON models.id = notes.mid
+          tmpls -> CAST(new.tid AS TEXT)
+        FROM models
+        WHERE models.id = (SELECT mid FROM notes WHERE notes.id = new.nid)
       ) IS NULL THEN RAISE(ABORT, 'Card does not link to a valid template ID.')
     END;
 END;
 
 CREATE TRIGGER IF NOT EXISTS check_card_tmpl_on_update
-BEFORE INSERT ON cards
+BEFORE UPDATE ON cards
 BEGIN
   SELECT
     CASE
       WHEN (
         SELECT
-          tmpls -> CAST(tid AS TEXT)
-        FROM
-          cards
-          JOIN notes ON notes.id = cards.nid
-          JOIN models ON models.id = notes.mid
+          tmpls -> CAST(new.tid AS TEXT)
+        FROM models
+        WHERE models.id = (SELECT mid FROM notes WHERE notes.id = new.nid)
       ) IS NULL THEN RAISE(ABORT, 'Card does not link to a valid template ID.')
     END;
 END;
@@ -230,4 +226,58 @@ BEGIN
       WHERE notes.id = cards.nid
     ) = new.id
     AND new.tmpls -> CAST(cards.tid AS TEXT) IS NULL;
+END;
+
+CREATE TRIGGER IF NOT EXISTS graves_from_cards
+AFTER DELETE ON cards
+BEGIN
+  INSERT OR IGNORE INTO graves
+    (oid, type)
+  VALUES
+    (old.id, 0);
+END;
+
+CREATE TRIGGER IF NOT EXISTS graves_from_notes
+AFTER DELETE ON notes
+BEGIN
+  INSERT OR IGNORE INTO graves
+    (oid, type)
+  VALUES
+    (old.id, 1);
+END;
+
+CREATE TRIGGER IF NOT EXISTS graves_from_decks
+AFTER DELETE ON decks
+BEGIN
+  INSERT OR IGNORE INTO graves
+    (oid, type)
+  VALUES
+    (old.id, 2);
+END;
+
+CREATE TRIGGER IF NOT EXISTS graves_from_models
+AFTER DELETE ON models
+BEGIN
+  INSERT OR IGNORE INTO graves
+    (oid, type)
+  VALUES
+    (old.id, 3);
+END;
+
+CREATE TRIGGER IF NOT EXISTS graves_from_prefs
+AFTER DELETE ON prefs
+BEGIN
+  INSERT OR IGNORE INTO graves
+    (oid, type)
+  VALUES
+    (old.id, 4);
+END;
+
+CREATE TRIGGER IF NOT EXISTS graves_from_charts
+AFTER DELETE ON charts
+BEGIN
+  INSERT OR IGNORE INTO graves
+    (oid, type)
+  VALUES
+    (old.id, 4);
 END;

@@ -14,7 +14,7 @@ import {
 import { createSignal, onMount } from "solid-js"
 import { Worker } from "./db"
 import { Action, BottomButtons } from "./el/BottomButtons"
-import { ContextMenuTrigger } from "./el/ContextMenu"
+import { ContextMenuItem, ContextMenuTrigger } from "./el/ContextMenu"
 import { defineRootLayer } from "./el/DefineLayer"
 import { useLayers } from "./el/Layers"
 import {
@@ -26,6 +26,7 @@ import {
 } from "./layers"
 import type { Id } from "./lib/id"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "./lib/types"
+import { isDark, toggleIsDark } from "@/stores/theme"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -61,7 +62,11 @@ export const ROOT_LAYER_HOME = defineRootLayer({
 
     return (
       <div class="flex min-h-full flex-1 flex-col gap-4">
-        <ContextMenuTrigger />
+        <ContextMenuTrigger>
+          <ContextMenuItem onClick={() => toggleIsDark()}>
+            Switch to {isDark() ? "light" : "dark"} mode
+          </ContextMenuItem>
+        </ContextMenuTrigger>
         <SublinkHandler />
         <TopActions />
         <DeckList />
@@ -91,7 +96,6 @@ export const ROOT_LAYER_HOME = defineRootLayer({
             label="Stats"
             onClick={() => push(LAYER_STATS, worker)}
           />
-          {/* TODO: implement actual statistics page */}
           <Action
             center
             icon={faSliders}
@@ -133,7 +137,7 @@ export const ROOT_LAYER_HOME = defineRootLayer({
             isExpanded={({ data }) => !data?.deck?.collapsed}
             setExpanded={async ({ data, parent, key }, expanded) => {
               await worker.post(
-                "home_set_deck_expanded",
+                "deck_set_expanded",
                 data?.deck?.id ?? parent.map((x) => x + "::").join("") + key,
                 expanded,
               )
@@ -173,7 +177,10 @@ export const ROOT_LAYER_HOME = defineRootLayer({
                 return
               }
 
-              await worker.post("create_deck", name)
+              if (!(await worker.post("deck_create", name))) {
+                throw new Error("That deck name is already in use.")
+              }
+
               reloadDecks()
             }}
           />
@@ -192,6 +199,7 @@ export const ROOT_LAYER_HOME = defineRootLayer({
       data,
       subtree,
       key,
+      parent,
     }: NodeProps<DeckHomeInfo | undefined, DeckHomeInfo>) {
       let buckets: Buckets = [0, 0, 0]
       if (data) {
@@ -200,6 +208,8 @@ export const ROOT_LAYER_HOME = defineRootLayer({
         buckets[1] += data.sub[1]
         buckets[2] += data.sub[2]
       }
+
+      const name = parent.map((x) => x + "::") + key
 
       return (
         <button
@@ -230,6 +240,23 @@ export const ROOT_LAYER_HOME = defineRootLayer({
               }
             }
           }}
+          onCtx={({ detail }) =>
+            detail(() => (
+              <>
+                <ContextMenuItem
+                  onClick={() => renameDeck(name, data?.deck?.id)}
+                >
+                  Rename deck
+                </ContextMenuItem>
+
+                <ContextMenuItem
+                  onClick={() => deleteDeck(name, data?.deck?.id)}
+                >
+                  Delete deck
+                </ContextMenuItem>
+              </>
+            ))
+          }
         >
           <p class="text-z">{key}</p>
           <p
@@ -270,6 +297,98 @@ export const ROOT_LAYER_HOME = defineRootLayer({
           </p>
         </button>
       )
+    }
+
+    async function createDeck() {
+      let nextName = (
+        await prompt({
+          owner,
+          title: "Create deck",
+          get description() {
+            return (
+              <ModalDescription>
+                What would you like your deck to be called?
+              </ModalDescription>
+            )
+          },
+        })
+      )?.trim()
+
+      while (true) {
+        if (!nextName) {
+          return
+        }
+
+        if (await worker.post("deck_create", nextName)) {
+          break
+        }
+
+        nextName = (
+          await prompt({
+            owner,
+            title: "Create deck",
+            get description() {
+              return (
+                <ModalDescription>
+                  That name is already in use by an existing deck. Pick a
+                  different name, or cancel the action.
+                </ModalDescription>
+              )
+            },
+            value: nextName,
+          })
+        )?.trim()
+      }
+
+      reloadDecks()
+    }
+
+    async function renameDeck(currentName: string, id?: Id) {
+      let nextName = (
+        await prompt({
+          owner,
+          title: "Rename deck",
+          get description() {
+            return (
+              <ModalDescription>
+                Type a new name for{" "}
+                <strong class="text-z">{currentName}</strong>.
+              </ModalDescription>
+            )
+          },
+          value: currentName,
+        })
+      )?.trim()
+
+      while (true) {
+        if (!nextName) {
+          return
+        }
+
+        if (await worker.post("deck_rename", id ?? currentName, nextName)) {
+          break
+        }
+
+        nextName = (
+          await prompt({
+            owner,
+            title: "Rename deck",
+            get description() {
+              return (
+                <ModalDescription>
+                  That name is already in use by an existing deck. Type a
+                  different name for{" "}
+                  <strong class="text-z">{currentName}</strong>, or cancel the
+                  action.
+                </ModalDescription>
+              )
+            },
+            value: currentName,
+          })
+        )?.trim()
+      }
+
+      reloadDecks()
     }
   },
 })

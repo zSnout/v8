@@ -1,4 +1,5 @@
 import { Fa } from "@/components/Fa"
+import type { CtxEvent } from "@/env2"
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons"
 import { JSX } from "solid-js"
 
@@ -31,6 +32,7 @@ export function Action(props: {
   icon: IconDefinition
   label: string
   onClick?: () => void
+  onCtx?: JSX.EventHandlerUnion<HTMLButtonElement, CtxEvent>
   shrinks?: boolean
   center?: boolean
   disabled?: boolean
@@ -43,6 +45,7 @@ export function Action(props: {
       }
       classList={{ "justify-center": props.center }}
       onClick={() => !props.disabled && props.onClick?.()}
+      onCtx={props.onCtx}
       disabled={props.disabled}
     >
       <div class="flex h-6 items-center justify-center">

@@ -96,7 +96,7 @@ export function ContextMenuLine() {
   return <hr class="mx-1 my-1 border-0 border-t border-z" />
 }
 
-export function ContextMenuTrigger() {
+export function ContextMenuTrigger(props: { children?: JSX.Element }) {
   const [x, setX] = createSignal(50)
   const [y, setY] = createSignal(50)
   const [active, setActive] = createSignal(false)
@@ -164,6 +164,12 @@ export function ContextMenuTrigger() {
             </>
           )}
         </For>
+        <Show when={props.children}>
+          <Show when={content().length}>
+            <ContextMenuLine />
+          </Show>
+          {props.children}
+        </Show>
       </ContextMenu>
     </Portal>
   )

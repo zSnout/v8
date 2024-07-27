@@ -22,7 +22,7 @@ export function deck_limits_txless(root: Id | null, dayStart: number): Limits {
           custom_newcard_limit,
           default_revcard_limit,
           default_newcard_limit,
-          today, 23 4 5 
+          today
         FROM decks
         WHERE id = ${root};
       `.getRow([id, qint, qint, qint, qint, int])

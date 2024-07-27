@@ -30,6 +30,9 @@ export class Stmt {
 
   /** Clears the old bindings and sets them to `bindings`. */
   bindNew(bindings: BindingSpec | undefined) {
+    if (this.stmt.parameterCount == 0) {
+      return this
+    }
     this.stmt.clearBindings()
     if (bindings) {
       this.stmt.bind(bindings)
@@ -46,6 +49,30 @@ export class Stmt {
     try {
       this.stmt.finalize()
     } catch {}
+  }
+
+  /** Runs the query and counts how many rows were returned. */
+  count(): number {
+    try {
+      this.used = true
+      let count = 0
+      while (this.stmt.step()) {
+        count++
+      }
+      return count
+    } finally {
+      this.stmt.reset()
+    }
+  }
+
+  /** Runs the query. If a row is returned, returns `true`. */
+  exists(): boolean {
+    try {
+      this.used = true
+      return this.stmt.step()
+    } finally {
+      this.stmt.reset()
+    }
   }
 
   /** Gets all rows returned by the query, with an optional check. */
@@ -110,7 +137,7 @@ export class Stmt {
         }
       }
       return {
-        columns: this.stmt.columnCount ? [] : this.stmt.getColumnNames(),
+        columns: this.stmt.columnCount ? this.stmt.getColumnNames() : [],
         values,
       }
     } finally {
@@ -249,10 +276,23 @@ export class Stmt {
   }
 }
 
+const isMulti = new WeakMap<TemplateStringsArray, boolean>()
+
 export function createSqlFunction(db: {
   prepare(query: string): PreparedStatement
 }) {
   function sql(strings: TemplateStringsArray, ...bindings: SqlValue[]) {
+    {
+      let val = isMulti.get(strings)
+      if (val == null) {
+        val = !!strings.join("").match(/;.+;/)
+        isMulti.set(strings, val)
+      }
+      if (val) {
+        throw new Error("Cannot prepare a query with multiple statements.")
+      }
+    }
+
     const stmt = new Stmt(db.prepare(strings.join("?")))
     if (bindings.length) {
       stmt.bindNew(bindings)
