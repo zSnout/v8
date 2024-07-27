@@ -148,7 +148,7 @@ function checkVersion(db: WorkerDB) {
       sql`UPDATE core SET version = ${latest} WHERE id = 0;`.run()
     }
     sql`COMMIT;`.run()
-  } finally {
+  } catch {
     sql`ROLLBACK;`.run()
   }
 }

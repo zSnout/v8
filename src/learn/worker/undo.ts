@@ -11,7 +11,8 @@ import {
   type UndoType,
   type WorkerNotification,
 } from "../shared"
-import { text } from "./checks"
+import { int, text } from "./checks"
+import { createSqlFunction } from "./sql"
 
 export interface UndoMeta {
   currentCard?: Id
@@ -30,8 +31,15 @@ export class StateManager {
   private active = false
   private freeze = -1
   private firstlog = 1
+  private sql
 
-  constructor(private readonly db: WorkerDB) {}
+  constructor(private readonly db: WorkerDB) {
+    this.sql = createSqlFunction(db)
+  }
+
+  maxSeq() {
+    return this.sql`SELECT coalesce(max(seq), 0) FROM undolog;`.getValue(int)
+  }
 
   activate(args: string[]) {
     if (this.active) {
@@ -61,11 +69,7 @@ export class StateManager {
       throw new Error("Recursive call to `freeze`.")
     }
 
-    this.freeze = this.db.selectValue(
-      "SELECT coalesce(max(seq),0) FROM undolog",
-      undefined,
-      1,
-    )!
+    this.freeze = this.maxSeq()
   }
 
   makeUnfrozen() {
@@ -73,7 +77,7 @@ export class StateManager {
       throw new Error("Called `unfreeze` while not frozen.")
     }
 
-    this.db.exec("DELETE FROM undolog WHERE seq > ?", { bind: [this.freeze] })
+    this.sql`DELETE FROM undolog WHERE seq > ${this.freeze};`.run()
     this.freeze = -1
   }
 
@@ -83,11 +87,7 @@ export class StateManager {
       return
     }
 
-    let end = this.db.selectValue(
-      "SELECT coalesce(max(seq),0) FROM undolog",
-      undefined,
-      1,
-    )!
+    let end = this.maxSeq()
     if (this.freeze >= 0 && end > this.freeze) {
       end = this.freeze
     }
@@ -145,7 +145,7 @@ export class StateManager {
     let sql = "CREATE TEMP TABLE undolog (seq integer primary key, sql text);\n"
     for (const tbl of args) {
       const colList = this.db
-        .run(`pragma table_info(${tbl})`)
+        .exec(`pragma table_info(${tbl})`, { returnValue: "resultRows" })
         .map((x) => x[1] as string)
 
       sql += `CREATE TEMP TRIGGER _${tbl}_it AFTER INSERT ON ${tbl} BEGIN
@@ -178,10 +178,9 @@ END;`
   }
 
   private dropTriggers() {
-    const tlist = this.db.checked(
-      "SELECT name FROM sqlite_temp_schema WHERE type='trigger'",
-      [text],
-    )
+    const tlist = this.sql`
+      SELECT name FROM sqlite_temp_schema WHERE type = 'trigger';
+    `.getAll([text])
 
     for (const [trigger] of tlist) {
       if (!/^_.*_[iud]t$/.test(trigger)) {
@@ -195,11 +194,7 @@ END;`
   }
 
   private startInterval() {
-    this.firstlog = this.db.selectValue(
-      "SELECT coalesce(max(seq),0)+1 FROM undolog",
-      undefined,
-      1,
-    )!
+    this.firstlog = this.maxSeq() + 1
   }
 
   private step(
@@ -216,14 +211,20 @@ END;`
     let [begin, end, reason, meta] = first
     this.db.exec("BEGIN")
     try {
-      const q1 = `SELECT sql FROM undolog WHERE seq>=${begin} AND seq<=${end} ORDER BY seq DESC`
-      const sqllist = this.db.run(q1).map((x) => x[0] as string)
-      this.db.exec(`DELETE FROM undolog WHERE seq>=${begin} AND seq<=${end}`)
-      this.firstlog = this.db.selectValue(
-        "SELECT coalesce(max(seq),0)+1 FROM undolog",
-        undefined,
-        1,
-      )!
+      const sqllist = this.sql`
+        SELECT sql
+        FROM undolog
+        WHERE seq >= ${begin} AND seq <= ${end}
+        ORDER BY seq DESC;
+      `
+        .getAll([text])
+        .map((x) => x[0])
+
+      this.sql`
+        DELETE FROM undolog WHERE seq >= ${begin} AND seq <= ${end};
+      `.run()
+
+      this.firstlog = this.maxSeq() + 1
       for (const sql of sqllist) {
         this.db.exec(sql)
       }
@@ -235,11 +236,7 @@ END;`
 
     this.msgUndoHappened(type, reason, meta)
 
-    end = this.db.selectValue(
-      "SELECT coalesce(max(seq),0)+1 FROM undolog",
-      undefined,
-      1,
-    )!
+    end = this.maxSeq() + 1
     begin = this.firstlog
     v2.push([begin, end, reason, metaForThisState])
     this.startInterval()

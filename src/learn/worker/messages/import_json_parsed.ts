@@ -1,6 +1,6 @@
 import type { Collection } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
-import { db } from ".."
+import { db, readwrite } from ".."
 import query_reset from "../query/reset.sql?raw"
 import query_schema from "../query/schema.sql?raw"
 import type { Stmt } from "../sql"
@@ -17,7 +17,7 @@ function inner<T>(
 }
 
 export function import_json_parsed(data: Collection) {
-  const tx = db.readwrite("Import collection JSON")
+  const tx = readwrite("Import collection JSON")
   try {
     db.exec(query_reset)
     db.exec(query_schema)

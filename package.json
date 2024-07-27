@@ -98,6 +98,10 @@
       ":name",
       "@name",
       "$name"
+    ],
+    "embeddedSqlTags": [
+      "sql",
+      "this.sql"
     ]
   },
   "overrides": {
