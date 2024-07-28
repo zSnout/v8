@@ -71,16 +71,20 @@ export default defineLayer({
 
     function Grid() {
       return (
-        <div class="flex flex-col items-start overflow-auto rounded-lg border border-z pb-8 text-sm">
+        <div class="flex flex-1 flex-col items-start overflow-auto rounded-lg border border-z pb-8 text-sm">
           <table class="min-w-full">
             <thead>
               <tr>
-                <th class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
+                <th class="sticky top-0 max-w-20 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
                   Key
                 </th>
 
                 <th class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
                   Name
+                </th>
+
+                <th class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
+                  Type
                 </th>
 
                 <th class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
@@ -104,7 +108,7 @@ export default defineLayer({
 
       return (
         <tr class="select-none border-z last:border-b odd:bg-[--z-table-row-alt]">
-          <td class="max-w-16 truncate whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
+          <td class="max-w-20 truncate whitespace-nowrap border-x border-z px-1 font-mono first:border-l-0 last:border-r-0">
             {writeKey(props.key)}
           </td>
           <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
@@ -118,6 +122,9 @@ export default defineLayer({
               </a>
               <div>{file()?.name ?? "..."}</div>
             </div>
+          </td>
+          <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
+            {file()?.type}
           </td>
           <td class="whitespace-nowrap border-x border-z px-1 text-right first:border-l-0 last:border-r-0">
             {(() => {
