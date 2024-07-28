@@ -1,5 +1,5 @@
 import type { Awaitable } from "../el/Layers"
-import { MEDIA_PREFIX, UserMedia } from "./media"
+import { MEDIA_PREFIX, parseKey, UserMedia } from "./media"
 
 let media: UserMedia | undefined
 
@@ -11,9 +11,9 @@ self.addEventListener(
   }) => {
     const path = new URL(event.request.url).pathname
     if (path.startsWith(MEDIA_PREFIX)) {
-      event.respondWith(
-        (media ??= new UserMedia()).response(path.slice(MEDIA_PREFIX.length)),
-      )
+      const key = parseKey(path.slice(MEDIA_PREFIX.length))
+      if (!key) return
+      event.respondWith((media ??= new UserMedia()).response(key))
     }
   },
 )

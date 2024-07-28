@@ -1,24 +1,23 @@
+import { Fa } from "@/components/Fa"
 import {
+  faArrowUpRightFromSquare,
   faDownload,
   faMagnifyingGlass,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { createResource, createSignal, For } from "solid-js"
+import { createResource, For } from "solid-js"
 import type { Worker } from "../db"
 import { Action } from "../el/BottomButtons"
 import { defineLayer } from "../el/DefineLayer"
 import { UploadButton } from "../el/upload"
-import { FolderName, UserMedia } from "../lib/media"
+import { UserMedia, writeKey } from "../lib/media"
 
 const media = new UserMedia()
 
 export default defineLayer({
   init(_: Worker) {
-    const [folder, setFolder] = createSignal<FolderName>("/")
-    const [entries, { refetch }] = createResource(folder, (folder) =>
-      media.keys(folder),
-    )
-    return { folder, setFolder, entries, refetch }
+    const [entries, { refetch }] = createResource(() => media.keys())
+    return { entries, refetch }
   },
   load() {},
   render({ state: { entries, refetch } }) {
@@ -44,7 +43,7 @@ export default defineLayer({
               <Action
                 class="col-span-2 sm:col-auto"
                 icon={faUpload}
-                label="Upload Media"
+                label="Upload"
                 center
                 onClick={trigger}
               />
@@ -90,26 +89,35 @@ export default defineLayer({
               </tr>
             </thead>
             <tbody>
-              <For each={entries()}>{(x) => <Entry name={x} />}</For>
+              <For each={entries()}>{(x) => <Entry key={x} />}</For>
             </tbody>
           </table>
         </div>
       )
     }
 
-    function Entry(props: { name: string }) {
+    function Entry(props: { key: ArrayBuffer }) {
       const [file] = createResource(
-        () => props.name,
+        () => props.key,
         (name) => media.get(name),
       )
 
       return (
         <tr class="select-none border-z last:border-b odd:bg-[--z-table-row-alt]">
-          <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
-            {props.name.slice(0, 8) + "..."}
+          <td class="max-w-16 truncate whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
+            {writeKey(props.key)}
           </td>
           <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
-            {file()?.name ?? "..."}
+            <div class="inline-flex items-center gap-1">
+              <a href={"/learn/media/" + writeKey(props.key)} target="_new">
+                <Fa
+                  class="h-3 w-3 icon-z-text-link"
+                  icon={faArrowUpRightFromSquare}
+                  title="open file"
+                />
+              </a>
+              <div>{file()?.name ?? "..."}</div>
+            </div>
           </td>
           <td class="whitespace-nowrap border-x border-z px-1 text-right first:border-l-0 last:border-r-0">
             {(() => {

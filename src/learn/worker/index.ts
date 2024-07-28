@@ -36,12 +36,17 @@ export const DB_FILENAME = "/learn/User 1.sqlite3"
 
 async function init() {
   try {
+    // the database requires OPFS to be persistent
+    // without persistency, the site is quite useless
+    // so we'll just require persistency out of the gate
     if (!("opfs" in sqlite3)) {
       throw new Error("OPFS is not supported on this browser.")
     }
 
+    // create the database
     const db = new sqlite3.oo1.OpfsDb(DB_FILENAME)
 
+    // initialize helper functions (especially useful for charts)
     db.createFunction({
       name: "random_id",
       xFunc() {
@@ -102,8 +107,13 @@ async function init() {
       },
     })
 
+    // make sure database is up to date
     db.exec(query_init)
     checkVersion(db)
+
+    // TODO: virtual table for user media
+
+    // activate undo/redo
     const state = new StateManager(db)
     state.activate([
       "core",

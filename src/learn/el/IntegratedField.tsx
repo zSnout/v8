@@ -17,8 +17,12 @@ import {
   faBookmark as faSolidSticky,
 } from "@fortawesome/free-solid-svg-icons"
 import { createEffect, createSignal, For, JSX, Show, untrack } from "solid-js"
+import { createFile } from "../lib/file"
 import { randomId } from "../lib/id"
+import { UserMedia, writeKey } from "../lib/media"
 import { sanitize } from "../lib/sanitize"
+
+const media = new UserMedia()
 
 function IntegratedTagField(
   props: {
@@ -343,7 +347,7 @@ export function IntegratedField(props: IntegratedFieldProps) {
               })
             }}
             aria-labelledby={id}
-            class="-mt-1 min-h-[1em] w-full bg-transparent px-2 pb-1 focus:outline-none"
+            class="-mt-1 min-h-[1em] w-full bg-transparent px-2 pb-1 focus:outline-none [&_a]:text-z-link [&_a]:underline [&_a]:underline-offset-2"
             contentEditable
             tabIndex={0}
             style={{
@@ -352,6 +356,60 @@ export function IntegratedField(props: IntegratedFieldProps) {
             }}
             dir={props.rtl ? "rtl" : "ltr"}
             onInput={(el) => props.onInput?.(el.currentTarget.innerHTML)}
+            onDrop={async (event) => {
+              if (!event.dataTransfer) {
+                return
+              }
+              event.preventDefault()
+              const data = event.dataTransfer
+              const el = event.currentTarget
+
+              // make sure we insert content at the selection
+              console.log("getting selection")
+              const selection =
+                isFocused() ? getSelection() : (el.focus(), getSelection())
+              console.log("ending selection")
+              if (!selection) {
+                throw new Error("Unable to focus text field.")
+              }
+              selection.collapseToEnd()
+              const range = selection.getRangeAt(0)
+
+              // insert each item
+              for (const item of data.items) {
+                if (item.kind == "string") {
+                  const text = await new Promise<string>((resolve) =>
+                    item.getAsString(resolve),
+                  )
+                  range.insertNode(new Text(text))
+                  range.collapse(false)
+                } else {
+                  const file = item.getAsFile()
+                  if (!file) {
+                    throw new Error("Unable to read file.")
+                  }
+                  const { key } = media.upload(file)
+                  range.insertNode(
+                    createFile(
+                      file,
+                      `/learn/media/${writeKey(key)}/${file.name}`,
+                    ),
+                  )
+                  range.collapse(false)
+                }
+              }
+
+              props.onInput?.(el.innerHTML)
+
+              function isFocused() {
+                let active = document.activeElement
+                while (active) {
+                  if (active == el) return true
+                  active = active.parentElement
+                }
+                return false
+              }
+            }}
           />
 
           <Show when={props.showHtml}>{IntegratedCodeField(props)}</Show>

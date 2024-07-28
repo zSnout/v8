@@ -2,13 +2,36 @@ import { openDB, type DBSchema, type IDBPDatabase } from "idb"
 
 export const MEDIA_PREFIX = "/learn/media/"
 
-export type FolderName = "/" | `/${string}/`
-
 export interface UserMediaTypes extends DBSchema {
   media: {
-    key: string
+    key: ArrayBuffer
     value: File
   }
+}
+
+export function parseKey(key: string) {
+  const numeric = key.slice(0, 16)
+  if (!/^[0-9a-fA-F]{16}$/.test(numeric)) {
+    return null
+  }
+  const view = new DataView(new ArrayBuffer(8))
+  const value = BigInt("0x" + numeric)
+  view.setBigUint64(0, value)
+  return view.buffer
+}
+
+export function writeKey(key: ArrayBuffer) {
+  if (key.byteLength != 8) {
+    throw new TypeError("User media keys must be 64 bits long.")
+  }
+  const array = new DataView(key)
+  return array.getBigUint64(0).toString(16).padStart(16, "0")
+}
+
+export function createKey() {
+  const key = new ArrayBuffer(8)
+  crypto.getRandomValues(new Uint32Array(key))
+  return key
 }
 
 export class UserMedia {
@@ -27,31 +50,29 @@ export class UserMedia {
     this.ready = UserMedia.open().then((x) => (this.db = x))
   }
 
-  async get(key: string) {
+  async get(key: ArrayBuffer) {
     const db = this.db ?? (await this.ready)
     return await db.get("media", key)
   }
 
-  private async put(key: string, file: File) {
+  private async put(key: ArrayBuffer, file: File) {
     const db = this.db ?? (await this.ready)
     await db.put("media", file, key)
     return key
   }
 
-  private async add(key: string, file: File) {
+  private async add(key: ArrayBuffer, file: File) {
     const db = this.db ?? (await this.ready)
     await db.add("media", file, key)
     return key
   }
 
   upload(file: File) {
-    const key =
-      crypto.randomUUID().replaceAll("-", "") +
-      (file.name.match(/\..+$/)?.[0] ?? "")
+    const key = createKey()
     return { key, done: this.add(key, file) }
   }
 
-  async response(key: string) {
+  async response(key: ArrayBuffer) {
     const file = await this.get(key)
     if (file) {
       return new Response(file, {
@@ -70,20 +91,8 @@ export class UserMedia {
     }
   }
 
-  async keysWithin(folder: FolderName) {
+  async keys() {
     const db = this.db ?? (await this.ready)
-    if (folder == "/") {
-      return db.getAllKeys("media")
-    } else {
-      return db.getAllKeys(
-        "media",
-        IDBKeyRange.bound(folder, folder.slice(0, -1) + "0", true, true),
-      )
-    }
-  }
-
-  async keys(folder: FolderName) {
-    const keys = await this.keysWithin(folder)
-    return keys.filter((key) => !key.slice(folder.length).includes("/"))
+    return db.getAllKeys("media")
   }
 }
