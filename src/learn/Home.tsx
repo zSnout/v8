@@ -2,6 +2,7 @@ import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
 import { ModalDescription, prompt } from "@/components/Modal"
 import { NodeProps } from "@/components/tree"
+import { isDark, toggleIsDark } from "@/stores/theme"
 import {
   faChartBar,
   faPlus,
@@ -26,7 +27,6 @@ import {
 } from "./layers"
 import type { Id } from "./lib/id"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "./lib/types"
-import { isDark, toggleIsDark } from "@/stores/theme"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -250,7 +250,10 @@ export const ROOT_LAYER_HOME = defineRootLayer({
                 </ContextMenuItem>
 
                 <ContextMenuItem
-                  onClick={() => deleteDeck(name, data?.deck?.id)}
+                  onClick={async () => {
+                    await worker.post("deck_delete", data?.deck?.id, name)
+                    reloadDecks()
+                  }}
                 >
                   Delete deck
                 </ContextMenuItem>

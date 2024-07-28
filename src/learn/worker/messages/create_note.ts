@@ -88,8 +88,6 @@ export function create_note(
       WHERE id = ${model.id};
     `.getValue(text)
 
-    sql`INSERT INTO q VALUES (?, ?);`
-
     const prevFields = Object.keys(parse(ModelFields, JSON.parse(result)))
     const nextFields = Object.keys(model.fields)
     if (
