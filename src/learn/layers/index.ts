@@ -7,6 +7,7 @@ export const LAYER_EDIT_MODEL_TEMPLATES = lazy(
   () => import("./EditModelTemplates"),
 )
 export const LAYER_MANAGE_MODELS = lazy(() => import("./ManageModels"))
+export const LAYER_MEDIA = lazy(() => import("./Media"))
 export const LAYER_QUERY = lazy(() => import("./Query"))
 export const LAYER_SETTINGS = lazy(() => import("./Settings"))
 export const LAYER_STATS = lazy(() => import("./Stats"))

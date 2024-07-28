@@ -6,6 +6,7 @@ import rehypeKatex from "rehype-katex"
 import remarkMath from "remark-math"
 import nesting from "tailwindcss/nesting"
 import glsl from "vite-plugin-glsl"
+import { VitePWA } from "vite-plugin-pwa"
 import tsconfigPaths from "vite-tsconfig-paths"
 
 Promise.withResolvers ??= () => {
@@ -99,6 +100,21 @@ export default defineConfig({
     plugins: [
       glsl({
         compress: true,
+      }),
+      VitePWA({
+        srcDir: "src/learn/lib",
+        filename: "sw.ts",
+        strategies: "injectManifest",
+        injectRegister: false,
+        manifest: false,
+        injectManifest: {
+          injectionPoint: undefined,
+        },
+        scope: "/learn",
+        devOptions: {
+          enabled: true,
+          type: "module",
+        },
       }),
     ],
     optimizeDeps: {

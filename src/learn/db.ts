@@ -1,5 +1,5 @@
 import { createEventListener } from "@/components/create-event-listener"
-import ActualWorker from "../worker?worker&url"
+import ActualWorker from "./worker?worker&url"
 import { randomId } from "./lib/id"
 import type {
   Handlers,

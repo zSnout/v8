@@ -21,6 +21,9 @@ import { useLayers } from "./el/Layers"
 import {
   LAYER_BROWSE,
   LAYER_CREATE_NOTE,
+  LAYER_MANAGE_MODELS,
+  LAYER_MEDIA,
+  LAYER_QUERY,
   LAYER_SETTINGS,
   LAYER_STATS,
   LAYER_STUDY,
@@ -76,7 +79,26 @@ export const ROOT_LAYER_HOME = defineRootLayer({
 
     function TopActions() {
       return (
-        <div class="mx-auto grid w-full max-w-xl grid-cols-2 justify-center gap-1 xs:grid-cols-3 sm:grid-cols-5">
+        <div
+          class="mx-auto grid w-full max-w-xl grid-cols-2 justify-center gap-1 xs:grid-cols-3 sm:grid-cols-5"
+          onCtx={({ detail }) =>
+            detail(() => (
+              <>
+                <ContextMenuItem onClick={() => push(LAYER_MEDIA, worker)}>
+                  Show user media
+                </ContextMenuItem>
+                <ContextMenuItem
+                  onClick={() => push(LAYER_MANAGE_MODELS, worker)}
+                >
+                  Manage models
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => push(LAYER_QUERY, { worker })}>
+                  Query
+                </ContextMenuItem>
+              </>
+            ))
+          }
+        >
           <Action
             class="col-span-2 xs:col-span-1 xs:row-span-2 sm:row-span-1"
             center
@@ -158,31 +180,7 @@ export const ROOT_LAYER_HOME = defineRootLayer({
             icon={faPlus}
             label="Create Deck"
             center
-            onClick={async () => {
-              const name = await prompt({
-                owner,
-                title: "New deck name",
-                get description() {
-                  return (
-                    <ModalDescription>
-                      Use :: in your deck name to create nested decks. For
-                      example, Math::Geometry will create a deck called
-                      'Geometry' inside the deck called 'Math'.
-                    </ModalDescription>
-                  )
-                },
-              })
-
-              if (!name) {
-                return
-              }
-
-              if (!(await worker.post("deck_create", name))) {
-                throw new Error("That deck name is already in use.")
-              }
-
-              reloadDecks()
-            }}
+            onClick={createDeck}
           />
           <Action
             icon={faShareFromSquare}
