@@ -1,14 +1,14 @@
 import { createEventListener } from "@/components/create-event-listener"
-import { randomId } from "../lib/id"
+import ActualWorker from "../worker?worker&url"
+import { randomId } from "./lib/id"
 import type {
   Handlers,
   MainThreadToItselfNotification,
   WorkerNotification,
   WorkerRequest,
   WorkerResponse,
-} from "../shared"
-import { ZID_REJECT, ZID_RESOLVE } from "../shared"
-import ActualWorker from "../worker?worker&url"
+} from "./shared"
+import { ZID_REJECT, ZID_RESOLVE } from "./shared"
 
 export class Worker {
   private readonly worker: Omit<globalThis.Worker, "postMessage"> & {

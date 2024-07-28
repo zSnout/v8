@@ -1,5 +1,5 @@
 import { notNull } from "@/components/pray"
-import { startOfDaySync } from "@/learn/db/day"
+import { startOfDaySync } from "@/learn/lib/day"
 import type { Id } from "@/learn/lib/id"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "@/learn/lib/repeat"
 import type { Conf, Prefs } from "@/learn/lib/types"
@@ -13,9 +13,11 @@ import { deck_left_txless } from "./deck_left"
 import { deck_limits_txless, type Limits } from "./deck_limits"
 import { prefs_get } from "./prefs_get"
 
-/** Selection algorithm
+/**
+ * Selection algorithm
  *
- * The value `PREFER_NEW` means `newLeft / newTotal >= reviewsLeft / reviewsTotal`
+ * The value `PREFER_NEW` means `newLeft / newTotal >= reviewsLeft /
+ * reviewsTotal`
  *
  * Return the first card possible from the list below.
  *

@@ -6,9 +6,9 @@ import type {
   default as initSqlite,
   OpfsDatabase,
 } from "@sqlite.org/sqlite-wasm"
-import { startOfDaySync } from "../db/day"
-import type { Reason } from "../db/reason"
+import { startOfDaySync } from "../lib/day"
 import { randomId } from "../lib/id"
+import type { Reason } from "../lib/reason"
 import {
   ZID_REJECT,
   type Handler,

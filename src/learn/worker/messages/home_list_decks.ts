@@ -1,13 +1,13 @@
 import { Tree } from "@/components/tree-structure"
-import { startOfDaySync } from "@/learn/db/day"
+import { startOfDaySync } from "@/learn/lib/day"
 import type {
   AnyCard,
   Buckets,
   CardBucket,
   DeckHomeInfo,
 } from "@/learn/lib/types"
-import { bool, id, int, text } from "../checks"
 import { readonly, sql } from ".."
+import { bool, id, int, text } from "../checks"
 
 function bucketOfArray(
   today: number,

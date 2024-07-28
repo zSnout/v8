@@ -1,4 +1,4 @@
-import { isSameDaySync } from "@/learn/db/day"
+import { isSameDaySync } from "@/learn/lib/day"
 import { type Id, ID_ZERO } from "@/learn/lib/id"
 import { readonly, sql } from ".."
 import { id, int, qint } from "../checks"

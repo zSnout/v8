@@ -10,11 +10,11 @@ import {
 } from "solid-js"
 import { createStore, unwrap } from "solid-js/store"
 import { Worker } from "../db"
-import { createPrefsStore } from "../db/prefs"
 import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
 import { createExpr } from "../lib/expr"
 import { idOf, type Id } from "../lib/id"
+import { createPrefsStore } from "../lib/prefs"
 import { BrowserColumn } from "../lib/types"
 
 export default defineLayer({

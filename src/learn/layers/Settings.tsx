@@ -6,13 +6,13 @@ import {
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
 import type { Worker } from "../db"
-import { createPrefsStore } from "../db/prefs"
 import { Action } from "../el/BottomButtons"
 import { CheckboxContainer } from "../el/CheckboxContainer"
 import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
 import { UploadButton } from "../el/upload"
 import { download } from "../lib/download"
+import { createPrefsStore } from "../lib/prefs"
 
 export default defineLayer({
   init(_: Worker) {},

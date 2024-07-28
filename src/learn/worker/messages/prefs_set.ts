@@ -1,4 +1,4 @@
-import type { Reason } from "@/learn/db/reason"
+import type { Reason } from "@/learn/lib/reason"
 import type { Prefs } from "@/learn/lib/types"
 import { readwrite } from ".."
 import { stmts } from "../stmts"

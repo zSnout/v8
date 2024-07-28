@@ -1,6 +1,6 @@
 import type { JSX } from "solid-js"
 import type { LatexTargetFindEvent } from "./components/graph/latex"
-import type { Reason } from "./learn/db/reason"
+import type { Reason } from "./learn/lib/reason"
 
 export type CtxCreateMenu = (createMenu: () => JSX.Element) => void
 export type CtxEvent = CustomEvent<CtxCreateMenu>

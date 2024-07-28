@@ -2,8 +2,8 @@
 
 import { error, ok } from "@/components/result"
 import type { WorkerDB } from "."
-import type { Reason } from "../db/reason"
 import type { Id } from "../lib/id"
+import type { Reason } from "../lib/reason"
 import {
   ZID_UNDO_FAILED,
   ZID_UNDO_HAPPENED,

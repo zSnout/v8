@@ -1,5 +1,5 @@
-import type { Reason } from "./db/reason"
 import type { Awaitable } from "./el/Layers"
+import type { Reason } from "./lib/reason"
 import type * as messages from "./worker/messages"
 import type { UndoMeta } from "./worker/undo"
 

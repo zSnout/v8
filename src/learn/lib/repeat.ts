@@ -1,6 +1,6 @@
 import { pray } from "@/components/pray"
 import { FSRS, Rating, RecordLogItem, State } from "ts-fsrs"
-import { daysBetweenSync } from "../db/day"
+import { daysBetweenSync } from "./day"
 import { randomId } from "./id"
 import { AnyCard, Conf, RepeatInfo, RepeatItem } from "./types"
 
