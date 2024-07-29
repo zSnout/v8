@@ -188,6 +188,7 @@ export function IntegratedCodeField(
                   props.onInput?.(editor.state.doc.toString())
                 }
               }),
+              EditorView.lineWrapping,
             ],
             parent: el,
           })
@@ -214,6 +215,57 @@ export function IntegratedCodeField(
     )
   })
 }
+
+export const DROPPING_INSERTS_USER_MEDIA = EditorView.domEventHandlers({
+  drop(event, view) {
+    if (!event.dataTransfer) {
+      return
+    }
+    event.preventDefault()
+    const data = event.dataTransfer
+    const items = Array.from(data.items)
+    ;(async () => {
+      let inserted = ""
+
+      for (const item of items) {
+        if (item.kind == "string") {
+          const text = await new Promise<string>((resolve) =>
+            item.getAsString(resolve),
+          )
+          inserted += text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&apos;")
+        } else {
+          const file = item.getAsFile()
+          if (!file) {
+            throw new Error("Unable to read file.")
+          }
+          const { key } = media.upload(file)
+          inserted += createFile(
+            file,
+            `/learn/media/${writeKey(key)}/${file.name}`,
+          ).outerHTML
+        }
+      }
+
+      console.log(inserted)
+
+      // make sure we insert content at the selection
+      view.focus()
+      const sel = view.state.selection.asSingle()
+      view.dispatch({
+        changes: { from: sel.main.from, insert: inserted },
+        sequential: true,
+      })
+
+      return true
+    })()
+    return true
+  },
+})
 
 interface IntegratedFieldPropsBase<T> {
   label: JSX.Element
@@ -365,10 +417,8 @@ export function IntegratedField(props: IntegratedFieldProps) {
               const el = event.currentTarget
 
               // make sure we insert content at the selection
-              console.log("getting selection")
               const selection =
                 isFocused() ? getSelection() : (el.focus(), getSelection())
-              console.log("ending selection")
               if (!selection) {
                 throw new Error("Unable to focus text field.")
               }
@@ -412,12 +462,21 @@ export function IntegratedField(props: IntegratedFieldProps) {
             }}
           />
 
-          <Show when={props.showHtml}>{IntegratedCodeField(props)}</Show>
+          <Show when={props.showHtml}>
+            {IntegratedCodeField(props, { exts: DROPPING_INSERTS_USER_MEDIA })}
+          </Show>
         </>
       : props.type == "html-only" ?
-        IntegratedCodeField(props, { alone: true })
+        IntegratedCodeField(props, {
+          alone: true,
+          exts: DROPPING_INSERTS_USER_MEDIA,
+        })
       : props.type == "css-only" ?
-        IntegratedCodeField(props, { alone: true, lang: css() })
+        IntegratedCodeField(props, {
+          alone: true,
+          exts: DROPPING_INSERTS_USER_MEDIA,
+          lang: css(),
+        })
       : props.type == "tags" ?
         IntegratedTagField(props, id)
       : <input

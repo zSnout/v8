@@ -12,7 +12,10 @@ import { createSignal, For, Show } from "solid-js"
 import type { Worker } from "../db"
 import { Action, TwoBottomButtons } from "../el/BottomButtons"
 import { defineLayer } from "../el/DefineLayer"
-import { IntegratedCodeField } from "../el/IntegratedField"
+import {
+  DROPPING_INSERTS_USER_MEDIA,
+  IntegratedCodeField,
+} from "../el/IntegratedField"
 
 const MODIFYING_QUERY =
   /insert|update|delete|alter|drop|truncate|create|merge/gi
@@ -82,6 +85,7 @@ export default defineLayer({
         {
           alone: true,
           lang: sql({ dialect: SQLite, upperCaseKeywords: true }),
+          exts: DROPPING_INSERTS_USER_MEDIA,
         },
       )
     }

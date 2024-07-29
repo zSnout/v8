@@ -33,7 +33,10 @@ import { Action } from "../el/BottomButtons"
 import { DrawStatCard } from "../el/Charts"
 import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
-import { IntegratedCodeField } from "../el/IntegratedField"
+import {
+  DROPPING_INSERTS_USER_MEDIA,
+  IntegratedCodeField,
+} from "../el/IntegratedField"
 import { useLayers } from "../el/Layers"
 import { InlineLoading } from "../el/Loading"
 import {
@@ -247,7 +250,7 @@ export default defineLayer({
                   alone: true,
                   noBorderTop: true,
                   lang: jsonLang(),
-                  exts: [EditorView.lineWrapping],
+                  exts: [EditorView.lineWrapping, DROPPING_INSERTS_USER_MEDIA],
                 },
               )}
             </div>
@@ -270,7 +273,7 @@ export default defineLayer({
                   alone: true,
                   noBorderTop: true,
                   lang: sql({ dialect: SQLite, upperCaseKeywords: true }),
-                  exts: [EditorView.lineWrapping],
+                  exts: [EditorView.lineWrapping, DROPPING_INSERTS_USER_MEDIA],
                 },
               )}
             </div>

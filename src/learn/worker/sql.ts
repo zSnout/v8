@@ -21,7 +21,9 @@ export class Stmt {
   private used = false
 
   constructor(private readonly stmt: PreparedStatement) {
-    queueMicrotask(() => {
+    // `Promise.resolve().then` instead of `queueMicrotask` is used because it
+    // provides more useful error traces in Chrome.
+    Promise.resolve().then(() => {
       if (this.autoDisposes) {
         this.dispose()
       }

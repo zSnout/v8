@@ -102,7 +102,7 @@ export function create_note(
           sort_field = ${model.sort_field},
           fields = ${JSON.stringify(model.fields)}
         WHERE id = ${model.id};
-      `
+      `.run()
     } else {
       console.warn(
         "The model was not able to be updated.",
