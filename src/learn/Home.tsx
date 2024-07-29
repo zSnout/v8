@@ -31,6 +31,7 @@ import {
 } from "./layers"
 import type { Id } from "./lib/id"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "./lib/types"
+import { shortcutToString } from "./lib/shortcuts"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -60,7 +61,7 @@ export const ROOT_LAYER_HOME = defineRootLayer({
       async () => setDecks(await worker.post("home_list_decks")),
     ] as const
   },
-  render({ props: worker, data: [decks, reloadDecks], owner, push }) {
+  render({ props: worker, toasts, data: [decks, reloadDecks], owner, push }) {
     // TODO: add decks to icon list and put all of them in the navbar when any
     // layers are active
 
@@ -253,7 +254,15 @@ export const ROOT_LAYER_HOME = defineRootLayer({
 
                 <ContextMenuItem
                   onClick={async () => {
-                    await worker.post("deck_delete", data?.deck?.id, name)
+                    const cardsDeleted = await worker.post(
+                      "deck_delete",
+                      data?.deck?.id,
+                      name,
+                    )
+                    toasts.create({
+                      title: `Deleted ${cardsDeleted} card${cardsDeleted == 1 ? "" : "s"}`,
+                      body: `Press ${shortcutToString({ key: "Z" })} to undo`,
+                    })
                     reloadDecks()
                   }}
                 >

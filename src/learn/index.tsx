@@ -1,5 +1,4 @@
 import { createEventListener } from "@/components/create-event-listener"
-import { MatchResult } from "@/components/MatchResult"
 import { error, type Result } from "@/components/result"
 import { Error } from "@/learn/el/Error"
 import { Layers, useLayers } from "@/learn/el/Layers"
@@ -73,20 +72,20 @@ function CoreApplicationShortcuts(worker: Worker) {
       worker.triggerMain({ zid: ZID_BEFORE_UNDO, meta })
       const [state, setState] = createSignal<Result<Reason | null>>()
       toasts.create({
+        // TODO: custom toast when nothing is left in undo stack
+        get title() {
+          return state() ?
+              `${type == "undo" ? "Undid" : "Redid"} action`
+            : `${type == "undo" ? "Undoing" : "Redoing"} action...`
+        },
         get body() {
+          const s = state()
           return (
-            <Show when={state()} fallback={`Attempting to ${type}...`}>
-              {(x) => (
-                <MatchResult
-                  result={x()}
-                  fallback={() => "Nothing left to " + type}
-                >
-                  {(x) =>
-                    `${type == "undo" ? "Undid" : "Redid"} '${x() ?? "<unknown action>"}'`
-                  }
-                </MatchResult>
-              )}
-            </Show>
+            s ?
+              s.ok ?
+                (s.value ?? "Action unknown")
+              : "Error: " + s.reason
+            : "Loading..."
           )
         },
       })

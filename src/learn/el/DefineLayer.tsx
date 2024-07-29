@@ -22,6 +22,7 @@ import {
   type RootLayerable,
 } from "./Layers"
 import { Loading } from "./Loading"
+import { useToasts, type Toasts } from "./Toast"
 
 /** Data passed to the `load()` function on a layer. */
 export interface LayerLoadInfo<Props, State> {
@@ -96,6 +97,9 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
 
   /** The async data. Reactive getter. */
   readonly data: Awaited<AsyncData>
+
+  /** An accessor into the toasts container. */
+  readonly toasts: Toasts
 
   /**
    * Sets a function to be called when this layer is returned to, replacing past
@@ -334,6 +338,7 @@ export function defineLayer<
 
     const shortcuts = new ShortcutManager()
 
+    const toasts = useToasts()
     const layerRenderInfo: LayerRenderInfo<Props, State, AsyncData> = {
       props,
       get state() {
@@ -342,6 +347,7 @@ export function defineLayer<
       set state(v) {
         setState(v)
       },
+      toasts,
       get data() {
         const d = data()!
         if (d == null) {
