@@ -26,6 +26,7 @@ import {
   LAYER_QUERY,
   LAYER_SETTINGS,
   LAYER_STATS,
+  LAYER_STORAGE,
   LAYER_STUDY,
 } from "./layers"
 import type { Id } from "./lib/id"
@@ -86,6 +87,9 @@ export const ROOT_LAYER_HOME = defineRootLayer({
               <>
                 <ContextMenuItem onClick={() => push(LAYER_MEDIA, worker)}>
                   Show user media
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => push(LAYER_STORAGE, worker)}>
+                  Storage usage details
                 </ContextMenuItem>
                 <ContextMenuItem
                   onClick={() => push(LAYER_MANAGE_MODELS, worker)}
