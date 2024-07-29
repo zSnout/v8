@@ -74,9 +74,14 @@ function CoreApplicationShortcuts(worker: Worker) {
       toasts.create({
         // TODO: custom toast when nothing is left in undo stack
         get title() {
-          return state() ?
-              `${type == "undo" ? "Undid" : "Redid"} action`
+          const s = state()
+          return (
+            s ?
+              s.ok ?
+                `${type == "undo" ? "Undid" : "Redid"} action`
+              : `Failed ${type}`
             : `${type == "undo" ? "Undoing" : "Redoing"} action...`
+          )
         },
         get body() {
           const s = state()
@@ -84,7 +89,7 @@ function CoreApplicationShortcuts(worker: Worker) {
             s ?
               s.ok ?
                 (s.value ?? "Action unknown")
-              : "Error: " + s.reason
+              : s.reason
             : "Loading..."
           )
         },
