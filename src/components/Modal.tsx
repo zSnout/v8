@@ -55,7 +55,9 @@ export function ModalDescription(props: { children: JSX.Element }) {
 
 export function ModalCode(props: { children: JSX.Element }) {
   return (
-    <code class="rounded-sm bg-z-body-selected px-1">{props.children}</code>
+    <code class="rounded-sm bg-z-body-selected px-1 text-z">
+      {props.children}
+    </code>
   )
 }
 

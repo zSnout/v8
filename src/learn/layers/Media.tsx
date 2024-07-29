@@ -35,7 +35,6 @@ import { download } from "../lib/download"
 import { createExpr } from "../lib/expr"
 import { displayFileSize } from "../lib/fileSize"
 import { parseKey, UserMedia, writeKey } from "../lib/media"
-import { export_name } from "../worker/messages"
 
 const media = new UserMedia()
 
@@ -208,9 +207,12 @@ export default defineLayer({
                 const file = await media.get(key)
                 if (!file) return
                 if (mode == "hashed") {
-                  zip.file(writeKey(key) + (file.name.match(/\..+$/) ?? ""))
+                  zip.file(
+                    writeKey(key) + (file.name.match(/\..+$/) ?? ""),
+                    file,
+                  )
                 } else {
-                  zip.file(file.name)
+                  zip.file(file.name, file)
                 }
               }),
             )
