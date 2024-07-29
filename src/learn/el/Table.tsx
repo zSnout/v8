@@ -30,8 +30,9 @@ export function Td(
     <td
       {...props}
       class={
-        "whitespace-nowrap border-x px-1 first:border-l-0 last:border-r-0" +
-        (props.class ? " " + props.class : "")
+        "truncate whitespace-nowrap border-x px-1 first:border-l-0 last:border-r-0" +
+        (props.class ? " " + props.class : "") +
+        (props.class?.includes("max-width") ? "" : " max-w-48")
       }
       classList={{
         "border-z": !props.selected,

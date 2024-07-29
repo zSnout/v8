@@ -116,7 +116,7 @@ export async function model_set(model: Model, editStyle?: TemplateEditStyle) {
         UPDATE core
         SET
           last_schema_edit = ${Date.now()},
-          last_edited = ?0
+          last_edited = ${Date.now()}
         WHERE id = 0;
       `.run()
     }

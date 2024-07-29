@@ -1,5 +1,5 @@
 import { notNull } from "@/components/pray"
-import type {
+import {
   BindingSpec,
   PreparedStatement,
   SqlValue,
@@ -65,6 +65,14 @@ export class Stmt {
     } finally {
       this.stmt.reset()
     }
+  }
+
+  /**
+   * Returns a helper with is useful for calling the same statement on many
+   * values.
+   */
+  each(data: BindingSpec[]) {
+    return new StmtEach(this, data)
   }
 
   /** Runs the query. If a row is returned, returns `true`. */
@@ -275,6 +283,54 @@ export class Stmt {
     } finally {
       this.stmt.reset()
     }
+  }
+}
+
+export class StmtEach {
+  constructor(
+    private readonly stmt: Stmt,
+    private readonly data: BindingSpec[],
+  ) {}
+
+  getRow<const T extends readonly Check[]>(checks: T): CheckResults<T>[]
+  getRow(checks?: undefined): SqlValue[][]
+  getRow(checks?: Check[]): SqlValue[][] {
+    const output: SqlValue[][] = []
+    for (const el of this.data) {
+      output.push(this.stmt.bindNew(el).getRow())
+    }
+
+    const row = output[0]
+    if (row && checks) {
+      if (checks.length != row.length) {
+        throw new Error(
+          `Expected ${checks.length} column(s); received ${row.length}.`,
+        )
+      }
+      for (let index = 0; index < checks.length; index++) {
+        if (!checks[index]!(row[index]!)) {
+          throw new Error(`Check failed: ${checks[index]}.`)
+        }
+      }
+    }
+
+    return output
+  }
+
+  getValue<const T extends Check>(check: T): CheckResult<T>[]
+  getValue(check?: Check): SqlValue[]
+  getValue(check?: Check): SqlValue[] {
+    const output: SqlValue[] = []
+    for (const el of this.data) {
+      output.push(this.stmt.bindNew(el).getValue())
+    }
+    const row = output[0]
+    if (row != null && check) {
+      if (!check(row)) {
+        throw new Error(`Check failed: ${check}`)
+      }
+    }
+    return output
   }
 }
 

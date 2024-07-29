@@ -24,7 +24,7 @@ export function manage_models_save(
         UPDATE core
         SET
           last_edited = ${Date.now()},
-          last_schema_edit = ?0
+          last_schema_edit = ${Date.now()}
         WHERE id = 0;
       `.run()
 

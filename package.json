@@ -22,6 +22,7 @@
     "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.28.4",
+    "@fast-csv/format": "^5.0.0",
     "@fortawesome/free-regular-svg-icons": "^6.3.0",
     "@fortawesome/free-solid-svg-icons": "^6.3.0",
     "@solid-primitives/media": "^2.1.3",
@@ -41,6 +42,7 @@
     "codemirror": "^6.0.1",
     "color-diff": "^1.4.0",
     "core-js": "^3.37.1",
+    "csv-stringify": "^6.5.1",
     "dompurify": "^3.1.5",
     "fast-fuzzy": "^1.12.0",
     "fastest-levenshtein": "^1.0.16",
@@ -69,6 +71,7 @@
     "valibot": "^0.35.0",
     "vite": "^5.0.0-beta.11",
     "vite-plugin-glsl": "^1.1.2",
+    "vite-plugin-pwa": "^0.20.1",
     "vite-tsconfig-paths": "^4.3.2"
   },
   "devDependencies": {

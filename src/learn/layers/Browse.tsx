@@ -1,4 +1,13 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
+import {
+  ModalButtons,
+  ModalCancel,
+  ModalConfirm,
+  ModalDescription,
+  ModalSelect,
+  ModalTitle,
+  popup,
+} from "@/components/Modal"
 import { Unmain } from "@/components/Prose"
 import {
   batch,
@@ -13,10 +22,13 @@ import { Worker } from "../db"
 import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
 import { Table, Td, Th, Tr } from "../el/Table"
+import { download } from "../lib/download"
 import { createExpr } from "../lib/expr"
 import { idOf, type Id } from "../lib/id"
 import { createPrefsStore } from "../lib/prefs"
 import { BrowserColumn } from "../lib/types"
+
+// TODO: warn on non-unique sort fields
 
 export default defineLayer({
   init(_: Worker) {
@@ -43,6 +55,7 @@ export default defineLayer({
     return [data, { prefs, setPrefs, sorted, reloadSorted }] as const
   },
   render({
+    owner,
     props: worker,
     data: [, { prefs, setPrefs, sorted, reloadSorted }],
     state: {
@@ -180,6 +193,9 @@ export default defineLayer({
           >
             Make due now
           </ContextMenuItem>
+          <ContextMenuItem onClick={exportSelected}>
+            Export selected cards
+          </ContextMenuItem>
         </>
       )
     }
@@ -312,6 +328,44 @@ export default defineLayer({
           </tbody>
         </Table>
       )
+    }
+
+    async function exportSelected() {
+      const cids = getSelected()
+      let format: "csv" | "json" | "txt" = "csv"
+      const willContinue = await popup<boolean>({
+        owner,
+        onCancel: false,
+        children(close) {
+          return (
+            <>
+              <ModalTitle>Export selected cards</ModalTitle>
+              <ModalDescription>
+                How do you want to export the cards?
+              </ModalDescription>
+              <ModalSelect
+                autofocus
+                value={format}
+                onInput={(x) => (format = x.currentTarget.value as any)}
+              >
+                <option value="csv">CSV (for Excel or Sheets)</option>
+                <option value="json">JSON (for programmers)</option>
+                <option value="text">Plain Text</option>
+              </ModalSelect>
+              <ModalButtons>
+                <ModalCancel onClick={() => close(false)}>Cancel</ModalCancel>
+                <ModalConfirm onClick={() => close(true)}>Export</ModalConfirm>
+              </ModalButtons>
+            </>
+          )
+        },
+      })
+      if (!willContinue) {
+        return
+      }
+      const file = await worker.post("export_cards", cids, format)
+      console.log(file)
+      download(file)
     }
   },
 })

@@ -68,8 +68,26 @@ export function ModalField(props: {
       placeholder={props.placeholder}
       onInput={props.onInput}
       onChange={props.onChange}
-      autofocus
+      autofocus={props.autofocus}
     />
+  )
+}
+
+export function ModalSelect(props: {
+  children: JSX.Element
+  value?: string
+  onInput?: JSX.InputEventHandlerUnion<HTMLSelectElement, InputEvent>
+  autofocus?: boolean
+}) {
+  return (
+    <select
+      class="z-field mt-3 w-full shadow-none placeholder:opacity-50"
+      value={props.value ?? ""}
+      onInput={props.onInput}
+      autofocus={props.autofocus}
+    >
+      {props.children}
+    </select>
   )
 }
 
