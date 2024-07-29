@@ -1,15 +1,28 @@
 import { Fa } from "@/components/Fa"
 import {
+  ModalButtons,
+  ModalCancel,
+  ModalConfirm,
+  ModalDescription,
+  ModalDetails,
+  ModalTitle,
+  popup,
+} from "@/components/Modal"
+import {
   faArrowUpRightFromSquare,
   faDownload,
   faMagnifyingGlass,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
-import { createResource, For } from "solid-js"
+import { createResource, For, Show } from "solid-js"
 import type { Worker } from "../db"
 import { Action } from "../el/BottomButtons"
 import { defineLayer } from "../el/DefineLayer"
+import { InlineLoading } from "../el/Loading"
+import { Table, Td, Th, Tr } from "../el/Table"
 import { UploadButton } from "../el/upload"
+import { createExpr } from "../lib/expr"
+import { displayFileSize } from "../lib/fileSize"
 import { UserMedia, writeKey } from "../lib/media"
 
 const media = new UserMedia()
@@ -20,7 +33,7 @@ export default defineLayer({
     return { entries, refetch }
   },
   load() {},
-  render({ state: { entries, refetch } }) {
+  render({ owner, props: worker, state: { entries, refetch } }) {
     return (
       <div class="flex h-[calc(100vh_-_7rem)] w-full flex-1 flex-col">
         <TopActions />
@@ -61,9 +74,15 @@ export default defineLayer({
             icon={faMagnifyingGlass}
             label="Usage"
             center
-            onClick={() => {
-              throw new Error("Not implemented yet.") // FEAT: check media usage
-            }}
+            onClick={() =>
+              popup<void>({
+                owner,
+                onCancel: undefined,
+                children(close) {
+                  return <Usage close={close} />
+                },
+              })
+            }
           />
         </div>
       )
@@ -71,32 +90,19 @@ export default defineLayer({
 
     function Grid() {
       return (
-        <div class="flex flex-1 flex-col items-start overflow-auto rounded-lg border border-z pb-8 text-sm">
-          <table class="min-w-full">
-            <thead>
-              <tr>
-                <th class="sticky top-0 max-w-20 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
-                  Key
-                </th>
-
-                <th class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
-                  Name
-                </th>
-
-                <th class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
-                  Type
-                </th>
-
-                <th class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0">
-                  Size
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={entries()}>{(x) => <Entry key={x} />}</For>
-            </tbody>
-          </table>
-        </div>
+        <Table class="rounded-lg border border-z">
+          <thead>
+            <tr>
+              <Th>Key</Th>
+              <Th>Name</Th>
+              <Th>Type</Th>
+              <Th>Size</Th>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={entries()}>{(x) => <Entry key={x} />}</For>
+          </tbody>
+        </Table>
       )
     }
 
@@ -107,11 +113,9 @@ export default defineLayer({
       )
 
       return (
-        <tr class="select-none border-z last:border-b odd:bg-[--z-table-row-alt]">
-          <td class="max-w-20 truncate whitespace-nowrap border-x border-z px-1 font-mono first:border-l-0 last:border-r-0">
-            {writeKey(props.key)}
-          </td>
-          <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
+        <Tr>
+          <Td class="w-[20ch] font-mono">{writeKey(props.key)}</Td>
+          <Td>
             <div class="inline-flex items-center gap-1">
               <a href={"/learn/media/" + writeKey(props.key)} target="_new">
                 <Fa
@@ -122,34 +126,155 @@ export default defineLayer({
               </a>
               <div>{file()?.name ?? "..."}</div>
             </div>
-          </td>
-          <td class="whitespace-nowrap border-x border-z px-1 first:border-l-0 last:border-r-0">
-            {file()?.type}
-          </td>
-          <td class="whitespace-nowrap border-x border-z px-1 text-right first:border-l-0 last:border-r-0">
-            {(() => {
-              const f = file()
-              if (!f) {
-                return "..."
-              }
-              for (const [label, size] of [
-                ["KB", 100],
-                ["MB", 100_000],
-                ["GB", 100_000_000],
-                ["TB", 100_000_000_000],
-                ["PB", 100_000_000_000_000],
-              ] as const) {
-                const kb = Math.round(f.size / size) / 10
-                if (kb < 10) {
-                  return kb.toPrecision(1) + " " + label
-                } else if (kb < 1000) {
-                  return Math.round(f.size / size / 10) + " " + label
+          </Td>
+          <Td>{file()?.type}</Td>
+          <Td>{displayFileSize(file()) ?? "..."}</Td>
+        </Tr>
+      )
+    }
+
+    function Usage(props: { close: () => void }) {
+      const [unused] = createExpr(() => worker.post("media_analyze_unused"))
+      const [missing] = createExpr(() => worker.post("media_analyze_missing"))
+
+      return (
+        <>
+          <ModalTitle>Media usage</ModalTitle>
+
+          <InlineLoading data={unused()}>
+            {(unused) => (
+              <Show
+                when={unused.length}
+                fallback={
+                  <ModalDescription>All media files are used.</ModalDescription>
                 }
-              }
-              return Math.round(f.size / 1_000_000_000_000_000) + " PB"
-            })()}
-          </td>
-        </tr>
+              >
+                <ModalDetails
+                  summary={
+                    <>
+                      {unused.length}{" "}
+                      {unused.length == 1 ?
+                        "file is unused. It exists"
+                      : "files are unused. They exist"}{" "}
+                      in your media folder, but they don't show up on any cards.
+                      Click to show which files are unused.
+                    </>
+                  }
+                >
+                  <Table class="max-h-96 rounded-lg border border-z">
+                    <thead>
+                      <tr>
+                        <Th>Key</Th>
+                        <Th>Name</Th>
+                        <Th>Type</Th>
+                        <Th>Size</Th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <For each={unused}>
+                        {(key) => {
+                          const [file] = createResource(() => media.get(key))
+                          return (
+                            <Tr>
+                              <Td>{writeKey(key)}</Td>
+                              <Td>{file()?.name}</Td>
+                              <Td>{file()?.type}</Td>
+                              <Td>{displayFileSize(file()) ?? "..."}</Td>
+                            </Tr>
+                          )
+                        }}
+                      </For>
+                    </tbody>
+                  </Table>
+                </ModalDetails>
+              </Show>
+            )}
+          </InlineLoading>
+
+          <InlineLoading data={missing()}>
+            {(missing) => (
+              <Show
+                when={missing.length}
+                fallback={
+                  <ModalDescription>
+                    No media files are missing.
+                  </ModalDescription>
+                }
+              >
+                <ModalDetails
+                  summary={
+                    <>
+                      {missing.length}{" "}
+                      {missing.length == 1 ?
+                        "file is unused. It exists"
+                      : "files are unused. They exist"}{" "}
+                      in your media folder, but they don't show up on any cards.
+                      Click to show which files are unused.
+                    </>
+                  }
+                >
+                  <Table class="max-h-96 rounded-lg border border-z">
+                    <thead>
+                      <tr>
+                        <Th>Key</Th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      <For each={missing}>
+                        {(key) => {
+                          return (
+                            <Tr>
+                              <Td>{key}</Td>
+                            </Tr>
+                          )
+                        }}
+                      </For>
+                    </tbody>
+                  </Table>
+                </ModalDetails>
+              </Show>
+            )}
+          </InlineLoading>
+
+          <ModalButtons>
+            <ModalCancel
+              onClick={async () => {
+                const [result] = createResource(async () => {
+                  await worker.post("media_delete_unused")
+                  refetch()
+                })
+
+                props.close()
+
+                popup<void>({
+                  owner,
+                  children(close) {
+                    return (
+                      <>
+                        <ModalTitle>Purging unused media</ModalTitle>
+                        <ModalDescription>
+                          {result.state == "ready" ?
+                            "Unused media successfully removed!"
+                          : "Removing..."}
+                        </ModalDescription>
+                        <ModalButtons>
+                          <ModalCancel onClick={close}>Close</ModalCancel>
+                        </ModalButtons>
+                      </>
+                    )
+                  },
+                  onCancel: undefined,
+                })
+              }}
+            >
+              Delete Unused
+            </ModalCancel>
+
+            <ModalConfirm onClick={props.close}>Close</ModalConfirm>
+          </ModalButtons>
+        </>
       )
     }
   },

@@ -1,4 +1,11 @@
-import { createSignal, JSX, Owner, runWithOwner, untrack } from "solid-js"
+import {
+  createMemo,
+  createSignal,
+  JSX,
+  Owner,
+  runWithOwner,
+  untrack,
+} from "solid-js"
 import { Portal } from "solid-js/web"
 
 export function ModalCancel(props: {
@@ -63,6 +70,19 @@ export function ModalField(props: {
       onChange={props.onChange}
       autofocus
     />
+  )
+}
+
+export function ModalDetails(props: {
+  summary: JSX.Element
+  children: JSX.Element
+}) {
+  return (
+    <details class="mt-2">
+      <summary class="text-sm text-z-subtitle">{props.summary}</summary>
+      <div class="h-2 w-full" />
+      {props.children}
+    </details>
   )
 }
 
@@ -136,6 +156,51 @@ export function Modal(props: {
   )
 }
 
+export type CloseFn<T> = (value: T) => void
+
+export function popup<T>(props: {
+  owner: Owner | null
+  children: (close: CloseFn<T>) => JSX.Element
+  onCancel: Exclude<NoInfer<T>, Function> | ((close: CloseFn<T>) => void)
+}): Promise<T> {
+  return new Promise((resolve) => {
+    let modal: ModalRef
+    let portal: HTMLDivElement
+
+    runWithOwner(props.owner, () => {
+      const inner = createMemo(() => props.children(close as CloseFn<T>))
+
+      // return isn't strictly necessary, but it makes syntax highlighting work,
+      // so we keep it
+      return (
+        <Modal
+          ref={(e) => (modal = e)}
+          refPortal={(e) => (portal = e)}
+          onCancel={() => {
+            if (typeof props.onCancel == "function") {
+              ;(props.onCancel as (close: (value: T) => void) => void)(close)
+            } else {
+              close(props.onCancel)
+            }
+          }}
+          onClose={() => {
+            portal.ontransitionend = () => portal.remove()
+          }}
+        >
+          {inner()}
+        </Modal>
+      )
+    })
+
+    setTimeout(() => modal!.showModal(), 1)
+
+    function close(value: T) {
+      resolve(value)
+      modal.close("")
+    }
+  })
+}
+
 export function confirm(props: {
   owner: Owner | null
   title: JSX.Element
@@ -143,35 +208,25 @@ export function confirm(props: {
   cancelText: string
   okText: string
 }): Promise<boolean> {
-  return new Promise((resolve) => {
-    let modal: ModalRef
-    let portal: HTMLDivElement
-
-    runWithOwner(props.owner, () => (
-      <Modal
-        ref={(e) => (modal = e)}
-        refPortal={(e) => (portal = e)}
-        onCancel={() => resolve(false)}
-        onClose={(value) => {
-          resolve(value == "true")
-          portal.ontransitionend = () => portal.remove()
-        }}
-      >
-        <ModalTitle>{props.title}</ModalTitle>
-        {props.description}
-        <ModalButtons>
-          {/* TODO: get rid of these defaults once we're sure nobody relies on them */}
-          <ModalCancel onClick={() => modal.cancel()}>
-            {props.cancelText || "Cancel"}
-          </ModalCancel>
-          <ModalConfirm onClick={() => modal.close("true")}>
-            {props.okText || "OK"}
-          </ModalConfirm>
-        </ModalButtons>
-      </Modal>
-    ))
-
-    setTimeout(() => modal!.showModal(), 1)
+  return popup({
+    owner: props.owner,
+    children(close) {
+      return (
+        <>
+          <ModalTitle>{props.title}</ModalTitle>
+          {props.description}
+          <ModalButtons>
+            <ModalCancel onClick={() => close(false)}>
+              {props.cancelText}
+            </ModalCancel>
+            <ModalConfirm onClick={() => close(true)}>
+              {props.okText}
+            </ModalConfirm>
+          </ModalButtons>
+        </>
+      )
+    },
+    onCancel: false,
   })
 }
 
@@ -181,30 +236,22 @@ export function alert(props: {
   description?: JSX.Element
   okText?: string
 }): Promise<void> {
-  return new Promise((resolve) => {
-    let modal: ModalRef
-    let portal: HTMLDivElement
-
-    runWithOwner(props.owner, () => (
-      <Modal
-        ref={(e) => (modal = e)}
-        refPortal={(e) => (portal = e)}
-        onClose={() => {
-          resolve()
-          portal.ontransitionend = () => portal.remove()
-        }}
-      >
-        <ModalTitle>{props.title}</ModalTitle>
-        {props.description}
-        <ModalButtons>
-          <ModalConfirm onClick={() => modal.close("")}>
-            {props.okText || "OK"}
-          </ModalConfirm>
-        </ModalButtons>
-      </Modal>
-    ))
-
-    setTimeout(() => modal!.showModal(), 1)
+  return popup<void>({
+    owner: props.owner,
+    children(close) {
+      return (
+        <>
+          <ModalTitle>{props.title}</ModalTitle>
+          {props.description}
+          <ModalButtons>
+            <ModalConfirm onClick={() => close()}>
+              {props.okText || "OK"}
+            </ModalConfirm>
+          </ModalButtons>
+        </>
+      )
+    },
+    onCancel: undefined,
   })
 }
 
@@ -216,45 +263,37 @@ export function prompt(props: {
   okText?: string
   value?: string
 }): Promise<string | undefined> {
-  return new Promise((resolve) => {
-    let modal: ModalRef
-    let portal: HTMLDivElement
-    let value: string
+  return popup({
+    owner: props.owner,
+    children(close) {
+      let value = untrack(() => props.value)
 
-    runWithOwner(props.owner, () => (
-      <Modal
-        ref={(e) => (modal = e)}
-        refPortal={(e) => (portal = e)}
-        onCancel={() => resolve(undefined)}
-        onClose={(value) => {
-          resolve(value)
-          portal.ontransitionend = () => portal.remove()
-        }}
-      >
-        <ModalTitle>{props.title}</ModalTitle>
-        {props.description}
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            modal.close(value)
-          }}
-        >
-          <ModalField
-            value={untrack(() => props.value)}
-            onInput={(el) => (value = el.currentTarget.value)}
-          />
-        </form>
-        <ModalButtons>
-          <ModalCancel onClick={() => modal.cancel()}>
-            {props.cancelText || "Cancel"}
-          </ModalCancel>
-          <ModalConfirm onClick={() => modal.close(value)}>
-            {props.okText || "OK"}
-          </ModalConfirm>
-        </ModalButtons>
-      </Modal>
-    ))
-
-    setTimeout(() => modal!.showModal(), 1)
+      return (
+        <>
+          <ModalTitle>{props.title}</ModalTitle>
+          {props.description}
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              close(value)
+            }}
+          >
+            <ModalField
+              value={untrack(() => props.value)}
+              onInput={(el) => (value = el.currentTarget.value)}
+            />
+          </form>
+          <ModalButtons>
+            <ModalCancel onClick={() => close(undefined)}>
+              {props.cancelText || "Cancel"}
+            </ModalCancel>
+            <ModalConfirm onClick={() => close(value)}>
+              {props.okText || "OK"}
+            </ModalConfirm>
+          </ModalButtons>
+        </>
+      )
+    },
+    onCancel: "",
   })
 }

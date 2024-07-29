@@ -34,6 +34,8 @@ export function createKey() {
   return key
 }
 
+let media: UserMedia | undefined
+
 export class UserMedia {
   static open() {
     return openDB<UserMediaTypes>("learn::media::User 1", 1, {
@@ -43,16 +45,31 @@ export class UserMedia {
     })
   }
 
-  private ready: Promise<IDBPDatabase<UserMediaTypes>>
-  private db: IDBPDatabase<UserMediaTypes> | undefined
+  private ready!: Promise<IDBPDatabase<UserMediaTypes>>
+  private db!: IDBPDatabase<UserMediaTypes> | undefined
 
   constructor() {
+    if (media) {
+      return media
+    } else {
+      media = this
+    }
     this.ready = UserMedia.open().then((x) => (this.db = x))
   }
 
   async get(key: ArrayBuffer) {
     const db = this.db ?? (await this.ready)
     return await db.get("media", key)
+  }
+
+  async deleteEach(keys: ArrayBuffer[]) {
+    const db = this.db ?? (await this.ready)
+    const tx = db.transaction("media", "readwrite")
+    const store = tx.objectStore("media")
+    for (const key of keys) {
+      store.delete(key)
+    }
+    await tx.done
   }
 
   private async put(key: ArrayBuffer, file: File) {

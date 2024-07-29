@@ -1,5 +1,4 @@
 import { createEventListener } from "@/components/create-event-listener"
-import ActualWorker from "./worker?worker&url"
 import { randomId } from "./lib/id"
 import type {
   Handlers,
@@ -9,6 +8,7 @@ import type {
   WorkerResponse,
 } from "./shared"
 import { ZID_REJECT, ZID_RESOLVE } from "./shared"
+import ActualWorker from "./worker?worker&url"
 
 export class Worker {
   private readonly worker: Omit<globalThis.Worker, "postMessage"> & {
@@ -94,8 +94,8 @@ export class Worker {
   private postNow<K extends keyof Handlers>(
     type: K,
     ...data: Parameters<Handlers[K]>
-  ): Promise<ReturnType<Handlers[K]>> {
-    return new Promise<ReturnType<Handlers[K]>>((resolve, reject) => {
+  ): Promise<Awaited<ReturnType<Handlers[K]>>> {
+    return new Promise((resolve, reject) => {
       const id = randomId()
       const req: WorkerRequest = {
         zid: id,
@@ -110,7 +110,7 @@ export class Worker {
   async post<K extends keyof Handlers>(
     type: K,
     ...data: Parameters<Handlers[K]>
-  ): Promise<ReturnType<Handlers[K]>> {
+  ): Promise<Awaited<ReturnType<Handlers[K]>>> {
     if (!this.isReady) {
       await this.ready
     }

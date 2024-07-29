@@ -12,6 +12,7 @@ import { createStore, unwrap } from "solid-js/store"
 import { Worker } from "../db"
 import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
+import { Table, Td, Th, Tr } from "../el/Table"
 import { createExpr } from "../lib/expr"
 import { idOf, type Id } from "../lib/id"
 import { createPrefsStore } from "../lib/prefs"
@@ -185,154 +186,131 @@ export default defineLayer({
 
     function Grid() {
       return (
-        <div class="flex-1 overflow-auto pb-8 text-sm">
-          <table
-            class="min-w-full border-b border-z"
-            onCtx={({ detail }) => detail(GridContextMenu)}
-          >
-            <thead>
-              <tr>
-                <For each={prefs.browser.active_cols}>
-                  {(x) => (
-                    <th
-                      class="sticky top-0 cursor-pointer select-none border-x border-z bg-z-body px-1 first:border-l-0 last:border-r-0"
-                      onClick={() => {
-                        savePreviousSelection()
-                        untrack(sorted).sort((ad, bd) => {
-                          const a = ad.columns[x]
-                          const b = bd.columns[x]
+        <Table onCtx={({ detail }) => detail(GridContextMenu)}>
+          <thead>
+            <tr>
+              <For each={prefs.browser.active_cols}>
+                {(x) => (
+                  <Th
+                    onClick={() => {
+                      savePreviousSelection()
+                      untrack(sorted).sort((ad, bd) => {
+                        const a = ad.columns[x]
+                        const b = bd.columns[x]
 
-                          // nulls first
-                          if (a == null && b == null) return 0
-                          if (a == null) return -1
-                          if (b == null) return 1
+                        // nulls first
+                        if (a == null && b == null) return 0
+                        if (a == null) return -1
+                        if (b == null) return 1
 
-                          // then numbers
-                          if (typeof a == "number" && typeof b == "number") {
-                            return a - b
-                          }
-                          if (typeof a == "number") return -1
-                          if (typeof b == "number") return 1
-
-                          // then text
-                          const al = a.toLowerCase()
-                          const bl = b.toLowerCase()
-                          if (al < bl) return -1
-                          if (al > bl) return 1
-                          if (a < b) return -1
-                          if (a > b) return 1
-
-                          // then give up
-                          return 0
-                        })
-                        reloadSorted()
-                      }}
-                    >
-                      {x}
-                    </th>
-                  )}
-                </For>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={sorted()}>
-                {(data, index) => {
-                  const id = data.card.id
-                  const isSelected = createMemo(() =>
-                    (
-                      (selectFromIndex() <= index() &&
-                        index() <= selectToIndex()) ||
-                      (selectFromIndex() >= index() &&
-                        index() >= selectToIndex())
-                    ) ?
-                      !selectInvert()
-                    : selected[id],
-                  )
-                  return (
-                    <tr
-                      class="select-none"
-                      classList={{
-                        "odd:bg-[--z-table-row-alt]": !isSelected(),
-                        "bg-[--z-table-row-selected]": isSelected(),
-                        "odd:bg-[--z-table-row-selected-alt]": isSelected(),
-                      }}
-                      onMouseDown={(event) => {
-                        const isCtx =
-                          event.button == 2 ||
-                          (event.button == 0 && event.ctrlKey)
-                        if (isCtx) {
-                          if (!isSelected()) {
-                            setSelected((x) => {
-                              return {
-                                ...Object.fromEntries(
-                                  Object.keys(x).map((x) => [x, false]),
-                                ),
-                                [id]: true,
-                              }
-                            })
-                            setSelectInvert(false)
-                            setSelectFrom(id)
-                            setSelectTo(id)
-                          }
-                          return
+                        // then numbers
+                        if (typeof a == "number" && typeof b == "number") {
+                          return a - b
                         }
-                        if (event.shiftKey) {
-                          if (selectFrom() == null) {
-                            setSelectFrom(id)
-                          }
+                        if (typeof a == "number") return -1
+                        if (typeof b == "number") return 1
+
+                        // then text
+                        const al = a.toLowerCase()
+                        const bl = b.toLowerCase()
+                        if (al < bl) return -1
+                        if (al > bl) return 1
+                        if (a < b) return -1
+                        if (a > b) return 1
+
+                        // then give up
+                        return 0
+                      })
+                      reloadSorted()
+                    }}
+                  >
+                    {x}
+                  </Th>
+                )}
+              </For>
+            </tr>
+          </thead>
+          <tbody>
+            <For each={sorted()}>
+              {(data, index) => {
+                const id = data.card.id
+                const isSelected = createMemo(() =>
+                  (
+                    (selectFromIndex() <= index() &&
+                      index() <= selectToIndex()) ||
+                    (selectFromIndex() >= index() && index() >= selectToIndex())
+                  ) ?
+                    !selectInvert()
+                  : selected[id],
+                )
+                return (
+                  <Tr
+                    selected={isSelected()}
+                    onMouseDown={(event) => {
+                      const isCtx =
+                        event.button == 2 ||
+                        (event.button == 0 && event.ctrlKey)
+                      if (isCtx) {
+                        if (!isSelected()) {
+                          setSelected((x) => {
+                            return {
+                              ...Object.fromEntries(
+                                Object.keys(x).map((x) => [x, false]),
+                              ),
+                              [id]: true,
+                            }
+                          })
                           setSelectInvert(false)
-                        } else {
-                          if (event.ctrlKey || event.metaKey) {
-                            savePreviousSelection()
-                            setSelected(id.toString(), (x) => {
-                              setSelectInvert(x)
-                              return !x
-                            })
-                          } else {
-                            setSelected((x) => {
-                              return {
-                                ...Object.fromEntries(
-                                  Object.keys(x).map((x) => [x, false]),
-                                ),
-                                [id]: true,
-                              }
-                            })
-                            setSelectInvert(false)
-                          }
                           setSelectFrom(id)
-                        }
-                        setMousedown(true)
-                        setSelectTo(id)
-                      }}
-                      onMouseOver={() => {
-                        if (mousedown()) {
                           setSelectTo(id)
                         }
-                      }}
-                    >
-                      <For each={prefs.browser.active_cols}>
-                        {(x) => (
-                          <td
-                            class="whitespace-nowrap border-x px-1 first:border-l-0 last:border-r-0"
-                            classList={{
-                              "border-z": !isSelected(),
-                              "border-[--z-table-row-selected-border]":
-                                isSelected(),
-                              "text-[--z-table-row-selected-text]":
-                                isSelected(),
-                            }}
-                          >
-                            {data.columns[x]}
-                          </td>
-                        )}
-                      </For>
-                    </tr>
-                  )
-                }}
-              </For>
-            </tbody>
-          </table>
-        </div>
+                        return
+                      }
+                      if (event.shiftKey) {
+                        if (selectFrom() == null) {
+                          setSelectFrom(id)
+                        }
+                        setSelectInvert(false)
+                      } else {
+                        if (event.ctrlKey || event.metaKey) {
+                          savePreviousSelection()
+                          setSelected(id.toString(), (x) => {
+                            setSelectInvert(x)
+                            return !x
+                          })
+                        } else {
+                          setSelected((x) => {
+                            return {
+                              ...Object.fromEntries(
+                                Object.keys(x).map((x) => [x, false]),
+                              ),
+                              [id]: true,
+                            }
+                          })
+                          setSelectInvert(false)
+                        }
+                        setSelectFrom(id)
+                      }
+                      setMousedown(true)
+                      setSelectTo(id)
+                    }}
+                    onMouseOver={() => {
+                      if (mousedown()) {
+                        setSelectTo(id)
+                      }
+                    }}
+                  >
+                    <For each={prefs.browser.active_cols}>
+                      {(x) => (
+                        <Td selected={isSelected()}>{data.columns[x]}</Td>
+                      )}
+                    </For>
+                  </Tr>
+                )
+              }}
+            </For>
+          </tbody>
+        </Table>
       )
     }
   },

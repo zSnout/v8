@@ -145,7 +145,7 @@ export interface LayerRenderInfo<Props, State, AsyncData> {
   /** The `Owner` of the reactive tree. */
   readonly owner: Owner | null
 
-  /** A `ShortcutsManager` specific to this render instance.  */
+  /** A `ShortcutsManager` specific to this render instance. */
   readonly shortcuts: ShortcutManager
 }
 
@@ -223,30 +223,26 @@ function createStatic<T>(value: T) {
 }
 
 /**
- *
- * **TL;DR: A layer has preserved state, volatile async data, and goes over other
- * parts of the page. Put configuration in props, stuff you need to preserve in
- * `state`, stuff from the database in `load` (which returns async data), and
- * store state which changes across undo/redo actions in the `onBeforeUndo`
- * handler.**
- *
- * ---
+ * **TL;DR: A layer has preserved state, volatile async data, and goes over
+ * other parts of the page. Put configuration in props, stuff you need to
+ * preserve in `state`, stuff from the database in `load` (which returns async
+ * data), and store state which changes across undo/redo actions in the
+ * `onBeforeUndo` handler.**
  *
  * A layer is like a page on a website. But instead of using regular pages, the
  * learn page uses a "fake pages" system which support good transitions, loading
  * views, keyboard shortcuts, and other good things. Layers can be pushed,
- * popped, or forcefully popped via the "Learn" link in the navigation bar
- * `Esc` key on a standard keyboard. Layers also provide a solid backdrop in
- * case this application ever starts using multiple windows.
+ * popped, or forcefully popped via the "Learn" link in the navigation bar `Esc`
+ * key on a standard keyboard. Layers also provide a solid backdrop in case this
+ * application ever starts using multiple windows.
  *
  * Regarding data, a typical layer has:
  *
  * - **Props**, which are passed by the element creating the layer.
  * - **State**, which is preserved when the layer is exited and returned to
- * - **Async data**, which is initially fetched in a `load` function, and which
- *   is automatically refetched whenever the layer is returned to (because it
- *   could have potentially changed), unless this behavior is explicitly
- *   disabled.
+ * - **Async data**, which is initially fetched in a `load` function, and which is
+ *   automatically refetched whenever the layer is returned to (because it could
+ *   have potentially changed), unless this behavior is explicitly disabled.
  *
  * If there is configuration required for your layer to work, it should likely
  * be part of the layer's props.
@@ -428,9 +424,9 @@ export function defineLayer<
           when={data.state == "ready"}
         >
           {/**
-           * The `untrack` call is automatically placed around JSX elements, but
-           * we can't use proper JSX elements here, so we add it manually
-           * instead. */}
+           * The `untrack` call is automatically placed around JSX elements, but we can't
+           * use proper JSX elements here, so we add it manually instead.
+           */}
           {untrack(() => layer.render(layerRenderInfo))}
         </Show>
       )
