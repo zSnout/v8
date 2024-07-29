@@ -35,6 +35,7 @@ import { download } from "../lib/download"
 import { createExpr } from "../lib/expr"
 import { displayFileSize } from "../lib/fileSize"
 import { parseKey, UserMedia, writeKey } from "../lib/media"
+import { export_name } from "../worker/messages"
 
 const media = new UserMedia()
 
@@ -141,7 +142,7 @@ export default defineLayer({
               return
             }
 
-            await popup<"original" | "hashed" | void>({
+            const mode = await popup<"original" | "hashed" | void>({
               owner,
               onCancel: undefined,
               children(close) {
@@ -160,11 +161,23 @@ export default defineLayer({
                       their new names? Either way, the same files will be
                       downloaded.
                     </ModalDescription>
-                    <ModalButtons>TODO:</ModalButtons>
+                    <ModalButtons>
+                      <ModalCancel onClick={() => close()}>Cancel</ModalCancel>
+                      <ModalCancel onClick={() => close("hashed")}>
+                        Keys
+                      </ModalCancel>
+                      <ModalConfirm onClick={() => close("original")}>
+                        Original names
+                      </ModalConfirm>
+                    </ModalButtons>
                   </>
                 )
               },
             })
+
+            if (!mode) {
+              return
+            }
 
             if (keys.length == 1) {
               const key = keys[0]!
@@ -193,6 +206,20 @@ export default defineLayer({
             await Promise.all(
               keys.map(async (key) => {
                 const file = await media.get(key)
+                if (!file) return
+                if (mode == "hashed") {
+                  zip.file(writeKey(key) + (file.name.match(/\..+$/) ?? ""))
+                } else {
+                  zip.file(file.name)
+                }
+              }),
+            )
+
+            const blob = await zip.generateAsync({ type: "blob" })
+
+            download(
+              new File([blob], await worker.post("export_name", ".media.zip"), {
+                type: "application/zip",
               }),
             )
           }}
