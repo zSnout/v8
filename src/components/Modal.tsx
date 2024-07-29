@@ -53,6 +53,20 @@ export function ModalDescription(props: { children: JSX.Element }) {
   return <p class="mt-2 text-sm text-z-subtitle">{props.children}</p>
 }
 
+export function ModalCode(props: { children: JSX.Element }) {
+  return (
+    <code class="rounded-sm bg-z-body-selected px-1">{props.children}</code>
+  )
+}
+
+export function ModalStrong(props: { children: JSX.Element }) {
+  return (
+    <strong class="font-semibold text-z underline underline-offset-2">
+      {props.children}
+    </strong>
+  )
+}
+
 export function ModalField(props: {
   value?: string
   placeholder?: string

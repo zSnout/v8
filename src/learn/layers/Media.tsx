@@ -1,10 +1,13 @@
 import { Fa } from "@/components/Fa"
 import {
+  alert,
   ModalButtons,
   ModalCancel,
+  ModalCode,
   ModalConfirm,
   ModalDescription,
   ModalDetails,
+  ModalStrong,
   ModalTitle,
   popup,
 } from "@/components/Modal"
@@ -14,26 +17,36 @@ import {
   faMagnifyingGlass,
   faUpload,
 } from "@fortawesome/free-solid-svg-icons"
+import JSZip from "jszip"
 import { createResource, For, Show } from "solid-js"
 import type { Worker } from "../db"
 import { Action } from "../el/BottomButtons"
+import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
 import { InlineLoading } from "../el/Loading"
 import { Table, Td, Th, Tr } from "../el/Table"
+import {
+  createSelectable,
+  TbodySelectable,
+  type TbodyRef,
+} from "../el/TbodySelectable"
 import { UploadButton } from "../el/upload"
+import { download } from "../lib/download"
 import { createExpr } from "../lib/expr"
 import { displayFileSize } from "../lib/fileSize"
-import { UserMedia, writeKey } from "../lib/media"
+import { parseKey, UserMedia, writeKey } from "../lib/media"
 
 const media = new UserMedia()
 
 export default defineLayer({
   init(_: Worker) {
     const [entries, { refetch }] = createResource(() => media.keys())
-    return { entries, refetch }
+    return { entries, refetch, data: createSelectable() }
   },
   load() {},
-  render({ owner, props: worker, state: { entries, refetch } }) {
+  render({ owner, props: worker, state: { entries, refetch, data } }) {
+    let tbody!: TbodyRef
+
     return (
       <div class="flex h-[calc(100vh_-_7rem)] w-full flex-1 flex-col">
         <TopActions />
@@ -90,7 +103,10 @@ export default defineLayer({
 
     function Grid() {
       return (
-        <Table class="rounded-lg border border-z">
+        <Table
+          class="rounded-lg border border-z"
+          onCtx={({ detail }) => detail(() => <CtxMenu />)}
+        >
           <thead>
             <tr>
               <Th>Key</Th>
@@ -99,23 +115,105 @@ export default defineLayer({
               <Th>Size</Th>
             </tr>
           </thead>
-          <tbody>
-            <For each={entries()}>{(x) => <Entry key={x} />}</For>
-          </tbody>
+          <TbodySelectable
+            getId={writeKey}
+            data={data}
+            items={entries() ?? []}
+            ref={(el) => (tbody = el)}
+          >
+            {(key, selected) => <Entry key={key} selected={selected()} />}
+          </TbodySelectable>
         </Table>
       )
     }
 
-    function Entry(props: { key: ArrayBuffer }) {
+    function CtxMenu() {
+      return (
+        <ContextMenuItem
+          onClick={async () => {
+            const keys = tbody
+              .getSelected()
+              .map(parseKey)
+              .filter((x) => x != null)
+
+            if (keys.length == 0) {
+              await alert({ owner, title: "No items selected" })
+              return
+            }
+
+            await popup<"original" | "hashed" | void>({
+              owner,
+              onCancel: undefined,
+              children(close) {
+                return (
+                  <>
+                    <ModalTitle>File name format</ModalTitle>
+                    <ModalDescription>
+                      When you uploaded media files, their names were rewritten.
+                      For example, a file named{" "}
+                      <ModalCode>dog-46.png</ModalCode> might become{" "}
+                      <ModalCode>ed59597ada9fe2f5.png</ModalCode> (this is
+                      called its <ModalStrong>key</ModalStrong>).
+                    </ModalDescription>
+                    <ModalDescription>
+                      Do you want to download by the original file names, or
+                      their new names? Either way, the same files will be
+                      downloaded.
+                    </ModalDescription>
+                    <ModalButtons>TODO:</ModalButtons>
+                  </>
+                )
+              },
+            })
+
+            if (keys.length == 1) {
+              const key = keys[0]!
+              const file = await media.get(key)
+              if (file) {
+                download(file)
+              } else {
+                await alert({
+                  owner,
+                  title: "File was deleted",
+                  get description() {
+                    return (
+                      <ModalDescription>
+                        The file was deleted before it could be downloaded.
+                        Maybe you removed it in another tab?
+                      </ModalDescription>
+                    )
+                  },
+                })
+              }
+              return
+            }
+
+            const zip = new JSZip()
+
+            await Promise.all(
+              keys.map(async (key) => {
+                const file = await media.get(key)
+              }),
+            )
+          }}
+        >
+          Export files
+        </ContextMenuItem>
+      )
+    }
+
+    function Entry(props: { key: ArrayBuffer; selected: boolean }) {
       const [file] = createResource(
         () => props.key,
         (name) => media.get(name),
       )
 
       return (
-        <Tr>
-          <Td class="w-[20ch] font-mono">{writeKey(props.key)}</Td>
-          <Td>
+        <>
+          <Td selected={props.selected} class="w-[20ch] font-mono">
+            {writeKey(props.key)}
+          </Td>
+          <Td selected={props.selected}>
             <div class="inline-flex items-center gap-1">
               <a href={"/learn/media/" + writeKey(props.key)} target="_new">
                 <Fa
@@ -127,9 +225,9 @@ export default defineLayer({
               <div>{file()?.name ?? "..."}</div>
             </div>
           </Td>
-          <Td>{file()?.type}</Td>
-          <Td>{displayFileSize(file()) ?? "..."}</Td>
-        </Tr>
+          <Td selected={props.selected}>{file()?.type}</Td>
+          <Td selected={props.selected}>{displayFileSize(file()) ?? "..."}</Td>
+        </>
       )
     }
 
