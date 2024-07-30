@@ -18,7 +18,6 @@ import {
 } from "../shared"
 import { int } from "./checks"
 import * as messages from "./messages"
-import query_init from "./query/init.sql?raw"
 import query_schema from "./query/schema.sql?raw"
 import { createSqlFunction } from "./sql"
 import { StateManager, type UndoMeta } from "./undo"
@@ -108,7 +107,6 @@ async function init() {
     })
 
     // make sure database is up to date
-    db.exec(query_init)
     checkVersion(db)
 
     // TODO: virtual table for user media
@@ -145,8 +143,8 @@ async function init() {
 // this upgrades similarly to indexedDB since indexedDB does upgrades well
 // this handles the meta of upgrading, while `upgrade` is the main script
 function checkVersion(db: WorkerDB) {
-  const sql = createSqlFunction(db)
   db.exec(query_schema)
+  const sql = createSqlFunction(db)
   sql`BEGIN TRANSACTION;`.run()
   try {
     const current =

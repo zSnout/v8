@@ -33,6 +33,7 @@ import {
 import { UploadButton } from "../el/upload"
 import { download } from "../lib/download"
 import { createExpr } from "../lib/expr"
+import { filename } from "../lib/filename"
 import { displayFileSize } from "../lib/fileSize"
 import { parseKey, UserMedia, writeKey } from "../lib/media"
 
@@ -220,7 +221,7 @@ export default defineLayer({
             const blob = await zip.generateAsync({ type: "blob" })
 
             download(
-              new File([blob], await worker.post("export_name", ".media.zip"), {
+              new File([blob], filename(".media.zip"), {
                 type: "application/zip",
               }),
             )

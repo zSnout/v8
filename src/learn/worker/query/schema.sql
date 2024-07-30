@@ -1,3 +1,5 @@
+PRAGMA foreign_keys = 1;
+
 CREATE TABLE IF NOT EXISTS core (
   id INTEGER PRIMARY KEY NOT NULL CHECK (id = 0),
   version INTEGER NOT NULL,

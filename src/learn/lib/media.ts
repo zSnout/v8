@@ -62,6 +62,19 @@ export class UserMedia {
     return await db.get("media", key)
   }
 
+  async getEach(keys: ArrayBuffer[]) {
+    const db = this.db ?? (await this.ready)
+    const tx = db.transaction("media")
+    const { store } = tx
+    const [files] = await Promise.all([
+      Promise.all(
+        keys.map(async (key) => ({ key, file: await store.get(key) })),
+      ),
+      tx.done,
+    ])
+    return files
+  }
+
   async deleteEach(keys: ArrayBuffer[]) {
     const db = this.db ?? (await this.ready)
     const tx = db.transaction("media", "readwrite")

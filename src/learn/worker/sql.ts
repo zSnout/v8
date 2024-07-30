@@ -292,6 +292,31 @@ export class StmtEach {
     private readonly data: BindingSpec[],
   ) {}
 
+  getAll<const T extends readonly Check[]>(checks: T): CheckResults<T>[][]
+  getAll(checks?: undefined): SqlValue[][][]
+  getAll(checks?: Check[]): SqlValue[][][] {
+    const output: SqlValue[][][] = []
+    for (const el of this.data) {
+      output.push(this.stmt.bindNew(el).getAll())
+    }
+
+    const row = output[0]?.[0]
+    if (row && checks) {
+      if (checks.length != row.length) {
+        throw new Error(
+          `Expected ${checks.length} column(s); received ${row.length}.`,
+        )
+      }
+      for (let index = 0; index < checks.length; index++) {
+        if (!checks[index]!(row[index]!)) {
+          throw new Error(`Check failed: ${checks[index]}.`)
+        }
+      }
+    }
+
+    return output
+  }
+
   getRow<const T extends readonly Check[]>(checks: T): CheckResults<T>[]
   getRow(checks?: undefined): SqlValue[][]
   getRow(checks?: Check[]): SqlValue[][] {
@@ -362,3 +387,5 @@ export function createSqlFunction(db: {
 
   return sql
 }
+
+export type SQLFunction = ReturnType<typeof createSqlFunction>

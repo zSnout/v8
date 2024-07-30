@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import type { TreeOf } from "@/components/tree-structure"
+import type JSZip from "jszip"
 import { type Grade, Rating, State } from "ts-fsrs"
 import * as v from "valibot"
 import { Id, IdKey } from "./id"
@@ -832,6 +833,33 @@ export const Collection = v.object({
   prefs: Prefs,
   charts: v.nullish(v.array(ChartCard), []),
 })
+
+export interface PackagedDecksMeta
+  extends v.InferOutput<typeof PackagedDecksMeta> {}
+export const PackagedDecksMeta = v.object({
+  version: v.literal(1),
+  hasMedia: v.boolean(),
+  hasScheduling: v.boolean(),
+  hasRevlog: v.boolean(),
+  hasConfs: v.boolean(),
+})
+
+export interface PackagedDecksData
+  extends v.InferOutput<typeof PackagedDecksData> {}
+export const PackagedDecksData = v.object({
+  models: v.array(Model),
+  confs: v.nullable(v.array(Conf)),
+  notes: v.array(Note),
+  decks: v.array(Deck),
+  cards: v.array(AnyCard),
+  rev_log: v.nullable(v.array(Review)),
+})
+
+export interface PackagedDecks {
+  meta: PackagedDecksMeta
+  data: PackagedDecksData
+  media: JSZip | null
+}
 
 export interface RepeatItem {
   card: AnyCard
