@@ -1,4 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb"
+import JSZip from "jszip"
 
 export const MEDIA_PREFIX = "/learn/media/"
 
@@ -57,6 +58,60 @@ export class UserMedia {
     this.ready = UserMedia.open().then((x) => (this.db = x))
   }
 
+  async import(keysToNames: Record<string, string>, data: JSZip) {
+    type ImportedFile = { keyStr: string; original: string }
+    const existingFiles: ImportedFile[] = []
+    const newFiles: ImportedFile[] = []
+    const erroredFiles: ImportedFile[] = []
+
+    const files = (
+      await Promise.all(
+        Object.entries(keysToNames).map(async ([keyStr, original]) => {
+          try {
+            const key = parseKey(keyStr)
+            if (!key) {
+              erroredFiles.push({ keyStr, original: original })
+              return
+            }
+            const entry = data.file(keyStr)
+            if (!entry) {
+              erroredFiles.push({ keyStr, original })
+              return
+            }
+            return [key, keyStr, original, await entry.async("blob")] as const
+          } catch (e) {
+            erroredFiles.push({ keyStr, original: original })
+            return
+          }
+        }),
+      )
+    ).filter((x) => x != null)
+
+    const db = this.db ?? (await this.ready)
+    const tx = db.transaction("media", "readwrite")
+    const media = tx.store
+
+    await Promise.all(
+      files.map(async ([key, keyStr, original, blob]) => {
+        try {
+          if (await media.count(key)) {
+            existingFiles.push({ keyStr, original })
+          } else {
+            await media.add(
+              new File([blob], original, { type: blob.type }),
+              key,
+            )
+            newFiles.push({ keyStr, original })
+          }
+        } catch {
+          erroredFiles.push({ keyStr, original })
+        }
+      }),
+    )
+
+    await tx.done
+  }
+
   async get(key: ArrayBuffer) {
     const db = this.db ?? (await this.ready)
     return await db.get("media", key)
@@ -83,12 +138,6 @@ export class UserMedia {
       store.delete(key)
     }
     await tx.done
-  }
-
-  private async put(key: ArrayBuffer, file: File) {
-    const db = this.db ?? (await this.ready)
-    await db.put("media", file, key)
-    return key
   }
 
   private async add(key: ArrayBuffer, file: File) {

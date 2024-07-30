@@ -838,7 +838,8 @@ export interface PackagedDeckMeta
   extends v.InferOutput<typeof PackagedDeckMeta> {}
 export const PackagedDeckMeta = v.object({
   version: v.literal(1),
-  hasMedia: v.boolean(),
+  /** A record from hashed names to original names. */
+  media: v.nullable(v.record(v.string(), v.string())),
   hasScheduling: v.boolean(),
   hasRevlog: v.boolean(),
   hasConfs: v.boolean(),

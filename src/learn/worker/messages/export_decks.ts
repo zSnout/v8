@@ -95,6 +95,7 @@ export async function export_decks_txless(
   }
 
   let media: JSZip | null = null
+  const mediaMap: Record<string, string> = Object.create(null)
   if (props.includeMedia) {
     media = new JSZip()
 
@@ -129,7 +130,9 @@ export async function export_decks_txless(
         .filter((x) => x != null),
     )) {
       if (file) {
-        media.file(writeKey(key), file)
+        const str = writeKey(key)
+        mediaMap[str] = file.name
+        media.file(str, file)
       }
     }
   }
@@ -137,7 +140,7 @@ export async function export_decks_txless(
   return packageDeck({
     meta: {
       version: 1,
-      hasMedia: props.includeMedia,
+      media: props.includeMedia ? mediaMap : null,
       hasScheduling: props.includeScheduling,
       hasConfs: props.includeConfs,
       hasRevlog: props.includeRevLog,

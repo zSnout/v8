@@ -16,6 +16,7 @@ export type Reason =
   | "Create chart"
   | "Set charts"
   | "Manage models"
+  | "Import deck package"
   | `Toggle ${string} column visibility in browser`
   | `Review card as ${string}`
   | `Toggle ${string} card flag`

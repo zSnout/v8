@@ -66,7 +66,7 @@ export async function unpackage(file: File): Promise<PackagedDeck> {
           rev_log:
             meta.hasRevlog ? inner("rev_log", stmts.rev_log, Review) : null,
         },
-        media: meta.hasMedia ? files : null,
+        media: meta.media ? files : null,
       }
     } finally {
       sqlite3.wasm.dealloc(p)
