@@ -2,8 +2,8 @@ import type { Id } from "@/learn/lib/id"
 import { TemplateEditStyle } from "@/learn/lib/types"
 import { parse } from "valibot"
 import { readonly, sql } from ".."
-import { text } from "../checks"
-import { stmts } from "../stmts"
+import { text } from "../lib/checks"
+import { stmts } from "../lib/stmts"
 
 export function model_get_with_edit_style(mid: Id) {
   const tx = readonly()

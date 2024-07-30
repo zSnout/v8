@@ -1,7 +1,7 @@
 import type { Collection } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { readonly, sql } from ".."
-import { stmts } from "../stmts"
+import { stmts } from "../lib/stmts"
 
 function inner<T>(name: string, meta: { interpret(data: SqlValue[]): T }) {
   const stmt = sql.of(`SELECT * FROM ${name};`)

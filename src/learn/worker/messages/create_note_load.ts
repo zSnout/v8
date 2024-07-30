@@ -2,7 +2,7 @@ import { notNull } from "@/components/pray"
 import { ID_ZERO, type Id } from "@/learn/lib/id"
 import { nameToRecord } from "@/learn/lib/record"
 import { readonly, sql } from ".."
-import { stmts } from "../stmts"
+import { stmts } from "../lib/stmts"
 import { prefs_get } from "./prefs_get"
 
 export function create_note_load(state: { did?: Id; mid?: Id }) {

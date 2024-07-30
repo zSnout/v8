@@ -13,7 +13,7 @@ import {
 import { timestampDist } from "@/pages/quiz/shared"
 import { State } from "ts-fsrs"
 import { readonly, sql } from ".."
-import { stmts } from "../stmts"
+import { stmts } from "../lib/stmts"
 import { prefs_get } from "./prefs_get"
 
 export interface BrowseData {

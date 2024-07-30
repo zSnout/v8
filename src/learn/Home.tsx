@@ -1,6 +1,12 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
-import { ModalDescription, ModalStrong, prompt } from "@/components/Modal"
+import {
+  confirm,
+  ModalCheckbox,
+  ModalDescription,
+  ModalStrong,
+  prompt,
+} from "@/components/Modal"
 import { NodeProps } from "@/components/tree"
 import { isDark, toggleIsDark } from "@/stores/theme"
 import {
@@ -30,9 +36,11 @@ import {
   LAYER_STUDY,
   LAYER_TASKS,
 } from "./layers"
+import { download } from "./lib/download"
 import type { Id } from "./lib/id"
 import { shortcutToString } from "./lib/shortcuts"
 import type { Buckets, DeckHomeInfo, DeckHomeTree } from "./lib/types"
+import type { ExportDecksProps } from "./worker/messages/export_decks"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -257,6 +265,12 @@ export const ROOT_LAYER_HOME = defineRootLayer({
                 </ContextMenuItem>
 
                 <ContextMenuItem
+                  onClick={() => exportDeck(name, data?.deck?.id)}
+                >
+                  Export deck
+                </ContextMenuItem>
+
+                <ContextMenuItem
                   onClick={async () => {
                     const cardsDeleted = await worker.post(
                       "deck_delete",
@@ -405,6 +419,63 @@ export const ROOT_LAYER_HOME = defineRootLayer({
       }
 
       reloadDecks()
+    }
+
+    async function exportDeck(currentName: string, id?: Id) {
+      const props: ExportDecksProps = {
+        includeConfs: false,
+        includeMedia: true,
+        includeRevLog: false,
+        includeScheduling: false,
+      }
+
+      const result = await confirm({
+        owner,
+        title: "Export deck",
+        get description() {
+          return (
+            <>
+              <ModalDescription>
+                Exporting a deck lets others import it into their own
+                collections.
+              </ModalDescription>
+
+              <ModalCheckbox
+                checked={props.includeConfs}
+                onInput={(x) => (props.includeConfs = x)}
+                children="Include deck presets?"
+              />
+
+              <ModalCheckbox
+                checked={props.includeMedia}
+                onInput={(x) => (props.includeMedia = x)}
+                children="Include user media?"
+              />
+
+              <ModalCheckbox
+                checked={props.includeRevLog}
+                onInput={(x) => (props.includeRevLog = x)}
+                children="Include review log?"
+              />
+
+              <ModalCheckbox
+                checked={props.includeScheduling}
+                onInput={(x) => (props.includeScheduling = x)}
+                children="Include scheduling info?"
+              />
+            </>
+          )
+        },
+        cancelText: "Cancel",
+        okText: "Export",
+      })
+
+      if (!result) {
+        return
+      }
+
+      const file = await worker.post("export_deck", id ?? currentName, props)
+      download(file)
     }
   },
 })

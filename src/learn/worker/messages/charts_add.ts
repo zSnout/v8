@@ -1,8 +1,8 @@
 import { idOf } from "@/learn/lib/id"
 import type { ChartCard } from "@/learn/lib/types"
 import { readwrite, sql } from ".."
-import { qint } from "../checks"
-import { stmts } from "../stmts"
+import { qint } from "../lib/checks"
+import { stmts } from "../lib/stmts"
 
 export function charts_add(title: string, query: string) {
   const tx = readwrite("Create chart")

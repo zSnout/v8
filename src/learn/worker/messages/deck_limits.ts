@@ -1,7 +1,7 @@
 import { isSameDaySync } from "@/learn/lib/day"
 import { type Id, ID_ZERO } from "@/learn/lib/id"
 import { readonly, sql } from ".."
-import { id, int, qint } from "../checks"
+import { id, int, qint } from "../lib/checks"
 import { prefs_get } from "./prefs_get"
 
 export function deck_limits_txless(root: Id | null, dayStart: number): Limits {

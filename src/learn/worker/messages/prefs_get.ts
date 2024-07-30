@@ -1,5 +1,5 @@
 import { sql } from ".."
-import { stmts } from "../stmts"
+import { stmts } from "../lib/stmts"
 
 /** Does not create a transaction. */
 export function prefs_get() {

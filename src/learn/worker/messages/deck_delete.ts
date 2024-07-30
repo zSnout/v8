@@ -1,6 +1,6 @@
 import type { Id } from "@/learn/lib/id"
 import { readwrite, sql } from ".."
-import { int, text } from "../checks"
+import { int, text } from "../lib/checks"
 
 export function deck_delete(currentId: Id | undefined, name: string) {
   const tx = readwrite(`Delete deck ${name}`)

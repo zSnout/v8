@@ -1,6 +1,6 @@
 import { UserMedia, writeKey } from "@/learn/lib/media"
 import { readonly, sql } from ".."
-import { text } from "../checks"
+import { text } from "../lib/checks"
 
 const media = new UserMedia()
 

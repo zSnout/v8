@@ -1,6 +1,6 @@
 import type { Id } from "@/learn/lib/id"
 import { readwrite, sql } from ".."
-import { text } from "../checks"
+import { text } from "../lib/checks"
 
 export function deck_rename(currentId: Id | string, name: string) {
   const tx = readwrite(`Rename deck to ${name}`)

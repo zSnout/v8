@@ -1,16 +1,16 @@
 // adapted from https://www.sqlite.org/undoredo.html
 
 import { error, ok } from "@/components/result"
-import type { WorkerDB } from "."
-import type { Id } from "../lib/id"
-import type { Reason } from "../lib/reason"
+import type { WorkerDB } from ".."
+import type { Id } from "../../lib/id"
+import type { Reason } from "../../lib/reason"
 import {
   ZID_UNDO_FAILED,
   ZID_UNDO_HAPPENED,
   ZID_UNDO_STACK_CHANGED,
   type UndoType,
   type WorkerNotification,
-} from "../shared"
+} from "../../shared"
 import { int, text } from "./checks"
 import { createSqlFunction } from "./sql"
 

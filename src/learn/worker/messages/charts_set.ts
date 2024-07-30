@@ -1,6 +1,6 @@
 import type { ChartCard } from "@/learn/lib/types"
 import { readwrite, sql } from ".."
-import { stmts } from "../stmts"
+import { stmts } from "../lib/stmts"
 
 export function charts_set(data: ChartCard[]) {
   const tx = readwrite("Set charts")

@@ -9,7 +9,7 @@ import { ROOT_LAYER_HOME } from "./Home"
 import type { Reason } from "./lib/reason"
 import { ShortcutManager } from "./lib/shortcuts"
 import { ZID_BEFORE_UNDO, type UndoType } from "./shared"
-import type { UndoMeta } from "./worker/undo"
+import type { UndoMeta } from "./worker/lib/undo"
 
 function ErrorHandler(props: { children: JSX.Element }) {
   const [reason, setError] = createSignal<unknown>()

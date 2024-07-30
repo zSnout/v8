@@ -1,7 +1,7 @@
 import type { Awaitable } from "./el/Layers"
 import type { Reason } from "./lib/reason"
 import type * as messages from "./worker/messages"
-import type { UndoMeta } from "./worker/undo"
+import type { UndoMeta } from "./worker/lib/undo"
 
 export type Handler = (this: void, ...data: any) => HandlerReturn
 

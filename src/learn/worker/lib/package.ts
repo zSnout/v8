@@ -1,11 +1,11 @@
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import JSZip from "jszip"
-import { sqlite3 } from "."
-import { filename } from "../lib/filename"
-import type { PackagedDecks } from "../lib/types"
-import schema from "./query/schema_deckpkg.sql?raw"
-import schema_confs from "./query/schema_deckpkg_confs.sql?raw"
-import schema_rev_log from "./query/schema_deckpkg_rev_log.sql?raw"
+import { sqlite3 } from ".."
+import { filename } from "../../lib/filename"
+import type { PackagedDecks } from "../../lib/types"
+import schema from "../query/schema_deckpkg.sql?raw"
+import schema_confs from "../query/schema_deckpkg_confs.sql?raw"
+import schema_rev_log from "../query/schema_deckpkg_rev_log.sql?raw"
 import { createSqlFunction, type Stmt } from "./sql"
 import { createStmts } from "./stmts"
 
@@ -53,6 +53,7 @@ export async function packageDeck(deck: PackagedDecks): Promise<File> {
   }
   db.exec("VACUUM;")
   const data = sqlite3.capi.sqlite3_js_db_export(db)
+  db.close()
   zip.file("data.sqlite", data)
 
   const blob = await zip.generateAsync({ type: "blob" })

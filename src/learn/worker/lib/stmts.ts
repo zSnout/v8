@@ -13,7 +13,7 @@ import {
   type ChartCard,
 } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
-import { sql } from "."
+import { sql } from ".."
 import type { SQLFunction } from "./sql"
 import { latest } from "./version"
 

@@ -12,8 +12,8 @@ import {
 import { createEmptyCard, State } from "ts-fsrs"
 import { parse } from "valibot"
 import { readwrite, sql } from ".."
-import { int, text } from "../checks"
-import { stmts } from "../stmts"
+import { int, text } from "../lib/checks"
+import { stmts } from "../lib/stmts"
 
 export function create_note(
   tags: string[],

@@ -2,7 +2,7 @@ import type { Id } from "@/learn/lib/id"
 import { cloneModel } from "@/learn/lib/models"
 import type { AddedModel, RemovedModel } from "@/learn/lib/types"
 import { readwrite, sql } from ".."
-import { stmts } from "../stmts"
+import { stmts } from "../lib/stmts"
 
 export function manage_models_save(
   added: AddedModel[],

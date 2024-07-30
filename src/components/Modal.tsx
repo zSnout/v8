@@ -7,6 +7,7 @@ import {
   untrack,
 } from "solid-js"
 import { Portal } from "solid-js/web"
+import { Checkbox } from "./fields/CheckboxGroup"
 
 export function ModalCancel(props: {
   children: JSX.Element
@@ -56,6 +57,23 @@ export function ModalDescription(props: { children: JSX.Element }) {
 export function ModalCode(props: { children: JSX.Element }) {
   return (
     <code class="rounded bg-z-body-selected px-1 text-z">{props.children}</code>
+  )
+}
+
+export function ModalCheckbox(props: {
+  children: string
+  checked: boolean
+  onInput(value: boolean): void
+}) {
+  return (
+    <label
+      class="mt-2 flex w-full items-center gap-2 [[data-z-modal-checkbox]+&]:mt-0"
+      data-z-modal-checkbox
+    >
+      <Checkbox checked={props.checked} onInput={(v) => props.onInput(v)} />
+
+      <p class="text-z">{props.children}</p>
+    </label>
   )
 }
 

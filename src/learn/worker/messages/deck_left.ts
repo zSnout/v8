@@ -1,6 +1,6 @@
 import type { Id } from "@/learn/lib/id"
 import { readonly, sql } from ".."
-import { int } from "../checks"
+import { int } from "../lib/checks"
 
 export function deck_left_txless(decks: Id[]) {
   const stmtNew = sql`SELECT COUNT() FROM cards WHERE did = ? AND state = 0;`

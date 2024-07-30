@@ -1,7 +1,7 @@
 import type { AnyCard, Review } from "@/learn/lib/types"
 import { Rating } from "ts-fsrs"
-import { int, text } from "../checks"
-import { stmts } from "../stmts"
+import { int, text } from "../lib/checks"
+import { stmts } from "../lib/stmts"
 import { readwrite, sql } from ".."
 
 export function study_save_review(

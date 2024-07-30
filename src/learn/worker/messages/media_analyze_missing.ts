@@ -1,6 +1,6 @@
 import { UserMedia, writeKey } from "@/learn/lib/media"
 import { sql } from ".."
-import { text } from "../checks"
+import { text } from "../lib/checks"
 
 const media = new UserMedia()
 const regex = /\/learn\/media\/([0-9a-fA-F]{16})/g

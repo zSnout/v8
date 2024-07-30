@@ -1,6 +1,6 @@
 import type { Id } from "@/learn/lib/id"
 import { sql } from ".."
-import { stmts } from "../stmts"
+import { stmts } from "../lib/stmts"
 
 /** Does not create a transaction */
 export function model_get(mid: Id) {

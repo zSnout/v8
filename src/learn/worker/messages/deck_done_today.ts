@@ -1,7 +1,7 @@
 import { isSameDaySync } from "@/learn/lib/day"
 import type { Id } from "@/learn/lib/id"
 import { readonly, sql } from ".."
-import { int, text } from "../checks"
+import { int, text } from "../lib/checks"
 
 export function deck_done_today_txless(decks: Id[], dayStart: number) {
   const stmt = sql`

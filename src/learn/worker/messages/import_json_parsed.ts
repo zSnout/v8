@@ -3,8 +3,8 @@ import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { db, readwrite } from ".."
 import query_reset from "../query/reset.sql?raw"
 import query_schema from "../query/schema.sql?raw"
-import type { Stmt } from "../sql"
-import { stmts } from "../stmts"
+import type { Stmt } from "../lib/sql"
+import { stmts } from "../lib/stmts"
 
 function inner<T>(
   meta: { insert(): Stmt; insertArgs(item: T): SqlValue[] },

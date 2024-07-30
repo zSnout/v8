@@ -4,8 +4,8 @@ import { unique } from "@/learn/lib/unique"
 import JSZip from "jszip"
 import { State } from "ts-fsrs"
 import { readonly, sql } from ".."
-import { packageDeck } from "../package"
-import { stmts } from "../stmts"
+import { packageDeck } from "../lib/package"
+import { stmts } from "../lib/stmts"
 
 export interface ExportDecksProps {
   includeConfs: boolean

@@ -3,7 +3,7 @@ import { Id } from "@/learn/lib/id"
 import * as Template from "@/learn/lib/template"
 import type { ModelFields, ModelTemplates, NoteFields } from "@/learn/lib/types"
 import { readonly, sql } from ".."
-import { id, text } from "../checks"
+import { id, text } from "../lib/checks"
 
 export function export_cards_raw(cids: Id[]) {
   const tx = readonly()

@@ -16,12 +16,12 @@ import {
   type WorkerRequest,
   type WorkerResponse,
 } from "../shared"
-import { int } from "./checks"
+import { int } from "./lib/checks"
 import * as messages from "./messages"
 import query_schema from "./query/schema.sql?raw"
-import { createSqlFunction } from "./sql"
-import { StateManager, type UndoMeta } from "./undo"
-import { latest, upgrade } from "./version"
+import { createSqlFunction } from "./lib/sql"
+import { StateManager, type UndoMeta } from "./lib/undo"
+import { latest, upgrade } from "./lib/version"
 
 export const sqlite3 = await (sqlite3InitModule as typeof initSqlite)()
 

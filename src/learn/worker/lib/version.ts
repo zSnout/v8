@@ -1,4 +1,4 @@
-import type { WorkerDB } from "."
+import type { WorkerDB } from ".."
 
 export const latest = 1
 

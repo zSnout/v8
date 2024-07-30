@@ -13,8 +13,8 @@ import {
 import { createEmptyCard, State } from "ts-fsrs"
 import { parse } from "valibot"
 import { readwrite, sql } from ".."
-import { id, qid, text } from "../checks"
-import { stmts } from "../stmts"
+import { id, qid, text } from "../lib/checks"
+import { stmts } from "../lib/stmts"
 
 function requiresOneWaySync(
   prev: Pick<Model, "sort_field" | "fields">,

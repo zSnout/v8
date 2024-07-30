@@ -1,5 +1,5 @@
 import type { Id } from "@/learn/lib/id"
-import { int } from "../checks"
+import { int } from "../lib/checks"
 import { readonly, sql } from ".."
 
 export function manage_models_count(mid: Id) {
