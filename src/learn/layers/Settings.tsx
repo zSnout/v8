@@ -1,5 +1,10 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
-import { alert, confirm, ModalDescription } from "@/components/Modal"
+import {
+  alert,
+  confirm,
+  ModalDescription,
+  ModalStrong,
+} from "@/components/Modal"
 import {
   faDownload,
   faRightFromBracket,
@@ -49,11 +54,10 @@ export default defineLayer({
                 get description() {
                   return (
                     <ModalDescription>
-                      This will{" "}
-                      <strong class="text-z underline">irreversibly</strong>{" "}
-                      replace your entire collection with data from the imported
-                      file. We highly recommend exporting your current data
-                      before you import, just in case.
+                      This will <ModalStrong>irreversibly</ModalStrong> replace
+                      your entire collection with data from the imported file.
+                      We highly recommend exporting your current data before you
+                      import, just in case.
                     </ModalDescription>
                   )
                 },

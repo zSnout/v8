@@ -1,6 +1,6 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { MonotypeExpandableTree } from "@/components/Expandable"
-import { ModalDescription, prompt } from "@/components/Modal"
+import { ModalDescription, ModalStrong, prompt } from "@/components/Modal"
 import { NodeProps } from "@/components/tree"
 import { isDark, toggleIsDark } from "@/stores/theme"
 import {
@@ -365,8 +365,7 @@ export const ROOT_LAYER_HOME = defineRootLayer({
           get description() {
             return (
               <ModalDescription>
-                Type a new name for{" "}
-                <strong class="text-z">{currentName}</strong>.
+                Type a new name for <ModalStrong>{currentName}</ModalStrong>.
               </ModalDescription>
             )
           },
@@ -391,9 +390,8 @@ export const ROOT_LAYER_HOME = defineRootLayer({
               return (
                 <ModalDescription>
                   That name is already in use by an existing deck. Type a
-                  different name for{" "}
-                  <strong class="text-z">{currentName}</strong>, or cancel the
-                  action.
+                  different name for <ModalStrong>{currentName}</ModalStrong>,
+                  or cancel the action.
                 </ModalDescription>
               )
             },

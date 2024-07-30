@@ -27,7 +27,8 @@ export function toDateString(
 }
 
 /**
- * Converts a date to either "month" or "month year" format depending on when it occurs.
+ * Converts a date to either "month" or "month year" format depending on when it
+ * occurs.
  */
 export function toMonthString(date: Date) {
   const now = new Date()

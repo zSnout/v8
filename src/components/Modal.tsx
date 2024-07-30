@@ -55,18 +55,12 @@ export function ModalDescription(props: { children: JSX.Element }) {
 
 export function ModalCode(props: { children: JSX.Element }) {
   return (
-    <code class="rounded-sm bg-z-body-selected px-1 text-z">
-      {props.children}
-    </code>
+    <code class="rounded bg-z-body-selected px-1 text-z">{props.children}</code>
   )
 }
 
 export function ModalStrong(props: { children: JSX.Element }) {
-  return (
-    <strong class="font-semibold text-z underline underline-offset-2">
-      {props.children}
-    </strong>
-  )
+  return <strong class="text-z underline">{props.children}</strong>
 }
 
 export function ModalField(props: {

@@ -461,7 +461,17 @@ export const stmts = {
       return sql`INSERT INTO charts VALUES (?, ?, ?, ?, ?, ?, ?);`
     },
     update() {
-      return sql`UPDATE charts SET last_edited = ?, title = ?, query = ?, chart = ?, style = ?, options = ? WHERE id = ?`
+      return sql`
+        UPDATE charts
+        SET
+          last_edited = ?,
+          title = ?,
+          \`query\` = ?,
+          chart = ?,
+          style = ?,
+          options = ?
+        WHERE id = ?;
+      `
     },
     /**
      * Expects data from SELECT *.

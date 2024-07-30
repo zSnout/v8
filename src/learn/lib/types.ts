@@ -490,7 +490,10 @@ export const Prefs = v.object({
   /** If a review is due before this many seconds, it is advanced to now */
   collapse_time: v.number(),
 
-  /** Each time this number of seconds elapses, the application tells you how many cards you reviewed */
+  /**
+   * Each time this number of seconds elapses, the application tells you how
+   * many cards you reviewed
+   */
   notify_after_time: v.number(),
 
   /** Whether to show review time above the buttons */
@@ -502,10 +505,16 @@ export const Prefs = v.object({
   /** Whether to show deck names */
   show_deck_name: v.boolean(),
 
-  /** Highest due value of a new card. Next note created should be higher than this */
+  /**
+   * Highest due value of a new card. Next note created should be higher than
+   * this
+   */
   next_new_card_position: v.number(),
 
-  /** The last time any card was unburied. If not today, then buried notes need to be unburied */
+  /**
+   * The last time any card was unburied. If not today, then buried notes need
+   * to be unburied
+   */
   last_unburied: v.optional(v.nullable(v.number(), 0), null),
 
   /** When the day is considered to start, in milliseconds after midnight */

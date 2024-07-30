@@ -157,31 +157,31 @@ export function Expandable(props: {
 }
 
 export function ExpandableTree<T, U>(props: {
-  /** main tree */
+  /** Main tree */
   tree: TreeOf<T, U>
 
-  /** whether to shift dropdowns */
+  /** Whether to shift dropdowns */
   shift?: boolean
 
-  /** render subtree label */
+  /** Render subtree label */
   subtree: (props: SubtreeProps<T, U>) => JSX.Element
 
-  /** render leaf label */
+  /** Render leaf label */
   leaf: (props: LeafProps<T, U>) => JSX.Element
 
-  /** is expanded */
+  /** Is expanded */
   isExpanded: (props: SubtreeProps<T, U>) => boolean
 
-  /** set expanded */
+  /** Set expanded */
   setExpanded: (props: SubtreeProps<T, U>, expanded: boolean) => void
 
-  /** sort */
+  /** Sort */
   sort?: (a: [string, NodeOf<T, U>], b: [string, NodeOf<T, U>]) => number
 
-  /** z-index of dropdowns */
+  /** Z-index of dropdowns */
   z?: number
 
-  /** if `true`, forces no gaps to be included */
+  /** If `true`, forces no gaps to be included */
   noGap?: boolean
 }) {
   const {
@@ -275,28 +275,28 @@ export function ExpandableTree<T, U>(props: {
 }
 
 export function MonotypeExpandableTree<T, U>(props: {
-  /** main tree */
+  /** Main tree */
   tree: TreeOf<T, U>
 
-  /** whether to shift dropdown arrows */
+  /** Whether to shift dropdown arrows */
   shift?: boolean
 
-  /** render node label */
+  /** Render node label */
   node: (props: NodeProps<T, U>) => JSX.Element
 
-  /** is expanded */
+  /** Is expanded */
   isExpanded: (props: SubtreeProps<T, U>) => boolean
 
-  /** set expanded */
+  /** Set expanded */
   setExpanded: (props: SubtreeProps<T, U>, expanded: boolean) => void
 
-  /** sort */
+  /** Sort */
   sort?: (a: [string, NodeOf<T, U>], b: [string, NodeOf<T, U>]) => number
 
-  /** z-index of dropdowns */
+  /** Z-index of dropdowns */
   z?: number
 
-  /** if `true`, forces no gaps to be included */
+  /** If `true`, forces no gaps to be included */
   noGap?: boolean
 }) {
   return (

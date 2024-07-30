@@ -1,7 +1,7 @@
 import { Fa } from "@/components/Fa"
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
-import { confirm, ModalDescription } from "@/components/Modal"
+import { confirm, ModalDescription, ModalStrong } from "@/components/Modal"
 import { Unmain } from "@/components/Prose"
 import { error, ok, type Result } from "@/components/result"
 import { json as jsonLang } from "@codemirror/lang-json"
@@ -205,9 +205,9 @@ export default defineLayer({
                       <>
                         <ModalDescription>
                           This will delete the statistic{" "}
-                          <strong class="text-z underline">{card.title}</strong>{" "}
-                          from your statistics page. You can always add it back
-                          later, but it might take a while to set up the correct
+                          <ModalStrong>{card.title}</ModalStrong> from your
+                          statistics page. You can always add it back later, but
+                          it might take a while to set up the correct
                           configuration. For reference, its query is this:
                         </ModalDescription>
 

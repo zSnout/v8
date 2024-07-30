@@ -1,4 +1,9 @@
-import { ModalDescription, prompt } from "@/components/Modal"
+import {
+  ModalCode,
+  ModalDescription,
+  ModalStrong,
+  prompt,
+} from "@/components/Modal"
 import { Unmain } from "@/components/Prose"
 import { sql, SQLite } from "@codemirror/lang-sql"
 import {
@@ -264,29 +269,24 @@ export default defineLayer({
                     <>
                       <ModalDescription>
                         Unsafe mode lets you use arbitrary SQLite commands.
-                        <strong class="text-z underline">
+                        <ModalStrong>
                           If you don't know SQLite, you should not use unsafe
                           mode.
-                        </strong>
+                        </ModalStrong>
                       </ModalDescription>
 
                       <ModalDescription>
                         Anything you do in unsafe mode can affect the database{" "}
-                        <strong class="text-z underline">
-                          permanently and irreversibly
-                        </strong>
-                        . This could destroy years of reviews, make the
+                        <ModalStrong>permanently and irreversibly</ModalStrong>.
+                        This could destroy years of reviews, make the
                         application inaccessible, or any other number of
                         terrible things. We highly recommend exporting your
                         current data before you use unsafe mode, just in case.
                       </ModalDescription>
 
                       <ModalDescription>
-                        Enter{" "}
-                        <code class="rounded bg-z-body-selected px-1 text-z">
-                          {code}
-                        </code>{" "}
-                        below to confirm you want to enter unsafe mode.
+                        Enter <ModalCode>{code}</ModalCode> below to confirm you
+                        want to enter unsafe mode.
                       </ModalDescription>
                     </>
                   )
