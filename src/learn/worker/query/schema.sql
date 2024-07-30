@@ -124,9 +124,11 @@ CREATE TABLE IF NOT EXISTS cards (
 
 CREATE INDEX IF NOT EXISTS cards_nid ON cards (nid);
 
-CREATE INDEX IF NOT EXISTS cards_did ON cards (did);
+DROP INDEX IF EXISTS cards_did;
 
-CREATE INDEX IF NOT EXISTS cards_due ON cards (due);
+DROP INDEX IF EXISTS cards_due;
+
+CREATE INDEX IF NOT EXISTS cards_schedule ON cards (did, `queue`, due);
 
 CREATE UNIQUE INDEX IF NOT EXISTS cards_tid_nid ON cards (tid, nid);
 

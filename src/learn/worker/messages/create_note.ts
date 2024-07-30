@@ -12,7 +12,7 @@ import {
 import { createEmptyCard, State } from "ts-fsrs"
 import { parse } from "valibot"
 import { readwrite, sql } from ".."
-import { text } from "../checks"
+import { int, text } from "../checks"
 import { stmts } from "../stmts"
 
 export function create_note(
@@ -39,6 +39,8 @@ export function create_note(
   const fieldRecord = Template.fieldRecord(model.fields, fields)
   const cards: NewCard[] = []
 
+  let due = sql`SELECT max(due) FROM cards WHERE state = 0;`.getValue(int)
+
   for (const tmpl of Object.values(model.tmpls)) {
     const base = createEmptyCard(now)
     const template = unwrapOr(Template.parse(tmpl.qfmt), [])
@@ -55,7 +57,7 @@ export function create_note(
       nid,
       tid: tmpl.id,
       id: randomId(),
-      due: base.due.getTime(),
+      due: ++due,
       last_edited: now,
       last_review: null,
       queue: 0,
