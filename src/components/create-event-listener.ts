@@ -33,6 +33,13 @@ export function createEventListener<
   options?: AddEventListenerOptions,
 ): void
 
+export function createEventListener<T extends EventTarget>(
+  target: EventTarget,
+  name: string,
+  callback: (event: Event & { currentTarget: T }) => void,
+  options?: AddEventListenerOptions,
+): void
+
 export function createEventListener(
   target: EventTarget,
   name: string,

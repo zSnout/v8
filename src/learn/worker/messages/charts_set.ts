@@ -1,17 +1,16 @@
 import type { ChartCard } from "@/learn/lib/types"
-import { db } from "../db"
+import { readwrite, sql } from ".."
 import { stmts } from "../stmts"
 
 export function charts_set(data: ChartCard[]) {
-  const tx = db.tx()
+  const tx = readwrite("Set charts")
   try {
-    db.exec("DELETE FROM charts")
-    const stmt = db.prepare(stmts.charts.insert)
+    sql`DELETE FROM charts;`.run()
+    const stmt = stmts.charts.insert()
     for (const stat of data) {
-      stmt.bind(stmts.charts.insertArgs(stat))
-      stmt.stepReset()
+      stmt.bindNew(stmts.charts.insertArgs(stat))
+      stmt.run()
     }
-    stmt.finalize()
     tx.commit()
   } finally {
     tx.dispose()

@@ -1,19 +1,20 @@
 // TODO: align, piecewise, floor, ceil, &
 
-/** Latex Parsing Steps
+/**
+ * Latex Parsing Steps
  *
- * 1. parse tokens
- * 2. parse brackets and latex groups
- * 3. parse latex commands like \sqrt, \frac, and \sum
- * 4. parse ^, _, !, and logb
- * 5. parse tight implicit multiplication (a b)
- * 6. parse unary prefix operators and logb
- * 7. parse loose implicit multiplication (sin a cos b)
- * 8. parse multiplicative level operators
- * 9. parse contents of big operators
- * 10. parse additive operators
- * 11. parse chained comparisons
- * 12. parse all other operators
+ * 1. Parse tokens
+ * 2. Parse brackets and latex groups
+ * 3. Parse latex commands like \sqrt, \frac, and \sum
+ * 4. Parse ^, _, !, and logb
+ * 5. Parse tight implicit multiplication (a b)
+ * 6. Parse unary prefix operators and logb
+ * 7. Parse loose implicit multiplication (sin a cos b)
+ * 8. Parse multiplicative level operators
+ * 9. Parse contents of big operators
+ * 10. Parse additive operators
+ * 11. Parse chained comparisons
+ * 12. Parse all other operators
  */
 
 type Step1 =

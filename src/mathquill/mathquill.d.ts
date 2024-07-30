@@ -492,8 +492,10 @@ export class Cursor extends Point {
   parent: MQNode
   options: V3.Config
 
-  /** Slightly more than just a "cache", this remembers the cursor's position in each block node, so that we can return to the right
-   * point in that node when moving up and down among blocks.
+  /**
+   * Slightly more than just a "cache", this remembers the cursor's position in
+   * each block node, so that we can return to the right point in that node when
+   * moving up and down among blocks.
    */
   upDownCache: Record<number | string, Point | undefined>
   blink: () => void
@@ -517,23 +519,31 @@ export class Cursor extends Point {
     withDir: NodeRef,
     oppDir: NodeRef,
   ): void
-  /** Place the cursor before or after `el`, according the side specified by `dir`. */
+  /**
+   * Place the cursor before or after `el`, according the side specified by
+   * `dir`.
+   */
   insDirOf(dir: Direction, el: MQNode): this
   insLeftOf(el: MQNode): this
   insRightOf(el: MQNode): this
 
-  /** Place the cursor inside `el` at either the left or right end, according the side specified by `dir`. */
+  /**
+   * Place the cursor inside `el` at either the left or right end, according the
+   * side specified by `dir`.
+   */
   insAtDirEnd(dir: Direction, el: MQNode): this
   insAtLeftEnd(el: MQNode): this
   insAtRightEnd(el: MQNode): this
 
   /**
-   * jump up or down from one block Node to another:
-   * - cache the current Point in the node we're jumping from
-   * - check if there's a Point in it cached for the node we're jumping to
-   *   + if so put the cursor there,
-   *   + if not seek a position in the node that is horizontally closest to
-   *     the cursor's current position
+   * Jump up or down from one block Node to another:
+   *
+   * - Cache the current Point in the node we're jumping from
+   * - Check if there's a Point in it cached for the node we're jumping to
+   *
+   *   - If so put the cursor there,
+   *   - If not seek a position in the node that is horizontally closest to the
+   *       cursor's current position
    */
   jumpUpDown(from: MQNode, to: MQNode): void
   getBoundingClientRectWithoutMargin(): { left: number; right: number }

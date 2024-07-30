@@ -1,23 +1,23 @@
 import type { Collection } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
-import { db } from "../db"
+import { db, readwrite } from ".."
 import query_reset from "../query/reset.sql?raw"
 import query_schema from "../query/schema.sql?raw"
+import type { Stmt } from "../sql"
 import { stmts } from "../stmts"
 
 function inner<T>(
-  meta: { insert: string; insertArgs(item: T): SqlValue[] },
+  meta: { insert(): Stmt; insertArgs(item: T): SqlValue[] },
   items: T[],
 ) {
-  const stmt = db.prepare(meta.insert)
+  const stmt = meta.insert()
   for (const item of items) {
-    stmt.bind(meta.insertArgs(item)).stepReset()
+    stmt.bindNew(meta.insertArgs(item)).run()
   }
-  stmt.finalize()
 }
 
 export function import_json_parsed(data: Collection) {
-  const tx = db.tx()
+  const tx = readwrite("Import collection JSON")
   try {
     db.exec(query_reset)
     db.exec(query_schema)
@@ -30,6 +30,7 @@ export function import_json_parsed(data: Collection) {
     inner(stmts.cards, data.cards)
     inner(stmts.rev_log, data.rev_log)
     inner(stmts.prefs, [data.prefs])
+    inner(stmts.charts, data.charts)
     tx.commit()
   } finally {
     tx.dispose()

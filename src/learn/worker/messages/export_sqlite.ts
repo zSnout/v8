@@ -1,8 +1,9 @@
-import { db, sqlite3 } from "../db"
+import { db, sqlite3 } from ".."
+import { export_name } from "./export_name"
 
 export function export_sqlite() {
   return new File(
     [sqlite3.capi.sqlite3_js_db_export(db)],
-    "zsnout-learn-" + new Date().toISOString() + ".zl.sqlite",
+    export_name(".col.sqlite"),
   )
 }

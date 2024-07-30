@@ -13,7 +13,6 @@
   "dependencies": {
     "@astrojs/mdx": "^0.18.0",
     "@astrojs/solid-js": "^2.1.0",
-    "@astrojs/svelte": "^2.1.0",
     "@astrojs/tailwind": "^3.1.0",
     "@codemirror/commands": "^6.6.0",
     "@codemirror/lang-css": "^6.2.1",
@@ -23,6 +22,7 @@
     "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
     "@codemirror/view": "^6.28.4",
+    "@fast-csv/format": "^5.0.0",
     "@fortawesome/free-regular-svg-icons": "^6.3.0",
     "@fortawesome/free-solid-svg-icons": "^6.3.0",
     "@solid-primitives/media": "^2.1.3",
@@ -38,21 +38,25 @@
     "@types/nearley": "^2.11.5",
     "@zsnout/ithkuil": "^0.1.98",
     "@zsnout/tailwind": "^0.1.11",
-    "astro": "^2.5.5",
+    "astro": "~2.10.15",
     "codemirror": "^6.0.1",
     "color-diff": "^1.4.0",
     "core-js": "^3.37.1",
+    "csv-stringify": "^6.5.1",
     "dompurify": "^3.1.5",
     "fast-fuzzy": "^1.12.0",
     "fastest-levenshtein": "^1.0.16",
     "idb": "^8.0.0",
+    "jszip": "^3.10.1",
     "katex": "^0.16.4",
     "nearley": "^2.20.1",
     "pdfjs-dist": "^4.2.67",
     "prettier": "^3.3.3",
     "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-embed": "^0.4.15",
     "prettier-plugin-glsl": "^0.2.0",
-    "prettier-plugin-sql": "^0.18.1",
+    "prettier-plugin-jsdoc": "^1.3.0",
+    "prettier-plugin-sql-cst": "^0.11.5",
     "prettier-plugin-tailwindcss": "^0.6.5",
     "rehype-katex": "^6.0.2",
     "remark-math": "^5.1.1",
@@ -68,6 +72,7 @@
     "valibot": "^0.35.0",
     "vite": "^5.0.0-beta.11",
     "vite-plugin-glsl": "^1.1.2",
+    "vite-plugin-pwa": "^0.20.1",
     "vite-tsconfig-paths": "^4.3.2"
   },
   "devDependencies": {
@@ -80,13 +85,28 @@
     "semi": false,
     "proseWrap": "always",
     "plugins": [
+      "prettier-plugin-jsdoc",
       "prettier-plugin-astro",
+      "prettier-plugin-embed",
       "prettier-plugin-glsl",
-      "prettier-plugin-sql",
+      "prettier-plugin-sql-cst",
       "prettier-plugin-tailwindcss"
     ],
     "trailingComma": "all",
-    "experimentalTernaries": true
+    "experimentalTernaries": true,
+    "embeddedSqlPlugin": "prettier-plugin-sql-cst",
+    "sqlParamTypes": [
+      "?",
+      "?nr",
+      "$nr",
+      ":name",
+      "@name",
+      "$name"
+    ],
+    "embeddedSqlTags": [
+      "sql",
+      "this.sql"
+    ]
   },
   "overrides": {
     "eslint": "^9.6.0"

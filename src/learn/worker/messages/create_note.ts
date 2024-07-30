@@ -11,8 +11,8 @@ import {
 } from "@/learn/lib/types"
 import { createEmptyCard, State } from "ts-fsrs"
 import { parse } from "valibot"
+import { readwrite, sql } from ".."
 import { text } from "../checks"
-import { db } from "../db"
 import { stmts } from "../stmts"
 
 export function create_note(
@@ -70,24 +70,24 @@ export function create_note(
     throw new Error("Note generated no cards.")
   }
 
-  const tx = db.tx()
+  const tx = readwrite(`Create note in ${deck.name}`)
   try {
-    db.run(stmts.notes.insert, stmts.notes.insertArgs(note))
+    stmts.notes.insert().bindNew(stmts.notes.insertArgs(note)).run()
 
     // insert cards using a prepared statement
-    const stmt = db.prepare(stmts.cards.insert)
-    try {
-      for (const card of cards) {
-        stmt.bind(stmts.cards.insertArgs(card)).stepReset()
-      }
-    } finally {
-      stmt.finalize()
+    const stmt = stmts.cards.insert()
+    for (const card of cards) {
+      stmt.bindNew(stmts.cards.insertArgs(card)).run()
     }
 
     // verify that the fields object we're adding doesn't kill integrity
-    const result = db.val("SELECT fields FROM models WHERE id = ?", text, [
-      model.id,
-    ])
+    const result = sql`
+      SELECT
+        fields
+      FROM models
+      WHERE id = ${model.id};
+    `.getValue(text)
+
     const prevFields = Object.keys(parse(ModelFields, JSON.parse(result)))
     const nextFields = Object.keys(model.fields)
     if (
@@ -96,11 +96,13 @@ export function create_note(
       prevFields.length == nextFields.length &&
       prevFields.every((x, i) => x == nextFields[i])
     ) {
-      db.run("UPDATE models SET sort_field = ?, fields = ? WHERE id = ?", [
-        model.sort_field,
-        JSON.stringify(model.fields),
-        model.id,
-      ])
+      sql`
+        UPDATE models
+        SET
+          sort_field = ${model.sort_field},
+          fields = ${JSON.stringify(model.fields)}
+        WHERE id = ${model.id};
+      `.run()
     } else {
       console.warn(
         "The model was not able to be updated.",

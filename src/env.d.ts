@@ -11,3 +11,7 @@ declare module "core-js/proposals/explicit-resource-management"
 declare module "../node_modules/@sqlite.org/sqlite-wasm/sqlite-wasm/jswasm/sqlite3-bundler-friendly.mjs" {
   export * from "@sqlite.org/sqlite-wasm"
 }
+
+declare interface StorageEstimate {
+  usageDetails?: Record<string, number>
+}

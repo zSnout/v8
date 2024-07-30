@@ -1,15 +1,17 @@
 import type { Id } from "@/learn/lib/id"
-import { db } from "../db"
+import { sql } from ".."
 import { stmts } from "../stmts"
 
 /** Does not create a transaction. */
 export function conf_get_by_deck(id: Id | null) {
-  const data = db.row(
+  const query =
     id == null ?
-      "SELECT * FROM confs WHERE id = 0"
-    : "SELECT * FROM confs WHERE id = (SELECT cfid FROM decks WHERE id = $deck)",
-    { $deck: id },
-  )
+      sql`SELECT * FROM confs WHERE id = 0;`
+    : sql`
+        SELECT *
+        FROM confs
+        WHERE id = (SELECT cfid FROM decks WHERE id = ${id});
+      `
 
-  return stmts.confs.interpret(data)
+  return stmts.confs.interpret(query.getRow())
 }

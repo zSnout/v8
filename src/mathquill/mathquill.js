@@ -1,11 +1,10 @@
 /**
- * MathQuill v0.10.1, by Han, Jeanine, and Mary
- * http://mathquill.com | maintainers@mathquill.com
+ * MathQuill v0.10.1, by Han, Jeanine, and Mary http://mathquill.com |
+ * maintainers@mathquill.com
  *
- * This Source Code Form is subject to the terms of the
- * Mozilla Public License, v. 2.0. If a copy of the MPL
- * was not distributed with this file, You can obtain
- * one at http://mozilla.org/MPL/2.0/.
+ * This Source Code Form is subject to the terms of the Mozilla Public License,
+ * v. 2.0. If a copy of the MPL was not distributed with this file, You can
+ * obtain one at http://mozilla.org/MPL/2.0/.
  */
 var __extends =
   (this && this.__extends) ||
@@ -67,13 +66,11 @@ function walkUpAsFarAsPossible(node) {
   return undefined
 }
 /**
- * a development-only debug method.  This definition and all
- * calls to `pray` will be stripped from the minified
- * build of mathquill.
+ * A development-only debug method. This definition and all calls to `pray` will
+ * be stripped from the minified build of mathquill.
  *
- * This function must be called by name to be removed
- * at compile time.  Do not define another function
- * with the same name, and only call this function by
+ * This function must be called by name to be removed at compile time. Do not
+ * define another function with the same name, and only call this function by
  * name.
  */
 function pray(message, cond, optionalContextNodes) {
@@ -204,9 +201,9 @@ var U_NARY_PRODUCT = "\u220F"
 var U_NARY_COPRODUCT = "\u2210"
 var U_INTEGRAL = "\u222B"
 /**
- * Like `el.getBoundingClientRect()` but avoids throwing for
- * disconnected and hidden elements in IE <= 11.
- * */
+ * Like `el.getBoundingClientRect()` but avoids throwing for disconnected and
+ * hidden elements in IE <= 11.
+ */
 function getBoundingClientRect(el) {
   // Return zeros for disconnected and hidden (display: none) elements
   // Running getBoundingClientRect on a disconnected node in IE <=11 throws an error
@@ -228,7 +225,7 @@ function getBoundingClientRect(el) {
 /**
  * Returns the number of pixels that the document is currently scrolled
  * horizontally -- `globalThis.scrollX` in modern browsers.
- * */
+ */
 function getScrollX() {
   // In IE9, scrollX was called pageXOffset
   // Previous versions of IE had neither property and use scrollLeft instead
@@ -242,7 +239,7 @@ function getScrollX() {
 /**
  * Returns the number of pixels that the document is currently scrolled
  * vertically -- `globalThis.scrollY` in modern browsers.
- * */
+ */
 function getScrollY() {
   // In IE9, scrollY was called pageYOffset
   // Previous versions of IE had neither property and use scrollTop instead
@@ -254,29 +251,29 @@ function getScrollY() {
         .scrollTop
 }
 /**
- * Given `duration` in ms and callback `cb`, immediately calls `cb(progress, scheduleNext, cancel)` with:
+ * Given `duration` in ms and callback `cb`, immediately calls `cb(progress,
+ * scheduleNext, cancel)` with:
+ *
  * - `progress` set to `0` if duration > 0, or 1 if duration <= 0
  * - `scheduleNext` a function that schedules a future call to `cb`
  * - `cancel` a function that cancels any pending `scheduleNext` call.
  *
- * `scheduleNext` schedules a call to `cb` with `progress` set to the
- * ratio of currently elapsed time and `duration`.
+ * `scheduleNext` schedules a call to `cb` with `progress` set to the ratio of
+ * currently elapsed time and `duration`.
  *
  * To continue running the animation, `cb` should call `scheduleNext`.
  *
- * To stop the animation, it is the responsibility of `cb` to check
- * whether progress is greater than or equal to 1, in which case `cb`
- * should not call `scheduleNext`.
+ * To stop the animation, it is the responsibility of `cb` to check whether
+ * progress is greater than or equal to 1, in which case `cb` should not call
+ * `scheduleNext`.
  *
- * `scheduleNext` uses `requestAnimationFrame` if available and falls
- * back to `setTimeout(..., 13)` otherwise. Times are always based on
- * `Date.now()` for compatibility between `requestAnimationFrame` and
- * the `setTimeout` fallback. `cb` will only be called with strictly
- * monotonic `progress` values.
+ * `scheduleNext` uses `requestAnimationFrame` if available and falls back to
+ * `setTimeout(..., 13)` otherwise. Times are always based on `Date.now()` for
+ * compatibility between `requestAnimationFrame` and the `setTimeout` fallback.
+ * `cb` will only be called with strictly monotonic `progress` values.
  *
- * Note: `animate` purposely puts a lot of responsibility on the caller
- * to keep its implementation simple because it isn't used very widely
- * in the project.
+ * Note: `animate` purposely puts a lot of responsibility on the caller to keep
+ * its implementation simple because it isn't used very widely in the project.
  */
 var animate = (function () {
   // IIFE exists just to hang on to configured rafShim and cancelShim
@@ -407,51 +404,48 @@ var Aria = /** @class */ (function () {
   return Aria
 })()
 /**
- * A `DOMFragment` represents a contiguous span of sibling DOM Nodes,
- * which may include both Element nodes and other nodes like Text and
- * Comment nodes. A `DOMFragment` may represent zero or more nodes.
+ * A `DOMFragment` represents a contiguous span of sibling DOM Nodes, which may
+ * include both Element nodes and other nodes like Text and Comment nodes. A
+ * `DOMFragment` may represent zero or more nodes.
  *
- * `DOMFragments` are created using the `DOMFragment.create` factory
- * function, which is also aliased as `domFrag` for convenience.
+ * `DOMFragments` are created using the `DOMFragment.create` factory function,
+ * which is also aliased as `domFrag` for convenience.
  *
- * A `DOMFragment` simply holds references to nodes. It doesn't move or
- * mutate them in the way that the native `DocumentFragment` does.
+ * A `DOMFragment` simply holds references to nodes. It doesn't move or mutate
+ * them in the way that the native `DocumentFragment` does.
  *
  * `DOMFragment` implements many of the same methods for manipulating a
  * collection of DOM elements that jQuery does, but it has some notable
  * differences:
  *
- * 1.  A jQuery collection can hold an arbitrary ordered set of DOM
- *     elements, but a `DOMFragment` can only hold a contiguous span of
- *     sibling nodes.
- * 2.  Some jQuery DOM manipulation methods like `insert{Before,After}`,
- *     `append`, `prepend`, `appendTo`, `prependTo`, etc. may insert
- *     several clones of a collection into different places in the DOM.
- *     `DOMFragment` never makes clones of DOM nodes--instead, when
- *     targeting multi-element fragments, it moves source nodes before
- *     or after the targeted fragment as appropriate without ever making
- *     more copies.
- * 3.  For methods like `.children()`, where it's likely to be a mistake
- *     to call the method on a fragment that doesn't contain exactly one
- *     node or element, `DOMFragment` will throw whereas jQuery will
- *     silently do something possibly unintended. Methods that assert
- *     are commented with the properties that they assert.
+ * 1. A jQuery collection can hold an arbitrary ordered set of DOM elements, but a
+ *    `DOMFragment` can only hold a contiguous span of sibling nodes.
+ * 2. Some jQuery DOM manipulation methods like `insert{Before,After}`, `append`,
+ *    `prepend`, `appendTo`, `prependTo`, etc. may insert several clones of a
+ *    collection into different places in the DOM. `DOMFragment` never makes
+ *    clones of DOM nodes--instead, when targeting multi-element fragments, it
+ *    moves source nodes before or after the targeted fragment as appropriate
+ *    without ever making more copies.
+ * 3. For methods like `.children()`, where it's likely to be a mistake to call the
+ *    method on a fragment that doesn't contain exactly one node or element,
+ *    `DOMFragment` will throw whereas jQuery will silently do something
+ *    possibly unintended. Methods that assert are commented with the properties
+ *    that they assert.
  *
- * Internally, `DOMFragment` holds immutable references to the left and
- * right end nodes (if the fragment is not empty). The other nodes are
- * represented implicitly through the sibling pointers of the DOM nodes
- * themselves. This means that it is possible to invalidate a
- * `DOMFragment` by moving one of its ends without moving the other in
- * such a way that they are no longer siblings. It is also possible to
- * change the contents of a `DOMFragment` by adding or removing DOM
- * nodes between its ends.
+ * Internally, `DOMFragment` holds immutable references to the left and right
+ * end nodes (if the fragment is not empty). The other nodes are represented
+ * implicitly through the sibling pointers of the DOM nodes themselves. This
+ * means that it is possible to invalidate a `DOMFragment` by moving one of its
+ * ends without moving the other in such a way that they are no longer siblings.
+ * It is also possible to change the contents of a `DOMFragment` by adding or
+ * removing DOM nodes between its ends.
  */
 var DOMFragment = /** @class */ (function () {
   /**
-   * Constructor is private to enforce that the invariant checks in
-   * `create` are applied to outside callers. Internal methods are
-   * allowed to use this constructor when they can guarantee they're
-   * passing sibling nodes (such as children of a parent node).
+   * Constructor is private to enforce that the invariant checks in `create` are
+   * applied to outside callers. Internal methods are allowed to use this
+   * constructor when they can guarantee they're passing sibling nodes (such as
+   * children of a parent node).
    */
   function DOMFragment(first, last) {
     var _a
@@ -460,14 +454,14 @@ var DOMFragment = /** @class */ (function () {
     this.ends = ((_a = {}), (_a[L] = first), (_a[R] = last), _a)
   }
   /**
-   * Returns a `DOMFragment` representing the contiguous span of sibling
-   * DOM nodes betewen `first` and `last`. If only one element is
-   * passed, creates a `DOMFragment` representing that single element.
-   * If no elements are passed, creates and empty `DOMFragment`.
+   * Returns a `DOMFragment` representing the contiguous span of sibling DOM
+   * nodes betewen `first` and `last`. If only one element is passed, creates a
+   * `DOMFragment` representing that single element. If no elements are passed,
+   * creates and empty `DOMFragment`.
    *
-   * If two elements are passed, asserts that the second element is a
-   * forward sibling of the first element. Checking this invariant is
-   * O(n) in the total number of nodes in the fragment
+   * If two elements are passed, asserts that the second element is a forward
+   * sibling of the first element. Checking this invariant is O(n) in the total
+   * number of nodes in the fragment
    */
   DOMFragment.create = function (first, last) {
     if (arguments.length === 1) last = first
@@ -483,14 +477,13 @@ var DOMFragment = /** @class */ (function () {
     return !!(this.ends && this.ends[L] === this.ends[R])
   }
   /**
-   * Returns true if the fragment is empty or if its last node is equal
-   * to its first node or is a forward sibling of its first node.
+   * Returns true if the fragment is empty or if its last node is equal to its
+   * first node or is a forward sibling of its first node.
    *
-   * DOMFragments may be invalidated if any of the nodes they contain
-   * are moved or removed independently of the other nodes they contain.
+   * DOMFragments may be invalidated if any of the nodes they contain are moved
+   * or removed independently of the other nodes they contain.
    *
-   * Note that this check visits each node in the fragment, so it is
-   * O(n).
+   * Note that this check visits each node in the fragment, so it is O(n).
    */
   DOMFragment.prototype.isValid = function () {
     if (!this.ends) return true
@@ -502,8 +495,8 @@ var DOMFragment = /** @class */ (function () {
     return maybeLast === this.ends[R]
   }
   /**
-   * Return the first Node of this fragment. May be a a Node that is not
-   * an Element such as a Text or Comment node.
+   * Return the first Node of this fragment. May be a a Node that is not an
+   * Element such as a Text or Comment node.
    *
    * Asserts fragment is not empty.
    */
@@ -512,8 +505,8 @@ var DOMFragment = /** @class */ (function () {
     return this.ends[L]
   }
   /**
-   * Return the last Node of this fragment. May be a a Node that is not
-   * an Element such as a Text or Comment node.
+   * Return the last Node of this fragment. May be a a Node that is not an
+   * Element such as a Text or Comment node.
    *
    * Asserts fragment is not empty.
    */
@@ -522,13 +515,13 @@ var DOMFragment = /** @class */ (function () {
     return this.ends[R]
   }
   /**
-   * Return a fragment representing the children (including Text and
-   * Comment nodes) of the node represented by this fragment.
+   * Return a fragment representing the children (including Text and Comment
+   * nodes) of the node represented by this fragment.
    *
    * Asserts that this fragment contains exactly one Node.
    *
-   * Note, because this includes text and comment nodes, this is more
-   * like jQuery's .contents() than jQuery's .children()
+   * Note, because this includes text and comment nodes, this is more like
+   * jQuery's .contents() than jQuery's .children()
    */
   DOMFragment.prototype.children = function () {
     var el = this.oneNode()
@@ -537,12 +530,11 @@ var DOMFragment = /** @class */ (function () {
     return first && last ? new DOMFragment(first, last) : new DOMFragment()
   }
   /**
-   * Return a new `DOMFragment` spanning this fragment and `sibling`
-   * fragment. Does not perform any DOM operations.
+   * Return a new `DOMFragment` spanning this fragment and `sibling` fragment.
+   * Does not perform any DOM operations.
    *
-   * Asserts that `sibling` is either empty or a forward sibling of
-   * this fragment that may share its first node with the last node of
-   * this fragment
+   * Asserts that `sibling` is either empty or a forward sibling of this
+   * fragment that may share its first node with the last node of this fragment
    */
   DOMFragment.prototype.join = function (sibling) {
     if (!this.ends) return sibling
@@ -575,8 +567,8 @@ var DOMFragment = /** @class */ (function () {
   /**
    * Return the single DOM Element represented by this fragment.
    *
-   * Asserts that this fragment contains exactly one Node, and that node
-   * is an Element node.
+   * Asserts that this fragment contains exactly one Node, and that node is an
+   * Element node.
    */
   DOMFragment.prototype.oneElement = function () {
     var el = this.oneNode()
@@ -586,8 +578,8 @@ var DOMFragment = /** @class */ (function () {
   /**
    * Return the single DOM Text node represented by this fragment.
    *
-   * Asserts that this fragment contains exactly one Node, and that node
-   * is a Text node.
+   * Asserts that this fragment contains exactly one Node, and that node is a
+   * Text node.
    */
   DOMFragment.prototype.oneText = function () {
     var el = this.oneNode()
@@ -595,9 +587,8 @@ var DOMFragment = /** @class */ (function () {
     return el
   }
   /**
-   * Calls callback sequentially with each node in this fragment.
-   * Includes nodes that are not Elements, such as Text and Comment
-   * nodes.
+   * Calls callback sequentially with each node in this fragment. Includes nodes
+   * that are not Elements, such as Text and Comment nodes.
    */
   DOMFragment.prototype.eachNode = function (cb) {
     if (!this.ends) return this
@@ -619,9 +610,8 @@ var DOMFragment = /** @class */ (function () {
     return this
   }
   /**
-   * Calls callback sequentially with each Element node in this
-   * fragment. Skips nodes that are not Elements, such as Text and
-   * Comment nodes.
+   * Calls callback sequentially with each Element node in this fragment. Skips
+   * nodes that are not Elements, such as Text and Comment nodes.
    */
   DOMFragment.prototype.eachElement = function (cb) {
     this.eachNode(function (el) {
@@ -629,10 +619,7 @@ var DOMFragment = /** @class */ (function () {
     })
     return this
   }
-  /**
-   * Returns the concatenated text content of all of the nodes in the
-   * fragment.
-   */
+  /** Returns the concatenated text content of all of the nodes in the fragment. */
   DOMFragment.prototype.text = function () {
     var accum = ""
     this.eachNode(function (node) {
@@ -641,8 +628,8 @@ var DOMFragment = /** @class */ (function () {
     return accum
   }
   /**
-   * Returns an array of all the Nodes in this fragment, including nodes
-   * that are not Element nodes such as Text and Comment nodes;
+   * Returns an array of all the Nodes in this fragment, including nodes that
+   * are not Element nodes such as Text and Comment nodes;
    */
   DOMFragment.prototype.toNodeArray = function () {
     var accum = []
@@ -652,9 +639,8 @@ var DOMFragment = /** @class */ (function () {
     return accum
   }
   /**
-   * Returns an array of all the Element nodes in this fragment. The
-   * result does not include nodes that are not Elements, such as Text
-   * and Comment nodes.
+   * Returns an array of all the Element nodes in this fragment. The result does
+   * not include nodes that are not Elements, such as Text and Comment nodes.
    */
   DOMFragment.prototype.toElementArray = function () {
     var accum = []
@@ -664,9 +650,9 @@ var DOMFragment = /** @class */ (function () {
     return accum
   }
   /**
-   * Moves all of the nodes in this fragment into a new DocumentFragment
-   * and returns it. This includes Nodes that are not Elements such as
-   * Text and Comment nodes.
+   * Moves all of the nodes in this fragment into a new DocumentFragment and
+   * returns it. This includes Nodes that are not Elements such as Text and
+   * Comment nodes.
    */
   DOMFragment.prototype.toDocumentFragment = function () {
     var frag = document.createDocumentFragment()
@@ -676,33 +662,31 @@ var DOMFragment = /** @class */ (function () {
     return frag
   }
   /**
-   * Insert all the nodes in this fragment into the DOM directly before
-   * the first node of `sibling` fragment. If `sibling` is empty or does
-   * not have a parent node, detaches this fragment from the document.
+   * Insert all the nodes in this fragment into the DOM directly before the
+   * first node of `sibling` fragment. If `sibling` is empty or does not have a
+   * parent node, detaches this fragment from the document.
    *
-   * Note that this behavior differs from jQuery if `sibling` is a
-   * collection with multiple nodes. In that case, jQuery inserts this
-   * collection before the first node in `sibling`, and then inserts a
-   * clone of this collection before each additional node in the
-   * `sibling` collection. DOMFragment only ever inserts this collection
-   * before the first node of the sibling fragment, and never inserts
-   * additional clones.
+   * Note that this behavior differs from jQuery if `sibling` is a collection
+   * with multiple nodes. In that case, jQuery inserts this collection before
+   * the first node in `sibling`, and then inserts a clone of this collection
+   * before each additional node in the `sibling` collection. DOMFragment only
+   * ever inserts this collection before the first node of the sibling fragment,
+   * and never inserts additional clones.
    */
   DOMFragment.prototype.insertBefore = function (sibling) {
     return this.insDirOf(L, sibling)
   }
   /**
-   * Insert all the nodes in this fragment into the DOM directly after
-   * the last node of `sibling` fragment. If `sibling` is empty or does
-   * not have a parent node, detaches this fragment from the document.
+   * Insert all the nodes in this fragment into the DOM directly after the last
+   * node of `sibling` fragment. If `sibling` is empty or does not have a parent
+   * node, detaches this fragment from the document.
    *
-   * Note that this behavior differs from jQuery if `sibling` is a
-   * collection with multiple nodes. In that case, jQuery inserts this
-   * collection before the first node in `sibling`, and then inserts a
-   * clone of this collection before each additional node in the
-   * `sibling` collection. DOMFragment only ever inserts this collection
-   * before the first node of the sibling fragment, and never inserts
-   * additional clones.
+   * Note that this behavior differs from jQuery if `sibling` is a collection
+   * with multiple nodes. In that case, jQuery inserts this collection before
+   * the first node in `sibling`, and then inserts a clone of this collection
+   * before each additional node in the `sibling` collection. DOMFragment only
+   * ever inserts this collection before the first node of the sibling fragment,
+   * and never inserts additional clones.
    */
   DOMFragment.prototype.insertAfter = function (sibling) {
     return this.insDirOf(R, sibling)
@@ -725,22 +709,18 @@ var DOMFragment = /** @class */ (function () {
     children.prependTo(this.oneElement())
     return this
   }
-  /**
-   * Append all the nodes in this fragment to the children of `el`.
-   */
+  /** Append all the nodes in this fragment to the children of `el`. */
   DOMFragment.prototype.appendTo = function (el) {
     return this.insAtDirEnd(R, el)
   }
-  /**
-   * Prepend all the nodes in this fragment to the children of `el`.
-   */
+  /** Prepend all the nodes in this fragment to the children of `el`. */
   DOMFragment.prototype.prependTo = function (el) {
     return this.insAtDirEnd(L, el)
   }
   /**
-   * Return a fragment containing the parent node of the nodes in this
-   * fragment. Returns an empty fragment if this fragment is empty or
-   * does not have a parent node.
+   * Return a fragment containing the parent node of the nodes in this fragment.
+   * Returns an empty fragment if this fragment is empty or does not have a
+   * parent node.
    */
   DOMFragment.prototype.parent = function () {
     if (!this.ends) return this
@@ -749,9 +729,8 @@ var DOMFragment = /** @class */ (function () {
     return new DOMFragment(parent)
   }
   /**
-   * Replace the children of `el` with the contents of this fragment,
-   * and place `el` into the DOM at the previous location of this
-   * fragment.
+   * Replace the children of `el` with the contents of this fragment, and place
+   * `el` into the DOM at the previous location of this fragment.
    */
   DOMFragment.prototype.wrapAll = function (el) {
     el.textContent = "" // First empty the wrapping element
@@ -765,16 +744,16 @@ var DOMFragment = /** @class */ (function () {
     return this
   }
   /**
-   * Replace this fragment with the fragment given by `children`. If
-   * this fragment is empty or does not have a parent node, detaches
-   * `children` from the document.
+   * Replace this fragment with the fragment given by `children`. If this
+   * fragment is empty or does not have a parent node, detaches `children` from
+   * the document.
    *
-   * Note that this behavior differs from jQuery if this is a collection
-   * with multiple nodes. In that case, jQuery replaces the first
-   * element of this collection with `children`, and then replaces each
-   * additional element in this collection with a clone of `children`.
-   * DOMFragment replaces this entire fragment with `children` and never
-   * makes additional clones of `children`.
+   * Note that this behavior differs from jQuery if this is a collection with
+   * multiple nodes. In that case, jQuery replaces the first element of this
+   * collection with `children`, and then replaces each additional element in
+   * this collection with a clone of `children`. DOMFragment replaces this
+   * entire fragment with `children` and never makes additional clones of
+   * `children`.
    */
   DOMFragment.prototype.replaceWith = function (children) {
     var _a
@@ -796,12 +775,12 @@ var DOMFragment = /** @class */ (function () {
     return this
   }
   /**
-   * Return the nth Element node of this collection, or undefined if
-   * there is no nth Element. Skips Nodes that are not Elements (e.g.
-   * Text and Comment nodes).
+   * Return the nth Element node of this collection, or undefined if there is no
+   * nth Element. Skips Nodes that are not Elements (e.g. Text and Comment
+   * nodes).
    *
-   * Analogous to jQuery's array indexing syntax, or jQuery's .get()
-   * with positive arguments.
+   * Analogous to jQuery's array indexing syntax, or jQuery's .get() with
+   * positive arguments.
    */
   DOMFragment.prototype.nthElement = function (n) {
     if (!this.ends) return undefined
@@ -819,17 +798,16 @@ var DOMFragment = /** @class */ (function () {
     return undefined
   }
   /**
-   * Return the first Element node of this fragment, or undefined if
-   * the fragment is empty. Skips Nodes that are not Elements (e.g.
-   * Text and Comment nodes).
+   * Return the first Element node of this fragment, or undefined if the
+   * fragment is empty. Skips Nodes that are not Elements (e.g. Text and Comment
+   * nodes).
    */
   DOMFragment.prototype.firstElement = function () {
     return this.nthElement(0)
   }
   /**
-   * Return the last Element node of this fragment, or undefined if
-   * the fragment is empty. Skips Nodes that are not Elements (e.g.
-   * Text and Comment nodes).
+   * Return the last Element node of this fragment, or undefined if the fragment
+   * is empty. Skips Nodes that are not Elements (e.g. Text and Comment nodes).
    */
   DOMFragment.prototype.lastElement = function () {
     if (!this.ends) return undefined
@@ -845,35 +823,34 @@ var DOMFragment = /** @class */ (function () {
     return undefined
   }
   /**
-   * Return a new fragment holding the first Element node of this
-   * fragment, or an empty fragment if this fragment is empty. Skips
-   * Nodes that are not Elements (e.g. Text and Comment nodes).
+   * Return a new fragment holding the first Element node of this fragment, or
+   * an empty fragment if this fragment is empty. Skips Nodes that are not
+   * Elements (e.g. Text and Comment nodes).
    */
   DOMFragment.prototype.first = function () {
     return new DOMFragment(this.firstElement())
   }
   /**
-   * Return a new fragment holding the last Element node of this
-   * fragment, or an empty fragment if this fragment is empty. Skips
-   * Nodes that are not Elements (e.g. Text and Comment nodes).
+   * Return a new fragment holding the last Element node of this fragment, or an
+   * empty fragment if this fragment is empty. Skips Nodes that are not Elements
+   * (e.g. Text and Comment nodes).
    */
   DOMFragment.prototype.last = function () {
     return new DOMFragment(this.lastElement())
   }
   /**
-   * Return a new fragment holding the nth Element node of this
-   * fragment, or an empty fragment if there is no nth node of this
-   * fragment. Skips Nodes that are not Elements (e.g. Text and Comment
-   * nodes).
+   * Return a new fragment holding the nth Element node of this fragment, or an
+   * empty fragment if there is no nth node of this fragment. Skips Nodes that
+   * are not Elements (e.g. Text and Comment nodes).
    */
   DOMFragment.prototype.eq = function (n) {
     return new DOMFragment(this.nthElement(n))
   }
   /**
-   * Return a new fragment beginning with the nth Element node of this
-   * fragment, and ending with the same end as this fragment, or an
-   * empty fragment if there is no nth node in this fragment. Skips
-   * Nodes that are not Elements (e.g. Text and Comment nodes).
+   * Return a new fragment beginning with the nth Element node of this fragment,
+   * and ending with the same end as this fragment, or an empty fragment if
+   * there is no nth node in this fragment. Skips Nodes that are not Elements
+   * (e.g. Text and Comment nodes).
    */
   DOMFragment.prototype.slice = function (n) {
     // Note, would be reasonable to extend this to take a second
@@ -885,9 +862,8 @@ var DOMFragment = /** @class */ (function () {
   }
   /**
    * Return a new fragment containing the next Element after the Node
-   * represented by this fragment, or an empty fragment if there is no
-   * next Element. Skips Nodes that are not Elements (e.g. Text and
-   * Comment nodes).
+   * represented by this fragment, or an empty fragment if there is no next
+   * Element. Skips Nodes that are not Elements (e.g. Text and Comment nodes).
    *
    * Asserts that this fragment contains exactly one Node.
    */
@@ -902,9 +878,8 @@ var DOMFragment = /** @class */ (function () {
   }
   /**
    * Return a new fragment containing the previousElement after the Node
-   * represented by this fragment, or an empty fragment if there is no
-   * previous Element. Skips Nodes that are not Elements (e.g. Text and
-   * Comment nodes).
+   * represented by this fragment, or an empty fragment if there is no previous
+   * Element. Skips Nodes that are not Elements (e.g. Text and Comment nodes).
    *
    * Asserts that this fragment contains exactly one Node.
    */
@@ -918,8 +893,8 @@ var DOMFragment = /** @class */ (function () {
     return new DOMFragment()
   }
   /**
-   * Remove all children of every Element Node in the fragment. Skips
-   * Nodes that are not Elements (e.g. Text and Comment nodes).
+   * Remove all children of every Element Node in the fragment. Skips Nodes that
+   * are not Elements (e.g. Text and Comment nodes).
    */
   DOMFragment.prototype.empty = function () {
     // TODO the corresponding jQuery methods clean up some internal
@@ -934,10 +909,10 @@ var DOMFragment = /** @class */ (function () {
   /**
    * Remove every node in the fragment from the DOM.
    *
-   * Implemented by moving every node in the fragment into a new
-   * document fragment in order to preserve the sibling relationships
-   * of the removed element. If you want to get access to this document
-   * fragment, use `.toDocumentFragment()` instead.
+   * Implemented by moving every node in the fragment into a new document
+   * fragment in order to preserve the sibling relationships of the removed
+   * element. If you want to get access to this document fragment, use
+   * `.toDocumentFragment()` instead.
    */
   DOMFragment.prototype.remove = function () {
     // TODO the corresponding jQuery methods clean up some internal
@@ -953,13 +928,13 @@ var DOMFragment = /** @class */ (function () {
   /**
    * Remove every node in the fragment from the DOM. Alias of remove.
    *
-   * Implemented by moving every node in the fragment into a new
-   * document fragment in order to preserve the sibling relationships
-   * of the removed element. If you want to get access to this document
-   * fragment, use `.toDocumentFragment()` instead.
+   * Implemented by moving every node in the fragment into a new document
+   * fragment in order to preserve the sibling relationships of the removed
+   * element. If you want to get access to this document fragment, use
+   * `.toDocumentFragment()` instead.
    *
-   * Note: jQuery makes a distinction between detach() and remove().
-   * remove() cleans up internal references, and detach() does not.
+   * Note: jQuery makes a distinction between detach() and remove(). remove()
+   * cleans up internal references, and detach() does not.
    */
   DOMFragment.prototype.detach = function () {
     // In jQuery, detach() is similar to remove() but it does not clean
@@ -969,10 +944,9 @@ var DOMFragment = /** @class */ (function () {
     return this.remove()
   }
   /**
-   * Insert this fragment either just before or just after `sibling`
-   * fragment according to the direction specified by `dir`. If
-   * `sibling` is empty or does not have a parent node, detaches this
-   * fragment from the document.
+   * Insert this fragment either just before or just after `sibling` fragment
+   * according to the direction specified by `dir`. If `sibling` is empty or
+   * does not have a parent node, detaches this fragment from the document.
    */
   DOMFragment.prototype.insDirOf = function (dir, sibling) {
     var _a
@@ -983,8 +957,8 @@ var DOMFragment = /** @class */ (function () {
     return this
   }
   /**
-   * Insert this fragment into `el` either at the beginning or end of
-   * its children, according to the direction specified by `dir`.
+   * Insert this fragment into `el` either at the beginning or end of its
+   * children, according to the direction specified by `dir`.
    */
   DOMFragment.prototype.insAtDirEnd = function (dir, el) {
     if (!this.ends) return this
@@ -992,8 +966,8 @@ var DOMFragment = /** @class */ (function () {
     return this
   }
   /**
-   * Return true if any element in this fragment has class `className`
-   * and false otherwise.
+   * Return true if any element in this fragment has class `className` and false
+   * otherwise.
    */
   DOMFragment.prototype.hasClass = function (className) {
     var out = false
@@ -1003,8 +977,8 @@ var DOMFragment = /** @class */ (function () {
     return out
   }
   /**
-   * Add each class in space separated list of classes given by
-   * `classNames` to each element in this fragment.
+   * Add each class in space separated list of classes given by `classNames` to
+   * each element in this fragment.
    */
   DOMFragment.prototype.addClass = function (classNames) {
     var _loop_1 = function (className) {
@@ -1021,8 +995,8 @@ var DOMFragment = /** @class */ (function () {
     return this
   }
   /**
-   * Remove each class in space separated list of classes given by
-   * `classNames` from each element in this fragment.
+   * Remove each class in space separated list of classes given by `classNames`
+   * from each element in this fragment.
    */
   DOMFragment.prototype.removeClass = function (classNames) {
     var _loop_2 = function (className) {
@@ -1039,11 +1013,11 @@ var DOMFragment = /** @class */ (function () {
     return this
   }
   /**
-   * Toggle each class in space separated list of classes given by
-   * `classNames` on each element in this fragment.
+   * Toggle each class in space separated list of classes given by `classNames`
+   * on each element in this fragment.
    *
-   * If second arg `on` is given as `true`, always toggle classes on.
-   * If second arg `on` is passed as `false`, always toggle classes off.
+   * If second arg `on` is given as `true`, always toggle classes on. If second
+   * arg `on` is passed as `false`, always toggle classes off.
    */
   DOMFragment.prototype.toggleClass = function (classNames, on) {
     if (on === true) return this.addClass(classNames)
@@ -1065,15 +1039,15 @@ var DOMFragment = /** @class */ (function () {
 })()
 var domFrag = DOMFragment.create
 /**
- * Insert `source` before or after `target` child of `parent` denending
- * on `dir`. Only intended to be used internally as a helper in this module
+ * Insert `source` before or after `target` child of `parent` denending on
+ * `dir`. Only intended to be used internally as a helper in this module
  */
 function _insDirOf(dir, parent, source, target) {
   parent.insertBefore(source, dir === L ? target : target.nextSibling)
 }
 /**
- * Insert `source` before or after `target` child of `parent` denending
- * on `dir`. Only intended to be used internally as a helper in this module
+ * Insert `source` before or after `target` child of `parent` denending on
+ * `dir`. Only intended to be used internally as a helper in this module
  */
 function _insAtDirEnd(dir, source, parent) {
   if (dir === L) {
@@ -1082,13 +1056,12 @@ function _insAtDirEnd(dir, source, parent) {
     parent.appendChild(source)
   }
 }
-/*************************************************
+/**
  * Base classes of edit tree-related objects
  *
- * Only doing tree node manipulation via these
- * adopt/ disown methods guarantees well-formedness
- * of the tree.
- ************************************************/
+ * Only doing tree node manipulation via these adopt/ disown methods guarantees
+ * well-formedness of the tree.
+ */
 /** A cursor-like location in an mq node tree. */
 var Point = /** @class */ (function () {
   function Point(parent, leftward, rightward) {
@@ -1147,16 +1120,16 @@ var NodeBase = /** @class */ (function () {
     /**
      * The (doubly-linked) list of this node's children.
      *
-     * NOTE child classes may specify a narrower type for ends e.g. to
-     * enforce that children are not empty, or that they have a certain
-     * type. In those cases, this initializer may still run at
-     * construction time, but this is expected to be followed by a call
-     * to adopt that sets non-empty ends of the necessary types.
+     * NOTE child classes may specify a narrower type for ends e.g. to enforce
+     * that children are not empty, or that they have a certain type. In those
+     * cases, this initializer may still run at construction time, but this is
+     * expected to be followed by a call to adopt that sets non-empty ends of
+     * the necessary types.
      *
-     * Similarly, `Fragment::disown` may temporarily break non-empty
-     * invariants, which are expected to be restored by a subsequent call
-     * to `Fragment::adopt`.
-     * */
+     * Similarly, `Fragment::disown` may temporarily break non-empty invariants,
+     * which are expected to be restored by a subsequent call to
+     * `Fragment::adopt`.
+     */
     this.ends = ((_c = {}), (_c[L] = 0), (_c[R] = 0), _c)
     this.id = NodeBase.uniqueNodeId()
   }
@@ -1268,9 +1241,9 @@ var NodeBase = /** @class */ (function () {
     return this
   }
   /**
-   * Add this node to the given parent node's children, at the position between the adjacent
-   * children `leftward` (or the beginning if omitted) and `rightward` (or the end if omitted).
-   * See `Fragment#adopt()`
+   * Add this node to the given parent node's children, at the position between
+   * the adjacent children `leftward` (or the beginning if omitted) and
+   * `rightward` (or the end if omitted). See `Fragment#adopt()`
    */
   NodeBase.prototype.adopt = function (parent, leftward, rightward) {
     var self = this.getSelfNode()
@@ -1407,14 +1380,14 @@ function prayWellFormed(parent, leftward, rightward) {
 /**
  * An entity outside the virtual tree with one-way pointers (so it's only a
  * "view" of part of the tree, not an actual node/entity in the tree) that
- * delimits a doubly-linked list of sibling nodes.
- * It's like a fanfic love-child between HTML DOM DocumentFragment and the Range
- * classes: like DocumentFragment, its contents must be sibling nodes
- * (unlike Range, whose contents are arbitrary contiguous pieces of subtrees),
- * but like Range, it has only one-way pointers to its contents, its contents
- * have no reference to it and in fact may still be in the visible tree (unlike
- * DocumentFragment, whose contents must be detached from the visible tree
- * and have their 'parent' pointers set to the DocumentFragment).
+ * delimits a doubly-linked list of sibling nodes. It's like a fanfic love-child
+ * between HTML DOM DocumentFragment and the Range classes: like
+ * DocumentFragment, its contents must be sibling nodes (unlike Range, whose
+ * contents are arbitrary contiguous pieces of subtrees), but like Range, it has
+ * only one-way pointers to its contents, its contents have no reference to it
+ * and in fact may still be in the visible tree (unlike DocumentFragment, whose
+ * contents must be detached from the visible tree and have their 'parent'
+ * pointers set to the DocumentFragment).
  */
 var Fragment = /** @class */ (function () {
   function Fragment(withDir, oppDir, dir) {
@@ -1461,9 +1434,8 @@ var Fragment = /** @class */ (function () {
     }
   }
   /**
-   * Note, children may override this to enforce extra invariants,
-   * (e.g. that ends are always defined). Ends should only be set
-   * through this function.
+   * Note, children may override this to enforce extra invariants, (e.g. that
+   * ends are always defined). Ends should only be set through this function.
    */
   Fragment.prototype.setEnds = function (ends) {
     this.ends = ends
@@ -1481,10 +1453,13 @@ var Fragment = /** @class */ (function () {
       : this.adopt(parent, oppDir, withDir)
   }
   /**
-   * Splice this fragment into the given parent node's children, at the position between the adjacent
-   * children `leftward` (or the beginning if omitted) and `rightward` (or the end if omitted).
+   * Splice this fragment into the given parent node's children, at the position
+   * between the adjacent children `leftward` (or the beginning if omitted) and
+   * `rightward` (or the end if omitted).
    *
-   * TODO: why do we need both leftward and rightward? It seems to me that `rightward` is always expected to be `leftward ? leftward[R] : parent.ends[L]`.
+   * TODO: why do we need both leftward and rightward? It seems to me that
+   * `rightward` is always expected to be `leftward ? leftward[R] :
+   * parent.ends[L]`.
    */
   Fragment.prototype.adopt = function (parent, leftward, rightward) {
     var _c
@@ -1519,9 +1494,7 @@ var Fragment = /** @class */ (function () {
     })
     return self
   }
-  /**
-   * Remove the nodes in this fragment from their parent.
-   */
+  /** Remove the nodes in this fragment from their parent. */
   Fragment.prototype.disown = function () {
     var _c
     var self = this
@@ -1577,8 +1550,8 @@ var Fragment = /** @class */ (function () {
   return Fragment
 })()
 /**
- * Registry of LaTeX commands and commands created when typing
- * a single character.
+ * Registry of LaTeX commands and commands created when typing a single
+ * character.
  *
  * (Commands are all subclasses of Node.)
  */
@@ -1587,9 +1560,7 @@ var CharCmds = {}
 function isMQNodeClass(cmd) {
   return cmd && cmd.prototype instanceof MQNode
 }
-/********************************************
- * Cursor and Selection "singleton" classes
- *******************************************/
+/** Cursor and Selection "singleton" classes */
 /* The main thing that manipulates the Math DOM. Makes sure to manipulate the
     HTML DOM to match. */
 /* Sort of singletons, since there should only be one per editable math
@@ -1612,8 +1583,10 @@ var Cursor = /** @class */ (function (_super) {
   __extends(Cursor, _super)
   function Cursor(initParent, options, controller) {
     var _this_1 = _super.call(this, initParent, 0, 0) || this
-    /** Slightly more than just a "cache", this remembers the cursor's position in each block node, so that we can return to the right
-     * point in that node when moving up and down among blocks.
+    /**
+     * Slightly more than just a "cache", this remembers the cursor's position
+     * in each block node, so that we can return to the right point in that node
+     * when moving up and down among blocks.
      */
     _this_1.upDownCache = {}
     _this_1.cursorElement = h("span", { class: "mq-cursor" }, [
@@ -1673,7 +1646,10 @@ var Cursor = /** @class */ (function (_super) {
     // FIXME pass cursor to .blur() so text can fix cursor pointers when removing itself
     if (oldParent !== parent && oldParent.blur) oldParent.blur(this)
   }
-  /** Place the cursor before or after `el`, according the side specified by `dir`. */
+  /**
+   * Place the cursor before or after `el`, according the side specified by
+   * `dir`.
+   */
   Cursor.prototype.insDirOf = function (dir, el) {
     prayDirection(dir)
     this.domFrag().insDirOf(dir, el.domFrag())
@@ -1687,7 +1663,10 @@ var Cursor = /** @class */ (function (_super) {
   Cursor.prototype.insRightOf = function (el) {
     return this.insDirOf(R, el)
   }
-  /** Place the cursor inside `el` at either the left or right end, according the side specified by `dir`. */
+  /**
+   * Place the cursor inside `el` at either the left or right end, according the
+   * side specified by `dir`.
+   */
   Cursor.prototype.insAtDirEnd = function (dir, el) {
     prayDirection(dir)
     this.domFrag().insAtDirEnd(dir, el.domFrag().oneElement())
@@ -1702,12 +1681,14 @@ var Cursor = /** @class */ (function (_super) {
     return this.insAtDirEnd(R, el)
   }
   /**
-   * jump up or down from one block Node to another:
-   * - cache the current Point in the node we're jumping from
-   * - check if there's a Point in it cached for the node we're jumping to
-   *   + if so put the cursor there,
-   *   + if not seek a position in the node that is horizontally closest to
-   *     the cursor's current position
+   * Jump up or down from one block Node to another:
+   *
+   * - Cache the current Point in the node we're jumping from
+   * - Check if there's a Point in it cached for the node we're jumping to
+   *
+   *   - If so put the cursor there,
+   *   - If not seek a position in the node that is horizontally closest to the
+   *       cursor's current position
    */
   Cursor.prototype.jumpUpDown = function (from, to) {
     var self = this
@@ -2090,7 +2071,10 @@ var ControllerBase = /** @class */ (function () {
     if (!textareaSpan) throw new Error("expected a textareaSpan")
     return textareaSpan
   }
-  /** Add the given event listeners on this.textarea, replacing the existing listener for that event if it exists. */
+  /**
+   * Add the given event listeners on this.textarea, replacing the existing
+   * listener for that event if it exists.
+   */
   ControllerBase.prototype.addTextareaEventListeners = function (listeners) {
     if (!this.textarea) return
     for (var key_2 in listeners) {
@@ -2150,11 +2134,11 @@ var Progenote = /** @class */ (function () {
 })()
 /**
  * Interface Versioning (#459, #495) to allow us to virtually guarantee
- * backcompat. v0.10.x introduces it, so for now, don't completely break the
- * API for people who don't know about it, just complain with console.warn().
+ * backcompat. v0.10.x introduces it, so for now, don't completely break the API
+ * for people who don't know about it, just complain with console.warn().
  *
- * The methods are shimmed in outro.js so that MQ.MathField.prototype etc can
- * be accessed.
+ * The methods are shimmed in outro.js so that MQ.MathField.prototype etc can be
+ * accessed.
  */
 var insistOnInterVer = function () {
   if (globalThis.console)
@@ -2483,12 +2467,11 @@ function getInterface(v) {
   }
   /**
    * Function that takes an HTML element and, if it's the root HTML element of a
-   * static math or math or text field, returns an API object for it (else, null).
+   * static math or math or text field, returns an API object for it (else,
+   * null).
    *
-   *   var mathfield = MQ.MathField(mathFieldSpan);
-   *   assert(MQ(mathFieldSpan).id === mathfield.id);
-   *   assert(MQ(mathFieldSpan).id === MQ(mathFieldSpan).id);
-   *
+   * Var mathfield = MQ.MathField(mathFieldSpan); assert(MQ(mathFieldSpan).id
+   * === mathfield.id); assert(MQ(mathFieldSpan).id === MQ(mathFieldSpan).id);
    */
   var MQ = function (el) {
     if (!el || !el.nodeType) return null // check that `el` is a HTML element, using the
@@ -2809,20 +2792,17 @@ var EveryTick = /** @class */ (function () {
   }
   return EveryTick
 })()
-/*************************************************
+/**
  * Sane Keyboard Events Shim
  *
- * An abstraction layer over the raw browser browser events
- * on the textarea that hides all the nasty cross-
- * browser incompatibilities behind a uniform API.
+ * An abstraction layer over the raw browser browser events on the textarea that
+ * hides all the nasty cross- browser incompatibilities behind a uniform API.
  *
- * Design goal: This is a *HARD* internal
- * abstraction barrier. Cross-browser
- * inconsistencies are not allowed to leak through
- * and be dealt with by event handlers. All future
- * cross-browser issues that arise must be dealt
- * with here, and if necessary, the API updated.
- ************************************************/
+ * Design goal: This is a _HARD_ internal abstraction barrier. Cross-browser
+ * inconsistencies are not allowed to leak through and be dealt with by event
+ * handlers. All future cross-browser issues that arise must be dealt with here,
+ * and if necessary, the API updated.
+ */
 var saneKeyboardEvents = (function () {
   // The following [key values][1] map was compiled from the
   // [DOM3 Events appendix section on key codes][2] and
@@ -2894,8 +2874,10 @@ var saneKeyboardEvents = (function () {
         _c
       : evt.key
   }
-  /** To the extent possible, create a normalized string representation
-   * of the key combo (i.e., key code and modifier keys). */
+  /**
+   * To the extent possible, create a normalized string representation of the
+   * key combo (i.e., key code and modifier keys).
+   */
   function getMQKeyName(evt) {
     var key = getMQKeyStem(evt)
     var modifiers = []
@@ -2910,7 +2892,11 @@ var saneKeyboardEvents = (function () {
     return modifiers.join("-")
   }
   return function saneKeyboardEvents(
-    /** Usually the textarea associated with a MQ instance, but can be another kind of element if `substituteTextarea` was used to replace it with something else. */
+    /**
+     * Usually the textarea associated with a MQ instance, but can be another
+     * kind of element if `substituteTextarea` was used to replace it with
+     * something else.
+     */
     textarea,
     controller,
   ) {
@@ -3145,10 +3131,10 @@ var saneKeyboardEvents = (function () {
     return { select: select }
   }
 })()
-/***********************************************
- * Export math in a human-readable text format
- * As you can see, only half-baked so far.
- **********************************************/
+/**
+ * Export math in a human-readable text format As you can see, only half-baked
+ * so far.
+ */
 var Controller_exportText = /** @class */ (function (_super) {
   __extends(Controller_exportText, _super)
   function Controller_exportText() {
@@ -3281,27 +3267,23 @@ var Controller_focusBlur = /** @class */ (function (_super) {
   return Controller_focusBlur
 })(Controller_exportText)
 /**
- * TODO: I wanted to move MathBlock::focus and blur here, it would clean
- * up lots of stuff like, TextBlock::focus is set to MathBlock::focus
- * and TextBlock::blur calls MathBlock::blur, when instead they could
- * use inheritance and super_.
+ * TODO: I wanted to move MathBlock::focus and blur here, it would clean up lots
+ * of stuff like, TextBlock::focus is set to MathBlock::focus and
+ * TextBlock::blur calls MathBlock::blur, when instead they could use
+ * inheritance and super_.
  *
- * Problem is, there's lots of calls to .focus()/.blur() on nodes
- * outside Controller::focusBlurEvents(), such as .postOrder('blur') on
- * insertion, which if MathBlock::blur becomes MQNode::blur, would add the
- * 'blur' CSS class to all MQSymbol's (because .isEmpty() is true for all
- * of them).
+ * Problem is, there's lots of calls to .focus()/.blur() on nodes outside
+ * Controller::focusBlurEvents(), such as .postOrder('blur') on insertion, which
+ * if MathBlock::blur becomes MQNode::blur, would add the 'blur' CSS class to
+ * all MQSymbol's (because .isEmpty() is true for all of them).
  *
  * I'm not even sure there aren't other troublesome calls to .focus() or
  * .blur(), so this is TODO for now.
  */
-/*****************************************
- * Deals with the browser DOM events from
- * interaction with the typist.
- ****************************************/
+/** Deals with the browser DOM events from interaction with the typist. */
 /**
- * Only one incremental selection may be open at a time. Track whether
- * an incremental selection is open to help enforce this invariant.
+ * Only one incremental selection may be open at a time. Track whether an
+ * incremental selection is open to help enforce this invariant.
  */
 var INCREMENTAL_SELECTION_OPEN = false
 var MQNode = /** @class */ (function (_super) {
@@ -3560,16 +3542,20 @@ var Controller_keystroke = /** @class */ (function (_super) {
     return this.moveDir(R)
   }
   /**
-   * moveUp and moveDown have almost identical algorithms:
-   * - first check left and right, if so insAtLeft/RightEnd of them
-   * - else check the parent's 'upOutOf'/'downOutOf' property:
-   *   + if it's a function, call it with the cursor as the sole argument and
-   *     use the return value as if it were the value of the property
-   *   + if it's a Node, jump up or down into it:
-   *     - if there is a cached Point in the block, insert there
-   *     - else, seekHoriz within the block to the current x-coordinate (to be
-   *       as close to directly above/below the current position as possible)
-   *   + unless it's exactly `true`, stop bubbling
+   * MoveUp and moveDown have almost identical algorithms:
+   *
+   * - First check left and right, if so insAtLeft/RightEnd of them
+   * - Else check the parent's 'upOutOf'/'downOutOf' property:
+   *
+   *   - If it's a function, call it with the cursor as the sole argument and use
+   *       the return value as if it were the value of the property
+   *   - If it's a Node, jump up or down into it:
+   *
+   *       - If there is a cached Point in the block, insert there
+   *       - Else, seekHoriz within the block to the current x-coordinate (to be as
+   *               close to directly above/below the current position as
+   *               possible)
+   *   - Unless it's exactly `true`, stop bubbling
    */
   Controller_keystroke.prototype.moveUp = function () {
     return this.moveUpDown("up")
@@ -3696,9 +3682,9 @@ var Controller_keystroke = /** @class */ (function (_super) {
     return this.deleteDir(R)
   }
   /**
-   * startIncrementalSelection, selectDirIncremental, and finishIncrementalSelection
-   * should only be called by withIncrementalSelection because they must
-   * be called in sequence.
+   * StartIncrementalSelection, selectDirIncremental, and
+   * finishIncrementalSelection should only be called by
+   * withIncrementalSelection because they must be called in sequence.
    */
   Controller_keystroke.prototype.startIncrementalSelection = function () {
     pray(
@@ -3711,12 +3697,12 @@ var Controller_keystroke = /** @class */ (function (_super) {
     if (!cursor.anticursor) cursor.startSelection()
   }
   /**
-   * Update the selection model, stored in cursor, without modifying
-   * selection DOM.
+   * Update the selection model, stored in cursor, without modifying selection
+   * DOM.
    *
-   * startIncrementalSelection, selectDirIncremental, and finishIncrementalSelection
-   * should only be called by withIncrementalSelection because they must
-   * be called in sequence.
+   * StartIncrementalSelection, selectDirIncremental, and
+   * finishIncrementalSelection should only be called by
+   * withIncrementalSelection because they must be called in sequence.
    */
   Controller_keystroke.prototype.selectDirIncremental = function (dir) {
     pray("A selection is open", INCREMENTAL_SELECTION_OPEN)
@@ -3741,9 +3727,9 @@ var Controller_keystroke = /** @class */ (function (_super) {
   /**
    * Update selection DOM to match cursor model
    *
-   * startIncrementalSelection, selectDirIncremental, and finishIncrementalSelection
-   * should only be called by withIncrementalSelection because they must
-   * be called in sequence.
+   * StartIncrementalSelection, selectDirIncremental, and
+   * finishIncrementalSelection should only be called by
+   * withIncrementalSelection because they must be called in sequence.
    */
   Controller_keystroke.prototype.finishIncrementalSelection = function () {
     pray("A selection is open", INCREMENTAL_SELECTION_OPEN)
@@ -3760,9 +3746,8 @@ var Controller_keystroke = /** @class */ (function (_super) {
   }
   /**
    * Used to build a selection incrementally in a loop. Calls the passed
-   * callback with a selectDir function that may be called many times,
-   * and defers updating the view until the incremental selection is
-   * complete
+   * callback with a selectDir function that may be called many times, and
+   * defers updating the view until the incremental selection is complete
    *
    * Wraps up calling
    *
@@ -3770,7 +3755,7 @@ var Controller_keystroke = /** @class */ (function (_super) {
    *     this.selectDirIncremental(dir) // possibly many times
    *     this.finishSelection()
    *
-   * with extra error handling and invariant enforcement
+   * With extra error handling and invariant enforcement
    */
   Controller_keystroke.prototype.withIncrementalSelection = function (cb) {
     var _this_1 = this
@@ -4257,9 +4242,7 @@ var Controller_latex = /** @class */ (function (_super) {
   }
   return Controller_latex
 })(Controller_keystroke)
-/********************************************************
- * Deals with mouse events for clicking, drag-to-select
- *******************************************************/
+/** Deals with mouse events for clicking, drag-to-select */
 var ignoreNextMouseDownNoop = function (_el) {
   return false
 }
@@ -4423,10 +4406,7 @@ var Controller_mouse = /** @class */ (function (_super) {
   }
   return Controller_mouse
 })(Controller_latex)
-/***********************************************
- * Horizontal panning for editable fields that
- * overflow their width
- **********************************************/
+/** Horizontal panning for editable fields that overflow their width */
 var Controller_scrollHoriz = /** @class */ (function (_super) {
   __extends(Controller_scrollHoriz, _super)
   function Controller_scrollHoriz() {
@@ -4541,10 +4521,7 @@ var Controller_scrollHoriz = /** @class */ (function (_super) {
   }
   return Controller_scrollHoriz
 })(Controller_mouse)
-/*********************************************
- * Manage the MathQuill instance's textarea
- * (as owned by the Controller)
- ********************************************/
+/** Manage the MathQuill instance's textarea (as owned by the Controller) */
 Options.prototype.substituteTextarea = function () {
   return h("textarea", {
     autocapitalize: "off",
@@ -4706,7 +4683,10 @@ var Controller = /** @class */ (function (_super) {
       this.options.onPaste()
     }
   }
-  /** Set up for a static MQ field (i.e., create and attach the mathspeak element and initialize the focus state to blurred) */
+  /**
+   * Set up for a static MQ field (i.e., create and attach the mathspeak element
+   * and initialize the focus state to blurred)
+   */
   Controller.prototype.setupStaticField = function () {
     this.mathspeakSpan = h("span", { class: "mq-mathspeak" })
     domFrag(this.container).prepend(domFrag(this.mathspeakSpan))
@@ -4745,13 +4725,10 @@ var Controller = /** @class */ (function (_super) {
   }
   return Controller
 })(Controller_scrollHoriz)
-/*************************************************
- * Abstract classes of math blocks and commands.
- ************************************************/
+/** Abstract classes of math blocks and commands. */
 /**
- * Math tree node base class.
- * Some math-tree-specific extensions to MQNode.
- * Both MathBlock's and MathCommand's descend from it.
+ * Math tree node base class. Some math-tree-specific extensions to MQNode. Both
+ * MathBlock's and MathCommand's descend from it.
  */
 var MathElement = /** @class */ (function (_super) {
   __extends(MathElement, _super)
@@ -4831,8 +4808,8 @@ var DOMView = /** @class */ (function () {
   return DOMView
 })()
 /**
- * Commands and operators, like subscripts, exponents, or fractions.
- * Descendant commands are organized into blocks.
+ * Commands and operators, like subscripts, exponents, or fractions. Descendant
+ * commands are organized into blocks.
  */
 var MathCommand = /** @class */ (function (_super) {
   __extends(MathCommand, _super)
@@ -4988,7 +4965,8 @@ var MathCommand = /** @class */ (function (_super) {
     return this.domView.childCount
   }
   /**
-   * Render the entire math subtree rooted at this command to a DOM node. Assumes `this.domView` is defined.
+   * Render the entire math subtree rooted at this command to a DOM node.
+   * Assumes `this.domView` is defined.
    *
    * See dom.test.js for example templates and intended outputs.
    */
@@ -5053,9 +5031,7 @@ var MathCommand = /** @class */ (function (_super) {
   }
   return MathCommand
 })(MathElement)
-/**
- * Lightweight command without blocks or children.
- */
+/** Lightweight command without blocks or children. */
 var MQSymbol = /** @class */ (function (_super) {
   __extends(MQSymbol, _super)
   function MQSymbol(ctrlSeq, html, text, mathspeak) {
@@ -5180,7 +5156,8 @@ var BinaryOperator = /** @class */ (function (_super) {
     return _this_1
   }
   /**
-   * PlusMinus overrides this to be false when it looks like unary positive/negative.
+   * PlusMinus overrides this to be false when it looks like unary
+   * positive/negative.
    */
   BinaryOperator.prototype.isBinaryOperator = function () {
     return true
@@ -5198,9 +5175,8 @@ function bindBinaryOperator(ctrlSeq, htmlEntity, text, mathspeak) {
   }
 }
 /**
- * Children and parent of MathCommand's. Basically partitions all the
- * symbols and operators that descend (in the Math DOM tree) from
- * ancestor operators.
+ * Children and parent of MathCommand's. Basically partitions all the symbols
+ * and operators that descend (in the Math DOM tree) from ancestor operators.
  */
 var MathBlock = /** @class */ (function (_super) {
   __extends(MathBlock, _super)
@@ -5529,14 +5505,11 @@ API.InnerMathField = function (APIClasses) {
     return class_1
   })(APIClasses.MathField)
 }
-/*************************************************
- * Abstract classes of text blocks
- ************************************************/
+/** Abstract classes of text blocks */
 /**
- * Blocks of plain text, with one or two TextPiece's as children.
- * Represents flat strings of typically serif-font Roman characters, as
- * opposed to hierchical, nested, tree-structured math.
- * Wraps a single HTMLSpanElement.
+ * Blocks of plain text, with one or two TextPiece's as children. Represents
+ * flat strings of typically serif-font Roman characters, as opposed to
+ * hierchical, nested, tree-structured math. Wraps a single HTMLSpanElement.
  */
 var TextBlock = /** @class */ (function (_super) {
   __extends(TextBlock, _super)
@@ -5797,11 +5770,10 @@ function TextBlockFuseChildren(self) {
   return textPc
 }
 /**
- * Piece of plain text, with a TextBlock as a parent and no children.
- * Wraps a single DOMTextNode.
- * For convenience, has a .textStr property that's just a JavaScript string
- * mirroring the text contents of the DOMTextNode.
- * Text contents must always be nonempty.
+ * Piece of plain text, with a TextBlock as a parent and no children. Wraps a
+ * single DOMTextNode. For convenience, has a .textStr property that's just a
+ * JavaScript string mirroring the text contents of the DOMTextNode. Text
+ * contents must always be nonempty.
  */
 var TextPiece = /** @class */ (function (_super) {
   __extends(TextPiece, _super)
@@ -6053,9 +6025,7 @@ API.TextField = function (APIClasses) {
     _c
   )
 }
-/************************************
- * Symbols for Advanced Mathematics
- ***********************************/
+/** Symbols for Advanced Mathematics */
 function bindSimpleBinop(latex) {
   return bindBinaryOperator("\\" + latex + " ", "&" + latex + ";", latex)
 }
@@ -6871,9 +6841,7 @@ LatexCmds["\u2221"] = LatexCmds.measuredangle = bindVanillaSymbol(
   "&#8737;",
   "measured angle",
 )
-/*********************************
- * Symbols for Basic Mathematics
- ********************************/
+/** Symbols for Basic Mathematics */
 var SPACE = "\\ "
 var DOT = "."
 var DigitGroupingChar = /** @class */ (function (_super) {
@@ -8298,9 +8266,7 @@ baseOptionProcessors.interpretTildeAsSim = function (val) {
   }
   return interpretAsSim
 }
-/***************************
- * Commands and Operators.
- **************************/
+/** Commands and Operators. */
 var SVG_SYMBOLS = {
   sqrt: {
     width: "",
@@ -9354,21 +9320,19 @@ var PercentOfBuilder = function () {
   )
 }
 LatexCmds.percent = LatexCmds.percentof = PercentOfBuilder
-/** A Token represents a region in typeset math that is designed to be
- * externally styled and which delegates mousedown events to external
- * handlers.
+/**
+ * A Token represents a region in typeset math that is designed to be externally
+ * styled and which delegates mousedown events to external handlers.
  *
  * LaTeX syntax: `\token{id}`.
  *
- * Token is designed for similar use cases as EmbedNode. Differences:
- *     * Mousedown events on a Token are not handled by MathQuill (they
- *       are expected to be handled externally).
- *     * The API for Tokens is simpler: they don't require registering
- *       handlers with MathQuill.
- *     * The current syntax for embed (`\embed{name}[id]`) gets the order
- *       of optional and required arguments backwards compared to normal
- *       LaTeX syntax. The syntax of Token is simpler and more in line
- *       with LaTeX
+ * Token is designed for similar use cases as EmbedNode. Differences: *
+ * Mousedown events on a Token are not handled by MathQuill (they are expected
+ * to be handled externally). * The API for Tokens is simpler: they don't
+ * require registering handlers with MathQuill. * The current syntax for embed
+ * (`\embed{name}[id]`) gets the order of optional and required arguments
+ * backwards compared to normal LaTeX syntax. The syntax of Token is simpler and
+ * more in line with LaTeX
  */
 var Token = /** @class */ (function (_super) {
   __extends(Token, _super)
@@ -10281,9 +10245,7 @@ var Limit = /** @class */ (function (_super) {
   return Limit
 })(MathCommand)
 LatexCmds.limit = LatexCmds.lim = Limit
-/****************************************
- * Input box to type backslash commands
- ***************************************/
+/** Input box to type backslash commands */
 CharCmds["\\"] = /** @class */ (function (_super) {
   __extends(LatexCommandInput, _super)
   function LatexCommandInput() {

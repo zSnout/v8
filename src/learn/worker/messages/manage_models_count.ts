@@ -1,20 +1,18 @@
 import type { Id } from "@/learn/lib/id"
 import { int } from "../checks"
-import { db } from "../db"
+import { readonly, sql } from ".."
 
 export function manage_models_count(mid: Id) {
-  const tx = db.tx()
+  const tx = readonly()
   try {
-    const nids = db.val("SELECT COUNT() FROM notes WHERE mid = ?", int, [mid])
-
-    const cids = db.val(
-      "SELECT COUNT() FROM cards WHERE (SELECT mid FROM notes WHERE notes.id = cards.nid) = ?",
-      int,
-      [mid],
-    )
-
-    tx.commit()
-    return { nids, cids }
+    return {
+      nids: sql`SELECT COUNT() FROM notes WHERE mid = ${mid};`.getValue(int),
+      cids: sql`
+        SELECT COUNT()
+        FROM cards
+        WHERE (SELECT mid FROM notes WHERE notes.id = cards.nid) = ${mid};
+      `.getValue(int),
+    }
   } finally {
     tx.dispose()
   }

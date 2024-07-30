@@ -1,29 +1,27 @@
+DROP TRIGGER graves_from_charts;
+DROP TRIGGER graves_from_prefs;
+DROP TRIGGER graves_from_models;
+DROP TRIGGER graves_from_decks;
+DROP TRIGGER graves_from_notes;
+DROP TRIGGER graves_from_cards;
+DROP TRIGGER delete_cards_on_template_deletion;
+DROP TRIGGER check_card_tmpl_on_update;
+DROP TRIGGER check_card_tmpl_on_insert;
+DROP TABLE charts;
 DROP TABLE prefs;
-
 DROP INDEX rev_log_cid;
-
 DROP TABLE rev_log;
-
+DROP INDEX cards_tid_nid;
+DROP INDEX cards_due;
 DROP INDEX cards_did;
-
 DROP INDEX cards_nid;
-
 DROP TABLE cards;
-
 DROP INDEX notes_mid;
-
 DROP TABLE notes;
-
 DROP TABLE models;
-
 DROP INDEX decks_cfid;
-
 DROP INDEX decks_name;
-
 DROP TABLE decks;
-
 DROP TABLE confs;
-
 DROP TABLE graves;
-
 DROP TABLE core;

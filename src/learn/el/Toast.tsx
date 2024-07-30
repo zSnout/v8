@@ -36,8 +36,8 @@ export class Toasts {
     )
   }
 
-  toasts
-  setToasts
+  private toasts
+  private setToasts
 
   constructor(private owner: Owner | null) {
     ;[this.toasts, this.setToasts] = createSignal<JSX.Element[]>([])
@@ -70,7 +70,7 @@ export class Toasts {
     return closeNow
   }
 
-  create(props: { title?: string; body: string }) {
+  create(props: { title?: string; readonly body: JSX.Element }) {
     return this.of((closeNow, hiding) => (
       <div
         class="pointer-events-auto w-64 max-w-full transform transition-[opacity,transform,max-height,margin]"
@@ -79,14 +79,25 @@ export class Toasts {
           "translate-y-2": hiding(),
           "scale-95": hiding(),
           "max-h-0": hiding(),
-          "max-h-20": !hiding(),
+          "max-h-40": !hiding(),
         }}
       >
         <div class="h-1" />
         <div class="flex w-full gap-1 rounded-lg border border-z bg-z-body py-2 pl-3 pr-2 text-z shadow-lg">
-          <div class="flex flex-1 flex-col">
-            <p>{props.body}</p>
-          </div>
+          <Show
+            when={props.title}
+            fallback={
+              <div class="flex flex-1 flex-col">
+                <p>{props.body}</p>
+              </div>
+            }
+          >
+            <div class="flex flex-1 flex-col">
+              <p class="font-semibold text-z-heading">{props.title}</p>
+              <p class="text-sm text-z-subtitle">{props.body}</p>
+            </div>
+          </Show>
+
           <button
             class="-mr-1 -mt-1 h-full rounded p-1 transition hover:bg-z-body-selected [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:[:hover>&]:opacity-100"
             onClick={closeNow}

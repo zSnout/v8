@@ -2,7 +2,7 @@
 import type { TreeOf } from "@/components/tree-structure"
 import { type Grade, Rating, State } from "ts-fsrs"
 import * as v from "valibot"
-import { Id, IdKey, randomId } from "./id"
+import { Id, IdKey } from "./id"
 
 export function makeCard<
   T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
@@ -83,15 +83,14 @@ export const AnyCard = makeCard(
 
 export interface Grave extends v.InferOutput<typeof Grave> {}
 export const Grave = v.object({
-  /** The id of the grave */
-  // DB: added in v8
-  id: v.optional(v.nullable(Id, randomId), null),
-
   /** The original id of the item to delete */
   oid: Id,
 
-  /** The type of item to delete: 0=card, 1=note, 2=deck, 3=model */
-  type: v.picklist([0, 1, 2, 3]),
+  /**
+   * The type of item to delete. 0=card, 1=note, 2=deck, 3=model, 4=pref,
+   * 5=chart.
+   */
+  type: v.picklist([0, 1, 2, 3, 4, 5]),
 })
 
 export interface NoteFields extends v.InferOutput<typeof NoteFields> {}
@@ -491,7 +490,10 @@ export const Prefs = v.object({
   /** If a review is due before this many seconds, it is advanced to now */
   collapse_time: v.number(),
 
-  /** Each time this number of seconds elapses, the application tells you how many cards you reviewed */
+  /**
+   * Each time this number of seconds elapses, the application tells you how
+   * many cards you reviewed
+   */
   notify_after_time: v.number(),
 
   /** Whether to show review time above the buttons */
@@ -503,10 +505,16 @@ export const Prefs = v.object({
   /** Whether to show deck names */
   show_deck_name: v.boolean(),
 
-  /** Highest due value of a new card. Next note created should be higher than this */
+  /**
+   * Highest due value of a new card. Next note created should be higher than
+   * this
+   */
   next_new_card_position: v.number(),
 
-  /** The last time any card was unburied. If not today, then buried notes need to be unburied */
+  /**
+   * The last time any card was unburied. If not today, then buried notes need
+   * to be unburied
+   */
   last_unburied: v.optional(v.nullable(v.number(), 0), null),
 
   /** When the day is considered to start, in milliseconds after midnight */
@@ -636,12 +644,12 @@ export const ChartCrossAxis = v.object({
 })
 
 export interface ChartComputedAxis
-  extends v.InferOutput<typeof ChartComputedAxis> {}
-export const ChartComputedAxis = v.object({
-  /** The minimum value, or `null` to automatically determine. */
+  extends v.InferOutput<typeof ChartComputedCrossAxis> {}
+export const ChartComputedCrossAxis = v.object({
+  /** The minimum value of the chart's cross axis. */
   min: v.number(),
 
-  /** The maximum value, or `null` to automatically determine. */
+  /** The maximum value of the chart's cross axis. */
   max: v.number(),
 })
 
@@ -800,7 +808,7 @@ export const ChartComputedInfo = v.object({
   data: ChartData,
 
   /** A computed definition of the chart's cross axis. */
-  crossAxis: ChartComputedAxis,
+  crossAxis: ChartComputedCrossAxis,
 })
 
 export interface ChartColorEntry

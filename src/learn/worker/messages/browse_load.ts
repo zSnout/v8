@@ -12,7 +12,7 @@ import {
 } from "@/learn/lib/types"
 import { timestampDist } from "@/pages/quiz/shared"
 import { State } from "ts-fsrs"
-import { db } from "../db"
+import { readonly, sql } from ".."
 import { stmts } from "../stmts"
 import { prefs_get } from "./prefs_get"
 
@@ -144,15 +144,19 @@ export function makeColumns(
 }
 
 export function browse_load() {
-  const tx = db.tx()
+  const tx = readonly()
 
   try {
-    const decks = db.run("SELECT * FROM decks").map(stmts.decks.interpret)
-    const models = db.run("SELECT * FROM models").map(stmts.models.interpret)
-    const notes = db.run("SELECT * FROM notes").map(stmts.notes.interpret)
+    const decks = sql`SELECT * FROM decks;`.getAll().map(stmts.decks.interpret)
 
-    const cards = db
-      .run("SELECT * FROM cards ORDER BY creation")
+    const models = sql`SELECT * FROM models;`
+      .getAll()
+      .map(stmts.models.interpret)
+
+    const notes = sql`SELECT * FROM notes;`.getAll().map(stmts.notes.interpret)
+
+    const cards = sql`SELECT * FROM cards ORDER BY creation;`
+      .getAll()
       .map(stmts.cards.interpret)
 
     const prefs = prefs_get()
@@ -186,7 +190,6 @@ export function browse_load() {
         }
       }),
     }
-    tx.commit()
     return result
   } finally {
     tx.dispose()

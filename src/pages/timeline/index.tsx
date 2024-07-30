@@ -4,7 +4,7 @@ import { Temporal } from "temporal-polyfill"
 export interface Event {
   title: string
   description: string
-  /** temporal plaindate */
+  /** Temporal plaindate */
   date: string
 }
 

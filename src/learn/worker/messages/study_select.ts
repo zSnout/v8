@@ -1,19 +1,23 @@
 import { notNull } from "@/components/pray"
-import { startOfDaySync } from "@/learn/db/day"
+import { startOfDaySync } from "@/learn/lib/day"
 import type { Id } from "@/learn/lib/id"
 import { __unsafeDoNotUseDangerouslySetInnerHtmlYetAnotherMockOfReactRepeatUnfiltered } from "@/learn/lib/repeat"
+import type { Conf, Prefs } from "@/learn/lib/types"
 import { FSRS } from "ts-fsrs"
-import { db } from "../db"
+import { readonly, sql } from ".."
+import { id } from "../checks"
 import { stmts } from "../stmts"
 import { conf_get_by_deck } from "./conf_get_by_deck"
 import { deck_done_today_txless } from "./deck_done_today"
 import { deck_left_txless } from "./deck_left"
-import { deck_limits_txless } from "./deck_limits"
+import { deck_limits_txless, type Limits } from "./deck_limits"
 import { prefs_get } from "./prefs_get"
 
-/** Selection algorithm
+/**
+ * Selection algorithm
  *
- * The value `PREFER_NEW` means `newLeft / newTotal >= reviewsLeft / reviewsTotal`
+ * The value `PREFER_NEW` means `newLeft / newTotal >= reviewsLeft /
+ * reviewsTotal`
  *
  * Return the first card possible from the list below.
  *
@@ -24,13 +28,17 @@ import { prefs_get } from "./prefs_get"
  * 5. A new card.
  */
 
-export function study_select_txless(root: Id | null, all: Id[]) {
-  const now = Date.now()
-  const prefs = prefs_get()
-  const limits = deck_limits_txless(root, prefs.day_start)
-  const { new_today, rev_today } = deck_done_today_txless(all, prefs.day_start)
-  const { new_left, rev_left } = deck_left_txless(all)
-  const conf = conf_get_by_deck(root)
+function pickCid(
+  all: Id[],
+  prefs: Prefs,
+  now: number,
+  conf: Conf,
+  limits: Limits,
+  new_left: number,
+  rev_left: number,
+  new_today: number,
+  rev_today: number,
+) {
   const todayStart = startOfDaySync(prefs.day_start, now)
   const todayEnd = todayStart + 1000 * 60 * 60 * 24
   const includeBuried = prefs.last_unburied < todayStart
@@ -48,7 +56,7 @@ export function study_select_txless(root: Id | null, all: Id[]) {
       true
     : null
 
-  const cid =
+  return (
     // 1. If PREFER_NEW, a new card.
     (PREFER_NEW && pickNew(includeBuried, conf.new.pick_at_random, all)) ??
     // 2. A (re)learning card.
@@ -59,25 +67,49 @@ export function study_select_txless(root: Id | null, all: Id[]) {
     pickLearningToday(includeBuried, now + prefs.collapse_time * 1000, all) ??
     // 5. A new card
     pickNew(includeBuried, conf.new.pick_at_random, all)
+  )
+}
+
+function study_select_txless(root: Id | null, all: Id[], preferredCid?: Id) {
+  const now = Date.now()
+  const prefs = prefs_get()
+  const limits = deck_limits_txless(root, prefs.day_start)
+  const { new_today, rev_today } = deck_done_today_txless(all, prefs.day_start)
+  const { new_left, rev_left } = deck_left_txless(all)
+  const conf = conf_get_by_deck(root)
+
+  const cid =
+    preferredCid ??
+    pickCid(
+      all,
+      prefs,
+      now,
+      conf,
+      limits,
+      new_left,
+      rev_left,
+      new_today,
+      rev_today,
+    )
 
   if (cid == null) {
     return null
   }
 
   const card = stmts.cards.interpret(
-    db.row("SELECT * FROM cards WHERE id = ?", [cid]),
+    sql`SELECT * FROM cards WHERE id = ${cid};`.getRow(),
   )
 
   const note = stmts.notes.interpret(
-    db.row("SELECT * FROM notes WHERE id = ?", [card.nid]),
+    sql`SELECT * FROM notes WHERE id = ${card.nid};`.getRow(),
   )
 
   const model = stmts.models.interpret(
-    db.row("SELECT * FROM models WHERE id = ?", [note.mid]),
+    sql`SELECT * FROM models WHERE id = ${note.mid};`.getRow(),
   )
 
   const deck = stmts.decks.interpret(
-    db.row("SELECT * FROM decks WHERE id = ?", [card.did]),
+    sql`SELECT * FROM decks WHERE id = ${card.did};`.getRow(),
   )
 
   const tmpl = notNull(
@@ -114,71 +146,56 @@ export function study_select_txless(root: Id | null, all: Id[]) {
   }
 }
 
-export function study_select(root: Id | null, all: Id[]) {
-  const tx = db.tx()
+export function study_select(root: Id | null, all: Id[], preferredCid?: Id) {
+  const tx = readonly()
 
   try {
-    const value = study_select_txless(root, all)
-    tx.commit()
-    return value
+    return study_select_txless(root, all, preferredCid)
   } finally {
     tx.dispose()
   }
 }
 
 function createStmt(includeBuried: boolean, where: string) {
-  return `SELECT id FROM cards WHERE did = ? AND (CASE queue WHEN 0 THEN 1 WHEN 1 THEN ${+includeBuried} WHEN 2 THEN 0 END) AND ${where}`
+  return sql.of(
+    `SELECT id FROM cards WHERE did = ? AND (CASE queue WHEN 0 THEN 1 WHEN 1 THEN ${+includeBuried} WHEN 2 THEN 0 END) AND ${where}`,
+  )
 }
 
 function pickNew(includeBuried: boolean, randomWithinDeck: boolean, all: Id[]) {
-  const stmt = db.prepare(
-    createStmt(
-      includeBuried,
-      `state = 0 ORDER BY ${randomWithinDeck ? "RANDOM()" : "due"} LIMIT 1`,
-    ),
+  const stmt = createStmt(
+    includeBuried,
+    `state = 0 ORDER BY ${randomWithinDeck ? "RANDOM()" : "due"} LIMIT 1`,
   )
 
-  try {
-    for (const did of all) {
-      stmt.bind([did])
-      if (stmt.step()) {
-        return stmt.get(0) as Id
-      }
-      stmt.reset()
+  for (const did of all) {
+    stmt.bindNew([did])
+    const cid = stmt.getValueSafe(id)
+    if (cid != null) {
+      return cid
     }
-
-    return
-  } finally {
-    stmt.finalize()
   }
+
+  return
 }
 
 function pickLearningToday(includeBuried: boolean, now: number, all: Id[]) {
   // TODO: this is biased on deck size
 
-  const stmt = db.prepare(
-    createStmt(
-      includeBuried,
-      `(state = 1 OR state = 3) AND due <= ${now} AND scheduled_days = 0 ORDER BY RANDOM() LIMIT 1`,
-    ),
+  const stmt = createStmt(
+    includeBuried,
+    `(state = 1 OR state = 3) AND due <= ${now} AND scheduled_days = 0 ORDER BY RANDOM() LIMIT 1`,
   )
 
-  try {
-    const cids = all
-      .map((did) => {
-        stmt.bind([did])
-        if (stmt.step()) {
-          return stmt.get(0) as Id
-        }
-        stmt.reset()
-        return
-      })
-      .filter((x) => x != null)
-
-    return cids[0]
-  } finally {
-    stmt.finalize()
+  for (const did of all) {
+    stmt.bindNew([did])
+    const cid = stmt.getValueSafe(id)
+    if (cid != null) {
+      return cid
+    }
   }
+
+  return
 }
 
 function pickReviewToday(
@@ -188,27 +205,18 @@ function pickReviewToday(
 ) {
   // TODO: this is biased on deck size
 
-  const stmt = db.prepare(
-    createStmt(
-      includeBuried,
-      `(state = 2 OR scheduled_days > 0) AND due <= ${endOfToday} ORDER BY RANDOM() LIMIT 1`,
-    ),
+  const stmt = createStmt(
+    includeBuried,
+    `(state = 2 OR scheduled_days > 0) AND due <= ${endOfToday} ORDER BY RANDOM() LIMIT 1`,
   )
 
-  try {
-    const cids = all
-      .map((did) => {
-        stmt.bind([did])
-        if (stmt.step()) {
-          return stmt.get(0) as Id
-        }
-        stmt.reset()
-        return
-      })
-      .filter((x) => x != null)
-
-    return cids[0]
-  } finally {
-    stmt.finalize()
+  for (const did of all) {
+    stmt.bindNew([did])
+    const cid = stmt.getValueSafe(id)
+    if (cid != null) {
+      return cid
+    }
   }
+
+  return
 }

@@ -1,7 +1,7 @@
-import { isSameDaySync } from "@/learn/db/day"
+import { isSameDaySync } from "@/learn/lib/day"
 import { type Id, ID_ZERO } from "@/learn/lib/id"
+import { readonly, sql } from ".."
 import { id, int, qint } from "../checks"
-import { db } from "../db"
 import { prefs_get } from "./prefs_get"
 
 export function deck_limits_txless(root: Id | null, dayStart: number): Limits {
@@ -15,17 +15,21 @@ export function deck_limits_txless(root: Id | null, dayStart: number): Limits {
   ] =
     root == null ?
       [ID_ZERO, null, null, null, null]
-    : (db.checked(
-        "SELECT cfid, custom_revcard_limit, custom_newcard_limit, default_revcard_limit, default_newcard_limit, today FROM decks WHERE id = ?",
-        [id, qint, qint, qint, qint, int],
-        [root],
-      )[0] ?? [ID_ZERO, null, null, null, null])
+    : sql`
+        SELECT
+          cfid,
+          custom_revcard_limit,
+          custom_newcard_limit,
+          default_revcard_limit,
+          default_newcard_limit,
+          today
+        FROM decks
+        WHERE id = ${root};
+      `.getRow([id, qint, qint, qint, qint, int])
 
-  const [new_per_day, rev_per_day] = db.rowChecked(
-    "SELECT new_per_day, review_per_day FROM confs WHERE id = ?",
-    [int, int],
-    [cfid],
-  )
+  const [new_per_day, rev_per_day] = sql`
+    SELECT new_per_day, review_per_day FROM confs WHERE id = ${cfid};
+  `.getRow([int, int])
 
   const isToday =
     (today != null && isSameDaySync(dayStart, Date.now(), today)) || null
@@ -65,11 +69,9 @@ export interface Limits {
 }
 
 export function deck_limits(main: Id | null): Limits {
-  const tx = db.tx()
+  const tx = readonly()
   try {
-    const value = deck_limits_txless(main, prefs_get().day_start)
-    tx.commit()
-    return value
+    return deck_limits_txless(main, prefs_get().day_start)
   } finally {
     tx.dispose()
   }

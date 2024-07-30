@@ -1,12 +1,13 @@
 import { idOf } from "@/learn/lib/id"
 import type { ChartCard } from "@/learn/lib/types"
-import { db } from "../db"
+import { readwrite, sql } from ".."
+import { qint } from "../checks"
 import { stmts } from "../stmts"
 
 export function charts_add(title: string, query: string) {
-  const tx = db.tx()
+  const tx = readwrite("Create chart")
   try {
-    const max = db.selectValue("SELECT max(id) FROM charts")
+    const max = sql`SELECT max(id) FROM charts;`.getValue(qint)
     const next = typeof max == "number" ? max + 1 : 0
 
     const card: ChartCard = {
@@ -63,7 +64,7 @@ export function charts_add(title: string, query: string) {
       options: [],
     }
 
-    db.run(stmts.charts.insert, stmts.charts.insertArgs(card))
+    stmts.charts.insert().bindNew(stmts.charts.insertArgs(card)).run()
     tx.commit()
   } finally {
     tx.dispose()

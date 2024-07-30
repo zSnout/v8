@@ -1,12 +1,14 @@
+import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { timestampDist } from "@/pages/quiz/shared"
 import { isDark } from "@/stores/theme"
-import { For, Show } from "solid-js"
+import { For, Match, Show, Switch } from "solid-js"
 import type {
   Chart,
   ChartCard,
   ChartColors,
   ChartComputedInfo,
   ChartLabelFormat,
+  ChartOption,
   ChartStyle,
 } from "../lib/types"
 
@@ -93,127 +95,201 @@ export function DrawChartBar(
 
   return (
     <div
-      class="relative flex aspect-video transform"
+      class="relative flex flex-1 transform"
       classList={{ "gap-2": chart.space }}
     >
+      <Bars />
+      <GridY />
+    </div>
+  )
+
+  function Bars() {
+    return (
       <For each={data}>
         {([label, values], labelIndex) => (
           <div class="relative flex h-full flex-1 transform flex-col">
-            <div class="flex flex-1 gap-1 overflow-hidden">
-              <For each={values}>
-                {(value, index) => {
-                  const prev = () =>
-                    index() == 0 ?
-                      data[labelIndex() - 1]?.[1].at(-1)
-                    : values[index() - 1]!
-
-                  const next = () =>
-                    index() == values.length - 1 ?
-                      data[labelIndex() + 1]?.[1][0]
-                    : values[index() + 1]!
-
-                  return (
-                    <div class="flex flex-1 flex-col">
-                      <div
-                        class="relative mt-auto transform transition"
-                        classList={{
-                          "rounded-bl-lg":
-                            chart.rounded &&
-                            (chart.space ||
-                              (labelIndex() == 0 && index() == 0) ||
-                              prev() == 0),
-                          "rounded-br-lg":
-                            chart.rounded &&
-                            (chart.space ||
-                              (labelIndex() == data.length - 1 &&
-                                index() == values.length - 1) ||
-                              next() == 0),
-                          "rounded-tl-lg":
-                            chart.rounded &&
-                            (chart.space || prev() == null || prev()! < value),
-                          "rounded-tr-lg":
-                            chart.rounded &&
-                            (chart.space || next() == null || next()! < value),
-                        }}
-                        style={{
-                          height: `${(value / (max - min)) * 100}%`,
-                          background: color(index()),
-                        }}
-                      >
-                        <Show
-                          when={
-                            chart.rounded &&
-                            !chart.space &&
-                            value != 0 &&
-                            next() != null &&
-                            next()! > value
-                          }
-                        >
-                          <div
-                            class="fixed -top-2 right-0 size-2 transition"
-                            style={{ background: color(index()) }}
-                          />
-
-                          <div
-                            class="fixed -top-2 right-0 size-2 rounded-br-lg transition"
-                            classList={{
-                              "bg-z-body": !style.layered,
-                              "bg-z-body-selected": style.layered,
-                            }}
-                          />
-                        </Show>
-
-                        <Show
-                          when={
-                            chart.rounded &&
-                            !chart.space &&
-                            value != 0 &&
-                            prev() != null &&
-                            prev()! > value
-                          }
-                        >
-                          <div
-                            class="fixed -top-2 left-0 size-2 transition"
-                            style={{ background: color(index()) }}
-                          />
-
-                          <div
-                            class="fixed -top-2 left-0 size-2 rounded-bl-lg transition"
-                            classList={{
-                              "bg-z-body": !style.layered,
-                              "bg-z-body-selected": style.layered,
-                            }}
-                          />
-                        </Show>
-                      </div>
-                    </div>
-                  )
-                }}
-              </For>
-            </div>
-
-            <div
-              class="bottom-0 w-full max-w-full transform overflow-hidden py-0.5 text-center text-sm"
-              classList={{
-                hidden: chart.mainAxis.label.display == "hidden",
-                "text-z-subtitle": chart.mainAxis.label.display != "inline",
-                "text-z-bg-body": chart.mainAxis.label.display == "inline",
-                relative: chart.mainAxis.label.display != "inline",
-                fixed: chart.mainAxis.label.display == "inline",
-                "pb-1": chart.mainAxis.label.display == "inline",
-                // "[text-shadow:_0_1px_0_var(--tw-shadow-color)]":
-                //   chart.mainAxis.label.display == "inline",
-              }}
-            >
-              &nbsp;
-              <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
-                {display(label, chart.mainAxis.label.format)}
-              </div>
-            </div>
+            {DrawValues(values, labelIndex)}
+            {DrawLabel(label)}
           </div>
         )}
       </For>
-    </div>
+    )
+  }
+
+  function GridY() {
+    const d = (max - min) / 6
+    const exp = 10 ** Math.floor(Math.log10(d))
+    const q = Math.ceil(d / exp) * exp
+    const A = Math.floor(min / q) * q
+
+    return (
+      <div
+        class="fixed left-0 right-0 top-0 transform border-z-grid-line"
+        classList={{
+          "bottom-6": chart.mainAxis.label.display == "separate",
+          "bottom-0": chart.mainAxis.label.display != "separate",
+          "border-b": chart.mainAxis.label.display == "separate",
+        }}
+      >
+        <For each={[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}>
+          {(x) => <Label value={A + x * q} />}
+        </For>
+      </div>
+    )
+
+    function Label(props: { value: number }) {
+      const height = (1 - (props.value - min) / (max - min)) * 100
+
+      if (height >= 100 || height <= 0) {
+        return <></>
+      }
+
+      return (
+        <div
+          class="fixed left-2 w-full -translate-y-1/2 transform items-center gap-2 whitespace-nowrap even:hidden xs:even:block"
+          style={{ top: height + "%" }}
+        >
+          <div class="text-sm text-z-grid-label">{props.value}</div>
+          <div class="fixed -left-2 top-1/2 h-px w-full border-b border-z-grid-line" />
+        </div>
+      )
+    }
+  }
+
+  function DrawValues(values: number[], labelIndex: () => number) {
+    return (
+      <div class="flex flex-1 gap-1 overflow-hidden">
+        <For each={values}>
+          {(value, index) => {
+            const prev = () =>
+              index() == 0 ?
+                data[labelIndex() - 1]?.[1].at(-1)
+              : values[index() - 1]!
+
+            const next = () =>
+              index() == values.length - 1 ?
+                data[labelIndex() + 1]?.[1][0]
+              : values[index() + 1]!
+
+            return (
+              <div class="flex flex-1 flex-col">
+                <div
+                  class="relative mt-auto transform transition"
+                  classList={{
+                    "rounded-bl-lg":
+                      chart.rounded &&
+                      (chart.space ||
+                        (labelIndex() == 0 && index() == 0) ||
+                        prev() == 0),
+                    "rounded-br-lg":
+                      chart.rounded &&
+                      (chart.space ||
+                        (labelIndex() == data.length - 1 &&
+                          index() == values.length - 1) ||
+                        next() == 0),
+                    "rounded-tl-lg":
+                      chart.rounded &&
+                      (chart.space || prev() == null || prev()! < value),
+                    "rounded-tr-lg":
+                      chart.rounded &&
+                      (chart.space || next() == null || next()! < value),
+                  }}
+                  style={{
+                    height: `${(value / (max - min)) * 100}%`,
+                    background: color(index()),
+                  }}
+                >
+                  <Show
+                    when={
+                      chart.rounded &&
+                      !chart.space &&
+                      value != 0 &&
+                      next() != null &&
+                      next()! > value
+                    }
+                  >
+                    <div
+                      class="fixed -top-2 right-0 size-2 transition"
+                      style={{ background: color(index()) }}
+                    />
+
+                    <div
+                      class="fixed -top-2 right-0 size-2 rounded-br-lg transition"
+                      classList={{
+                        "bg-z-body": !style.layered,
+                        "bg-z-body-selected": style.layered,
+                      }}
+                    />
+                  </Show>
+
+                  <Show
+                    when={
+                      chart.rounded &&
+                      !chart.space &&
+                      value != 0 &&
+                      prev() != null &&
+                      prev()! > value
+                    }
+                  >
+                    <div
+                      class="fixed -top-2 left-0 size-2 transition"
+                      style={{ background: color(index()) }}
+                    />
+
+                    <div
+                      class="fixed -top-2 left-0 size-2 rounded-bl-lg transition"
+                      classList={{
+                        "bg-z-body": !style.layered,
+                        "bg-z-body-selected": style.layered,
+                      }}
+                    />
+                  </Show>
+                </div>
+              </div>
+            )
+          }}
+        </For>
+      </div>
+    )
+  }
+
+  function DrawLabel(label: string | number) {
+    return (
+      <div
+        class="bottom-0 w-full max-w-full transform overflow-hidden py-0.5 text-center text-sm text-z-grid-label"
+        classList={{
+          hidden: chart.mainAxis.label.display == "hidden",
+          relative: chart.mainAxis.label.display != "inline",
+          fixed: chart.mainAxis.label.display == "inline",
+        }}
+      >
+        &nbsp;
+        <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap">
+          {display(label, chart.mainAxis.label.format)}
+        </div>
+      </div>
+    )
+  }
+}
+
+export function DrawChartOption(props: { option: ChartOption }) {
+  return (
+    <Switch>
+      <Match when={props.option.type == "checkbox" ? props.option : undefined}>
+        {(x) => (
+          <div>
+            <label class="flex w-full gap-2">
+              <Checkbox
+                checked={x().value}
+                // onInput={() => props.set("sort_field", idOf(props.selected.id))}
+              />
+
+              <p>{props.option.label}</p>
+            </label>
+          </div>
+        )}
+      </Match>
+    </Switch>
   )
 }
 
@@ -227,7 +303,7 @@ export function DrawStatCard(
   const padded = () => card.style.padded
   return (
     <div
-      class="relative transform overflow-hidden border-z transition"
+      class="relative flex aspect-[16/10] transform flex-col overflow-hidden border-z transition"
       classList={{
         "bg-z-body-selected": card.style.layered,
         "p-2": padded(),
@@ -236,8 +312,22 @@ export function DrawStatCard(
         border: card.style.bordered,
       }}
     >
+      <ChartTitle />
+      <Show when={card.options.length}>
+        <div class="-mb-px mt-8 flex w-full flex-col gap-1 border-b border-z-grid-line px-2 pb-1">
+          <For each={card.options}>
+            {(option) => <DrawChartOption option={option} />}
+          </For>
+        </div>
+      </Show>
+      {DrawChartBar(card.chart, card.style, data, colors)}
+    </div>
+  )
+
+  function ChartTitle() {
+    return (
       <div
-        class="fixed z-10 max-w-full whitespace-nowrap border-z"
+        class="fixed z-10 max-w-[calc(100%_-_2rem)] overflow-hidden whitespace-nowrap border-z"
         classList={{
           "bg-z-body": floating() && card.style.layered,
           "bg-z-body-selected": floating() && !card.style.layered,
@@ -331,7 +421,6 @@ export function DrawStatCard(
       >
         {card.title}
       </div>
-      {DrawChartBar(card.chart, card.style, data, colors)}
-    </div>
-  )
+    )
+  }
 }

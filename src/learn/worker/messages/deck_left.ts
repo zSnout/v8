@@ -1,43 +1,37 @@
 import type { Id } from "@/learn/lib/id"
-import { db } from "../db"
+import { readonly, sql } from ".."
+import { int } from "../checks"
 
 export function deck_left_txless(decks: Id[]) {
-  const stmtNew = db.prepare(
-    "SELECT COUNT() FROM cards WHERE did = ? AND state = 0",
-  )
-
-  const stmtRev = db.prepare(
-    "SELECT COUNT() FROM cards WHERE did = ? AND state != 0",
-  )
+  const stmtNew = sql`SELECT COUNT() FROM cards WHERE did = ? AND state = 0;`
+  const stmtRev = sql`SELECT COUNT() FROM cards WHERE did = ? AND state != 0;`
 
   let new_left = 0
   let rev_left = 0
 
-  try {
-    for (const did of decks) {
-      stmtNew.bind([did])
-      if (stmtNew.step()) {
-        new_left += stmtNew.get(0) as number
-      }
-
-      stmtRev.bind([did])
-      if (stmtRev.step()) {
-        rev_left += stmtRev.get(0) as number
+  for (const did of decks) {
+    {
+      const inc = stmtNew.bindNew([did]).getValueSafe(int)
+      if (inc != null) {
+        new_left += inc
       }
     }
 
-    return { new_left, rev_left }
-  } finally {
-    stmtNew.finalize()
+    {
+      const inc = stmtRev.bindNew([did]).getValueSafe(int)
+      if (inc != null) {
+        rev_left += inc
+      }
+    }
   }
+
+  return { new_left, rev_left }
 }
 
 export function deck_left(decks: Id[]) {
-  const tx = db.tx()
+  const tx = readonly()
   try {
-    const value = deck_left_txless(decks)
-    tx.commit()
-    return value
+    return deck_left_txless(decks)
   } finally {
     tx.dispose()
   }

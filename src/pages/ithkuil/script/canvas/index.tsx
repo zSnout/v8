@@ -29,7 +29,7 @@ function makePath(
   /**
    * Here's an in-depth explanation of how this works:
    *
-   * You might dlk this should be as simple as generating a shape for each
+   * You might think this should be as simple as generating a shape for each
    * block and then overlapping them. And while that works, it has several
    * downsides.
    *
@@ -39,8 +39,8 @@ function makePath(
    * the paths into a single one using `M` commands. This is undesirable because
    * a) it has the same multiple-stroke downside and b) SVGs have an odd
    * specification where if multiple shapes overlap, an empty space will be
-   * drawn, even if `fill-rule: nonzero` is enabled. So we are unable to use that
-   * method due to quirks of the specification.
+   * drawn, even if `fill-rule: nonzero` is enabled. So we are unable to use
+   * that method due to quirks of the specification.
    *
    * So instead, we join together all the steps into a single SVG path. This is
    * also difficult, but avoids the other problems. To do this, we use a
@@ -54,12 +54,10 @@ function makePath(
    *
    * For example, the `right` step shape only actually renders this bit:
    *
-   * ```
-   *    ───────── (child step)
-   *  ╱
-   * ╱
-   * ──────────── (step starts here)
-   * ```
+   *        ───────── (child step)
+   *      ╱
+   *     ╱
+   *     ──────────── (step starts here)
    *
    * The top section is `d-10` units long, and the bottom section is `d` units
    * long. It expects that the child step will connect them properly. The
@@ -83,8 +81,8 @@ function makePath(
    * - `right(d)` travels `d, 0` units
    * - `top(d)` travels `0, -d` units
    * - `bottom(d)` travels `0, d` units
-   * - `dl(d)` travels `-d, d` units, and an additional `THIN_LINE_WIDTH` units
-   *   in the direction of the previous instruction
+   * - `dl(d)` travels `-d, d` units, and an additional `THIN_LINE_WIDTH` units in
+   *   the direction of the previous instruction
    * - `cap` does not travel
    *
    * ## Step Shapes
@@ -97,56 +95,48 @@ function makePath(
    *
    * **`left` shape**
    *
-   * ```
-   * B──────────────
-   *               ╱
-   *              C
-   *             ╱
-   * A──────────
-   * ```
+   *     B──────────────
+   *                   ╱
+   *                  C
+   *                 ╱
+   *     A──────────
    *
    * Top segment is `d` units long, bottom segment is `d-10` units long,
    * diagonal segment is `10,10` units long (10 in both X and Y directions).
    *
    * **`right` shape**
    *
-   * ```
-   *     ─────────A
-   *   ╱
-   *  C
-   * ╱
-   * ───────────B
-   * ```
+   *         ─────────A
+   *       ╱
+   *      C
+   *     ╱
+   *     ───────────B
    *
    * Top segment is `d-10` units long, bottom segment is `d-2.4` units long,
    * diagonal segment is `10,10` units long (10 in both X and Y directions).
    *
    * **`up` shape**
    *
-   * ```
-   * A       B
-   * │       │
-   * │       │
-   * │       │
-   * │     ╱
-   * │   C
-   * │ ╱
-   * ```
+   *     A       B
+   *     │       │
+   *     │       │
+   *     │       │
+   *     │     ╱
+   *     │   C
+   *     │ ╱
    *
    * Left segment is `d` units long, right segment is `d-10` units long,
    * diagonal segment is `10,10` units long (10 in both X and Y directions).
    *
    * **`down` shape**
    *
-   * ```
-   *       ╱ │
-   *     C   │
-   *   ╱     │
-   * │       │
-   * │       │
-   * │       │
-   * B       A
-   * ```
+   *           ╱ │
+   *         C   │
+   *       ╱     │
+   *     │       │
+   *     │       │
+   *     │       │
+   *     B       A
    *
    * Left segment is `d-10` units long, right segment is `d` units long,
    * diagonal segment is `10,10` units long (10 in both X and Y directions).

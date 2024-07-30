@@ -223,8 +223,8 @@ function assertAllContextualVariantsAreSubtypesOfNormal(
 }
 
 /**
- * Checks if a symbol is numeric on its right hand side.
- * Used to see if the + and - symbols should be operators or prefixes.
+ * Checks if a symbol is numeric on its right hand side. Used to see if the +
+ * and - symbols should be operators or prefixes.
  */
 export function isNumericSymbolOnRHS(
   symbol: Symbol | undefined,
@@ -512,9 +512,9 @@ export function prepareSymbolListAndShiftIndex(
 }
 
 /**
- * Renders an array of symbols with contextual alternates.
- * For example, `3--2` is rendered more like `3 - -2`.
- * Subscripts and superscripts are also spaced properly after operators.
+ * Renders an array of symbols with contextual alternates. For example, `3--2`
+ * is rendered more like `3 - -2`. Subscripts and superscripts are also spaced
+ * properly after operators.
  */
 export function SymbolList(props: {
   symbols: Symbol[]

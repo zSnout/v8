@@ -134,7 +134,7 @@ export function Main() {
   return (
     <div class="relative flex h-full w-full flex-1">
       <div
-        class="z-field flex-1 bg-white px-6 py-4 font-hebrew text-5xl text-black [line-height:1.5] [direction:rtl]"
+        class="z-field flex-1 bg-white px-6 py-4 font-hebrew text-5xl text-black [direction:rtl] [line-height:1.5]"
         contentEditable
         data-placeholder={
           textContent() != "" ? "" : "...Paste Hebrew text here"

@@ -1,7 +1,8 @@
 import type { AnyCard, Review } from "@/learn/lib/types"
+import { Rating } from "ts-fsrs"
 import { int, text } from "../checks"
-import { db } from "../db"
 import { stmts } from "../stmts"
+import { readwrite, sql } from ".."
 
 export function study_save_review(
   card: AnyCard,
@@ -9,34 +10,34 @@ export function study_save_review(
   isNew: boolean,
   timeElapsedMs: number,
 ) {
-  const tx = db.tx()
+  const tx = readwrite(`Review card as ${Rating[log.rating]}`)
+  tx.meta.currentCard = card.id
   try {
-    db.run(
-      "UPDATE cards SET due = ?, last_review = ?, reps = ?, state = ?, elapsed_days = ?, scheduled_days = ?, stability = ?, difficulty = ?, lapses = ? WHERE id = ?",
-      [
-        card.due,
-        card.last_review,
-        card.reps,
-        card.state,
-        card.elapsed_days,
-        card.scheduled_days,
-        card.stability,
-        card.difficulty,
-        card.lapses,
-        card.id,
-      ],
-    )
+    sql`
+      UPDATE cards
+      SET
+        due = ${card.due},
+        last_review = ${card.last_review},
+        reps = ${card.reps},
+        state = ${card.state},
+        elapsed_days = ${card.elapsed_days},
+        scheduled_days = ${card.scheduled_days},
+        stability = ${card.stability},
+        difficulty = ${card.difficulty},
+        lapses = ${card.lapses}
+      WHERE id = ${card.id};
+    `.run()
 
-    db.run(
-      stmts.rev_log.insert,
-      stmts.rev_log.insertArgs({ ...log, time: timeElapsedMs }),
-    )
+    stmts.rev_log
+      .insert()
+      .bindNew(stmts.rev_log.insertArgs({ ...log, time: timeElapsedMs }))
+      .run()
 
-    const [new_today, revcards_today, revlogs_today] = db.rowChecked(
-      "SELECT new_today, revcards_today, revlogs_today FROM decks WHERE id = ?",
-      [text, text, int],
-      [card.did],
-    )
+    const [new_today, revcards_today, revlogs_today] = sql`
+      SELECT new_today, revcards_today, revlogs_today
+      FROM decks
+      WHERE id = ${card.did};
+    `.getRow([text, text, int])
 
     const revcardsToday = JSON.parse(revcards_today) as number[]
     if (!revcardsToday.includes(card.id)) {
@@ -48,20 +49,23 @@ export function study_save_review(
       if (!newToday.includes(card.id)) {
         newToday.push(card.id)
       }
-      db.run(
-        "UPDATE decks SET new_today = ?, revcards_today = ?, revlogs_today = ? WHERE id = ?",
-        [
-          JSON.stringify(newToday),
-          JSON.stringify(revcardsToday),
-          revlogs_today + 1,
-          card.did,
-        ],
-      )
+
+      sql`
+        UPDATE decks
+        SET
+          new_today = ${JSON.stringify(newToday)},
+          revcards_today = ${JSON.stringify(revcardsToday)},
+          revlogs_today = ${revlogs_today + 1}
+        WHERE id = ${card.did};
+      `.run()
     } else {
-      db.run(
-        "UPDATE decks SET revcards_today = ?, revlogs_today = ? WHERE id = ?",
-        [JSON.stringify(revcardsToday), revlogs_today + 1, card.did],
-      )
+      sql`
+        UPDATE decks
+        SET
+          revcards_today = ${JSON.stringify(revcardsToday)},
+          revlogs_today = ${revlogs_today + 1}
+        WHERE id = ${card.did};
+      `.run()
     }
     tx.commit()
   } finally {
