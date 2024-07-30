@@ -93,7 +93,7 @@ export const ROOT_LAYER_HOME = defineRootLayer({
                 <ContextMenuItem onClick={() => push(LAYER_STORAGE, worker)}>
                   Storage usage details
                 </ContextMenuItem>
-                <ContextMenuItem onClick={() => push(LAYER_TASKS, worker)}>
+                <ContextMenuItem onClick={() => push(LAYER_TASKS, 0)}>
                   Application checklist
                 </ContextMenuItem>
                 <ContextMenuItem

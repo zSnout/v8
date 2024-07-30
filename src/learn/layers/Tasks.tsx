@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { For, type JSX } from "solid-js"
-import { defineLayer } from "../el/DefineLayer"
+import { defineStaticLayer } from "../el/DefineStaticLayer"
 import tasksRaw from "../TASKS.md?raw"
 
 function getTags() {
@@ -141,23 +141,15 @@ function filter(sections: Section[], filter: (item: Item) => boolean) {
 
 const sections = getTree()
 
-export default defineLayer({
-  init() {},
-  load() {},
-  render() {
-    return (
-      <div class="mx-auto flex min-h-full w-full max-w-xl flex-1 flex-col items-start gap-4">
-        <Heading>In Progress</Heading>
-        <Sections sections={filter(sections, (x) => x.marker != "x")} />
-        <Heading>Completed</Heading>
-        <Sections sections={filter(sections, (x) => x.marker == "x")} />
-      </div>
-    )
-  },
-  onReturn() {
-    return "preserve-data"
-  },
-  onUndo() {
-    return "preserve-data"
-  },
-})
+export function Tasks() {
+  return (
+    <div class="mx-auto flex min-h-full w-full max-w-xl flex-1 flex-col items-start gap-4">
+      <Heading>In Progress</Heading>
+      <Sections sections={filter(sections, (x) => x.marker != "x")} />
+      <Heading>Completed</Heading>
+      <Sections sections={filter(sections, (x) => x.marker == "x")} />
+    </div>
+  )
+}
+
+export default defineStaticLayer(Tasks)
