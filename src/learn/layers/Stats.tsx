@@ -30,7 +30,7 @@ import { parse } from "valibot"
 import { LAYER_QUERY } from "."
 import type { Worker } from "../db"
 import { Action } from "../el/BottomButtons"
-import { DrawStatCard } from "../el/Charts.jsx"
+import { DrawStatCard } from "../el/Charts.js"
 import { ContextMenuItem } from "../el/ContextMenu"
 import { defineLayer } from "../el/DefineLayer"
 import {
