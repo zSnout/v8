@@ -834,9 +834,9 @@ export const Collection = v.object({
   charts: v.nullish(v.array(ChartCard), []),
 })
 
-export interface PackagedDecksMeta
-  extends v.InferOutput<typeof PackagedDecksMeta> {}
-export const PackagedDecksMeta = v.object({
+export interface PackagedDeckMeta
+  extends v.InferOutput<typeof PackagedDeckMeta> {}
+export const PackagedDeckMeta = v.object({
   version: v.literal(1),
   hasMedia: v.boolean(),
   hasScheduling: v.boolean(),
@@ -844,9 +844,9 @@ export const PackagedDecksMeta = v.object({
   hasConfs: v.boolean(),
 })
 
-export interface PackagedDecksData
-  extends v.InferOutput<typeof PackagedDecksData> {}
-export const PackagedDecksData = v.object({
+export interface PackagedDeckData
+  extends v.InferOutput<typeof PackagedDeckData> {}
+export const PackagedDeckData = v.object({
   models: v.array(Model),
   confs: v.nullable(v.array(Conf)),
   notes: v.array(Note),
@@ -855,9 +855,9 @@ export const PackagedDecksData = v.object({
   rev_log: v.nullable(v.array(Review)),
 })
 
-export interface PackagedDecks {
-  meta: PackagedDecksMeta
-  data: PackagedDecksData
+export interface PackagedDeck {
+  meta: PackagedDeckMeta
+  data: PackagedDeckData
   media: JSZip | null
 }
 
