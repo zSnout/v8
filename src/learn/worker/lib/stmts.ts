@@ -72,6 +72,30 @@ export function createStmts(sql: SQLFunction) {
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         `
       },
+      update() {
+        return sql`
+          UPDATE confs
+          SET
+            autoplay_audio = ?,
+            last_edited = ?,
+            name = ?,
+            new_bury_related = ?,
+            new_pick_at_random = ?,
+            new_per_day = ?,
+            new_learning_steps = ?,
+            replay_question_audio = ?,
+            review_bury_related = ?,
+            review_enable_fuzz = ?,
+            review_max_review_interval = ?,
+            review_per_day = ?,
+            review_relearning_steps = ?,
+            review_requested_retention = ?,
+            review_w = ?,
+            show_global_timer = ?,
+            timer_per_card = ?
+          WHERE id = ?;
+        `
+      },
       interpret(data: SqlValue[]): Conf {
         return {
           id: data[0],
@@ -120,6 +144,30 @@ export function createStmts(sql: SQLFunction) {
           : null) satisfies TEXT | null,
           +conf.show_global_timer satisfies BOOLEAN,
           conf.timer_per_card ?? (null satisfies INTEGER | null),
+        ]
+      },
+      updateArgs(conf: Conf): SqlValue[] {
+        return [
+          +conf.autoplay_audio satisfies BOOLEAN,
+          conf.last_edited satisfies INTEGER,
+          conf.name satisfies TEXT,
+          +conf.new.bury_related satisfies BOOLEAN,
+          +conf.new.pick_at_random satisfies BOOLEAN,
+          conf.new.per_day satisfies INTEGER,
+          JSON.stringify(conf.new.learning_steps) satisfies TEXT,
+          +conf.replay_question_audio satisfies BOOLEAN,
+          +conf.review.bury_related satisfies BOOLEAN,
+          +conf.review.enable_fuzz satisfies BOOLEAN,
+          conf.review.max_review_interval satisfies INTEGER,
+          conf.review.per_day ?? (null satisfies INTEGER | null),
+          JSON.stringify(conf.review.relearning_steps) satisfies TEXT,
+          conf.review.requested_retention satisfies INTEGER,
+          (conf.review.w ?
+            JSON.stringify(conf.review.w)
+          : null) satisfies TEXT | null,
+          +conf.show_global_timer satisfies BOOLEAN,
+          conf.timer_per_card ?? (null satisfies INTEGER | null),
+          conf.id satisfies INTEGER,
         ]
       },
     },
