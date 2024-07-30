@@ -28,10 +28,11 @@ import {
   LAYER_STATS,
   LAYER_STORAGE,
   LAYER_STUDY,
+  LAYER_TASKS,
 } from "./layers"
 import type { Id } from "./lib/id"
-import type { Buckets, DeckHomeInfo, DeckHomeTree } from "./lib/types"
 import { shortcutToString } from "./lib/shortcuts"
+import type { Buckets, DeckHomeInfo, DeckHomeTree } from "./lib/types"
 
 function nope(): never {
   throw new Error("this page doesn't exist yet")
@@ -91,6 +92,9 @@ export const ROOT_LAYER_HOME = defineRootLayer({
                 </ContextMenuItem>
                 <ContextMenuItem onClick={() => push(LAYER_STORAGE, worker)}>
                   Storage usage details
+                </ContextMenuItem>
+                <ContextMenuItem onClick={() => push(LAYER_TASKS, worker)}>
+                  Application checklist
                 </ContextMenuItem>
                 <ContextMenuItem
                   onClick={() => push(LAYER_MANAGE_MODELS, worker)}
