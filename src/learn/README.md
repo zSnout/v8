@@ -40,18 +40,20 @@ Importing decks is more complicated, but requires:
       until it has no collisions.
 5. Scheduling information on cards should be reset if the user requested it.
 6. We resolve cards. If a card already exists with...
-   1. the same ID, NID, TID, and DID, whichever card has a later `last_edited`
-      is kept.
-   2. the same ID, but a different NID/TID/DID, the ID is incremented until
-      there are no conflicts.
+   1. the same ID, NID, and TID, whichever card has a later `last_edited` is
+      kept.
+   2. the same ID, but a different NID/TID, the ID is incremented until there
+      are no conflicts.
 7. We resolve review log entries. If a review log exists with the same ID,
    nothing happens. Otherwise, the review log entry is imported.
 
 ## Finding a default deck configuration
 
+The old algorithm is below. In the SQLite-based system, a configuration with ID
+zero is always available due to triggers enforcing it.
+
 Prefer, in order,
 
-1. the already existing one
-2. id zero
-3. name `Default`
-4. first one alphabetically
+1. id zero
+2. name `Default`
+3. first one alphabetically

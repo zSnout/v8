@@ -219,6 +219,48 @@ export function createStmts(sql: SQLFunction) {
           deck.creation satisfies INTEGER,
         ]
       },
+      update() {
+        return sql`
+          UPDATE decks
+          SET
+            name = ?,
+            collapsed = ?,
+            is_filtered = ?,
+            custom_revcard_limit = ?,
+            custom_newcard_limit = ?,
+            default_revcard_limit = ?,
+            default_newcard_limit = ?,
+            last_edited = ?,
+            new_today = ?,
+            revcards_today = ?,
+            revlogs_today = ?,
+            today = ?,
+            \`desc\` = ?,
+            cfid = ?,
+            creation = ?
+          WHERE id = ?;
+        `
+      },
+      updateArgs(deck: Deck): SqlValue[] {
+        return [
+          deck.name satisfies TEXT,
+          +deck.collapsed satisfies BOOLEAN,
+          +deck.is_filtered satisfies BOOLEAN,
+          (deck.custom_revcard_limit ?? null) satisfies INTEGER | null,
+          (deck.custom_newcard_limit ?? null) satisfies INTEGER | null,
+          (deck.default_revcard_limit ?? null) satisfies INTEGER | null,
+          (deck.default_newcard_limit ?? null) satisfies INTEGER | null,
+          deck.last_edited satisfies INTEGER,
+          JSON.stringify(deck.new_today) satisfies TEXT,
+          JSON.stringify(deck.revcards_today) satisfies TEXT,
+          deck.revlogs_today satisfies INTEGER,
+          deck.today satisfies INTEGER,
+          deck.desc satisfies TEXT,
+          deck.cfid satisfies INTEGER,
+          deck.creation satisfies INTEGER,
+          deck.id satisfies INTEGER,
+        ]
+      },
     },
     models: {
       insert() {
@@ -321,6 +363,34 @@ export function createStmts(sql: SQLFunction) {
           note.marks satisfies INTEGER,
         ]
       },
+      update() {
+        return sql`
+          UPDATE notes
+          SET
+            creation = ?,
+            mid = ?,
+            last_edited = ?,
+            tags = ?,
+            fields = ?,
+            sort_field = ?,
+            csum = ?,
+            marks = ?
+          WHERE id = ?;
+        `
+      },
+      updateArgs(note: Note): SqlValue[] {
+        return [
+          note.creation satisfies INTEGER,
+          note.mid satisfies INTEGER,
+          note.last_edited satisfies INTEGER,
+          note.tags.join(" ") satisfies TEXT,
+          JSON.stringify(note.fields) satisfies TEXT,
+          note.sort_field satisfies TEXT,
+          note.csum satisfies INTEGER,
+          note.marks satisfies INTEGER,
+          note.id satisfies INTEGER,
+        ]
+      },
     },
     cards: {
       insert() {
@@ -371,6 +441,52 @@ export function createStmts(sql: SQLFunction) {
           card.lapses satisfies INTEGER,
           card.flags satisfies INTEGER,
           card.state satisfies INTEGER,
+        ]
+      },
+      update() {
+        return sql`
+          UPDATE cards
+          SET
+            nid = ?,
+            tid = ?,
+            did = ?,
+            odid = ?,
+            creation = ?,
+            last_edited = ?,
+            queue = ?,
+            due = ?,
+            last_review = ?,
+            stability = ?,
+            difficulty = ?,
+            elapsed_days = ?,
+            scheduled_days = ?,
+            reps = ?,
+            lapses = ?,
+            flags = ?,
+            state = ?
+          WHERE id = ?;
+        `
+      },
+      updateArgs(card: AnyCard): SqlValue[] {
+        return [
+          card.nid satisfies INTEGER,
+          card.tid satisfies INTEGER,
+          card.did satisfies INTEGER,
+          (card.odid ?? null) satisfies INTEGER | null,
+          card.creation satisfies INTEGER,
+          card.last_edited satisfies INTEGER,
+          card.queue satisfies INTEGER,
+          card.due satisfies INTEGER,
+          (card.last_review ?? null) satisfies INTEGER | null,
+          card.stability satisfies REAL,
+          card.difficulty satisfies REAL,
+          card.elapsed_days satisfies INTEGER,
+          card.scheduled_days satisfies INTEGER,
+          card.reps satisfies INTEGER,
+          card.lapses satisfies INTEGER,
+          card.flags satisfies INTEGER,
+          card.state satisfies INTEGER,
+          card.id satisfies INTEGER,
         ]
       },
     },

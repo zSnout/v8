@@ -2,8 +2,8 @@ import type { Id } from "@/learn/lib/id"
 import { parseKey, UserMedia, writeKey } from "@/learn/lib/media"
 import { unique } from "@/learn/lib/unique"
 import JSZip from "jszip"
-import { State } from "ts-fsrs"
 import { readonly, sql } from ".."
+import { eraseScheduling } from "../lib/eraseScheduling"
 import { packageDeck } from "../lib/package"
 import { stmts } from "../lib/stmts"
 
@@ -27,11 +27,19 @@ export async function export_decks_txless(
     .getRow()
     .map(stmts.decks.interpret)
 
+  if (decks.some((x) => x.is_filtered)) {
+    throw new Error("Cannot export filtered decks.")
+  }
+
   const cards = sql`SELECT * FROM cards WHERE did = ?;`
     .each(dids)
     .getAll()
     .flat()
     .map(stmts.cards.interpret)
+
+  if (cards.some((x) => x.odid != null)) {
+    throw new Error("Cannot export cards in filtered decks.")
+  }
 
   const notes = sql`SELECT * FROM notes WHERE id = ?;`
     .each(cards.map((x) => x.nid).filter(unique))
@@ -64,34 +72,7 @@ export async function export_decks_txless(
     : null
 
   if (!props.includeScheduling) {
-    for (const card of cards) {
-      card.difficulty = 0
-      card.due = 0
-      card.elapsed_days = 0
-      card.lapses = 0
-      card.last_review = 0
-      card.reps = 0
-      card.scheduled_days = 0
-      card.stability = 0
-      card.state = State.New
-      card.queue = 0
-    }
-
-    for (const deck of decks) {
-      deck.collapsed = false
-      deck.custom_newcard_limit = null
-      deck.custom_revcard_limit = null
-      deck.default_newcard_limit = null
-      deck.default_revcard_limit = null
-      deck.new_today = []
-      deck.revcards_today = []
-      deck.revlogs_today = 0
-      deck.today = 0
-    }
-
-    for (const note of notes) {
-      note.marks = 0
-    }
+    eraseScheduling(decks, cards, notes)
   }
 
   let media: JSZip | null = null

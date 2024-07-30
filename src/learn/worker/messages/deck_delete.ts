@@ -26,12 +26,6 @@ export function deck_delete(currentId: Id | undefined, name: string) {
 
     const cardsAfter = sql`SELECT COUNT() FROM cards;`.getValue(int)
 
-    if (sql`SELECT COUNT() FROM decks;`.getValue(int) == 0) {
-      sql`
-        INSERT INTO decks (id, name, is_filtered) VALUES (0, 'Default', 0);
-      `.run()
-    }
-
     tx.commit()
 
     return cardsBefore - cardsAfter

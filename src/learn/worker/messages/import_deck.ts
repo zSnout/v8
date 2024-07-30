@@ -1,25 +1,36 @@
-import { idOf, type Id } from "@/learn/lib/id"
+import { notNull } from "@/components/pray"
+import { ID_ZERO, idOf, type Id } from "@/learn/lib/id"
 import { UserMedia } from "@/learn/lib/media"
-import type { PackagedDeck } from "@/learn/lib/types"
+import { type PackagedDeck } from "@/learn/lib/types"
 import type { SqlValue } from "@sqlite.org/sqlite-wasm"
 import { readwrite, sql } from ".."
-import { int } from "../lib/checks"
+import { id, int } from "../lib/checks"
+import { eraseScheduling } from "../lib/eraseScheduling"
 import type { Stmt } from "../lib/sql"
 import { stmts } from "../lib/stmts"
 import { unpackage } from "../lib/unpackage"
 
 const userMedia = new UserMedia()
 
-export async function import_packaged_deck({
-  data,
-  media,
-  meta,
-}: PackagedDeck) {
+export interface ImportPackagedDeckProps {
+  importMedia: boolean
+  importScheduling: boolean
+  importRevlog: boolean
+  importConfs: boolean
+}
+
+/** The packaged deck passed to this function _will_ be severely mutated. */
+export async function import_packaged_deck(
+  { data, media, meta }: PackagedDeck,
+  props: ImportPackagedDeckProps,
+) {
   // 0. User media (if it exists)
-  {
-    if (meta.media && media) {
-      await userMedia.import(meta.media, media)
-    }
+  if (props.importMedia && meta.media && media) {
+    await userMedia.import(meta.media, media)
+  }
+
+  if (!props.importScheduling) {
+    eraseScheduling(data.decks, data.cards, data.notes)
   }
 
   const tx = readwrite("Import deck package")
@@ -29,8 +40,13 @@ export async function import_packaged_deck({
       name: string,
       /** Returns the `last_edited` timestamp of an exact match. */
       exact: (item: T) => number | null,
-      /** Resolves non-ID-related conflicts on an item. */
-      tame: (item: T) => void,
+      /**
+       * Resolves non-id-related conflicts on an item. If this function returns
+       * an `Id`, it is assumed that this item is somehow in the collection
+       * under that id. The item and map will then be updated with that id.
+       * Otherwise, the item will be inserted.
+       */
+      tame: (item: T) => Id | null | void,
       stmt: {
         insert(): Stmt
         update(): Stmt
@@ -45,6 +61,8 @@ export async function import_packaged_deck({
       const update = stmt.update()
 
       for (const item of items) {
+        const ogId = item.id
+
         const lastEditedOfExactMatch = exact(item)
 
         if (lastEditedOfExactMatch != null) {
@@ -62,9 +80,15 @@ export async function import_packaged_deck({
           }
         }
 
-        tame(item)
+        const result = tame(item)
+        if (typeof result == "number") {
+          map[ogId] = result
+          item.id = ogId
+          continue
+        } else {
+          map[ogId] = item.id
+        }
         insert.bindNew(stmt.insertArgs(item)).run()
-        map[item.id] = item.id
       }
 
       conflict.dispose()
@@ -75,7 +99,7 @@ export async function import_packaged_deck({
     }
 
     // 1. Models
-    let modelMap
+    let midMap: Record<Id, Id>
     {
       const exactMatch = sql`
         SELECT last_edited
@@ -90,7 +114,7 @@ export async function import_packaged_deck({
 
       const conflict = sql`SELECT 1 FROM models WHERE name = ?;`
 
-      modelMap = inner(
+      midMap = inner(
         data.models,
         "models",
         (item) =>
@@ -116,8 +140,8 @@ export async function import_packaged_deck({
     }
 
     // 2. Deck confs (if they exist)
-    let confMap: Record<Id, Id> | null = null
-    if (meta.hasConfs && data.confs) {
+    let cfidMap: Record<Id, Id> | null = null
+    if (props.importConfs && meta.hasConfs && data.confs) {
       const exact = sql`
         SELECT last_edited
         FROM confs
@@ -126,7 +150,7 @@ export async function import_packaged_deck({
 
       const conflict = sql`SELECT 1 FROM confs WHERE name = ?;`
 
-      confMap = inner(
+      cfidMap = inner(
         data.confs,
         "confs",
         (item) => exact.bindNew([item.id, item.name]).getValue(int),
@@ -143,9 +167,104 @@ export async function import_packaged_deck({
     }
 
     // 3. Notes
+    let nidMap: Record<Id, Id>
+    {
+      for (const note of data.notes) {
+        note.mid = notNull(
+          midMap[note.mid],
+          "A note in the imported deck does not have an associated model.",
+        )
+      }
+
+      const exact = sql`SELECT last_edited FROM notes WHERE id = ? AND mid = ?;`
+
+      nidMap = inner(
+        data.notes,
+        "notes",
+        ({ id, mid }) => exact.bindNew([id, mid]).getValue(int),
+        () => {},
+        stmts.notes,
+      )
+
+      exact.dispose()
+    }
+
     // 4. Decks
+    let didMap: Record<Id, Id>
+    {
+      for (const deck of data.decks) {
+        deck.cfid = cfidMap?.[deck.cfid] ?? ID_ZERO
+      }
+
+      const exact = sql`
+        SELECT last_edited FROM decks WHERE id = ? AND name = ?;
+      `
+      const conflict = sql`SELECT 1 FROM decks WHERE name = ?;`
+
+      didMap = inner(
+        data.decks,
+        "decks",
+        (item) => exact.bindNew([item.id, item.name]).getValue(int),
+        (item) => {
+          while (conflict.bindNew(item.name).exists()) {
+            item.name += "+"
+          }
+        },
+        stmts.decks,
+      )
+
+      exact.dispose()
+      conflict.dispose()
+    }
+
+    let cidMap: Record<Id, Id>
     // 5. Cards
+    {
+      for (const card of data.cards) {
+        card.did = notNull(
+          didMap[card.did],
+          "An imported card was not exported with its associated deck.",
+        )
+        card.nid = notNull(
+          nidMap[card.nid],
+          "An imported card was not exported with its associated note.",
+        )
+      }
+
+      const exact = sql`
+        SELECT last_edited FROM cards WHERE id = ? AND nid = ? AND tid = ?;
+      `
+
+      const conflict = sql`SELECT id FROM cards WHERE nid = ? AND tid = ?;`
+
+      cidMap = inner(
+        data.cards,
+        "cards",
+        ({ id, nid, tid }) => exact.bindNew([id, nid, tid]).getValue(int),
+        ({ nid, tid }) => {
+          return conflict.bindNew([nid, tid]).getValueSafe(id)
+        },
+        stmts.cards,
+      )
+
+      exact.dispose()
+      conflict.dispose()
+    }
+
     // 6. Review log
+    if (props.importRevlog && meta.hasRevlog && data.rev_log) {
+      const exists = sql`SELECT 1 FROM rev_log WHERE id = ?;`
+      const insert = stmts.rev_log.insert()
+
+      for (const review of data.rev_log) {
+        if (!exists.bindNew(review.id).exists()) {
+          insert.bindNew(stmts.rev_log.insertArgs(review)).run()
+        }
+      }
+
+      exists.dispose()
+      insert.dispose()
+    }
 
     tx.commit()
   } finally {
@@ -153,7 +272,7 @@ export async function import_packaged_deck({
   }
 }
 
-export async function import_deck(file: File) {
+export async function import_deck(file: File, props: ImportPackagedDeckProps) {
   const data = await unpackage(file)
-  return import_packaged_deck(data)
+  return import_packaged_deck(data, props)
 }

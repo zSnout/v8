@@ -126,8 +126,10 @@ CREATE TABLE IF NOT EXISTS cards (
 
 CREATE INDEX IF NOT EXISTS cards_nid ON cards (nid);
 
+-- this used to exist but is now replaced with cards_schedule
 DROP INDEX IF EXISTS cards_did;
 
+-- this used to exist but is now replaced with cards_schedule
 DROP INDEX IF EXISTS cards_due;
 
 CREATE INDEX IF NOT EXISTS cards_schedule ON cards (did, `queue`, due);
@@ -284,4 +286,81 @@ BEGIN
     (oid, type)
   VALUES
     (old.id, 4);
+END;
+
+CREATE TRIGGER IF NOT EXISTS conf_zero_must_stay_zero
+BEFORE UPDATE ON confs
+BEGIN
+  SELECT
+    CASE
+      WHEN old.id = 0 THEN RAISE(
+        ABORT,
+        'Cannot change the ID of the default deck configuration.'
+      )
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS conf_zero_is_undeletable
+BEFORE DELETE ON confs
+BEGIN
+  SELECT
+    CASE
+      WHEN old.id = 0 THEN RAISE(
+        ABORT,
+        'Cannot delete the default deck configuration.'
+      )
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS core_must_stay_zero
+BEFORE UPDATE ON core
+BEGIN
+  SELECT
+    CASE
+      WHEN old.id = 0 THEN RAISE(
+        ABORT,
+        'Cannot change the ID of the collection core.'
+      )
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS core_is_undeletable
+BEFORE DELETE ON core
+BEGIN
+  SELECT
+    CASE
+      WHEN old.id = 0 THEN RAISE(ABORT, 'Cannot delete the collection core.')
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS prefs_must_stay_zero
+BEFORE UPDATE ON prefs
+BEGIN
+  SELECT
+    CASE
+      WHEN old.id = 0 THEN RAISE(
+        ABORT,
+        'Cannot change the ID of the collection''s global preferences.'
+      )
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS prefs_is_undeletable
+BEFORE DELETE ON prefs
+BEGIN
+  SELECT
+    CASE
+      WHEN old.id = 0 THEN RAISE(
+        ABORT,
+        'Cannot delete the collection''s global preferences.'
+      )
+    END;
+END;
+
+CREATE TRIGGER IF NOT EXISTS there_must_be_at_least_one_deck
+AFTER DELETE ON decks
+BEGIN
+  INSERT INTO decks (id, name, is_filtered)
+  SELECT 0, 'Default', 0
+  WHERE NOT (EXISTS (SELECT 0 FROM decks));
 END;
