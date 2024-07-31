@@ -229,11 +229,7 @@ const blogPages: readonly Page[] = await Promise.all(
       imageAlt: entry.data.imageAlt,
       imageSrc: (
         await import(
-          `../../assets/blog/${
-            entry.id.endsWith(".mdx") ?
-              entry.id.slice(0, -4)
-            : entry.id.slice(0, -3)
-          }.jpg`
+          `../../assets/blog/${entry.data.draft ? "draft" : entry.id.slice(0, -3)}.jpg`
         )
       ).default,
     })),

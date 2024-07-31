@@ -2,7 +2,7 @@
 import { Reprose, Unprose } from "@/components/Prose"
 import ProseLayout from "@/layouts/ProseLayout.astro"
 import type { GetStaticPathsItem } from "astro"
-import { CollectionEntry, getCollection } from "astro:content"
+import { type CollectionEntry, getCollection } from "astro:content"
 
 export interface Props {
   entry: CollectionEntry<"blog">
@@ -22,11 +22,7 @@ const { Content, headings } = await entry.render()
 
 const openGraphImage = (
   await import(
-    `../../../assets/blog/${
-      entry.data.draft ? "draft"
-      : entry.id.endsWith(".mdx") ? entry.id.slice(0, -4)
-      : entry.id.slice(0, -3)
-    }.jpg`
+    `../../../assets/blog/${entry.data.draft ? "draft" : entry.id.slice(0, -3)}.jpg`
   )
 ).default
 ---

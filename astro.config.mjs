@@ -1,6 +1,5 @@
 // @ts-check
 
-import mdx from "@astrojs/mdx"
 import solidJs from "@astrojs/solid-js"
 import tailwind from "@astrojs/tailwind"
 import AstroPWA from "@vite-pwa/astro"
@@ -29,8 +28,6 @@ Promise.withResolvers ??= () => {
 export default defineConfig({
   integrations: [
     solidJs(),
-    // @ts-expect-error ughhh
-    mdx(),
     tailwind({ applyBaseStyles: false }),
     AstroPWA({
       srcDir: "src/learn/lib",

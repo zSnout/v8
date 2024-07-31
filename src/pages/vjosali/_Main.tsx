@@ -656,8 +656,9 @@ function RisoliSidebar(props: {
         <For
           each={props
             .maximized()
-            .opetako.toSorted()
-            .concat(props.maximized().hanuko.toSorted())}
+            .opetako.slice()
+            .sort()
+            .concat(props.maximized().hanuko.slice().sort())}
         >
           {(word) => (
             <Kotoba
