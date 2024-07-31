@@ -4,6 +4,7 @@ import {
   JSX,
   Owner,
   runWithOwner,
+  Show,
   untrack,
 } from "solid-js"
 import { Portal } from "solid-js/web"
@@ -54,6 +55,14 @@ export function ModalDescription(props: { children: JSX.Element }) {
   return <p class="mt-2 text-sm text-z-subtitle">{props.children}</p>
 }
 
+export function ModalUl(props: { children: JSX.Element }) {
+  return <ul class="mt-2 text-sm text-z-subtitle">{props.children}</ul>
+}
+
+export function ModalLi(props: { children: JSX.Element }) {
+  return <li class="ml-5 list-disc pl-1">{props.children}</li>
+}
+
 export function ModalCode(props: { children: JSX.Element }) {
   return (
     <code class="rounded bg-z-body-selected px-1 text-z">{props.children}</code>
@@ -61,7 +70,7 @@ export function ModalCode(props: { children: JSX.Element }) {
 }
 
 export function ModalCheckbox(props: {
-  children: string
+  children: JSX.Element
   checked: boolean
   onInput(value: boolean): void
 }) {
@@ -341,5 +350,74 @@ export function prompt(props: {
       )
     },
     onCancel: "",
+  })
+}
+
+export function loading(
+  owner: Owner | null,
+  message?: () => JSX.Element,
+  /** If present, shows a cancel button. */
+  onCancel?: () => void,
+) {
+  let close!: () => void
+
+  popup<void>({
+    owner,
+    onCancel() {},
+    children(c) {
+      close = c
+      return (
+        <>
+          <ModalTitle>Loading...</ModalTitle>
+          {message?.()}
+          <Show when={onCancel}>
+            <ModalButtons>
+              <ModalCancel
+                onClick={() => {
+                  c()
+                  onCancel!()
+                }}
+              >
+                Cancel
+              </ModalCancel>
+            </ModalButtons>
+          </Show>
+        </>
+      )
+    },
+  })
+
+  return close
+}
+
+export function load<T>(
+  owner: Owner | null,
+  value: T,
+  message?: () => JSX.Element,
+  cancelable?: false,
+): Promise<Awaited<T>>
+
+export function load<T>(
+  owner: Owner | null,
+  value: T,
+  message?: () => JSX.Element,
+  cancelable?: boolean,
+): Promise<Awaited<T> | null>
+
+export function load<T>(
+  owner: Owner | null,
+  value: T,
+  message?: () => JSX.Element,
+  cancelable?: boolean,
+) {
+  return new Promise<Awaited<T> | null>(async (resolve) => {
+    const close = loading(
+      owner,
+      message,
+      cancelable ? () => resolve(null) : undefined,
+    )
+    const v = await value
+    close()
+    resolve(v)
   })
 }

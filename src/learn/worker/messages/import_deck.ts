@@ -107,7 +107,7 @@ export async function import_packaged_deck(
         WHERE
           id = ?
           AND fields = ?
-          AND templates = ?
+          AND tmpls = ?
           AND css = ?
           AND sort_field = ?;
       ` // name can be different
@@ -126,7 +126,7 @@ export async function import_packaged_deck(
               item.css,
               item.sort_field,
             ])
-            .getValue(int),
+            .getValueSafe(int),
         (item) => {
           while (conflict.bindNew(item.name).exists()) {
             item.name += "+"
@@ -153,7 +153,7 @@ export async function import_packaged_deck(
       cfidMap = inner(
         data.confs,
         "confs",
-        (item) => exact.bindNew([item.id, item.name]).getValue(int),
+        (item) => exact.bindNew([item.id, item.name]).getValueSafe(int),
         (item) => {
           while (conflict.bindNew(item.name).exists()) {
             item.name += "+"
@@ -181,7 +181,7 @@ export async function import_packaged_deck(
       nidMap = inner(
         data.notes,
         "notes",
-        ({ id, mid }) => exact.bindNew([id, mid]).getValue(int),
+        ({ id, mid }) => exact.bindNew([id, mid]).getValueSafe(int),
         () => {},
         stmts.notes,
       )
@@ -204,7 +204,7 @@ export async function import_packaged_deck(
       didMap = inner(
         data.decks,
         "decks",
-        (item) => exact.bindNew([item.id, item.name]).getValue(int),
+        (item) => exact.bindNew([item.id, item.name]).getValueSafe(int),
         (item) => {
           while (conflict.bindNew(item.name).exists()) {
             item.name += "+"
@@ -240,7 +240,7 @@ export async function import_packaged_deck(
       cidMap = inner(
         data.cards,
         "cards",
-        ({ id, nid, tid }) => exact.bindNew([id, nid, tid]).getValue(int),
+        ({ id, nid, tid }) => exact.bindNew([id, nid, tid]).getValueSafe(int),
         ({ nid, tid }) => {
           return conflict.bindNew([nid, tid]).getValueSafe(id)
         },

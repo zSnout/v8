@@ -23,7 +23,9 @@ import { Worker } from "./db"
 import { Action, BottomButtons } from "./el/BottomButtons"
 import { ContextMenuItem, ContextMenuTrigger } from "./el/ContextMenu"
 import { defineRootLayer } from "./el/DefineLayer"
+import { importDeck } from "./el/ImportDeck"
 import { useLayers } from "./el/Layers"
+import { UploadButton } from "./el/upload"
 import {
   LAYER_BROWSE,
   LAYER_CREATE_NOTE,
@@ -205,7 +207,17 @@ export const ROOT_LAYER_HOME = defineRootLayer({
             center
             onClick={nope}
           />
-          <Action icon={faUpload} label="Import" center onClick={nope} />
+          <UploadButton
+            accept="*/*"
+            onUpload={async ([file]) => {
+              await importDeck(worker, file, owner)
+              reloadDecks()
+            }}
+          >
+            {(trigger) => (
+              <Action icon={faUpload} label="Import" center onClick={trigger} />
+            )}
+          </UploadButton>
         </BottomButtons>
       )
     }

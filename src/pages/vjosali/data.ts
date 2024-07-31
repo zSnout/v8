@@ -3458,6 +3458,16 @@ A au B uslova ka hej dua kot.`,
     imi: "libre fu viossa na kompjusiru",
     tatoeba: ["https://vikoli.org"],
   },
+  vikti: {
+    anki: false,
+    emoji: "",
+    fal: "suruko",
+    falnen: "(sjiranai)",
+    tatoeba: [
+      "li glugnaj iskıë, du shiny. glug iskıë vichti!!!",
+      "vill'd iskıe oß kÿophi? eee vichtinaj, rjoho braa n'unn",
+    ],
+  },
   vil: {
     anki: true,
     emoji: "",
