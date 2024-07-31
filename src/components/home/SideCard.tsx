@@ -1,4 +1,4 @@
-import type { Page } from "../pages"
+import type { Page } from "./pages"
 
 export function SideCard(props: Page) {
   return (

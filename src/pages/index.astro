@@ -1,7 +1,7 @@
 ---
 import PaddedLayout from "@/layouts/PaddedLayout.astro"
-import { Main } from "./_home/_Indexx"
-import openGraphImage from "./_home/open-graph.jpg"
+import { Main } from "../components/home"
+import openGraphImage from "../components/home/open-graph.jpg"
 ---
 
 <PaddedLayout
@@ -9,7 +9,7 @@ import openGraphImage from "./_home/open-graph.jpg"
   description="A website with many unrelated yet fun projects."
   title="zSnout"
   og={{
-    imageSrc: openGraphImage,
+    imageSrc: openGraphImage.src,
     imageAlt: "A combination of thumbnails for various pages on zSnout.",
     title: "zSnout",
   }}

@@ -1,5 +1,5 @@
-import { BlueGreenText } from "../BlueGreenText"
-import type { Page } from "../pages"
+import { BlueGreenText } from "./BlueGreenText"
+import type { Page } from "./pages"
 
 export function BlogCard(props: { class: string; page: Page }) {
   return (

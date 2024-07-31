@@ -1,4 +1,4 @@
-import { MegaCard } from "./cards/MegaCard"
+import { MegaCard } from "./MegaCard"
 import { pages } from "./pages"
 
 export function LatestBlogArticle() {
