@@ -2,10 +2,10 @@ import {
   ALL_CONTEXTS,
   ALL_EXTENSIONS,
   ALL_PERSPECTIVES,
-  Configuration,
+  type Configuration,
 } from "@zsnout/ithkuil/generate"
 import { Primary, type PrimaryCharacter } from "@zsnout/ithkuil/script"
-import { Accessor, Setter, createSignal } from "solid-js"
+import { type Accessor, type Setter, createSignal } from "solid-js"
 
 export function PrimaryEditor(props: {
   get: Accessor<PrimaryCharacter>

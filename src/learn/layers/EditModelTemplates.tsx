@@ -1,6 +1,6 @@
 import { Checkbox } from "@/components/fields/CheckboxGroup"
 import { MatchResult } from "@/components/MatchResult"
-import { error, ok, Result } from "@/components/result"
+import { error, ok, type Result } from "@/components/result"
 import { faClone } from "@fortawesome/free-solid-svg-icons"
 import { createMemo, For, Show, untrack } from "solid-js"
 import { unwrap } from "solid-js/store"

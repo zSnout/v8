@@ -50,7 +50,7 @@ const nonBlogPages: readonly Page[] = [
     tags: ["meta"],
     category: "archive",
 
-    imageSrc: zsnoutSevenOpenGraph,
+    imageSrc: zsnoutSevenOpenGraph.src,
     imageAlt: "A grid of 32 of zSnout 7's most important pages.",
   },
 
@@ -65,7 +65,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A light grey bug icon to the left of text saying 'Debug Page: Math to GLSL.' Yellow and black construction tape surrounds the other elements.",
-    imageSrc: debugMathToGLSLOpenGraph,
+    imageSrc: debugMathToGLSLOpenGraph.src,
   },
 
   {
@@ -76,7 +76,7 @@ const nonBlogPages: readonly Page[] = [
 
     tags: ["art"],
 
-    imageSrc: fakeGradientOpenGraph,
+    imageSrc: fakeGradientOpenGraph.src,
     imageAlt: "A random-looking gradient.",
   },
 
@@ -90,7 +90,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "Two rows of text. The first reads 'Deduplicate Text', with arrows pointing the first two Ds, Es, and Ts to each other. The second row reads 'uplica ext,' with the Ds, Es, and Ts in the first row removed.",
-    imageSrc: deduplicateTextOpenGraph,
+    imageSrc: deduplicateTextOpenGraph.src,
   },
 
   {
@@ -103,7 +103,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       'zSnout\'s Ithkuil font generator, with "Wattunkí ruyün!" as the input.',
-    imageSrc: ithkuilFontGeneratorOpenGraph,
+    imageSrc: ithkuilFontGeneratorOpenGraph.src,
   },
 
   {
@@ -116,7 +116,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A screenshot of the Ithkuil Script Cheat Sheet showing the extensions and core shapes for the letters C, Č, D2, Ḑ, G2, H, L, Ļ, Ň, and P.",
-    imageSrc: ithkuilScriptCheatSheetOpenGraph,
+    imageSrc: ithkuilScriptCheatSheetOpenGraph.src,
   },
 
   {
@@ -129,7 +129,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "zSnout's Ithkuil formative generator, with 'ersmlakpalla' as the input.",
-    imageSrc: ithkuilFormativeGeneratorOpenGraph,
+    imageSrc: ithkuilFormativeGeneratorOpenGraph.src,
   },
 
   {
@@ -142,7 +142,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A section of the sitelen pona typist page, with five keys at the top visible reading 'o pi luka e toki'. The first two keys are highlighted in green, and the keyboard below has the 'luka' key highlighted in blue.",
-    imageSrc: sitelenPonaTypistOpenGraph,
+    imageSrc: sitelenPonaTypistOpenGraph.src,
   },
 
   {
@@ -155,7 +155,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A paragraph of Hebrew text where each word has a background color depending on its trope.",
-    imageSrc: tropeHighlighterOpenGraph,
+    imageSrc: tropeHighlighterOpenGraph.src,
   },
 
   {
@@ -167,7 +167,7 @@ const nonBlogPages: readonly Page[] = [
     tags: ["art", "math"],
 
     imageAlt: "A multicolored zoom of the Mandelbrot Set.",
-    imageSrc: fractalExplorerOpenGraph,
+    imageSrc: fractalExplorerOpenGraph.src,
   },
 
   {
@@ -180,7 +180,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
-    imageSrc: vjosaliOpenGraph,
+    imageSrc: vjosaliOpenGraph.src,
   },
 
   {
@@ -193,7 +193,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
-    imageSrc: ithkuilScriptGeneratorOpenGraph,
+    imageSrc: ithkuilScriptGeneratorOpenGraph.src,
   },
 
   {
@@ -205,7 +205,7 @@ const nonBlogPages: readonly Page[] = [
     tags: ["art", "math"],
 
     imageAlt: "Eighteen fractals in a six by three grid.",
-    imageSrc: fractalGalleryOpenGraph,
+    imageSrc: fractalGalleryOpenGraph.src,
   },
 ]
 

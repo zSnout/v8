@@ -11,7 +11,7 @@
 // clozes
 // `learn-tts` and `learn-hint` custom elements
 
-import { error, ok, Result } from "@/components/result"
+import { error, ok, type Result } from "@/components/result"
 import { ModelFields, NoteFields } from "./types"
 
 export interface Text {

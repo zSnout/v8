@@ -1,4 +1,4 @@
-import { error, ok, Result } from "../../result"
+import { error, ok, type Result } from "../../result"
 import type { Complex } from "./complex"
 import { createTokenizer } from "./tokenize"
 

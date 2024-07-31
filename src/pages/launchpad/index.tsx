@@ -1,7 +1,7 @@
-import openGraphV8 from "../_home/open-graph.jpg"
 import openGraphV7 from "@/assets/zsnout-7.png"
-import openGraphV6 from "./v6-open-graph.jpg"
 import { createSignal } from "solid-js"
+import openGraphV8 from "../_home/open-graph.jpg"
+import openGraphV6 from "./v6-open-graph.jpg"
 
 interface Page {
   readonly title: string
@@ -15,19 +15,19 @@ const pages: readonly Page[] = [
     title: "zSnout 8",
     description: "The latest version of zSnout.",
     href: "https://v8.zsnout.com/",
-    image: openGraphV8,
+    image: openGraphV8.src,
   },
   {
     title: "zSnout 7",
     description: "The previous version of zSnout.",
     href: "https://zsnout.com/",
-    image: openGraphV7,
+    image: openGraphV7.src,
   },
   {
     title: "zSnout 6",
     description: "A very old version of zSnout.",
     href: "https://v6.zsnout.com/",
-    image: openGraphV6,
+    image: openGraphV6.src,
   },
 ]
 

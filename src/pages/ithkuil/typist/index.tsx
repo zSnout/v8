@@ -4,19 +4,21 @@ import {
   ALL_PHASES,
   ALL_SPECIFICATIONS,
   ALL_VALENCES,
-  Aspect,
-  Effect,
-  Phase,
-  Specification,
-  Valence,
   deepFreeze,
   has,
+  type Aspect,
+  type Effect,
+  type Phase,
+  type Specification,
+  type Valence,
 } from "@zsnout/ithkuil/generate"
 import {
   Anchor,
   CORES,
   CORE_DIACRITICS,
   EXTENSIONS,
+  HANDWRITTEN_DIACRITICS,
+  HANDWRITTEN_REGISTERS,
   Primary,
   Quaternary,
   REGISTERS,
@@ -27,8 +29,6 @@ import {
   type DiacriticName,
   type ExtensionName,
   type RegisterMode,
-  HANDWRITTEN_DIACRITICS,
-  HANDWRITTEN_REGISTERS,
 } from "@zsnout/ithkuil/script"
 import { Numeral } from "@zsnout/ithkuil/script/numerals"
 import { For, Index, JSX, createSignal, untrack } from "solid-js"

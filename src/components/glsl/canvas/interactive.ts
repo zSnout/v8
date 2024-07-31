@@ -4,7 +4,7 @@ import type { Result } from "../../result"
 import type { Coordinates, Point } from "../types"
 import {
   WebGLCoordinateCanvas,
-  WebGLCoordinateCoordinateCanvasOptions,
+  type WebGLCoordinateCoordinateCanvasOptions,
 } from "./coordinate"
 
 function prevent(event: Event) {

@@ -8,7 +8,7 @@ import { CompactCard } from "./cards/CompactCard"
 import { MegaCard } from "./cards/MegaCard"
 import { SideCard } from "./cards/SideCard"
 import { LatestBlogArticle } from "./LatestBlogArticle"
-import { Page, pages } from "./pages"
+import { type Page, pages } from "./pages"
 import { SidePageSeparator } from "./SidePageSeparator"
 
 const allPages = pages.slice()

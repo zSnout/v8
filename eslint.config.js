@@ -13,7 +13,7 @@ export default [
     languageOptions: {
       parserOptions: {
         project: true,
-        /* @ts-expect-error dirname isn't typed for some reason */ /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
+        /* eslint-disable-next-line @typescript-eslint/no-unsafe-assignment */
         tsconfigRootDir: import.meta.dirname,
       },
     },

@@ -1,6 +1,6 @@
 import { Fa } from "@/components/Fa"
 import {
-  IconDefinition,
+  type IconDefinition,
   faCalendarCheck,
   faClockFour,
 } from "@fortawesome/free-regular-svg-icons"
@@ -486,7 +486,7 @@ const entries: readonly PortfolioEntry[] = [
     title: "Fractal Explorer",
     date: "March 2023",
     status: "constant revision",
-    image: fractalExplorer,
+    image: fractalExplorer.src,
     icons: ["astro", "glsl", "solid", "tailwind"],
   },
 
@@ -510,7 +510,7 @@ const entries: readonly PortfolioEntry[] = [
     title: "Fractal Explorer",
     date: "March 2022",
     status: "constant revision",
-    image: fractalExplorer,
+    image: fractalExplorer.src,
     icons: ["astro", "glsl", "solid", "tailwind"],
   },
 

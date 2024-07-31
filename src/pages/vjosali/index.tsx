@@ -8,9 +8,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import {
-  PDFDocumentProxy,
-  PDFPageProxy,
-  RenderTask,
+  type PDFDocumentProxy,
+  type PDFPageProxy,
+  type RenderTask,
   RenderingCancelledException,
   getDocument,
 } from "pdfjs-dist"
@@ -27,10 +27,10 @@ import {
   untrack,
 } from "solid-js"
 import {
-  Falnen,
+  type Falnen,
   RISOLI,
-  Slide,
-  Word,
+  type Slide,
+  type Word,
   makeSlideList,
   makeWordList,
   sortWords,

@@ -1,4 +1,8 @@
-import { MutableLink, MutableNode, createForceDirectedGraph } from "../../fdg"
+import {
+  type MutableLink,
+  type MutableNode,
+  createForceDirectedGraph,
+} from "../../fdg"
 import { makeWordList, riso } from "../../vjosali/data"
 
 const list = makeWordList()

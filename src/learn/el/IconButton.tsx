@@ -1,5 +1,5 @@
 import { Fa } from "@/components/Fa"
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons"
+import type { IconDefinition } from "@fortawesome/free-solid-svg-icons"
 import { JSX } from "solid-js"
 
 export function Icon(props: {

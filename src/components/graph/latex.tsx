@@ -213,7 +213,7 @@ export interface ReplacementData {
   removeCursor: boolean
 }
 
-// @ts-expect-error this function should never be used
+// this function should never be used
 // its purpose is to ensure that all contextualized symbols are variants
 // of normal symbols, so that replacement works properly
 function assertAllContextualVariantsAreSubtypesOfNormal(

@@ -1,5 +1,9 @@
 import { batch } from "solid-js"
-import { MutableLink, MutableNode, createForceDirectedGraph } from "../fdg"
+import {
+  type MutableLink,
+  type MutableNode,
+  createForceDirectedGraph,
+} from "../fdg"
 
 const data = `一	一				
 二	二	一	一		

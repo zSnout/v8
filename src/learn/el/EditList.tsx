@@ -6,7 +6,7 @@ import {
   faPencil,
   faPlus,
   faTrash,
-  IconDefinition,
+  type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import {
   batch,
@@ -14,11 +14,16 @@ import {
   createSignal,
   getOwner,
   JSX,
-  Setter,
+  type Setter,
   Show,
   untrack,
 } from "solid-js"
-import { createStore, SetStoreFunction, Store, unwrap } from "solid-js/store"
+import {
+  createStore,
+  type SetStoreFunction,
+  type Store,
+  unwrap,
+} from "solid-js/store"
 import type { Worker } from "../db"
 import { compareWithName } from "../lib/compare"
 import type { Id } from "../lib/id"

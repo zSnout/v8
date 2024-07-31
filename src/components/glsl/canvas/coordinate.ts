@@ -1,6 +1,6 @@
 import type { Result } from "../../result"
 import type { Coordinates, Point } from "../types"
-import { WebGLCanvas, WebGLCanvasOptions } from "./base"
+import { WebGLCanvas, type WebGLCanvasOptions } from "./base"
 
 export interface WebGLCoordinateCoordinateCanvasOptions
   extends WebGLCanvasOptions {

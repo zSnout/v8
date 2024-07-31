@@ -1,8 +1,8 @@
 import { notNull } from "@/components/pray"
 import {
-  BindingSpec,
+  type BindingSpec,
   PreparedStatement,
-  SqlValue,
+  type SqlValue,
 } from "@sqlite.org/sqlite-wasm"
 import {
   type Check,

@@ -1,6 +1,6 @@
 import { Fa } from "@/components/Fa"
 import {
-  IconDefinition,
+  type IconDefinition,
   faClock,
   faMousePointer,
   faSliders,
@@ -11,7 +11,7 @@ import {
   CharCmds,
   Cursor,
   DOMView,
-  Direction,
+  type Direction,
   Fragment,
   L,
   LatexCmds,
@@ -24,7 +24,7 @@ import {
   R,
   SVG_SYMBOLS,
   U_ZERO_WIDTH_SPACE,
-  V3,
+  type V3,
   bindBinaryOperator,
   getInterface,
   h,

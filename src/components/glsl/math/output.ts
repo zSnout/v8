@@ -1,8 +1,14 @@
 import { MathError, parseLatex, type Node } from "@/mathquill/parse"
-import { Result, error, ok } from "../../result"
+import { error, ok, type Result } from "../../result"
 import type { Vec2 } from "../types"
 import { optimize } from "./optimize"
-import { Constant, Operator, UnaryFunction, parse, type Tree } from "./parse"
+import {
+  parse,
+  type Constant,
+  type Operator,
+  type Tree,
+  type UnaryFunction,
+} from "./parse"
 
 export function treeToGLSL(tree: Tree): string {
   if (tree.type == "number") {

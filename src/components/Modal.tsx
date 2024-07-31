@@ -2,7 +2,7 @@ import {
   createMemo,
   createSignal,
   JSX,
-  Owner,
+  type Owner,
   runWithOwner,
   Show,
   untrack,

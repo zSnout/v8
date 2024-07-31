@@ -31,7 +31,7 @@ import {
   SidebarStickyLabel,
   SidebarStickyLabelAction,
 } from "./layout"
-import { Card, PartialCard, timestampDist } from "./shared"
+import { type Card, PartialCard, timestampDist } from "./shared"
 import { leaves, tree } from "./tree"
 
 // TODO: move to homepage

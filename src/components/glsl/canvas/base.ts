@@ -1,5 +1,5 @@
 import { createEffect, onCleanup } from "solid-js"
-import { error, ok, Result } from "../../result"
+import { error, ok, type Result } from "../../result"
 
 function resize(canvas: HTMLCanvasElement) {
   const { width, height } = canvas.getBoundingClientRect()

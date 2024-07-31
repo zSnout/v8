@@ -5,7 +5,7 @@ import {
   createStorageBoolean,
 } from "@/stores/local-storage-store"
 import {
-  IconDefinition,
+  type IconDefinition,
   faCheck,
   faCloud,
   faExclamationTriangle,

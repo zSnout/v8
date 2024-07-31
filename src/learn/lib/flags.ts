@@ -1,6 +1,6 @@
 import * as regular from "@fortawesome/free-regular-svg-icons"
 import * as solid from "@fortawesome/free-solid-svg-icons"
-import { IconDefinition } from "@fortawesome/free-solid-svg-icons"
+import type { IconDefinition } from "@fortawesome/free-solid-svg-icons"
 
 export interface FlagInfo {
   valueOf(): number
