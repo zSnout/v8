@@ -54,6 +54,7 @@
 - [ ] import from csv
 - [ ] import from plain text
 - [ ] import from json
+- [ ] importable files can be dragged directly over the window
 - [x] deck sharing
 
 **Media**
