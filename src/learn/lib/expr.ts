@@ -1,4 +1,4 @@
-import { type Accessor, createSignal } from "solid-js"
+import { Accessor, createSignal } from "solid-js"
 
 export function createExpr<T>(
   getValue: (last?: T) => T,

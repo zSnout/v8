@@ -1,6 +1,6 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { defaultMouse } from "@/components/cursors"
-import { JSX, type Signal, createSignal, onMount } from "solid-js"
+import { JSX, Signal, createSignal, onMount } from "solid-js"
 
 interface Events {
   lock(x: number, y: number): void

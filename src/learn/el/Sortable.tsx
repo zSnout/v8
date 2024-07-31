@@ -3,21 +3,14 @@ import { faGripVertical, faKey } from "@fortawesome/free-solid-svg-icons"
 import {
   DragDropProvider,
   DragDropSensors,
-  type DragEvent,
+  DragEvent,
   DragOverlay,
-  type Id,
+  Id,
   SortableProvider,
   closestCenter,
   createSortable,
 } from "@thisbeyond/solid-dnd"
-import {
-  For,
-  type Ref,
-  type Setter,
-  Show,
-  createSignal,
-  mapArray,
-} from "solid-js"
+import { For, Ref, Setter, Show, createSignal, mapArray } from "solid-js"
 
 export function PlainFieldList<T extends { id: Id; name: string }>(props: {
   get: T[]

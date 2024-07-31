@@ -8,9 +8,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
 import {
-  type PDFDocumentProxy,
-  type PDFPageProxy,
-  type RenderTask,
+  PDFDocumentProxy,
+  PDFPageProxy,
+  RenderTask,
   RenderingCancelledException,
   getDocument,
 } from "pdfjs-dist"
@@ -27,10 +27,10 @@ import {
   untrack,
 } from "solid-js"
 import {
-  type Falnen,
+  Falnen,
   RISOLI,
-  type Slide,
-  type Word,
+  Slide,
+  Word,
   makeSlideList,
   makeWordList,
   sortWords,
@@ -656,9 +656,8 @@ function RisoliSidebar(props: {
         <For
           each={props
             .maximized()
-            .opetako.slice()
-            .sort()
-            .concat(props.maximized().hanuko.slice().sort())}
+            .opetako.toSorted()
+            .concat(props.maximized().hanuko.toSorted())}
         >
           {(word) => (
             <Kotoba

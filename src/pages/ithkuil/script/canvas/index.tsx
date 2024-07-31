@@ -204,9 +204,6 @@ function makePath(
               ${nextSegment()}
               h ${step.d - 10}
             `
-
-          case "dl":
-            throw new Error("TODO: Unimplemented")
         }
       }
 
@@ -282,9 +279,6 @@ function makePath(
           case "up":
           case "down":
             return passSegment()
-
-          case "dl":
-            throw new Error("TODO: Unimplemented")
         }
       }
 

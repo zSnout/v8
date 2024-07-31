@@ -1,10 +1,4 @@
-import {
-  type Accessor,
-  createSignal,
-  onCleanup,
-  type Setter,
-  untrack,
-} from "solid-js"
+import { Accessor, createSignal, onCleanup, Setter, untrack } from "solid-js"
 import type { WebGLCoordinateCanvas } from "../canvas/coordinate"
 
 export function trackTime(

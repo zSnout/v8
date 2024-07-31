@@ -9,7 +9,7 @@ import {
   untrack,
 } from "solid-js"
 import { Fa } from "./Fa"
-import type { NodeOf, NodeProps, TreeOf } from "./tree"
+import { NodeOf, NodeProps, TreeOf } from "./tree"
 
 export type SubtreeProps<T, U> = {
   data: T

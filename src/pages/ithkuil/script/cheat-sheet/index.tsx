@@ -11,7 +11,7 @@ import {
   CORES,
   Diacritic,
   EXTENSIONS,
-  type Extension,
+  Extension,
   HANDWRITTEN_CORES,
   HANDWRITTEN_PRIMARY_CORES,
   HANDWRITTEN_REGISTERS,

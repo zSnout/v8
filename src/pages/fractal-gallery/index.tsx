@@ -4,10 +4,10 @@ import {
   textToGLSL,
   treeToGLSL,
 } from "@/components/glsl/math/output"
-import { type Result, error, ok, unwrap } from "@/components/result"
+import { Result, error, ok, unwrap } from "@/components/result"
 import { parseLatex } from "@/mathquill/parse"
 import { For } from "solid-js"
-import { type InnerTheme, type Theme, innerThemeMap, themeMap } from "../fractal-explorer"
+import { InnerTheme, Theme, innerThemeMap, themeMap } from "../fractal-explorer"
 import fragmentSource from "../fractal-explorer/fragment.glsl"
 
 let gl: WebGLCoordinateCanvas

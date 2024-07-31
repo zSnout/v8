@@ -38,7 +38,7 @@ import {
   faTags,
   faTrash,
   faUndo,
-  type IconDefinition,
+  IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import {
   batch,
@@ -48,7 +48,7 @@ import {
   JSX,
   Show,
 } from "solid-js"
-import { Rating, State, type Grade } from "ts-fsrs"
+import { Grade, Rating, State } from "ts-fsrs"
 import type { Worker } from "../db"
 import { defineLayer } from "../el/DefineLayer"
 import { Id } from "../lib/id"

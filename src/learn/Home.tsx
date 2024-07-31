@@ -7,7 +7,7 @@ import {
   ModalStrong,
   prompt,
 } from "@/components/Modal"
-import type { NodeProps } from "@/components/tree"
+import { NodeProps } from "@/components/tree"
 import { isDark, toggleIsDark } from "@/stores/theme"
 import {
   faChartBar,

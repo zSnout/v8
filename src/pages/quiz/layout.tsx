@@ -5,7 +5,7 @@ import {
   type ShortcutManager,
 } from "@/learn/lib/shortcuts"
 import {
-  type IconDefinition,
+  IconDefinition,
   faClose,
   faDownload,
   faExclamationTriangle,

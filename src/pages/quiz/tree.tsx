@@ -1,6 +1,6 @@
 import { BasicTree, type BasicTreeOf } from "@/components/basic-tree"
 import type { JSX } from "solid-js"
-import { DirectTreeCard, Generator, type Leaf, PartialCard } from "./shared"
+import { DirectTreeCard, Generator, Leaf, PartialCard } from "./shared"
 
 // prettier-ignore
 type BaseKanaNames =

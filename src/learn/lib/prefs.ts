@@ -1,8 +1,8 @@
 import { createPrefs } from "@/learn/lib/defaults"
 import { Prefs } from "@/learn/lib/types"
-import { createStore, type SetStoreFunction, unwrap } from "solid-js/store"
+import { createStore, SetStoreFunction, unwrap } from "solid-js/store"
 import type { Worker } from "../db"
-import type { Reason } from "./reason"
+import { Reason } from "./reason"
 
 export function createPrefsStore(
   worker: Worker,

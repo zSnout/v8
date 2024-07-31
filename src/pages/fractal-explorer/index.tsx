@@ -21,7 +21,7 @@ import type { Vec2 } from "@/components/glsl/types"
 import { DynamicOptions } from "@/components/nav/Options"
 import { unwrap } from "@/components/result"
 import {
-  type SignalLike,
+  SignalLike,
   createBooleanSearchParam,
   createBooleanSearchParamWithFallback,
   createNumericalSearchParam,
@@ -37,10 +37,10 @@ import {
   faSliders,
 } from "@fortawesome/free-solid-svg-icons"
 import {
-  type Accessor,
+  Accessor,
   Index,
   JSX,
-  type Setter,
+  Setter,
   Show,
   createEffect,
   createSignal,

@@ -50,7 +50,7 @@ const nonBlogPages: readonly Page[] = [
     tags: ["meta"],
     category: "archive",
 
-    imageSrc: zsnoutSevenOpenGraph.src,
+    imageSrc: zsnoutSevenOpenGraph,
     imageAlt: "A grid of 32 of zSnout 7's most important pages.",
   },
 
@@ -65,7 +65,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A light grey bug icon to the left of text saying 'Debug Page: Math to GLSL.' Yellow and black construction tape surrounds the other elements.",
-    imageSrc: debugMathToGLSLOpenGraph.src,
+    imageSrc: debugMathToGLSLOpenGraph,
   },
 
   {
@@ -76,7 +76,7 @@ const nonBlogPages: readonly Page[] = [
 
     tags: ["art"],
 
-    imageSrc: fakeGradientOpenGraph.src,
+    imageSrc: fakeGradientOpenGraph,
     imageAlt: "A random-looking gradient.",
   },
 
@@ -90,7 +90,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "Two rows of text. The first reads 'Deduplicate Text', with arrows pointing the first two Ds, Es, and Ts to each other. The second row reads 'uplica ext,' with the Ds, Es, and Ts in the first row removed.",
-    imageSrc: deduplicateTextOpenGraph.src,
+    imageSrc: deduplicateTextOpenGraph,
   },
 
   {
@@ -103,7 +103,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       'zSnout\'s Ithkuil font generator, with "Wattunkí ruyün!" as the input.',
-    imageSrc: ithkuilFontGeneratorOpenGraph.src,
+    imageSrc: ithkuilFontGeneratorOpenGraph,
   },
 
   {
@@ -116,7 +116,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A screenshot of the Ithkuil Script Cheat Sheet showing the extensions and core shapes for the letters C, Č, D2, Ḑ, G2, H, L, Ļ, Ň, and P.",
-    imageSrc: ithkuilScriptCheatSheetOpenGraph.src,
+    imageSrc: ithkuilScriptCheatSheetOpenGraph,
   },
 
   {
@@ -129,7 +129,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "zSnout's Ithkuil formative generator, with 'ersmlakpalla' as the input.",
-    imageSrc: ithkuilFormativeGeneratorOpenGraph.src,
+    imageSrc: ithkuilFormativeGeneratorOpenGraph,
   },
 
   {
@@ -142,7 +142,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A section of the sitelen pona typist page, with five keys at the top visible reading 'o pi luka e toki'. The first two keys are highlighted in green, and the keyboard below has the 'luka' key highlighted in blue.",
-    imageSrc: sitelenPonaTypistOpenGraph.src,
+    imageSrc: sitelenPonaTypistOpenGraph,
   },
 
   {
@@ -155,7 +155,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "A paragraph of Hebrew text where each word has a background color depending on its trope.",
-    imageSrc: tropeHighlighterOpenGraph.src,
+    imageSrc: tropeHighlighterOpenGraph,
   },
 
   {
@@ -167,7 +167,7 @@ const nonBlogPages: readonly Page[] = [
     tags: ["art", "math"],
 
     imageAlt: "A multicolored zoom of the Mandelbrot Set.",
-    imageSrc: fractalExplorerOpenGraph.src,
+    imageSrc: fractalExplorerOpenGraph,
   },
 
   {
@@ -180,7 +180,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
-    imageSrc: vjosaliOpenGraph.src,
+    imageSrc: vjosaliOpenGraph,
   },
 
   {
@@ -193,7 +193,7 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt:
       'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
-    imageSrc: ithkuilScriptGeneratorOpenGraph.src,
+    imageSrc: ithkuilScriptGeneratorOpenGraph,
   },
 
   {
@@ -205,7 +205,7 @@ const nonBlogPages: readonly Page[] = [
     tags: ["art", "math"],
 
     imageAlt: "Eighteen fractals in a six by three grid.",
-    imageSrc: fractalGalleryOpenGraph.src,
+    imageSrc: fractalGalleryOpenGraph,
   },
 ]
 
@@ -229,7 +229,11 @@ const blogPages: readonly Page[] = await Promise.all(
       imageAlt: entry.data.imageAlt,
       imageSrc: (
         await import(
-          `../../assets/blog/${entry.data.draft ? "draft" : entry.id.slice(0, -3)}.jpg`
+          `../../assets/blog/${
+            entry.id.endsWith(".mdx") ?
+              entry.id.slice(0, -4)
+            : entry.id.slice(0, -3)
+          }.jpg`
         )
       ).default,
     })),

@@ -1,6 +1,6 @@
 import { Fa } from "@/components/Fa"
 import type { CtxEvent } from "@/env2"
-import type { IconDefinition } from "@fortawesome/free-solid-svg-icons"
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons"
 import { JSX } from "solid-js"
 
 export function BottomButtons(props: { class: string; children: JSX.Element }) {

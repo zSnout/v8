@@ -16,7 +16,7 @@ import {
   Diacritic,
   Lines,
   Primary,
-  type PrimaryCharacter,
+  PrimaryCharacter,
   Row,
   Translate,
   fitViewBox,

@@ -3,7 +3,7 @@ import {
   createSignal,
   getOwner,
   JSX,
-  type Owner,
+  Owner,
   runWithOwner,
   Show,
   useContext,

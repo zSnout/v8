@@ -1,8 +1,8 @@
 import { pray } from "@/components/pray"
-import { FSRS, Rating, type RecordLogItem, State } from "ts-fsrs"
+import { FSRS, Rating, RecordLogItem, State } from "ts-fsrs"
 import { daysBetweenSync } from "./day"
 import { randomId } from "./id"
-import { AnyCard, Conf, type RepeatInfo, type RepeatItem } from "./types"
+import { AnyCard, Conf, RepeatInfo, RepeatItem } from "./types"
 
 function createRepeatItem(
   prev: AnyCard,

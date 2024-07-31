@@ -1,14 +1,14 @@
 import { error } from "@/components/result"
 import {
-  type FDG,
-  type MutableNode as M,
-  type MutableLink,
+  FDG,
+  MutableNode as M,
+  MutableLink,
   createForceDirectedGraph,
 } from "@/pages/fdg"
 import { diff, rgb_to_lab } from "color-diff"
 import { JSX, batch, createSignal } from "solid-js"
 import { isServer } from "solid-js/web"
-import { type ZipInfo, setOptions, unzip } from "unzipit"
+import { ZipInfo, setOptions, unzip } from "unzipit"
 import worker from "unzipit/dist/unzipit-worker?url"
 
 type MutableNode = M & { email: string }

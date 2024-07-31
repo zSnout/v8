@@ -1,5 +1,5 @@
 import { For, JSX } from "solid-js"
-import { Tree, type TreeOf } from "./tree-structure"
+import { Tree, TreeOf } from "./tree-structure"
 
 export * from "./tree-structure"
 
