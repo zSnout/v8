@@ -54,7 +54,7 @@
 - [ ] import from csv
 - [ ] import from plain text
 - [ ] import from json
-- [ ] deck sharing
+- [x] deck sharing
 
 **Media**
 
