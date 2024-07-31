@@ -15,7 +15,6 @@ import {
 import {
   ActionExport,
   ActionImport,
-  ShortcutLabel,
   ContentAction,
   ContentCard,
   ContentGuide,
@@ -27,6 +26,7 @@ import {
   ResponseGray,
   ResponsesGrid,
   ResponsesSingleLink,
+  ShortcutLabel,
   SidebarSticky,
   SidebarStickyLabel,
   SidebarStickyLabelAction,
