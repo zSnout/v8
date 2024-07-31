@@ -119,7 +119,7 @@ export default defineConfig({
     ],
     optimizeDeps: {
       esbuildOptions: { target: "es2022" },
-      exclude: ["@sqlite.org/sqlite-wasm"],
+      exclude: ["@sqlite.org/sqlite-wasm", "pyodide"],
     },
     esbuild: { target: "es2022" },
     build: { target: "es2022" },
