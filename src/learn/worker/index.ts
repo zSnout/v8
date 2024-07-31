@@ -17,12 +17,11 @@ import {
   type WorkerResponse,
 } from "../shared"
 import { int } from "./lib/checks"
+import * as messages from "./messages"
+import query_schema from "./query/schema.sql?raw"
 import { createSqlFunction } from "./lib/sql"
 import { StateManager, type UndoMeta } from "./lib/undo"
 import { latest, upgrade } from "./lib/version"
-import * as messages from "./messages"
-import { load } from "./py"
-import query_schema from "./query/schema.sql?raw"
 
 export const sqlite3 = await (sqlite3InitModule as typeof initSqlite)()
 
@@ -329,5 +328,3 @@ export async function closeDatabaseTemporarily(
 }
 
 postMessage({ zid: "zdb:resolve" } satisfies WorkerNotification)
-
-Object.assign(globalThis, { load })

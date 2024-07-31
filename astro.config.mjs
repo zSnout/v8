@@ -132,3 +132,73 @@ function traverse(/** @type {import("mdast").Content} */ node) {
     return node
   }
 }
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    solidJs(),
+    mdx(),
+    tailwind({
+      config: {
+        applyBaseStyles: false,
+      },
+    }),
+  ],
+  markdown: {
+    rehypePlugins: [rehypeKatex],
+    remarkPlugins: [
+      remarkMath,
+      () => (tree) => {
+        return {
+          ...tree,
+          children: tree.children.map(traverse),
+        }
+      },
+    ],
+    shikiConfig: { wrap: true },
+  },
+  site: "https://v8.zsnout.com/",
+  vite: {
+    css: {
+      postcss: {
+        plugins: [nesting],
+      },
+    },
+    plugins: [
+      glsl({
+        compress: true,
+      }),
+      VitePWA({
+        srcDir: "src/learn/lib",
+        filename: "sw.ts",
+        strategies: "injectManifest",
+        injectRegister: false,
+        manifest: false,
+        injectManifest: {
+          injectionPoint: undefined,
+        },
+        scope: "/learn",
+        devOptions: {
+          enabled: true,
+          type: "module",
+        },
+      }),
+    ],
+    optimizeDeps: {
+      esbuildOptions: { target: "es2022" },
+      exclude: ["@sqlite.org/sqlite-wasm"],
+    },
+    esbuild: { target: "es2022" },
+    build: { target: "es2022" },
+    worker: {
+      format: "es",
+      plugins: [tsconfigPaths()],
+    },
+  },
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
+  },
+})
