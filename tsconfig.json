@@ -6,7 +6,6 @@
     "noUncheckedIndexedAccess": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "module": "ES2022",
     "target": "ES2022",

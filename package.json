@@ -37,6 +37,7 @@
     "@types/eslint__js": "^8.42.3",
     "@types/moo": "^0.5.9",
     "@types/nearley": "^2.11.5",
+    "@vite-pwa/astro": "^0.4.0",
     "@zsnout/ithkuil": "^0.1.98",
     "@zsnout/tailwind": "^0.1.11",
     "astro": "^4.12.3",
