@@ -1,7 +1,7 @@
 import { toDateString } from "@/components/to-date-string"
 import { Show } from "solid-js"
-import { BlueGreenText } from "./BlueGreenText"
-import type { Page } from "./pages"
+import { BlueGreenText } from "../BlueGreenText"
+import type { Page } from "../pages"
 
 export function MegaCard(props: Page) {
   return (
