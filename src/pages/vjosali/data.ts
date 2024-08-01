@@ -61,6 +61,7 @@ export type Falnen =
   | "namting"
   | "glugting"
   | "kun"
+  | "kokoro na aistia"
   | "(sjiranai)"
 
 export interface RawWordData {
@@ -1062,7 +1063,7 @@ const kotobasirumahena: Record<string, RawWordData> = {
     anki: true,
     emoji: "👃👍",
     fal: "lihko",
-    falnen: "(sjiranai)",
+    falnen: "kokoro na aistia",
     imi: "braa na njui",
     kundr: ["froreenj"],
   },
@@ -1182,7 +1183,7 @@ const kotobasirumahena: Record<string, RawWordData> = {
     anki: true,
     emoji: "👃👎",
     fal: "lihko",
-    falnen: "(sjiranai)",
+    falnen: "kokoro na aistia",
     imi: "warui na njyi",
     kundr: ["efles"],
   },
@@ -1438,6 +1439,14 @@ const kotobasirumahena: Record<string, RawWordData> = {
     imi: "al fu afto ting",
     kundr: ["tel"],
     tatoeba: ["🎂 hel torta. 🍰 tel torta."],
+  },
+  helena: {
+    anki: false,
+    emoji: "👀🦋😍",
+    fal: "lihko",
+    falnen: "kokoro na aistia",
+    imi: "bra na se",
+    kundr: ["nitshizta"],
   },
   helenakaku: {
     anki: true,
@@ -1764,6 +1773,14 @@ const kotobasirumahena: Record<string, RawWordData> = {
     emoji: "4️⃣",
     fal: "atai",
     falnen: "lasku",
+  },
+  kimo: {
+    anki: false,
+    emoji: "👄👎",
+    fal: "lihko",
+    falnen: "kokoro na aistia",
+    imi: "warui na smak",
+    kundr: ["oyshi"],
   },
   kini: {
     anki: true,
@@ -2324,6 +2341,14 @@ const kotobasirumahena: Record<string, RawWordData> = {
     falnen: "(sjiranai)",
     kundr: ["gammel"],
   },
+  ndofo: {
+    anki: false,
+    emoji: "🖐️👍",
+    fal: "lihko",
+    falnen: "(sjiranai)",
+    imi: "bra na ryr",
+    kundr: ["shblh"],
+  },
   ni: {
     anki: true,
     emoji: "2️⃣",
@@ -2377,6 +2402,14 @@ const kotobasirumahena: Record<string, RawWordData> = {
     fal: "tingko",
     falnen: "(sjiranai)",
     kakutro: ["nikrajs", "bolka"],
+  },
+  nitshizta: {
+    anki: false,
+    emoji: "😵‍💫👀👎",
+    fal: "lihko",
+    falnen: "kokoro na aistia",
+    imi: "warui na se",
+    kundr: ["helena"],
   },
   njudur: {
     anki: true,
@@ -2491,6 +2524,14 @@ const kotobasirumahena: Record<string, RawWordData> = {
     fal: "kokoroko",
     falnen: "(sjiranai)",
     tatoeba: ["A vil afto: B hyr A. A hanu: 'oy B!'"],
+  },
+  oyshi: {
+    anki: false,
+    emoji: "👄😍",
+    fal: "lihko",
+    falnen: "kokoro na aistia",
+    imi: "braa na smak",
+    kundr: ["kimo"],
   },
   paara: {
     anki: true,
@@ -2765,6 +2806,14 @@ const kotobasirumahena: Record<string, RawWordData> = {
     fal: "tingko",
     falnen: "(sjiranai)",
   },
+  ruma: {
+    anki: false,
+    emoji: "👂👎",
+    fal: "lihko",
+    falnen: "kokoro na aistia",
+    imi: "warui na hyr",
+    kundr: ["wavu"],
+  },
   ryodjin: {
     anki: true,
     emoji: "",
@@ -2860,6 +2909,14 @@ const kotobasirumahena: Record<string, RawWordData> = {
     tatoeba: [
       'A: du vil ros ringo os midori ringo?\nB: un sentaku ros, sitte un vil ringo ros.\n"un sentaku A" likk "li mono A os B, un vil A"',
     ],
+  },
+  shblh: {
+    anki: false,
+    emoji: "🖐️👎",
+    fal: "lihko",
+    falnen: "kokoro na aistia",
+    imi: "warui na ryr",
+    kundr: ["ndofo"],
   },
   shiro: {
     anki: true,
@@ -3525,6 +3582,14 @@ A au B uslova ka hej dua kot.`,
     fal: "lihko",
     falnen: "(sjiranai)",
     kundr: ["bra"],
+  },
+  wavu: {
+    anki: false,
+    emoji: "👂👍",
+    fal: "lihko",
+    falnen: "kokoro na aistia",
+    imi: "bra na hyr",
+    kundr: ["ruma"],
   },
   we: {
     anki: true,
