@@ -1,0 +1,63 @@
+---
+import { ThemeSwitcher } from "@/components/nav/ThemeSwitcher"
+import Layout from "@/layouts/Layout.astro"
+---
+
+<Layout
+  title="TODO"
+  description="TODO"
+  og={{
+    title: "TODO",
+    imageAlt: "TODO",
+    imageSrc: "TODO",
+  }}
+>
+  {/* This blocks content under the address bar in Safari. */}
+  <div
+    class="pointer-events-none fixed -top-20 left-0 z-30 h-20 w-full bg-z-body print:hidden"
+  >
+  </div>
+
+  {/* This is intentionally not a <nav /> element. */}
+  {/* That is used in prose and other documents with internal nav links. */}
+  <header
+    class="pointer-events-none fixed top-0 z-30 flex h-12 w-full touch-none select-none items-center justify-center border-b border-b-z bg-z-body-partial px-6 py-1.5 backdrop-blur-sm transition print:hidden"
+  >
+    <div class="relative flex h-full w-full max-w-5xl flex-1 items-center">
+      <div
+        class="pointer-events-auto relative left-[calc(-0.5rem_-_1px)] z-20 mr-auto flex items-baseline text-2xl font-extralight text-z-heading"
+      >
+        <a
+          class="rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring hover:decoration-current"
+          href="/">LingLang</a
+        >
+      </div>
+
+      <div
+        class="pointer-events-auto relative left-[calc(-0.5rem_-_1px)] z-20 mr-auto flex items-center text-base font-extralight text-z-heading"
+      >
+        <a
+          class="rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring hover:decoration-current"
+          href="/">Slides</a
+        >
+        <span>&middot;</span>
+        <a
+          class="rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring hover:decoration-current"
+          href="/">Link 2</a
+        >
+      </div>
+
+      <ThemeSwitcher client:idle theme={Astro.props.theme} />
+    </div>
+  </header>
+
+  <div
+    class="mx-6 flex flex-1 flex-col pb-8 pt-20 text-z transition print:mx-0 print:my-0"
+  >
+    <div
+      class="mx-auto flex w-[64rem] max-w-full flex-1 flex-col text-z transition"
+    >
+      <!-- mu -->
+    </div>
+  </div>
+</Layout>
