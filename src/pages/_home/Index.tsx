@@ -16,6 +16,7 @@ const allPages = pages.slice()
 const page1 = allPages.at(-1)!
 const page2 = allPages.at(-2)!
 const page3 = allPages.at(-3)!
+const page4 = allPages.at(-4)!
 
 function SectionHeader(props: { title: string; allItems?: JSX.Element }) {
   return (
@@ -65,7 +66,6 @@ function AllPagesSection() {
       <div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {pages
           .filter((x) => x.category != "blog")
-          .slice(0, -3)
           .sort((a, b) => (a.title < b.title ? -1 : 1))
           .map((page) => (
             <CompactCard page={page} />
@@ -79,14 +79,14 @@ function UnsearchedView() {
   return (
     <>
       <div class="flex flex-col gap-12 lg:flex-row">
-        <LatestBlogArticle />
+        <MegaCard {...page1} />
 
         <div class="flex flex-col">
-          <SideCard {...page1} />
-          <SidePageSeparator />
           <SideCard {...page2} />
           <SidePageSeparator />
           <SideCard {...page3} />
+          <SidePageSeparator />
+          <SideCard {...page4} />
         </div>
       </div>
 

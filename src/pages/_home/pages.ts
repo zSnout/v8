@@ -9,6 +9,7 @@ import ithkuilFontGeneratorOpenGraph from "../ithkuil/font/open-graph.png"
 import ithkuilFormativeGeneratorOpenGraph from "../ithkuil/generate/formative/open-graph.png"
 import ithkuilScriptCheatSheetOpenGraph from "../ithkuil/script/cheat-sheet/open-graph.jpg"
 import ithkuilScriptGeneratorOpenGraph from "../ithkuil/script/open-graph.png"
+import ithkuilUtilityKitOpenGraph from "../ithkuil/kit/open-graph.png"
 import sitelenPonaTypistOpenGraph from "../toki-pona/typist/open-graph.png"
 import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
 import vjosaliOpenGraph from "../vjosali/open-graph.png"
@@ -146,19 +147,6 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
-    title: "Trope Highlighter",
-    href: "/trope-highlighter",
-    subtitle:
-      "A tool which colors Hebrew words based on their tropes. Great for learning Torah passages, as you can learn the sounds of colors rather than trying to find tiny trope markers.",
-
-    tags: ["tool"],
-
-    imageAlt:
-      "A paragraph of Hebrew text where each word has a background color depending on its trope.",
-    imageSrc: tropeHighlighterOpenGraph,
-  },
-
-  {
     title: "Fractal Explorer",
     href: "/fractal-explorer",
     subtitle:
@@ -168,6 +156,19 @@ const nonBlogPages: readonly Page[] = [
 
     imageAlt: "A multicolored zoom of the Mandelbrot Set.",
     imageSrc: fractalExplorerOpenGraph,
+  },
+
+  {
+    title: "Ithkuil Script Generator",
+    href: "/ithkuil/script",
+    subtitle:
+      "Quickly write in the block script of the constructed language Ithkuil using our simple online SVG generator. Handles formatives, referentials, and adjuncts.",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
+    imageSrc: ithkuilScriptGeneratorOpenGraph,
   },
 
   {
@@ -184,16 +185,29 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
-    title: "Ithkuil Script Generator",
-    href: "/ithkuil/script",
+    title: "Trope Highlighter",
+    href: "/trope-highlighter",
     subtitle:
-      "Quickly write in the block script of the constructed language Ithkuil using our simple online SVG generator. Handles formatives, referentials, and adjuncts.",
+      "A tool which colors Hebrew words based on their tropes. Great for learning Torah passages, as you can learn the sounds of colors rather than trying to find tiny trope markers.",
+
+    tags: ["tool"],
+
+    imageAlt:
+      "A paragraph of Hebrew text where each word has a background color depending on its trope.",
+    imageSrc: tropeHighlighterOpenGraph,
+  },
+
+  {
+    title: "Ithkuil Utility Kit",
+    href: "/ithkuil/kit",
+    subtitle:
+      "Gloss Ithkuil words, construct them from grammatical category lists, search roots and affixes, and write in the calligraphic and handwritten scripts. Handles all word types.",
 
     tags: ["language", "tool"],
 
     imageAlt:
-      'zSnout\'s Ithkuil script generator, with "Wattunkí ruyün!" as the input.',
-    imageSrc: ithkuilScriptGeneratorOpenGraph,
+      'At the top, the input box with several word glosses and the words malëuţřaitie and šio. Below, the first three words with glosses and handwritten Ithkuil script. To the right, a list of alternatives to S0-čv for the word "tool".',
+    imageSrc: ithkuilUtilityKitOpenGraph,
   },
 
   {
