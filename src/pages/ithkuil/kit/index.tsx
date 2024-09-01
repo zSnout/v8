@@ -237,7 +237,10 @@ function Alt(replacement: Replacement & { source: string }) {
     <div class="mx-4 mt-2">
       <p>{toString(replacement, replacement.actual, true)} alts:</p>
       <div class="ml-4">
-        <For each={replacement.alts.slice(0, shown())}>
+        <For
+          each={replacement.alts.slice(0, shown())}
+          fallback={<p>No alternatives available.</p>}
+        >
           {(alt) => <p>{toString(replacement, alt)}</p>}
         </For>
         <Show when={replacement.alts.length > shown()}>
