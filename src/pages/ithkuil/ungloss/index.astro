@@ -1,0 +1,21 @@
+---
+import DocumentLayout from "@/layouts/DocumentLayout.astro"
+import { Main } from "."
+// import openGraph from "./open-graph.png"
+---
+
+<DocumentLayout
+  title="TODO"
+  description="TODO"
+  og={{
+    imageAlt: "TODO",
+    imageSrc: "TODO",
+    title: "TODO",
+  }}
+>
+  <p class="q8s7 m-auto w-96 max-w-full">
+    Loading unglosser. Please wait a moment.
+  </p>
+
+  <Main client:only />
+</DocumentLayout>
