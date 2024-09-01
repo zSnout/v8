@@ -213,7 +213,18 @@ function Sidebar(props: {
       </Section>
 
       <Section title="Root & Affix Alternatives">
-        <For each={props.unglosses.flatMap((x) => x.replacements)}>{Alt}</For>
+        <For
+          each={props.unglosses.flatMap((x) => x.replacements)}
+          fallback={
+            <p class="mx-4 mt-2">
+              If you use a quoted root or affix definition like{" "}
+              <Code>"human"</Code>, one root or affix will be used in the main
+              window. Alternatives will then be shown here.
+            </p>
+          }
+        >
+          {Alt}
+        </For>
       </Section>
     </>
   )
@@ -252,7 +263,7 @@ function toString(
   header?: boolean,
 ) {
   const head = header ? "font-bold text-z-heading" : "font-bold"
-  const sub = header ? "font-bold" : "text-z-subtitle"
+  const sub = header ? "font-bold text-z-heading" : "text-z-subtitle"
   if ("cr" in entry) {
     return (
       <span>
