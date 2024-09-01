@@ -270,11 +270,16 @@ export function Main() {
 
         <Section title="Script Generation">
           <p class="mx-4 mt-2">
-            The Ithkuil Utility Kit includes some built-in script capabilities.
-            Custom character sequences starting with Q-, q-, and h- are
-            supported. To create long custom character sequences, split your
-            queries by newlines instead of spaces. To download generated
-            scripts, use the{" "}
+            The Ithkuil Utility Kit includes some built-in script capabilities.{" "}
+            <a
+              class="text-z-link underline underline-offset-2"
+              href="/Custom Character Syntax.pdf"
+            >
+              Custom character sequences
+            </a>{" "}
+            starting with Q-, q-, and h- are supported. To create long custom
+            character sequences, split your queries by newlines instead of
+            spaces. To download generated scripts, use the{" "}
             <a
               class="text-z-link underline underline-offset-2"
               href="/ithkuil/script"
