@@ -34,6 +34,7 @@ import {
   For,
   mapArray,
   Match,
+  onCleanup,
   onMount,
   Show,
   Switch,
@@ -60,6 +61,11 @@ export function Main() {
     true,
   )
 
+  const [glossLong, setGlossLong] = createStorageBoolean(
+    "ithkuil/kit/gloss_long",
+    false,
+  )
+
   const [elidePrimaries, setElidePrimaries] = createStorageBoolean(
     "ithkuil/kit/elide_primaries",
     true,
@@ -75,6 +81,11 @@ export function Main() {
     true,
   )
 
+  const [stretch, setStretch] = createStorageBoolean(
+    "ithkuil/kit/stretch",
+    true,
+  )
+
   const words = mapArray(
     createMemo(() =>
       source()
@@ -85,7 +96,7 @@ export function Main() {
       if (/^(?:q|h[aeiou]?[0123])/i.test(word)) {
         return {
           el: (
-            <div class="rounded-lg bg-z-body-selected px-2 py-1">
+            <div class="max-w-full rounded-lg bg-z-body-selected px-2 py-1">
               <div class="font-bold text-z-heading">{word}</div>
               <div>Custom character sequence</div>
               <MaybeDraw word={word} />
@@ -99,13 +110,18 @@ export function Main() {
         if (!parsed) {
           throw new Error("Not a valid word.")
         }
-        const gloss = parsed == null ? undefined : glossWord(parsed)
+        const gloss = glossWord(parsed)
 
         return {
           el: (
-            <div class="rounded-lg bg-z-body-selected px-2 py-1">
+            <div
+              class={
+                "max-w-full rounded-lg bg-z-body-selected px-2 py-1" +
+                (stretch() ? " flex-[1_0_fit-content]" : "")
+              }
+            >
               <div class="font-bold text-z-heading">{word}</div>
-              <div>{gloss?.short}</div>
+              <div>{gloss[glossLong() ? "full" : "short"]}</div>
               <MaybeDraw word={word} />
             </div>
           ),
@@ -118,7 +134,12 @@ export function Main() {
 
         return {
           el: (
-            <div class="rounded-lg bg-z-body-selected px-2 py-1">
+            <div
+              class={
+                "rounded-lg bg-z-body-selected px-2 py-1" +
+                (stretch() ? " flex-[1_0_fit-content]" : "")
+              }
+            >
               <div class="font-bold text-z-heading">{word}</div>
               <Show when={recognized.gloss != word}>
                 <div class="font-bold text-z-heading">{recognized.gloss}</div>
@@ -141,7 +162,13 @@ export function Main() {
                 </Match>
                 <Match when={success.length == 1}>
                   <div>{wordToIthkuil(success[0]!.value)}</div>
-                  <div>{glossWord(success[0]!.value).short}</div>
+                  <div>
+                    {
+                      glossWord(success[0]!.value)[
+                        glossLong() ? "full" : "short"
+                      ]
+                    }
+                  </div>
                 </Match>
                 <Match when={success.length > 1}>
                   <div class="grid grid-cols-[auto,auto] gap-x-4">
@@ -149,7 +176,9 @@ export function Main() {
                       {(x) => (
                         <>
                           <div>{wordToIthkuil(x.value)}</div>
-                          <div>{glossWord(x.value).short}</div>
+                          <div>
+                            {glossWord(x.value)[glossLong() ? "full" : "short"]}
+                          </div>
                         </>
                       )}
                     </For>
@@ -177,7 +206,7 @@ export function Main() {
           placeholder="Enter words or unglossables here..."
         />
 
-        <div class="flex flex-wrap gap-4">
+        <div class="flex w-[calc(100vw_-_27rem)] max-w-[calc(100vw_-_27rem)] flex-wrap gap-4 break-words">
           <For each={words()}>{(x) => x.el}</For>
         </div>
       </div>
@@ -196,7 +225,8 @@ export function Main() {
         <Section title="Ithkuil Utility Kit">
           <p class="mt-2 px-4">
             The Ithkuil Utility Kit helps with glossing and constructing words
-            and searching Ithkuil's root and affix lists.
+            and searching Ithkuil's root and affix lists. All data is
+            automatically saved on page reload.
           </p>
 
           <p class="mt-2 px-4">
@@ -238,7 +268,7 @@ export function Main() {
           </p>
         </Section>
 
-        <Section title="Script Options">
+        <Section title="Script Generation">
           <p class="mx-4 mt-2">
             The Ithkuil Utility Kit includes some built-in script capabilities.
             Custom character sequences starting with Q-, q-, and h- are
@@ -253,9 +283,26 @@ export function Main() {
             </a>
             .
           </p>
+        </Section>
 
+        <Section title="Kit Options">
           <div class="mx-4 mt-2">
-            <CheckboxContainer label="Script generation options">
+            <CheckboxContainer label="Utility kit options">
+              <label class="flex w-full gap-2">
+                <Checkbox checked={glossLong()} onInput={setGlossLong} />
+                Show full glosses?
+              </label>
+              <label class="flex w-full gap-2">
+                <Checkbox checked={stretch()} onInput={setStretch} />
+                Stretch query boxes?
+              </label>
+              <label class="flex w-full gap-2">
+                <Checkbox
+                  checked={splitByNewline()}
+                  onInput={setSplitByNewline}
+                />
+                Split queries by newlines?
+              </label>
               <label class="flex w-full gap-2">
                 <Checkbox checked={showScript()} onInput={setShowScript} />
                 Generate script?
@@ -278,16 +325,59 @@ export function Main() {
                 />
                 Elide quaternaries?
               </label>
-              <label class="flex w-full gap-2">
-                <Checkbox
-                  checked={splitByNewline()}
-                  onInput={setSplitByNewline}
-                />
-                Split queries by newlines?
-              </label>
             </CheckboxContainer>
           </div>
         </Section>
+
+        <Section title="Credit">
+          <p class="mx-4 mt-2">
+            The parsing, glossing, unglossing, script generation systems, and
+            handwritten script characters were built by{" "}
+            <a
+              class="text-z-link underline underline-offset-2"
+              href="https://github.com/zsakowitz/ithkuil"
+            >
+              this site's author
+            </a>
+            .
+          </p>
+
+          <p class="mx-4 mt-2">
+            The calligraphic Ithkuil characters were created by{" "}
+            <a
+              class="text-z-link underline underline-offset-2"
+              href="https://github.com/shankarsivarajan"
+            >
+              Shankar Sivarajan
+            </a>
+            .
+          </p>
+
+          <p class="mx-4 mt-2">
+            The custom character syntax for advanced alphabetic characters was
+            designed by{" "}
+            <a
+              class="text-z-link underline underline-offset-2"
+              href="https://github.com/ryanlo713"
+            >
+              Lucifer Caelius Delicatus
+            </a>
+            .
+          </p>
+
+          <p class="mx-4 mt-2">
+            The dictionaries for the root and affix searches are from the{" "}
+            <a
+              class="text-z-link underline underline-offset-2"
+              href="https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit"
+            >
+              Collaborative Ithkuil IV Roots and Affixes Spreadsheet
+            </a>
+            .
+          </p>
+        </Section>
+
+        <hr class="mb-2 mt-4 border-z" />
 
         <Section title="Root & Affix Alternatives">
           <For
@@ -322,92 +412,101 @@ export function Main() {
       const stroke = handwritten() ? 5 : 0
       const willElidePrimaries = elidePrimaries()
       const willElideQuaternaries = elideQuaternaries()
-
-      const parsed = textToScript(props.word, {
-        handwritten: !!stroke,
-        useCaseIllValDiacritics: willElideQuaternaries,
-      })
-
-      if (!parsed.ok) {
-        return <p class="text-red-700 dark:text-red-400">{parsed.reason}</p>
-      }
-
-      const characters = AnchorX({
-        at: "l",
-        children: (
-          <g>
-            {willElidePrimaries ?
-              Row({
-                children: parsed.value
-                  .filter((character) => {
-                    if (
-                      character.construct == Primary &&
-                      isElidable(character as PrimaryCharacter) &&
-                      (!(character as PrimaryCharacter).bottom ||
-                        (character as PrimaryCharacter).bottom == "UNF/C")
-                    ) {
-                      return false
-                    }
-
-                    return true
-                  })
-                  .map((character) => {
-                    if (
-                      character.construct == Primary &&
-                      isElidable(character as PrimaryCharacter)
-                    ) {
-                      return AnchorY({
-                        at: "c",
-                        children: Diacritic({
-                          name:
-                            (character as PrimaryCharacter).bottom == "FRM" ?
-                              "HORIZ_BAR"
-                            : "DOT",
-                          handwritten: !!stroke,
-                        }),
-                      })
-                    }
-
-                    const node = character.construct(character as any)
-
-                    if (character.dimmed) {
-                      node.classList.add("dimmed")
-                    }
-
-                    return node
-                  }),
-                space: 10 + (stroke ?? 0),
-              })
-            : CharacterRow({
-                children: parsed.value,
-                space: 10 + (stroke ?? 0),
-              })
-            }
-          </g>
-        ) as SVGGElement,
-      }) as SVGGElement
-
-      const box = getBBox(characters)
-
-      return (
-        <svg
-          viewBox={`${box.x - stroke} ${box.y - stroke} ${box.width + 2 * stroke} ${box.height + 2 * stroke}`}
-          style={{
-            height: box.height / 2 + stroke + "px",
-          }}
-          class={
-            "mt-2 overflow-visible transition " +
-            (stroke ?
-              "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
-            : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed")
-          }
-          stroke-width={stroke}
-          stroke-linejoin="round"
-          stroke-linecap="round"
-        >
-          {characters}
-        </svg>
+      const [svg, setSvg] = createSignal(<p>Rendering...</p>)
+      const id = (globalThis.requestIdleCallback || setTimeout)(() =>
+        setSvg(actualDraw()),
       )
+      onCleanup(() => (globalThis.cancelIdleCallback || clearTimeout)(id))
+
+      return svg
+
+      function actualDraw() {
+        const parsed = textToScript(props.word, {
+          handwritten: !!stroke,
+          useCaseIllValDiacritics: willElideQuaternaries,
+        })
+
+        if (!parsed.ok) {
+          return <p class="text-red-700 dark:text-red-400">{parsed.reason}</p>
+        }
+
+        const characters = AnchorX({
+          at: "l",
+          children: (
+            <g>
+              {willElidePrimaries ?
+                Row({
+                  children: parsed.value
+                    .filter((character) => {
+                      if (
+                        character.construct == Primary &&
+                        isElidable(character as PrimaryCharacter) &&
+                        (!(character as PrimaryCharacter).bottom ||
+                          (character as PrimaryCharacter).bottom == "UNF/C")
+                      ) {
+                        return false
+                      }
+
+                      return true
+                    })
+                    .map((character) => {
+                      if (
+                        character.construct == Primary &&
+                        isElidable(character as PrimaryCharacter)
+                      ) {
+                        return AnchorY({
+                          at: "c",
+                          children: Diacritic({
+                            name:
+                              (character as PrimaryCharacter).bottom == "FRM" ?
+                                "HORIZ_BAR"
+                              : "DOT",
+                            handwritten: !!stroke,
+                          }),
+                        })
+                      }
+
+                      const node = character.construct(character as any)
+
+                      if (character.dimmed) {
+                        node.classList.add("dimmed")
+                      }
+
+                      return node
+                    }),
+                  space: 10 + (stroke ?? 0),
+                })
+              : CharacterRow({
+                  children: parsed.value,
+                  space: 10 + (stroke ?? 0),
+                })
+              }
+            </g>
+          ) as SVGGElement,
+        }) as SVGGElement
+
+        const box = getBBox(characters)
+
+        return (
+          <svg
+            viewBox={`${box.x - stroke} ${box.y - stroke} ${box.width + 2 * stroke} ${box.height + 2 * stroke}`}
+            style={{
+              height: box.height / 2 + stroke + "px",
+            }}
+            class={
+              "mt-2 overflow-visible transition " +
+              (stroke ?
+                "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
+              : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed")
+            }
+            stroke-width={stroke}
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          >
+            {characters}
+          </svg>
+        )
+      }
     }) as unknown as JSX.Element
     // `Show` does this so it's fine
   }
