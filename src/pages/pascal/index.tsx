@@ -172,7 +172,7 @@ export function Main() {
                       fill="none"
                       stroke-width={value() ? 1 : 0}
                       class={
-                        !value() ? ""
+                        !value().value ? ""
                         : !selection() ?
                           "stroke-z-border"
                         : `${STROKE[selection()!]} ${BG[selection()!]}`
@@ -188,7 +188,7 @@ export function Main() {
                         text-anchor="middle"
                         alignment-baseline="middle"
                         class={
-                          !value() ? "fill-slate-200"
+                          !value().value ? "fill-slate-200"
                           : !selection() ?
                             "fill-z-text"
                           : TEXT[selection()!]

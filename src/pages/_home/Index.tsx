@@ -49,10 +49,10 @@ function BlogSection() {
       />
 
       <div class="mt-4 flex flex-col gap-8 sm:flex-row">
+        <BlogCard class="flex" page={allPages[0]!} />
         <BlogCard class="flex" page={allPages[1]!} />
-        <BlogCard class="flex" page={allPages[2]!} />
-        <BlogCard class="hidden md:flex" page={allPages[3]!} />
-        <BlogCard class="hidden lg:flex" page={allPages[4]!} />
+        <BlogCard class="hidden md:flex" page={allPages[2]!} />
+        <BlogCard class="hidden lg:flex" page={allPages[3]!} />
       </div>
     </>
   )
