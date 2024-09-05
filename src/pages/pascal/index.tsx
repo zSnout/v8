@@ -71,6 +71,9 @@ export function Main() {
     if (event.key == "-") {
       event.preventDefault()
       setWidth((x) => x / 2)
+    } else if (event.key == "+") {
+      event.preventDefault()
+      setWidth((x) => 2 * x)
     }
   })
 
