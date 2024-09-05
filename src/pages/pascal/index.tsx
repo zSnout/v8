@@ -1,5 +1,6 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { pascal } from "@/components/factorial"
+import type { BigMaybeHalf } from "@/components/maybehalf"
 import { createRemSize, createScreenSize } from "@/learn/lib/size"
 import { createMemo, createSignal, For, Show, untrack } from "solid-js"
 import { Portal } from "solid-js/web"
@@ -41,17 +42,19 @@ export function Main() {
       `v ${width() * SQRT_1_3} l ${halfWidth()} ${halfWidth() * SQRT_1_3} l ${halfWidth()} ${-halfWidth() * SQRT_1_3} v ${-width() * SQRT_1_3} l -${halfWidth()} ${-halfWidth() * SQRT_1_3} l -${halfWidth()} ${halfWidth() * SQRT_1_3}`,
   )
 
-  function getSelection(value: bigint): Selection | null {
-    if (value <= 0n) {
+  function getSelection({ isOverTwo, value }: BigMaybeHalf): Selection | null {
+    if (value == 0n) {
       return null
+    }
+    if (isOverTwo) {
+      return null
+    }
+    if (value == -1n) {
+      return "blue"
     }
     if (value % 2n == 0n) {
       return "red"
     }
-    // const bytes = value.toString(3)
-    // if (/^-?10+$/.test(bytes)) {
-    // return "blue"
-    // }
     return null
   }
 
@@ -158,16 +161,7 @@ export function Main() {
                   pascal(BigInt(xp()), BigInt(yp())),
                 )
 
-                const valueAsStr = createMemo(() => {
-                  const v = value()
-                  const str = v.toString()
-                  if (str.length <= 6) return str
-
-                  const neg = v < 0n ? "-" : ""
-                  const abs = v < 0n ? -v : v
-                  const digits = abs.toString()
-                  return `${neg}${digits[0]}.${digits[1]}e${digits.length - 1}`
-                })
+                const valueAsStr = createMemo(() => value().toString())
 
                 const selection = createMemo(() => getSelection(value()))
 
@@ -201,6 +195,7 @@ export function Main() {
                         }
                         font-size={width() / 4 + "px"}
                       >
+                        {/* {`${xp()},${yp()}`} */}
                         {valueAsStr()}
                       </text>
                     </Show>
