@@ -1,42 +1,41 @@
-/** A -> B -> (A,B].prod() */
-const cache = new Map<bigint, Map<bigint, bigint>>()
+const cache = new Map<bigint, bigint>()
 
-function factorialRange(minExcluded: bigint, maxIncluded: bigint): bigint {
-  if (maxIncluded < minExcluded) {
-    return 0n
+export function factorial(x: bigint): bigint {
+  if (x <= 0n) {
+    return 1n
   }
 
-  let cacheRow
-
-  const cached = (
-    (cacheRow = cache.get(minExcluded)) ??
-    (cache.set(minExcluded, (cacheRow = new Map<bigint, bigint>())), cacheRow)
-  )?.get(maxIncluded)
-
-  if (cached != null) {
-    return cached
-  }
+  const cached = cache.get(x)
+  if (cached != null) return cached
 
   let output = 1n
-
-  while (minExcluded < maxIncluded) {
-    minExcluded++
-    output *= minExcluded
+  while (x > 0n) {
+    output *= x
+    x--
   }
 
-  cacheRow.set(maxIncluded, output)
-
+  cache.set(x, output)
   return output
 }
 
-export function factorial(x: bigint): bigint {
-  return factorialRange(0n, x)
+export function choose(n: bigint, r: bigint): bigint | null {
+  if (n < 0n || r < 0n || r < n) {
+    return null
+  }
+
+  return factorial(r) / (factorial(n) * factorial(r - n))
 }
 
-export function nCr(n: bigint, r: bigint): bigint {
-  if (n < 0n || r < 0n || r < n) {
+export function pascal(n: bigint, r: bigint): bigint {
+  const v = choose(n, r)
+
+  if (v != null) {
+    return v
+  }
+
+  if (r >= 0n) {
     return 0n
   }
 
-  return factorialRange(r, n) * factorial(n - r)
+  return -1n
 }

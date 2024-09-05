@@ -1,18 +1,82 @@
-import { nCr } from "@/components/factorial"
+import { createEventListener } from "@/components/create-event-listener"
+import { pascal } from "@/components/factorial"
 import { createRemSize, createScreenSize } from "@/learn/lib/size"
-import { createMemo, createSignal, For, untrack } from "solid-js"
+import { createMemo, createSignal, For, Show, untrack } from "solid-js"
+import { Portal } from "solid-js/web"
 
-const HEXAGON_WIDTH = 64
-const HEXAGON_WIDTH_HALF = HEXAGON_WIDTH / 2
-const HEXAGON_HEIGHT = HEXAGON_WIDTH * (1.5 / Math.sqrt(3))
+const SQRT_1_3 = 1 / Math.sqrt(3)
+
+type Selection = "red" | "yellow" | "green" | "blue" | "purple"
+
+const BG = {
+  red: "fill-[--zx-bg-red]",
+  yellow: "fill-[--zx-bg-yellow]",
+  green: "fill-[--zx-bg-green]",
+  blue: "fill-[--zx-bg-blue]",
+  purple: "fill-[--zx-bg-purple]",
+}
+
+const STROKE = {
+  red: "stroke-[--zx-stroke-red]",
+  yellow: "stroke-[--zx-stroke-yellow]",
+  green: "stroke-[--zx-stroke-green]",
+  blue: "stroke-[--zx-stroke-blue]",
+  purple: "stroke-[--zx-stroke-purple]",
+}
+
+const TEXT = {
+  red: "fill-[--zx-text-red]",
+  yellow: "fill-[--zx-text-yellow]",
+  green: "fill-[--zx-text-green]",
+  blue: "fill-[--zx-text-blue]",
+  purple: "fill-[--zx-text-purple]",
+}
 
 export function Main() {
+  const [width, setWidth] = createSignal(64)
+  const halfWidth = createMemo(() => width() / 2)
+  const height = createMemo(() => 3 * halfWidth() * SQRT_1_3)
+  const pathEnd = createMemo(
+    () =>
+      `v ${width() * SQRT_1_3} l ${halfWidth()} ${halfWidth() * SQRT_1_3} l ${halfWidth()} ${-halfWidth() * SQRT_1_3} v ${-width() * SQRT_1_3} l -${halfWidth()} ${-halfWidth() * SQRT_1_3} l -${halfWidth()} ${halfWidth() * SQRT_1_3}`,
+  )
+
+  function getSelection(value: bigint): Selection | null {
+    if (value <= 0n) {
+      return null
+    }
+    if (value % 2n == 0n) {
+      return "red"
+    }
+    // const bytes = value.toString(3)
+    // if (/^-?10+$/.test(bytes)) {
+    // return "blue"
+    // }
+    return null
+  }
+
+  createEventListener(window, "keydown", (event) => {
+    if (
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.defaultPrevented
+    ) {
+      return
+    }
+
+    if (event.key == "-") {
+      event.preventDefault()
+      setWidth((x) => x / 2)
+    }
+  })
+
   let svg!: SVGSVGElement
   const size = createScreenSize()
-  const [ox, setOx] = createSignal(0)
-  const [oy, setOy] = createSignal(0)
-  const oxp = createMemo(() => ox() / HEXAGON_WIDTH)
-  const oyp = createMemo(() => oy() / HEXAGON_HEIGHT)
+  const [ox, setOx] = createSignal(-size.width / 2 + halfWidth())
+  const [oy, setOy] = createSignal(-3 * height())
+  const oxp = createMemo(() => ox() / width())
+  const oyp = createMemo(() => oy() / height())
   const rem = createRemSize()
 
   const mapX: Record<number, number> = {
@@ -35,24 +99,22 @@ export function Main() {
     },
   }
 
-  const xc = createMemo(() => Math.floor(size.width / HEXAGON_WIDTH) + 3)
-  const yc = createMemo(() => Math.floor(size.height / HEXAGON_HEIGHT) + 2)
+  const xc = createMemo(() => Math.ceil(size.width / width()) + 3)
+  const yc = createMemo(() => Math.ceil(size.height / height()) + 2)
 
-  const xm = createMemo(() => Math.floor(ox() / HEXAGON_WIDTH))
-  const ym = createMemo(() => Math.floor(oy() / HEXAGON_HEIGHT))
-
-  const xbm = createMemo(() => Math.floor(ox() / (HEXAGON_WIDTH * xc())) * xc())
-  const ybm = createMemo(
-    () => Math.floor(oy() / (HEXAGON_HEIGHT * yc())) * yc(),
-  )
+  const xbm = createMemo(() => Math.floor(ox() / (width() * xc())) * xc())
+  const ybm = createMemo(() => Math.floor(oy() / (height() * yc())) * yc())
 
   const xi = createMemo(() => Array.from({ length: xc() }, (_, i) => i))
   const yi = createMemo(() => Array.from({ length: yc() }, (_, i) => i))
 
+  const unselected = (<g></g>) as SVGGElement
+  const selected = (<g></g>) as SVGGElement
+
   return (
     <>
       <svg
-        class="fixed inset-0 bg-red-200"
+        class="fixed inset-0"
         ref={svg!}
         viewBox={`0 0 ${size.width} ${size.height}`}
         onWheel={(event) => {
@@ -61,6 +123,9 @@ export function Main() {
           setOy((y) => y + event.deltaY * (mapY[event.deltaMode] ?? 1))
         }}
       >
+        {unselected}
+        {selected}
+
         <For each={xi()}>
           {(xi) => (
             <For each={yi()}>
@@ -84,49 +149,79 @@ export function Main() {
                 const xp = createMemo(() => xp0() + Math.floor(yp() / 2))
 
                 const x = createMemo(
-                  () =>
-                    HEXAGON_WIDTH * xp0() -
-                    ox() -
-                    (yi % 2 ? HEXAGON_WIDTH_HALF : 0),
+                  () => width() * xp0() - ox() - (yp() % 2 ? halfWidth() : 0),
                 )
 
-                const y = createMemo(() => HEXAGON_HEIGHT * yp() - oy())
+                const y = createMemo(() => height() * yp() - oy())
 
-                return (
+                const value = createMemo(() =>
+                  pascal(BigInt(xp()), BigInt(yp())),
+                )
+
+                const valueAsStr = createMemo(() => {
+                  const v = value()
+                  const str = v.toString()
+                  if (str.length <= 6) return str
+
+                  const neg = v < 0n ? "-" : ""
+                  const abs = v < 0n ? -v : v
+                  const digits = abs.toString()
+                  return `${neg}${digits[0]}.${digits[1]}e${digits.length - 1}`
+                })
+
+                const selection = createMemo(() => getSelection(value()))
+
+                const el = (
                   <g>
                     <path
-                      d={`M ${x()} ${y()} v ${64 / Math.sqrt(3)} l 32 ${32 / Math.sqrt(3)} l 32 ${-32 / Math.sqrt(3)} v ${-64 / Math.sqrt(3)} l -32 ${-32 / Math.sqrt(3)} l -32 ${32 / Math.sqrt(3)}`}
-                      fill={
-                        ["red", "orange", "yellow", "green", "blue", "purple"][
-                          Math.min(xp(), yp() - xp())
-                        ] || "white"
+                      d={`M ${x()} ${y()} ${pathEnd()}`}
+                      fill="none"
+                      stroke-width={value() ? 1 : 0}
+                      class={
+                        !value() ? ""
+                        : !selection() ?
+                          "stroke-z-border"
+                        : `${STROKE[selection()!]} ${BG[selection()!]}`
                       }
-                      stroke-width={1}
-                      stroke="black"
                       stroke-linecap="round"
                       stroke-linejoin="round"
                     />
 
-                    <text
-                      x={x() + HEXAGON_WIDTH / 2}
-                      y={y() + 32 / Math.sqrt(3)}
-                      text-anchor="middle"
-                      alignment-baseline="middle"
-                    >
-                      {/* {nCr(BigInt(xp()), BigInt(yp())).toString()} */}
-                      {`${xp()},${yp()}`}
-                    </text>
+                    <Show when={width() > 20}>
+                      <text
+                        x={x() + width() / 2}
+                        y={y() + halfWidth() * SQRT_1_3}
+                        text-anchor="middle"
+                        alignment-baseline="middle"
+                        class={
+                          !value() ? "fill-slate-200"
+                          : !selection() ?
+                            "fill-z-text"
+                          : TEXT[selection()!]
+                        }
+                        font-size={width() / 4 + "px"}
+                      >
+                        {valueAsStr()}
+                      </text>
+                    </Show>
                   </g>
+                )
+
+                return (
+                  <Portal mount={selection() ? selected : unselected} isSVG>
+                    {el}
+                  </Portal>
                 )
               }}
             </For>
           )}
         </For>
       </svg>
-      <p class="absolute left-40 top-40 w-20 bg-white px-4 py-1 text-right font-mono">
+
+      <p class="absolute left-40 top-40 w-20 rounded border border-black bg-white px-4 py-1 text-right font-mono shadow-lg">
         {ox()}
         <br />
-        {oy()}
+        {Math.round(oy())}
         <br />
         {xbm()}
       </p>
