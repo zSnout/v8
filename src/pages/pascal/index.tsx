@@ -124,6 +124,9 @@ export function Main() {
   const xi = createMemo(() => Array.from({ length: xc() }, (_, i) => i))
   const yi = createMemo(() => Array.from({ length: yc() }, (_, i) => i))
 
+  const [hx, setHx] = createSignal(0)
+  const [hy, setHy] = createSignal(0)
+
   const unselected = (<g></g>) as SVGGElement
   const selected = (<g></g>) as SVGGElement
 
@@ -200,16 +203,21 @@ export function Main() {
                 const fontSize = createMemo(() => {
                   const w = width()
                   const len = valueStrLen()
-                  return (1.5 * w) / Math.max(3, len) + "px"
+                  return (1.5 * w) / Math.max(4, len) + "px"
                 })
 
                 const selection = createMemo(() => getSelection(value()))
 
                 const el = (
-                  <g>
+                  <g
+                    onmouseover={() => {
+                      setHx(xp())
+                      setHy(yp())
+                    }}
+                  >
                     <path
                       d={`M ${x()} ${y()} ${pathEnd()}`}
-                      fill="none"
+                      fill="transparent"
                       stroke-width={value() ? 1 : 0}
                       class={
                         !value().value ? ""
@@ -229,7 +237,7 @@ export function Main() {
                         alignment-baseline="central"
                         class={
                           "whitespace-pre " +
-                          (!value().value ? "fill-slate-200"
+                          (!value().value ? "fill-[--zx-text-muted]"
                           : !selection() ? "fill-z-text"
                           : TEXT[selection()!])
                         }
@@ -254,16 +262,10 @@ export function Main() {
         </For>
       </svg>
 
-      <p class="absolute left-40 top-40 w-20 rounded border border-black bg-white px-4 py-1 text-right font-mono shadow-lg">
-        {Math.floor((ox() + size.width / 2) / width())}
+      <p class="absolute left-40 top-40 whitespace-pre rounded bg-z-text px-3 py-1 font-mono text-z-bg-body shadow-lg">
+        x:{Math.round(hx()).toString().padStart(6, " ")}
         <br />
-        {Math.round(oy() / height())}
-        <br />
-        {Math.round(ox())}
-        <br />
-        {Math.round(oy())}
-        <br />
-        {xbm()}
+        y:{Math.round(hy()).toString().padStart(6, " ")}
       </p>
     </>
   )
