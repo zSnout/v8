@@ -42,11 +42,8 @@ export function Main() {
       `v ${width() * SQRT_1_3} l ${halfWidth()} ${halfWidth() * SQRT_1_3} l ${halfWidth()} ${-halfWidth() * SQRT_1_3} v ${-width() * SQRT_1_3} l -${halfWidth()} ${-halfWidth() * SQRT_1_3} l -${halfWidth()} ${halfWidth() * SQRT_1_3}`,
   )
 
-  function getSelection({ isOverTwo, value }: BigMaybeHalf): Selection | null {
+  function getSelection({ value }: BigMaybeHalf): Selection | null {
     if (value == 0n) {
-      return null
-    }
-    if (isOverTwo) {
       return null
     }
     return null
