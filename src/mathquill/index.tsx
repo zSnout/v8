@@ -840,9 +840,9 @@ CharCmds["&"] = AlignBar
 
 export const config: Readonly<V3.Config> = Object.freeze({
   autoOperatorNames:
-    "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for not mod iter real imag log ln exp length sign angle unsign fx fy",
+    "sin sinh arcsin arcsinh cos cosh arccos arccosh tan tanh arctan arctanh csc csch arccsc arccsch sec sech arcsec arcsech cot coth arccot arccoth distance for mod iter real imag log ln exp length sign angle unsign fx fy",
   autoCommands:
-    "sum prod coprod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma varsigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot integral cross ans dual infinity infty lim choose binom digamma piecewise switch floor ceil and or",
+    "sum prod coprod alpha nu beta xi Xi gamma Gamma delta Delta pi Pi epsilon varepsilon rho varrho zeta sigma Sigma varsigma eta tau theta vartheta Theta upsilon Upsilon iota phi varphi Phi kappa chi lambda Lambda psi Psi mu omega Omega sqrt nthroot integral cross ans dual infinity infty lim choose binom digamma piecewise switch floor ceil and or not",
   autoSubscriptNumerals: true,
   disableAutoSubstitutionInSubscripts: true,
   tripleDotsAreEllipsis: true,

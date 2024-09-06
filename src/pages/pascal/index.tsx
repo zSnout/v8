@@ -1,20 +1,33 @@
-import { createEventListener } from "@/components/create-event-listener"
 import { pascal } from "@/components/factorial"
+import { compile, type Compiled } from "@/components/glsl/math/pascal"
 import type { BigMaybeHalf } from "@/components/maybehalf"
+import { error } from "@/components/result"
+import { ShortcutManager } from "@/learn/lib/shortcuts"
 import { createRemSize, createScreenSize } from "@/learn/lib/size"
+import { MQEditable } from "@/mathquill"
+import { parseLatex } from "@/mathquill/parse"
 import { batch, createMemo, createSignal, For, Show, untrack } from "solid-js"
+import { createStore } from "solid-js/store"
 import { Portal } from "solid-js/web"
 
 const SQRT_1_3 = 1 / Math.sqrt(3)
 
 type Selection = "red" | "yellow" | "green" | "blue" | "purple"
 
-const BG = {
+const FILL = {
   red: "fill-[--zx-bg-red]",
   yellow: "fill-[--zx-bg-yellow]",
   green: "fill-[--zx-bg-green]",
   blue: "fill-[--zx-bg-blue]",
   purple: "fill-[--zx-bg-purple]",
+}
+
+const BG = {
+  red: "bg-[--zx-bg-red]",
+  yellow: "bg-[--zx-bg-yellow]",
+  green: "bg-[--zx-bg-green]",
+  blue: "bg-[--zx-bg-blue]",
+  purple: "bg-[--zx-bg-purple]",
 }
 
 const STROKE = {
@@ -33,7 +46,46 @@ const TEXT = {
   purple: "fill-[--zx-text-purple]",
 }
 
+const COLORS = ["red", "yellow", "green", "blue", "purple"] as const
+
 export function Main() {
+  const [expr, setExpr] = createStore({
+    red: "nmod2=0",
+    yellow: "",
+    green: "",
+    blue: "",
+    purple: "",
+  })
+
+  const exec = COLORS.map(
+    (color) =>
+      [
+        color,
+        createMemo(() => {
+          try {
+            const node = parseLatex(expr[color])
+            if (!node.ok) {
+              return node
+            }
+            return compile(node.value, ["n"] as const)
+          } catch (e) {
+            return error(e)
+          }
+        }),
+      ] as const,
+  )
+
+  const fns = createMemo(() => {
+    const output: [(typeof COLORS)[number], Compiled<"n">][] = []
+    for (const [color, acc] of exec) {
+      const fn = acc()
+      if (fn.ok) {
+        output.push([color, fn.value])
+      }
+    }
+    return output
+  })
+
   const [width, setWidth] = createSignal(64)
   const halfWidth = createMemo(() => width() / 2)
   const height = createMemo(() => 3 * halfWidth() * SQRT_1_3)
@@ -45,6 +97,15 @@ export function Main() {
   function getSelection({ value }: BigMaybeHalf): Selection | null {
     if (value == 0n) {
       return null
+    }
+    for (const [color, fn] of fns()) {
+      try {
+        if (fn({ n: value })) {
+          return color
+        }
+      } catch (e) {
+        console.error(e)
+      }
     }
     return null
   }
@@ -59,24 +120,10 @@ export function Main() {
     })
   }
 
-  createEventListener(window, "keydown", (event) => {
-    if (
-      event.altKey ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.defaultPrevented
-    ) {
-      return
-    }
-
-    if (event.key == "-") {
-      event.preventDefault()
-      zoom(0.5)
-    } else if (event.key == "+" || event.key == "=") {
-      event.preventDefault()
-      zoom(2)
-    }
-  })
+  const manager = new ShortcutManager()
+  manager.scoped({ key: "-" }, () => zoom(0.5))
+  manager.scoped({ key: "+" }, () => zoom(2))
+  manager.scoped({ key: "=" }, () => zoom(2))
 
   let svg!: SVGSVGElement
   const size = createScreenSize()
@@ -214,7 +261,7 @@ export function Main() {
                         !value().value ? ""
                         : !selection() ?
                           "stroke-z-border transition"
-                        : `${STROKE[selection()!]} ${BG[selection()!]} transition`
+                        : `${STROKE[selection()!]} ${FILL[selection()!]} transition`
 
                       }
                       stroke-linecap="round"
@@ -254,11 +301,41 @@ export function Main() {
         </For>
       </svg>
 
-      <p class="absolute left-40 top-40 whitespace-pre rounded bg-z-text px-3 py-1 font-mono text-z-bg-body shadow-lg transition">
-        x:{Math.round(hx()).toString().padStart(6, " ")}
-        <br />
-        y:{Math.round(hy()).toString().padStart(6, " ")}
-      </p>
+      <div class="absolute left-40 top-40 flex flex-col gap-1">
+        <p class="whitespace-pre rounded bg-z-text px-3 py-1 font-mono text-z-bg-body shadow transition">
+          x:{Math.round(hx()).toString().padStart(6, " ")}
+          <br />
+          y:{Math.round(hy()).toString().padStart(6, " ")}
+        </p>
+        <For each={["red", "yellow", "green", "blue", "purple"] as const}>
+          {(key, index) => (
+            <div
+              class="group"
+              classList={{
+                "opacity-30": !expr[key].trim(),
+              }}
+            >
+              <MQEditable
+                class={"w-full rounded px-2 py-1 shadow transition " + BG[key]}
+                latex={expr[key]}
+                edit={(mq) => setExpr(key, mq.latex())}
+              />
+              <span>
+                {(() => {
+                  if (!expr[key].trim()) {
+                    return
+                  }
+                  const v = exec[index()]?.[1]()
+                  if (!v || v.ok) {
+                    return
+                  }
+                  return "⚠️ " + v.reason
+                })()}
+              </span>
+            </div>
+          )}
+        </For>
+      </div>
     </>
   )
 }

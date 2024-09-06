@@ -8,6 +8,7 @@
     "jsxImportSource": "solid-js",
     "module": "ES2022",
     "target": "ES2022",
+    "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["src/*"]
     }
