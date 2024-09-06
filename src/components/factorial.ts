@@ -20,30 +20,22 @@ export function factorial(x: bigint): bigint {
   return output
 }
 
-export function choose(n: bigint, r: bigint): bigint | null {
-  if (n < 0n || r < 0n || r < n) {
-    return null
-  }
-
+function choose(n: bigint, r: bigint): bigint {
   return factorial(r) / (factorial(n) * factorial(r - n))
 }
 
-export function pascal(xp: bigint, yp: bigint): BigMaybeHalf {
-  const v = choose(xp, yp)
+const pcache = new Map<bigint, Map<bigint, BigMaybeHalf>>()
 
-  if (v != null) {
+function pascalInner(xp: bigint, yp: bigint): BigMaybeHalf {
+  if (!(xp < 0n || yp < 0n || yp < xp)) {
     // bottom center
-    return new BigMaybeHalf(v)
+    return new BigMaybeHalf(choose(xp, yp))
   }
 
   if (yp >= 0n) {
     // bottom sides
     return new BigMaybeHalf(0n)
   }
-
-  // if (0n == n || n == r) {
-  //   return new BigMaybeHalf(1n, true)
-  // }
 
   if (0n > xp && xp > yp) {
     // top center (zeroed)
@@ -53,14 +45,31 @@ export function pascal(xp: bigint, yp: bigint): BigMaybeHalf {
   if (xp >= 0n) {
     // top right (half-numbered)
     return new BigMaybeHalf(
-      choose(xp, xp - yp - 1n)! * (xp % 2n ? -1n : 1n),
+      choose(xp, xp - yp - 1n) * (xp % 2n ? -1n : 1n),
       true,
     )
   }
 
   // top left (half-numbered)
   return new BigMaybeHalf(
-    (choose(yp - xp, -xp - 1n) ?? -34n) * ((yp - xp) % 2n ? -1n : 1n),
+    choose(yp - xp, -xp - 1n) * ((yp - xp) % 2n ? -1n : 1n),
     true,
   )
+}
+
+export function pascal(xp: bigint, yp: bigint): BigMaybeHalf {
+  let row = pcache.get(xp)
+  if (!row) {
+    row = new Map()
+    pcache.set(xp, row)
+  }
+
+  const cell = row.get(yp)
+  if (cell != null) {
+    return cell
+  }
+
+  const value = pascalInner(xp, yp)
+  row.set(yp, value)
+  return value
 }
