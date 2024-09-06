@@ -2,7 +2,7 @@ import { createEventListener } from "@/components/create-event-listener"
 import { pascal } from "@/components/factorial"
 import type { BigMaybeHalf } from "@/components/maybehalf"
 import { createRemSize, createScreenSize } from "@/learn/lib/size"
-import { createMemo, createSignal, For, Show, untrack } from "solid-js"
+import { batch, createMemo, createSignal, For, Show, untrack } from "solid-js"
 import { Portal } from "solid-js/web"
 
 const SQRT_1_3 = 1 / Math.sqrt(3)
@@ -58,6 +58,16 @@ export function Main() {
     return null
   }
 
+  function zoom(scale: number) {
+    batch(() => {
+      const currentWidth = untrack(width)
+      const nextWidth = setWidth((x) => Math.max(16, Math.min(256, x * scale)))
+      const ratio = nextWidth / currentWidth
+      setOx((x) => (x + size.width / 2) * ratio - size.width / 2)
+      setOy((y) => (y + size.height / 2) * ratio - size.height / 2)
+    })
+  }
+
   createEventListener(window, "keydown", (event) => {
     if (
       event.altKey ||
@@ -70,10 +80,10 @@ export function Main() {
 
     if (event.key == "-") {
       event.preventDefault()
-      setWidth((x) => x / 2)
-    } else if (event.key == "+") {
+      zoom(0.5)
+    } else if (event.key == "+" || event.key == "=") {
       event.preventDefault()
-      setWidth((x) => 2 * x)
+      zoom(2)
     }
   })
 
@@ -164,7 +174,34 @@ export function Main() {
                   pascal(BigInt(xp()), BigInt(yp())),
                 )
 
-                const valueAsStr = createMemo(() => value().toString())
+                const valueAsStr = createMemo(() => {
+                  const w = width()
+                  const v = value()
+                  return v.toString(12 * (Math.max(64, w) / 64), 2)
+                })
+
+                const valueStrLen = createMemo(() => {
+                  const str = valueAsStr()
+                  if (str == "0") {
+                    return 6
+                  }
+                  let len = str.length
+                  if (yp() < 0) {
+                    if (!str.startsWith("-")) {
+                      len++
+                    }
+                    if (!str.includes("e") && !str.includes(".5")) {
+                      len += 2
+                    }
+                  }
+                  return len
+                })
+
+                const fontSize = createMemo(() => {
+                  const w = width()
+                  const len = valueStrLen()
+                  return (1.5 * w) / Math.max(3, len) + "px"
+                })
 
                 const selection = createMemo(() => getSelection(value()))
 
@@ -189,17 +226,18 @@ export function Main() {
                         x={x() + width() / 2}
                         y={y() + halfWidth() * SQRT_1_3}
                         text-anchor="middle"
-                        alignment-baseline="middle"
+                        alignment-baseline="central"
                         class={
-                          !value().value ? "fill-slate-200"
-                          : !selection() ?
-                            "fill-z-text"
-                          : TEXT[selection()!]
+                          "whitespace-pre " +
+                          (!value().value ? "fill-slate-200"
+                          : !selection() ? "fill-z-text"
+                          : TEXT[selection()!])
                         }
-                        font-size={width() / 4 + "px"}
+                        font-size={fontSize()}
                       >
-                        {/* {`${xp()},${yp()}`} */}
                         {valueAsStr()}
+                        {/* {`${xp()},${yp()}`} */}
+                        {/* {`${yp() - xp()},${-xp() - 1}`} */}
                       </text>
                     </Show>
                   </g>
@@ -217,7 +255,11 @@ export function Main() {
       </svg>
 
       <p class="absolute left-40 top-40 w-20 rounded border border-black bg-white px-4 py-1 text-right font-mono shadow-lg">
-        {ox()}
+        {Math.floor((ox() + size.width / 2) / width())}
+        <br />
+        {Math.round(oy() / height())}
+        <br />
+        {Math.round(ox())}
         <br />
         {Math.round(oy())}
         <br />

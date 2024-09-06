@@ -28,24 +28,39 @@ export function choose(n: bigint, r: bigint): bigint | null {
   return factorial(r) / (factorial(n) * factorial(r - n))
 }
 
-export function pascal(n: bigint, r: bigint): BigMaybeHalf {
-  const v = choose(n, r)
+export function pascal(xp: bigint, yp: bigint): BigMaybeHalf {
+  const v = choose(xp, yp)
 
   if (v != null) {
+    // bottom center
     return new BigMaybeHalf(v)
   }
 
-  if (r >= 0n) {
+  if (yp >= 0n) {
+    // bottom sides
     return new BigMaybeHalf(0n)
   }
 
-  if (0n == n || n == r) {
-    return new BigMaybeHalf(1n, true)
-  }
+  // if (0n == n || n == r) {
+  //   return new BigMaybeHalf(1n, true)
+  // }
 
-  if (0n >= n && n >= r) {
+  if (0n > xp && xp > yp) {
+    // top center (zeroed)
     return new BigMaybeHalf(0n)
   }
 
-  return new BigMaybeHalf(-1n)
+  if (xp >= 0n) {
+    // top right (half-numbered)
+    return new BigMaybeHalf(
+      choose(xp, xp - yp - 1n)! * (xp % 2n ? -1n : 1n),
+      true,
+    )
+  }
+
+  // top left (half-numbered)
+  return new BigMaybeHalf(
+    (choose(yp - xp, -xp - 1n) ?? -34n) * ((yp - xp) % 2n ? -1n : 1n),
+    true,
+  )
 }
