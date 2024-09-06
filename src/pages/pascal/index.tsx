@@ -49,12 +49,6 @@ export function Main() {
     if (isOverTwo) {
       return null
     }
-    if (value == -1n) {
-      return "blue"
-    }
-    if (value % 2n == 0n) {
-      return "red"
-    }
     return null
   }
 
@@ -127,8 +121,8 @@ export function Main() {
   const [hx, setHx] = createSignal(0)
   const [hy, setHy] = createSignal(0)
 
-  const unselected = (<g></g>) as SVGGElement
-  const selected = (<g></g>) as SVGGElement
+  const unselected = (<g />) as SVGGElement
+  const selected = (<g />) as SVGGElement
 
   return (
     <>
