@@ -222,8 +222,9 @@ export function Main() {
                       class={
                         !value().value ? ""
                         : !selection() ?
-                          "stroke-z-border"
-                        : `${STROKE[selection()!]} ${BG[selection()!]}`
+                          "stroke-z-border transition"
+                        : `${STROKE[selection()!]} ${BG[selection()!]} transition`
+
                       }
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -236,7 +237,7 @@ export function Main() {
                         text-anchor="middle"
                         alignment-baseline="central"
                         class={
-                          "whitespace-pre " +
+                          "whitespace-pre transition " +
                           (!value().value ? "fill-[--zx-text-muted]"
                           : !selection() ? "fill-z-text"
                           : TEXT[selection()!])
@@ -262,7 +263,7 @@ export function Main() {
         </For>
       </svg>
 
-      <p class="absolute left-40 top-40 whitespace-pre rounded bg-z-text px-3 py-1 font-mono text-z-bg-body shadow-lg">
+      <p class="absolute left-40 top-40 whitespace-pre rounded bg-z-text px-3 py-1 font-mono text-z-bg-body shadow-lg transition">
         x:{Math.round(hx()).toString().padStart(6, " ")}
         <br />
         y:{Math.round(hy()).toString().padStart(6, " ")}
