@@ -2,14 +2,14 @@ import { createEventListener } from "@/components/create-event-listener"
 import { Fa } from "@/components/Fa"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { search } from "fast-fuzzy"
-import { createMemo, createSignal, JSX, Show } from "solid-js"
+import { createMemo, createSignal, For, JSX, Show } from "solid-js"
 import { BlogCard } from "./cards/BlogCard"
 import { CompactCard } from "./cards/CompactCard"
 import { MegaCard } from "./cards/MegaCard"
 import { SideCard } from "./cards/SideCard"
-import { LatestBlogArticle } from "./LatestBlogArticle"
 import { Page, pages } from "./pages"
 import { SidePageSeparator } from "./SidePageSeparator"
+import { Unmain } from "@/components/Prose"
 
 const allPages = pages.slice()
 
@@ -214,5 +214,25 @@ export function Main() {
         <SearchedView pages={filtered()} />
       </Show>
     </>
+  )
+}
+
+export function Neohuomi() {
+  return (
+    <Unmain>
+      <div class="grid grid-cols-2 gap-4">
+        <For each={pages.filter((x) => x.categoryHref != "/blog").reverse()}>
+          {(page) => (
+            <div class="flex h-36 gap-2 rounded-xl bg-z-body-selected p-1 transition">
+              <img class="rounded-lg" src={page.imageSrc} alt={page.imageAlt} />
+              <div class="flex h-full flex-col gap-1">
+                <h2 class="text-lg font-bold text-z-heading">{page.title}</h2>
+                <p class="mt-auto line-clamp-4">{page.subtitle}</p>
+              </div>
+            </div>
+          )}
+        </For>
+      </div>
+    </Unmain>
   )
 }
