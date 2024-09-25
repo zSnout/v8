@@ -205,7 +205,7 @@ const data: readonly Project[] = [
       functionality: "Functional",
       size: "Large",
     },
-    viewableAt: "https://zsnout.com",
+    viewableAt: "https://v7.zsnout.com",
     description:
       "Personal project compilation. First personal site to exclusively use realtime communication between server and client.",
     tools: {
@@ -436,7 +436,7 @@ const data: readonly Project[] = [
       functionality: "Functional",
       size: "Midsize",
     },
-    viewableAt: "https://zsnout.com/fractal-explorer",
+    viewableAt: "https://v7.zsnout.com/fractal-explorer",
     description:
       "Fractal explorer with a GLSL renderer. Packed with tons of new features for highly customizable coloring options.",
     tools: {
@@ -573,7 +573,7 @@ const data: readonly Project[] = [
       functionality: "Functional",
       size: "Small",
     },
-    viewableAt: "https://zsnout.com/storymatic/",
+    viewableAt: "https://v7.zsnout.com/storymatic/",
     description: "Rewrite of Storymatic 2 with new features.",
     tools: {
       client: "html tailwind vue",
@@ -939,7 +939,7 @@ const data: readonly Project[] = [
       functionality: "Functional",
       size: "Small",
     },
-    viewableAt: "https://zsnout.com/storymatic/",
+    viewableAt: "https://v7.zsnout.com/storymatic/",
     description: "JavaScript port of Storymatic 1, with a few new features.",
     tools: {
       client: "html css zquery",
