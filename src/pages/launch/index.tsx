@@ -12,7 +12,7 @@ interface Page {
 const pages: readonly Page[] = [
   {
     title: "zSnout 8",
-    href: "https://zsnout.com/home",
+    href: "/home",
     image: openGraphV8,
   },
   {
@@ -23,12 +23,12 @@ const pages: readonly Page[] = [
   {
     title: "Learn",
     href: "https://learn.zsnout.com",
-    image: "TODO:",
+    image: openGraphV7,
   },
   {
     title: "Scheduler",
     href: "https://scheduler.zsnout.com",
-    image: "TODO:",
+    image: openGraphV7,
   },
   {
     title: "zSnout 6",
@@ -39,8 +39,25 @@ const pages: readonly Page[] = [
 
 export function Main() {
   return (
-    <div class="flex flex-col">
-      <For each={pages}></For>
+    <div class="grid w-full grid-cols-2 gap-4">
+      <For each={pages}>
+        {(page) => (
+          <a
+            class="relative block aspect-video w-full rounded-xl border border-z"
+            href={page.href}
+          >
+            <img
+              class="absolute left-0 top-0 h-full w-full rounded-xl object-cover"
+              src={page.image}
+            />
+            <div class="absolute inset-0 flex items-center justify-center rounded-xl">
+              <h2 class="rounded-lg border border-z bg-z-body-partial px-3 py-2 text-3xl text-z-heading backdrop-blur-xl">
+                {page.title}
+              </h2>
+            </div>
+          </a>
+        )}
+      </For>
     </div>
   )
 }
