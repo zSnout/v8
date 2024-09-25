@@ -43,6 +43,15 @@ interface Project {
       | "packaged"
       | "lost to history"
     readonly size: "Large" | "Small" | "Midsize" | "Tiny"
+    readonly type:
+      | "Compilation"
+      | "Website"
+      | "Application"
+      | "Extension"
+      | "Library"
+      | "Library"
+      | "Discord Bot"
+      | "API"
   }
   readonly time: Time | `${Time} ~ ${Time}`
   readonly title: string
@@ -97,7 +106,7 @@ interface Project {
   }
   readonly viewableAt:
     | `https://${string}`
-    | "currently Nonexistent"
+    | "currently nonexistent"
     | "no link found yet"
     | "project data deleted due to poor backups"
 }
@@ -112,6 +121,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Compilation",
     },
     viewableAt: "https://v8.zsnout.com",
     description:
@@ -135,6 +145,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Application",
     },
     viewableAt: "https://ks.zsnout.com",
     description:
@@ -158,6 +169,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Website",
     },
     viewableAt: "https://v8.zsnout.com/ithkuil/script",
     description:
@@ -181,6 +193,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Application",
     },
     viewableAt: "https://scheduler.zsnout.com",
     description:
@@ -204,6 +217,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Compilation",
     },
     viewableAt: "https://v7.zsnout.com",
     description:
@@ -227,6 +241,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Midsize",
+      type: "Website",
     },
     viewableAt: "https://v8.zsnout.com/vjosali",
     description:
@@ -250,6 +265,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Website",
     },
     viewableAt: "https://v8.zsnout.com/fractal-explorer",
     description:
@@ -273,6 +289,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Partially",
       size: "Large",
+      type: "Application",
     },
     viewableAt: "https://learn.zsnout.com/",
     description:
@@ -296,6 +313,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Functional",
       size: "Large",
+      type: "Library",
     },
     viewableAt: "https://crates.io/crates/tnil",
     description:
@@ -319,6 +337,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Compilation",
     },
     viewableAt: "https://v6.zsnout.com",
     description:
@@ -342,6 +361,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Functional",
       size: "Small",
+      type: "Extension",
     },
     viewableAt:
       "https://chromewebstore.google.com/detail/sitelen-pona-for-google-w/omjmjnmbcmilkcjadbihddaipogifnbb",
@@ -366,6 +386,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Partially",
       size: "Midsize",
+      type: "Discord Bot",
     },
     viewableAt: "https://github.com/zsakowitz/umpharesemsa",
     description:
@@ -389,6 +410,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Midsize",
+      type: "Library",
     },
     viewableAt: "https://github.com/zsakowitz/advanced_parser/tree/main",
     description:
@@ -412,6 +434,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Midsize",
+      type: "Compilation",
     },
     viewableAt: "https://github.com/zsnout/v5.zsnout.com",
     description:
@@ -435,6 +458,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Midsize",
+      type: "Website",
     },
     viewableAt: "https://v7.zsnout.com/fractal-explorer",
     description:
@@ -458,6 +482,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Functional",
       size: "Midsize",
+      type: "Library",
     },
     viewableAt: "https://www.npmjs.com/package/@zsnout/willow",
     description:
@@ -481,6 +506,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Partially",
       size: "Midsize",
+      type: "Library",
     },
     viewableAt: "https://github.com/zSnout/simple-slideshows",
     description: "Creates slideshows from Markdown documents.",
@@ -503,6 +529,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Partially",
       size: "Midsize",
+      type: "Website",
     },
     viewableAt: "https://o-li-e-la.vercel.app/",
     description: "A custom slideshow software I use for teaching toki pona.",
@@ -525,6 +552,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Partially",
       size: "Large",
+      type: "Extension",
     },
     viewableAt:
       "https://chromewebstore.google.com/detail/dashboard/blhlbkgekpgmehmokhmgfppfknildapn",
@@ -549,6 +577,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://storymatic.zsnout.com/",
     description:
@@ -572,6 +601,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://v7.zsnout.com/storymatic/",
     description: "Rewrite of Storymatic 2 with new features.",
@@ -594,6 +624,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://v6.zsnout.com/fractal",
     description:
@@ -617,6 +648,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://github.com/zsnout/v5.zsnout.com",
     description:
@@ -640,6 +672,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://github.com/zsnout/v5.zsnout.com",
     description:
@@ -663,6 +696,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://github.com/zsnout/story.py",
     description:
@@ -686,6 +720,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://tokipona.zsnout.com/sitelen-pona",
     description:
@@ -709,6 +744,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://tokipona.zsnout.com/sitelen-sitelen",
     description:
@@ -732,6 +768,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Tiny",
+      type: "Library",
     },
     viewableAt: "https://github.com/zsnout/statistics.js",
     description: "Library with common statistical analysis functions.",
@@ -754,6 +791,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Small",
+      type: "Library",
     },
     viewableAt:
       "https://github.com/zsakowitz/rewrites/blob/09382f545b7f32aab8c5c75383b3995277c993d3/genesis/index.ts",
@@ -778,6 +816,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Small",
+      type: "Library",
     },
     viewableAt: "https://github.com/zSnout/SyntaxColor",
     description: "Library for syntax highlighting code in vanilla JavaScript.",
@@ -800,6 +839,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Small",
+      type: "Library",
     },
     viewableAt: "https://github.com/zsnout/radio",
     description:
@@ -823,6 +863,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Functional",
       size: "Tiny",
+      type: "Extension",
     },
     viewableAt:
       "https://chromewebstore.google.com/detail/share-with-students/abmjjgbadlhegfblpphhdjcfkmjmhmmi",
@@ -847,6 +888,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Application",
     },
     viewableAt: "https://yt.zsnout.com/",
     description: "Downloads YouTube videos.",
@@ -869,6 +911,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Functional",
       size: "Small",
+      type: "Library",
     },
     viewableAt: "https://github.com/zsnout/tailwind",
     description:
@@ -892,6 +935,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Midsize",
+      type: "Library",
     },
     viewableAt: "https://github.com/zsakowitz/bf2",
     description:
@@ -915,6 +959,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Large",
+      type: "Application",
     },
     viewableAt: "https://ticket.zsnout.com",
     description:
@@ -938,6 +983,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Functional",
       size: "Small",
+      type: "Website",
     },
     viewableAt: "https://v7.zsnout.com/storymatic/",
     description: "JavaScript port of Storymatic 1, with a few new features.",
@@ -960,6 +1006,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Tiny",
+      type: "API",
     },
     viewableAt: "https://github.com/zSnout/MusicNotes-API",
     description:
@@ -983,6 +1030,7 @@ const data: readonly Project[] = [
       publicity: "packaged",
       functionality: "Functional",
       size: "Tiny",
+      type: "Extension",
     },
     viewableAt:
       "https://chromewebstore.google.com/detail/o-soko-e-nimi-ale/aemblemkmmndonmfhahggfnadjabifal",
@@ -1006,6 +1054,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Small",
+      type: "Compilation",
     },
     viewableAt: "https://github.com/zsnout/v3.zsnout.com",
     description:
@@ -1029,6 +1078,7 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "Functional",
       size: "Small",
+      type: "Compilation",
     },
     viewableAt: "https://github.com/zsnout/v4.zsnout.com",
     description:
@@ -1052,6 +1102,7 @@ const data: readonly Project[] = [
       publicity: "lost to history",
       functionality: "Functional",
       size: "Large",
+      type: "Compilation",
     },
     viewableAt: "project data deleted due to poor backups",
     description:
@@ -1075,6 +1126,7 @@ const data: readonly Project[] = [
       publicity: "lost to history",
       functionality: "Functional",
       size: "Large",
+      type: "Compilation",
     },
     viewableAt: "project data deleted due to poor backups",
     description:
@@ -1098,6 +1150,7 @@ const data: readonly Project[] = [
       publicity: "lost to history",
       functionality: "Functional",
       size: "Small",
+      type: "Application",
     },
     viewableAt: "project data deleted due to poor backups",
     description:
@@ -1121,6 +1174,7 @@ const data: readonly Project[] = [
       publicity: "has website",
       functionality: "Partially",
       size: "Large",
+      type: "Application",
     },
     viewableAt: "no link found yet",
     description: "Modern learning management platform.",
@@ -1143,8 +1197,9 @@ const data: readonly Project[] = [
       publicity: "source only",
       functionality: "None",
       size: "Small",
+      type: "Library",
     },
-    viewableAt: "currently Nonexistent",
+    viewableAt: "currently nonexistent",
     description:
       "Receives a list of typed and untyped functions, then infers the types of the untyped functions. Meant as a precursor to the Desmos 2 project, so that functions and graphs can be run using WebGL instead of JavaScript, which would speed up the project considerably.",
     tools: {
@@ -1218,10 +1273,10 @@ export function Main() {
                 }
                 class={
                   {
-                    Large: "h-4 w-4 text-blue-500 icon-current",
-                    Midsize: "h-4 w-4 text-green-500 icon-current",
-                    Small: "h-4 w-4 text-yellow-500 icon-current",
-                    Tiny: "h-4 w-4 text-orange-500 icon-current",
+                    Large: "h-4 w-4 text-purple-500 icon-current",
+                    Midsize: "h-4 w-4 text-blue-500 icon-current",
+                    Small: "h-4 w-4 text-green-500 icon-current",
+                    Tiny: "h-4 w-4 text-yellow-500 icon-current",
                   }[project.stats.size]
                 }
                 title={false}
