@@ -2,6 +2,7 @@
 import "./index.postcss"
 
 export interface Props {
+  htmlBg?: string
   children: any
   theme?: "light" | "dark"
   title: string
@@ -26,8 +27,9 @@ const { article } = og
 
 <!doctype html>
 <html
-  class={"flex h-full w-full flex-col scroll-smooth bg-z-body" +
-    (Astro.props.theme ? " force-" + Astro.props.theme : "")}
+  class={"flex h-full w-full flex-col scroll-smooth" +
+    (Astro.props.theme ? " force-" + Astro.props.theme : "") +
+    (Astro.props.htmlBg ? " " + Astro.props.htmlBg : " bg-z-body")}
   lang="en"
 >
   <head>
@@ -85,7 +87,7 @@ const { article } = og
   </head>
 
   <body
-    class="flex flex-1 flex-col scroll-smooth bg-z-body transition [.z-ctxmenu_&]:overflow-hidden"
+    class="flex flex-1 flex-col scroll-smooth transition [.z-ctxmenu_&]:overflow-hidden"
   >
     <div class="contents">
       <slot />
