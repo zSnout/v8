@@ -294,7 +294,7 @@ interface IntegratedFieldPropsHTML<T> extends IntegratedFieldPropsText<T> {
 
 type IntegratedFieldProps =
   | IntegratedFieldPropsBase<"tags">
-  | IntegratedFieldPropsText<"text">
+  | IntegratedFieldPropsText<"text" | "password">
   | IntegratedFieldPropsText<"number">
   | IntegratedFieldPropsHTML<"html">
   | IntegratedFieldPropsBase<"html-only">

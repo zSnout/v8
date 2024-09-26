@@ -1,0 +1,19 @@
+---
+import PaddedLayout from "@/layouts/PaddedLayout.astro"
+import { Main } from "."
+---
+
+<PaddedLayout
+  maxWidth="max-w-md"
+  title="TODO"
+  description="TODO"
+  og={{
+    imageSrc: "TODO",
+    imageAlt: "TODO",
+    title: "TODO",
+  }}
+>
+  <div class="mx-auto max-w-md">
+    <Main client:only />
+  </div>
+</PaddedLayout>
