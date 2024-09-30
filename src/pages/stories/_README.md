@@ -115,6 +115,8 @@ should be notified appropriately.
 4. (S) Add the proper JWT
 5. (S) Redirect to `/account`
 
+## Groups
+
 **Create a group** (requires authentication)
 
 1. (C) Pick a title for the group
