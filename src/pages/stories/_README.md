@@ -30,25 +30,36 @@ export interface Group {
   id: GroupId
   title: string
   creation: DateTime
-  verification: DateTime
 
   // User data
   manager: UserId
   members: Record<UserId, true>
 
   // Stories
-  stories_in_progress: Record<StoryId, Story>
-  stories_completed: Record<StoryId, Story>
+  stories_in_progress: StoryId[]
+  stories_completed: StoryId[]
 
   // Statistics
   gems: Record<UserId, number>
-  stats_contribs: Record<UserId, number>
-  stats_participated_in: Record<UserId, number>
-  stats_stories_created: Record<UserId, number>
-  stats_last_active: Record<UserId, number>
-  stats_in_complete_contribs: Record<UserId, number>
-  stats_in_complete_participated_in: Record<UserId, number>
+  stats: Record<UserId, Stats>
 }
+
+/** @table */
+export interface Story {
+  id: StoryId
+  group: GroupId
+  creation: DateTime
+  contribs: Contrib[]
+}
+
+type Stats = readonly [
+  stats_contribs: number,
+  stats_participated_in: number,
+  stats_stories_created: number,
+  stats_last_active: number,
+  stats_in_complete_contribs: number,
+  stats_in_complete_participated_in: number,
+]
 
 type Story = Contrib[]
 

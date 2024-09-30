@@ -1,5 +1,6 @@
 ---
 import { Fa } from "@/components/Fa"
+import { clsx } from "@/components/clsx"
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { Options } from "./Options"
 import { ThemeSwitcher } from "./ThemeSwitcher"
@@ -8,6 +9,7 @@ export interface Props {
   floating: boolean
   maxWidth: `max-w-${string}`
   options?: any
+  gray?: boolean
   theme?: "light" | "dark"
   shortLine?: boolean
   sublink?: { title: string; href: `/${string}` }
@@ -18,18 +20,28 @@ export interface Props {
 
 {/* This blocks content under the address bar in Safari. */}
 <div
-  class="pointer-events-none fixed -top-20 left-0 z-30 h-20 w-full bg-z-body print:hidden"
+  class={clsx(
+    "pointer-events-none fixed -top-20 left-0 z-30 h-20 w-full print:hidden",
+    Astro.props.gray ? "dark:bg-z-body bg-z-body-selected" : "bg-z-body",
+  )}
 >
 </div>
 
 {/* This is intentionally not a <nav /> element. */}
 {/* That is used in prose and other documents with internal nav links. */}
 <header
-  class={"pointer-events-none fixed top-0 z-30 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden " +
-    (Astro.props.floating ? "border-b-transparent"
-    : Astro.props.shortLine ?
-      "backdrop-blur-sm bg-z-body-partial border-b-transparent"
-    : "backdrop-blur-sm bg-z-body-partial border-b-z")}
+  class={clsx(
+    "pointer-events-none fixed top-0 z-30 flex h-12 w-full touch-none select-none justify-center items-center border-b px-6 py-1.5 transition print:hidden",
+    Astro.props.floating ?
+      "border-b-transparent"
+    : clsx(
+        "backdrop-blur-sm",
+        Astro.props.gray ?
+          "bg-z-body-selected-partial dark:bg-z-body-partial"
+        : "bg-z-body-partial",
+        Astro.props.shortLine ? "border-b-transparent" : "border-b-z",
+      ),
+  )}
 >
   <div
     class={`relative flex h-full w-full flex-1 items-center ${Astro.props.maxWidth}`}
@@ -77,6 +89,10 @@ export interface Props {
       : <div id="nav-options" class="contents" />
     }
 
-    <ThemeSwitcher client:idle theme={Astro.props.theme} />
+    <ThemeSwitcher
+      client:idle
+      theme={Astro.props.theme}
+      gray={Astro.props.gray}
+    />
   </div>
 </header>

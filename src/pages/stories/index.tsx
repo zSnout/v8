@@ -11,6 +11,8 @@ import {
 } from "@fortawesome/free-solid-svg-icons"
 import { createSignal, For, Show } from "solid-js"
 
+
+
 export interface StoryCompleted {
   readonly content: string
   readonly contribs: number

@@ -15,10 +15,8 @@ import { RealtimeChannel, createClient } from "@supabase/supabase-js"
 import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js"
 import type { Database } from "./supabase"
 
-const supabaseUrl = import.meta.env["PUBLIC_SUPABASE_TOKIPONASIMILARITY_URL"]
-const supabaseKey = import.meta.env[
-  "PUBLIC_SUPABASE_TOKIPONASIMILARITY_ANON_KEY"
-]
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_TOKIPONASIMILARITY_URL
+const supabaseKey = import.meta.env.PUBLIC_SUPABASE_TOKIPONASIMILARITY_ANON_KEY
 const supabase = createClient<Database>(supabaseUrl, supabaseKey)
 
 const ALL_WORDS =

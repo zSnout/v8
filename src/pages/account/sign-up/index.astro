@@ -1,0 +1,52 @@
+---
+import PaddedLayout from "@/layouts/PaddedLayout.astro"
+---
+
+<PaddedLayout
+  maxWidth="max-w-sm"
+  gray
+  title="Sign Up"
+  description="TODO:"
+  og={{ imageAlt: "TODO:", imageSrc: "TODO:", title: "TODO:" }}
+>
+  <div class="mx-auto flex w-full max-w-sm flex-1 flex-col text-z transition">
+    <form class="my-auto">
+      <h1 class="mb-8 text-center text-lg font-semibold text-z-heading">
+        Sign up for zSnout
+      </h1>
+
+      <label class="block">
+        <p class="mb-1 text-z-subtitle">Email Address</p>
+        <input
+          class="z-field w-full shadow-none"
+          type="email"
+          autocomplete="email"
+        />
+      </label>
+
+      <label class="mt-6 block">
+        <p class="mb-1 text-z-subtitle">Username</p>
+        <input
+          class="z-field w-full shadow-none"
+          type="text"
+          autocomplete="username"
+        />
+      </label>
+
+      <label class="mt-6 block">
+        <p class="mb-1 text-z-subtitle">Password</p>
+        <input
+          class="z-field w-full shadow-none"
+          type="password"
+          autocomplete="new-password"
+        />
+      </label>
+
+      <input
+        class="z-field mt-12 w-full shadow-none"
+        type="submit"
+        value="Sign Up"
+      />
+    </form>
+  </div>
+</PaddedLayout>

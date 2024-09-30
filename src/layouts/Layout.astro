@@ -1,8 +1,10 @@
 ---
+import { clsx } from "@/components/clsx"
 import "./index.postcss"
 
 export interface Props {
   htmlBg?: string
+  gray?: boolean
   children: any
   theme?: "light" | "dark"
   title: string
@@ -27,9 +29,11 @@ const { article } = og
 
 <!doctype html>
 <html
-  class={"flex h-full w-full flex-col scroll-smooth" +
-    (Astro.props.theme ? " force-" + Astro.props.theme : "") +
-    (Astro.props.htmlBg ? " " + Astro.props.htmlBg : " bg-z-body")}
+  class={clsx(
+    "flex h-full w-full flex-col scroll-smooth",
+    Astro.props.theme && "force-" + Astro.props.theme,
+    Astro.props.htmlBg || "bg-z-body",
+  )}
   lang="en"
 >
   <head>

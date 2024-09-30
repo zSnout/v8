@@ -37,7 +37,7 @@
     "@types/moo": "^0.5.9",
     "@types/nearley": "^2.11.5",
     "@zsnout/ithkuil": "^0.1.100",
-    "@zsnout/tailwind": "^0.1.13",
+    "@zsnout/tailwind": "^0.1.14",
     "astro": "~2.10.15",
     "codemirror": "^6.0.1",
     "color-diff": "^1.4.0",
