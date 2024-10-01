@@ -180,17 +180,6 @@ export function Main() {
 
   return (
     <>
-      <p class="mb-8 text-center text-z">
-        Looking for the old zSnout? It's now at{" "}
-        <a
-          class="text-z-link underline underline-offset-2"
-          href="https://v7dyn.zsnout.com/"
-        >
-          v7dyn.zsnout.com
-        </a>
-        .
-      </p>
-
       <div class="mx-auto mb-11 w-[30rem] max-w-full md:fixed md:left-1/2 md:top-2 md:z-[100] md:w-[20rem] md:-translate-x-1/2">
         <input
           class="z-field h-12 w-full border-transparent bg-z-body-selected text-center shadow-none md:h-8 md:px-3 md:py-0"
