@@ -1,15 +1,24 @@
+import { clsx } from "@/components/clsx"
 import { Fa } from "@/components/Fa"
 import { faClock } from "@fortawesome/free-regular-svg-icons"
 import {
+  faBook,
   faCancel,
   faCheck,
+  faGlobe,
   faL,
+  faList,
   faM,
+  faMailBulk,
+  faPlus,
+  faRobot,
   faRotate,
   faS,
   faSpinner,
   faT,
+  faTerminal,
   faThumbsUp,
+  type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import { For, Show } from "solid-js"
 
@@ -115,7 +124,7 @@ const data: readonly Project[] = [
   {
     title: "zSnout 8",
     id: 35,
-    time: "2023 ~ 2024",
+    time: "2023 ~ 24",
     stats: {
       completion: "Often Updated",
       publicity: "has website",
@@ -259,7 +268,7 @@ const data: readonly Project[] = [
   {
     title: "Fractal Explorer 8",
     id: 36,
-    time: "2023 ~ 2024",
+    time: "2023 ~ 24",
     stats: {
       completion: "Often Updated",
       publicity: "has website",
@@ -452,7 +461,7 @@ const data: readonly Project[] = [
   {
     title: "Fractal Explorer 7",
     id: 24,
-    time: "2022 ~ 2023",
+    time: "2022 ~ 23",
     stats: {
       completion: "Completed",
       publicity: "has website",
@@ -595,7 +604,7 @@ const data: readonly Project[] = [
   {
     title: "Storymatic 3",
     id: 21,
-    time: "Feb 2022 ~ Aug 2023",
+    time: "Feb 2022 ~ Aug 23",
     stats: {
       completion: "Completed",
       publicity: "has website",
@@ -618,7 +627,7 @@ const data: readonly Project[] = [
   {
     title: "Fractal Explorer 6",
     id: 20,
-    time: "Feb 2022 ~ Aug 2023",
+    time: "Feb 2022 ~ Aug 23",
     stats: {
       completion: "Completed",
       publicity: "has website",
@@ -642,7 +651,7 @@ const data: readonly Project[] = [
   {
     title: "Fractal Explorer 5 (GLSL)",
     id: 15,
-    time: "Dec 2021 ~ Mar 2022",
+    time: "Dec 2021 ~ Mar 22",
     stats: {
       completion: "Completed",
       publicity: "source only",
@@ -666,7 +675,7 @@ const data: readonly Project[] = [
   {
     title: "Fractal Explorer 5 (JS)",
     id: 14,
-    time: "Dec 2021 ~ Mar 2022",
+    time: "Dec 2021 ~ Mar 22",
     stats: {
       completion: "Completed",
       publicity: "source only",
@@ -785,7 +794,7 @@ const data: readonly Project[] = [
   {
     title: "Genesis",
     id: 22,
-    time: "Winter 2022 ~ 2023",
+    time: "Winter 2022 ~ 23",
     stats: {
       completion: "In Progress",
       publicity: "source only",
@@ -1214,95 +1223,186 @@ const data: readonly Project[] = [
   },
 ]
 
+function Icon(props: { icon: IconDefinition; class: string; label: string }) {
+  return (
+    <div class="flex items-center gap-2">
+      <Fa
+        icon={props.icon}
+        class={clsx("size-4", props.class)}
+        title={props.label}
+      />
+    </div>
+  )
+}
+
+function IconFull(props: {
+  icon: IconDefinition
+  class: string
+  label: string
+}) {
+  return (
+    <div class="mb-auto flex items-center gap-2">
+      <Fa icon={props.icon} class={clsx("size-4", props.class)} title={false} />
+      {props.label}
+    </div>
+  )
+}
+
 export function Main() {
   return (
     <div class="flex flex-col gap-2">
+      <div class="border-b border-z pb-4">
+        Each project is listed with its name, a link to a deployment or source
+        code, a description, when it was created, and the type of project.
+        Additionally, the last three columns use colors and icons to represent
+        three aspects of a project.
+        <div class="my-3 flex rounded-lg bg-z-body-selected px-3 py-2">
+          <div class="flex h-min flex-1 flex-col pl-4">
+            <p class="-ml-4">Completion status:</p>
+            <IconFull
+              class="icon-blue-500"
+              icon={faRotate}
+              label="Updated often"
+            />
+            <IconFull class="icon-green-500" icon={faCheck} label="Finished" />
+            <IconFull
+              class="icon-yellow-500"
+              icon={faSpinner}
+              label="Incomplete"
+            />
+          </div>
+          <div class="flex h-min flex-1 flex-col pl-4">
+            <p class="-ml-4">Size:</p>
+            <IconFull class="icon-blue-500" icon={faL} label="Large" />
+            <IconFull class="icon-green-500" icon={faM} label="Midsize" />
+            <IconFull class="icon-green-500" icon={faS} label="Small" />
+            <IconFull class="icon-green-500" icon={faT} label="Tiny" />
+          </div>
+          <div class="flex h-min flex-1 flex-col pl-4">
+            <p class="-ml-4">Functionality:</p>
+            <IconFull
+              class="icon-green-500"
+              icon={faCheck}
+              label="Fully functional"
+            />
+            <IconFull
+              class="icon-yellow-500"
+              icon={faThumbsUp}
+              label="Works enough"
+            />
+            <IconFull class="icon-red-500" icon={faS} label="Doesn't work" />
+          </div>
+        </div>
+        <p>
+          Compilation projects (like this website) may include sub-projects
+          which are not complete or functional. The compilation itself is judged
+          based on how and whether it adequately displays those sub-projects.
+        </p>
+      </div>
       <For each={data}>
         {(project) => (
-          <div class="grid grid-cols-6 gap-x-4 border-b border-z pb-2">
-            <div class="col-span-2 font-bold text-z-heading">
-              {project.title}
-            </div>
-            <div class="col-span-2 row-span-4 text-sm text-z-subtitle">
+          <div class="grid grid-cols-[3fr,3fr,2fr,1rem,1rem,1rem] grid-rows-[auto,1fr] gap-x-4 border-b border-z pb-2">
+            <div class="font-bold text-z-heading">{project.title}</div>
+            <div class="row-span-2 text-sm text-z-subtitle">
               {project.description}
             </div>
-            <div class="flex items-center gap-2">
-              <Fa icon={faClock} class="h-4 w-4" title={false} />
-              {project.time}
-            </div>
-            <div class="flex items-center gap-2">
-              <Fa
-                icon={
-                  {
-                    "Often Updated": faRotate,
-                    Completed: faCheck,
-                    "In Progress": faSpinner,
-                  }[project.stats.completion]
-                }
-                class={
-                  {
-                    "Often Updated": "h-4 w-4 text-blue-500 icon-current",
-                    Completed: "h-4 w-4 text-green-500 icon-current",
-                    "In Progress": "h-4 w-4 text-yellow-500 icon-current",
-                  }[project.stats.completion]
-                }
-                title={false}
-              />
-              {project.stats.completion}
-            </div>
+            <IconFull icon={faClock} class="" label={project.time} />
+            <Icon
+              icon={
+                {
+                  "Often Updated": faRotate,
+                  Completed: faCheck,
+                  "In Progress": faSpinner,
+                }[project.stats.completion]
+              }
+              class={
+                {
+                  "Often Updated": "icon-blue-500",
+                  Completed: "icon-green-500",
+                  "In Progress": "icon-yellow-500",
+                }[project.stats.completion]
+              }
+              label={project.stats.completion}
+            />
+            <Icon
+              icon={
+                {
+                  Large: faL,
+                  Midsize: faM,
+                  Small: faS,
+                  Tiny: faT,
+                }[project.stats.size]
+              }
+              class={
+                {
+                  Large: "icon-blue-500",
+                  Midsize: "icon-green-500",
+                  Small: "icon-green-500",
+                  Tiny: "icon-yellow-500",
+                }[project.stats.size]
+              }
+              label={project.stats.size}
+            />
+            <Icon
+              icon={
+                {
+                  Functional: faCheck,
+                  None: faCancel,
+                  Partially: faThumbsUp,
+                }[project.stats.functionality]
+              }
+              class={
+                {
+                  Functional: "icon-green-500",
+                  None: "icon-red-500",
+                  Partially: "icon-yellow-500",
+                }[project.stats.functionality]
+              }
+              label={project.stats.functionality}
+            />
             <Show
               when={project.viewableAt.startsWith("https://")}
-              fallback={<div class="col-span-2">{project.viewableAt}</div>}
+              fallback={
+                <div class="text-sm italic text-z-subtitle">
+                  {project.viewableAt}
+                </div>
+              }
             >
               <a
-                class="Decoration-transparent hover:Decoration-current col-span-2 truncate text-z-link underline underline-offset-2 transition"
+                class="block w-full max-w-full truncate text-z-link underline decoration-transparent underline-offset-2 transition hover:decoration-current"
                 href={project.viewableAt}
               >
                 {project.viewableAt}
               </a>
             </Show>
-            <div class="flex items-center gap-2">
-              <Fa
-                icon={
-                  {
-                    Large: faL,
-                    Midsize: faM,
-                    Small: faS,
-                    Tiny: faT,
-                  }[project.stats.size]
-                }
-                class={
-                  {
-                    Large: "h-4 w-4 text-purple-500 icon-current",
-                    Midsize: "h-4 w-4 text-blue-500 icon-current",
-                    Small: "h-4 w-4 text-green-500 icon-current",
-                    Tiny: "h-4 w-4 text-yellow-500 icon-current",
-                  }[project.stats.size]
-                }
-                title={false}
-              />
-              {project.stats.size}
-            </div>
-            <div class="flex items-center gap-2">
-              <Fa
-                icon={
-                  {
-                    Functional: faCheck,
-                    None: faCancel,
-                    Partially: faThumbsUp,
-                  }[project.stats.functionality]
-                }
-                class={
-                  {
-                    Functional: "h-4 w-4 text-green-500 icon-current",
-                    None: "h-4 w-4 text-red-500 icon-current",
-                    Partially: "h-4 w-4 text-yellow-500 icon-current",
-                  }[project.stats.functionality]
-                }
-                title={false}
-              />
-              {project.stats.functionality}
-            </div>
+            <IconFull
+              icon={
+                {
+                  Compilation: faList,
+                  Website: faGlobe,
+                  API: faTerminal,
+                  Application: faMailBulk,
+                  "Discord Bot": faRobot,
+                  Extension: faPlus,
+                  Library: faBook,
+                }[project.stats.type]
+              }
+              class={
+                {
+                  // things accessible by most people
+                  Compilation: "icon-teal-500",
+                  Website: "icon-blue-500",
+                  Application: "icon-green-500",
+                  "Discord Bot": "icon-purple-500",
+                  Extension: "icon-yellow-500",
+
+                  // things for devs
+                  API: "icon-orange-500",
+                  Library: "icon-red-500",
+                }[project.stats.type]
+              }
+              label={project.stats.type}
+            />
           </div>
         )}
       </For>
