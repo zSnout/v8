@@ -25,17 +25,30 @@ export function Main() {
           supabase.auth.signUp({
             email,
             password,
-            options: { data: { username } },
+            options: {
+              data: { username },
+              emailRedirectTo: "/account",
+            },
           }),
           300,
         )
         if (resp.error) {
+          console.error(resp.error)
           setProcessing(false)
-          setMessage(resp.error.message)
+          setMessage(
+            resp.error.message == "Database error saving new user" ?
+              "That username is taken; try another"
+            : resp.error.message,
+          )
           return
         }
         setProcessing(false)
-        setMessage("Check your email for a confirmation message!")
+        if (resp.data.user?.confirmed_at == null) {
+          setMessage("Check your email for a confirmation message!")
+        } else {
+          setMessage("Redirecting you to account management...")
+          location.href = "/account"
+        }
       }}
     >
       <h1 class="mb-8 text-center text-lg font-semibold text-z-heading">
