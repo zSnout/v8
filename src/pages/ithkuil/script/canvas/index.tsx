@@ -205,6 +205,7 @@ function makePath(
               h ${step.d - 10}
             `
         }
+        throw new Error("prevents ts from yelling")
       }
 
       case "right": {
@@ -280,6 +281,7 @@ function makePath(
           case "down":
             return passSegment()
         }
+        throw new Error("prevents ts from yelling")
       }
 
       case "down": {

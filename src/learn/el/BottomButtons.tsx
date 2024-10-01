@@ -58,17 +58,3 @@ export function Action(props: {
     </button>
   )
 }
-
-export function SingleBottomAction(props: {
-  icon: IconDefinition
-  label: string
-  onClick?: () => void
-  shrinks?: boolean
-  center?: boolean
-}) {
-  return (
-    <BottomButtons class="grid w-full max-w-72 gap-1">
-      {Action(props)}
-    </BottomButtons>
-  )
-}
