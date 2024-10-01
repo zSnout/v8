@@ -27,8 +27,7 @@ export function Main() {
             password,
             options: {
               data: { username },
-              emailRedirectTo: new URL("/account/sign-up/verify", location.href)
-                .href,
+              emailRedirectTo: new URL("/account", location.href).href,
             },
           }),
           300,
