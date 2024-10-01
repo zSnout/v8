@@ -43,19 +43,6 @@ export interface Page {
 
 const nonBlogPages: readonly Page[] = [
   {
-    title: "zSnout 7",
-    href: "https://v7.zsnout.com",
-    subtitle:
-      "See the previous generation of zSnout's site, featuring over 50 pages. Includes puzzles, learning tools, spinning turntables, and 4 versions of the Storymatic language.",
-
-    tags: ["meta"],
-    category: "archive",
-
-    imageSrc: zsnoutSevenOpenGraph,
-    imageAlt: "A grid of 32 of zSnout 7's most important pages.",
-  },
-
-  {
     title: "Debug: Math to GLSL",
     href: "/debug/math-to-glsl",
     subtitle:
@@ -172,19 +159,6 @@ const nonBlogPages: readonly Page[] = [
   },
 
   {
-    title: "Vjosali",
-    href: "/vjosali",
-    subtitle:
-      "Libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. Jam riso klarmange au siruting mange. Da lera os leragen kotoba f'viossa mit librafto, vjosali!",
-
-    tags: ["language", "tool"],
-
-    imageAlt:
-      "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
-    imageSrc: vjosaliOpenGraph,
-  },
-
-  {
     title: "Trope Highlighter",
     href: "/trope-highlighter",
     subtitle:
@@ -195,6 +169,32 @@ const nonBlogPages: readonly Page[] = [
     imageAlt:
       "A paragraph of Hebrew text where each word has a background color depending on its trope.",
     imageSrc: tropeHighlighterOpenGraph,
+  },
+
+  {
+    title: "Vjosali",
+    href: "/vjosali",
+    subtitle:
+      "Libre afto har kotoba mange au riso au imi au tatoeba, per maxaklar kotobafto na du. Jam riso klarmange au siruting mange. Leratsa os leragen kotoba f'viossa mit librafto, Vjosali!",
+
+    tags: ["language", "tool"],
+
+    imageAlt:
+      "kotoli ie na ljeva obs, risoli ie na ljeva unna, kotoba 'al' au tatoeba fsore au lykko fsore au kundrko fsore ie na mygy.",
+    imageSrc: vjosaliOpenGraph,
+  },
+
+  {
+    title: "zSnout 7",
+    href: "https://v7dyn.zsnout.com",
+    subtitle:
+      "See the previous generation of zSnout's site, featuring over 50 pages. Includes puzzles, learning tools, spinning turntables, 4 versions of the Storymatic language, and games to play online with friends.",
+
+    tags: ["meta"],
+    category: "archive",
+
+    imageSrc: zsnoutSevenOpenGraph,
+    imageAlt: "A grid of 32 of zSnout 7's most important pages.",
   },
 
   {

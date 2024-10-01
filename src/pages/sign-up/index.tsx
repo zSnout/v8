@@ -27,7 +27,8 @@ export function Main() {
             password,
             options: {
               data: { username },
-              emailRedirectTo: "/account",
+              emailRedirectTo: new URL("/account/sign-up/verify", location.href)
+                .href,
             },
           }),
           300,
@@ -101,6 +102,14 @@ export function Main() {
       >
         {processing() ? "Processing..." : "Sign Up"}
       </button>
+
+      <p class="mt-8 text-center">
+        Or{" "}
+        <a href="/log-in" class="text-z-link underline underline-offset-2">
+          log in to an existing account
+        </a>
+        .
+      </p>
 
       <Show when={message()}>
         <p class="mt-8 text-center">{message()}</p>

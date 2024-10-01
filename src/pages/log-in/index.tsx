@@ -74,6 +74,14 @@ export function Main() {
         {processing() ? "Processing..." : "Log In"}
       </button>
 
+      <p class="mt-8 text-center">
+        Or{" "}
+        <a href="/sign-up" class="text-z-link underline underline-offset-2">
+          sign up for a new account
+        </a>
+        .
+      </p>
+
       <Show when={message()}>
         <p class="mt-8 text-center">{message()}</p>
       </Show>

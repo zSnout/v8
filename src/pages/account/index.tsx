@@ -6,7 +6,7 @@ export function Main() {
   const [user] = createResource(async () => {
     const user = await supabase.auth.getUser()
     if (user.error) {
-      location.href = "/account/log-in"
+      location.href = "/log-in"
       return
     } else {
       return user.data
