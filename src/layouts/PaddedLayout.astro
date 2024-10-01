@@ -6,8 +6,8 @@ import Layout, { type Props as LayoutProps } from "./Layout.astro"
 import { clsx } from "@/components/clsx"
 
 export interface Props
-  extends LayoutProps,
-    Omit<NavProps, "floating" | "options" | "htmlBg"> {
+  extends Omit<LayoutProps, "htmlBg">,
+    Omit<NavProps, "floating" | "options"> {
   pt?: `pt-${number}`
   pb?: `pb-${number}`
 }
@@ -15,9 +15,7 @@ export interface Props
 
 <Layout
   {...Astro.props}
-  htmlBg={Astro.props.gray ?
-    "[&.dark]:bg-z-body bg-z-body-selected"
-  : undefined}
+  htmlBg={Astro.props.gray ? "bg-z-body-darkened" : undefined}
 >
   {
     Astro.slots.options ?

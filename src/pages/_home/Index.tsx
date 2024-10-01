@@ -180,7 +180,7 @@ export function Main() {
 
   return (
     <>
-      <p class="mb-8 text-center">
+      <p class="mb-8 text-center text-z">
         Looking for the old zSnout? It's now at{" "}
         <a
           class="text-z-link underline underline-offset-2"

@@ -1219,7 +1219,7 @@ export function Main() {
     <div class="flex flex-col gap-2">
       <For each={data}>
         {(project) => (
-          <div class="grid grid-cols-6 gap-x-4 border-b pb-2">
+          <div class="grid grid-cols-6 gap-x-4 border-b border-z pb-2">
             <div class="col-span-2 font-bold text-z-heading">
               {project.title}
             </div>

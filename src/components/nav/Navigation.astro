@@ -22,7 +22,7 @@ export interface Props {
 <div
   class={clsx(
     "pointer-events-none fixed -top-20 left-0 z-30 h-20 w-full print:hidden",
-    Astro.props.gray ? "dark:bg-z-body bg-z-body-selected" : "bg-z-body",
+    Astro.props.gray ? "bg-z-body-darkened" : "bg-z-body",
   )}
 >
 </div>
@@ -36,9 +36,7 @@ export interface Props {
       "border-b-transparent"
     : clsx(
         "backdrop-blur-sm",
-        Astro.props.gray ?
-          "bg-z-body-selected-partial dark:bg-z-body-partial"
-        : "bg-z-body-partial",
+        Astro.props.gray ? "bg-z-body-darkened-partial" : "bg-z-body-partial",
         Astro.props.shortLine ? "border-b-transparent" : "border-b-z",
       ),
   )}

@@ -1,6 +1,6 @@
-import { faM, faMoon, faSun } from "@fortawesome/free-solid-svg-icons"
-import { createMemo, Show } from "solid-js"
 import { isDark, toggleIsDark } from "@/stores/theme"
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons"
+import { createMemo } from "solid-js"
 import { Fa } from "../Fa"
 import { clsx } from "../clsx"
 

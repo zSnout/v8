@@ -30,7 +30,7 @@ const { article } = og
 <!doctype html>
 <html
   class={clsx(
-    "flex h-full w-full flex-col scroll-smooth",
+    "flex h-full w-full flex-col scroll-smooth transition-[background-color]",
     Astro.props.theme && "force-" + Astro.props.theme,
     Astro.props.htmlBg || "bg-z-body",
   )}
@@ -93,7 +93,7 @@ const { article } = og
   <body
     class="flex flex-1 flex-col scroll-smooth transition [.z-ctxmenu_&]:overflow-hidden"
   >
-    <div class="contents">
+    <div class="contents text-z">
       <slot />
     </div>
   </body>
