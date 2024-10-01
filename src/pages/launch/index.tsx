@@ -302,7 +302,7 @@ const data: readonly Project[] = [
     },
     viewableAt: "https://learn.zsnout.com/",
     description:
-      "Space repetition flashcard application for less stressful learning. Clone of Anki built priMarily for the web.",
+      "Space repetition flashcard application for less stressful learning. Clone of Anki built primarily for the web.",
     tools: {
       client: "html tailwind solid",
       docs: "",
@@ -540,7 +540,7 @@ const data: readonly Project[] = [
       size: "Midsize",
       type: "Website",
     },
-    viewableAt: "https://o-li-e-la.vercel.app/",
+    viewableAt: "https://oliela.zsnout.com/",
     description: "A custom slideshow software I use for teaching toki pona.",
     tools: {
       client: "html tailwind solid",
