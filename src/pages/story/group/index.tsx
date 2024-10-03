@@ -131,11 +131,6 @@ export function Main() {
                     <Td icon={faComment} title="Contributions" value=" " />
                     <Td icon={faBook} title="Threads Created" value=" " />
                     <Td icon={faClock} title="Last Contribution" value=" " />
-                    {/* <Td
-                          icon={faCalendarXmark}
-                          title="Possible Contributions"
-                          value={possible}
-                        /> */}
                   </tr>
                 </thead>
                 <tbody>
@@ -165,11 +160,6 @@ export function Main() {
                           title="Last Contribution"
                           value={stat_last_contrib!}
                         />
-                        {/* <Td
-                          icon={faCalendarXmark}
-                          title="Possible Contributions"
-                          value={possible}
-                        /> */}
                       </tr>
                     )}
                   </For>
