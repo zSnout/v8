@@ -123,16 +123,28 @@ export function Main() {
             error={queryError}
             ok={(stats) => (
               <table class="w-full">
+                <thead>
+                  <tr class="group overflow-clip rounded">
+                    <td class="px-1 pl-2 first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+                      Username
+                    </td>
+                    <Td icon={faComment} title="Contributions" value=" " />
+                    <Td icon={faBook} title="Threads Created" value=" " />
+                    <Td icon={faClock} title="Last Contribution" value=" " />
+                    {/* <Td
+                          icon={faCalendarXmark}
+                          title="Possible Contributions"
+                          value={possible}
+                        /> */}
+                  </tr>
+                </thead>
                 <tbody>
                   <For each={stats}>
                     {({
-                      created_at,
-                      gems,
                       username,
                       stat_contribs,
                       stat_last_contrib,
                       stat_threads_created,
-                      stat_unique_thread_contribs,
                     }) => (
                       <tr class="group overflow-clip rounded">
                         <td class="px-1 pl-2 first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
