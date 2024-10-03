@@ -405,35 +405,6 @@ export function Main() {
     }
   }
 
-  async function btnRenameStory() {
-    const name = await prompt({
-      owner,
-      title: "Rename story",
-      cancelText: "Cancel",
-      okText: "Rename",
-      minlength: 4,
-    })
-    if (!name) {
-      return
-    }
-    const result = await supabase
-      .from("StoryGroup")
-      .update({ name })
-      .eq("id", groupId)
-      .single()
-    if (result.error) {
-      await alert({
-        owner,
-        title: "Failed to rename group",
-        get description() {
-          return <ModalDescription>{result.error.message}</ModalDescription>
-        },
-      })
-      return
-    }
-    refetchGroup()
-  }
-
   async function btnCreateStory() {
     const me = await psrc(myself)
     if (me.error) {
@@ -565,5 +536,34 @@ export function Main() {
       return
     }
     refetchStats()
+  }
+
+  async function btnRenameStory() {
+    const name = await prompt({
+      owner,
+      title: "Rename story",
+      cancelText: "Cancel",
+      okText: "Rename",
+      minlength: 4,
+    })
+    if (!name) {
+      return
+    }
+    const result = await supabase
+      .from("StoryGroup")
+      .update({ name })
+      .eq("id", groupId)
+      .single()
+    if (result.error) {
+      await alert({
+        owner,
+        title: "Failed to rename group",
+        get description() {
+          return <ModalDescription>{result.error.message}</ModalDescription>
+        },
+      })
+      return
+    }
+    refetchGroup()
   }
 }
