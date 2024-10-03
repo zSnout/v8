@@ -3,11 +3,6 @@ import { requireUser, supabase } from "@/components/supabase"
 import { wait } from "@/components/wait"
 import { randomId } from "@/learn/lib/id"
 
-export interface StoryCompleted {
-  readonly content: string
-  readonly contribs: number
-}
-
 export function Main() {
   const user = requireUser()
 

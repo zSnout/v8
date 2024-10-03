@@ -21,7 +21,9 @@ export function requireUser() {
     return user.data.user
   })()
 
-  return Object.assign(p, { resource: createResource(() => p) })
+  const resource = createResource(() => p)
+
+  return Object.assign(p, { resource: Object.assign(resource[0], resource) })
 }
 
 export function MatchQuery<T>(props: {
@@ -44,9 +46,30 @@ export function MatchQuery<T>(props: {
 }
 
 export function QueryLoading(props: { message: string }) {
-  return <p class="text-center italic text-z-subtitle">{props.message}</p>
+  return (
+    <p class="my-auto text-center italic text-z-subtitle">{props.message}</p>
+  )
+}
+
+export function QueryEmpty(props: { message: string }) {
+  return (
+    <p class="my-auto text-center italic text-z-subtitle">{props.message}</p>
+  )
 }
 
 export function queryError(error: PostgrestError) {
   return <p class="text-center italic text-z-subtitle">{error.message}</p>
+}
+
+export function pgok<T>(
+  data: T,
+  count: number | null = null,
+): PostgrestSingleResponse<T> {
+  return {
+    count,
+    data,
+    error: null,
+    status: 200,
+    statusText: "OK",
+  }
 }

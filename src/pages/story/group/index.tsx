@@ -1,8 +1,11 @@
 import { Fa } from "@/components/Fa"
 import {
   MatchQuery,
+  pgok,
+  QueryEmpty,
   queryError,
   QueryLoading,
+  requireUser,
   supabase,
 } from "@/components/supabase"
 import {
@@ -12,29 +15,27 @@ import {
   faComment,
   faGem,
   faPlus,
+  faTag,
+  faUserPlus,
   type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import { createResource, createSignal, For, Show } from "solid-js"
+import { createMemo, createResource, createSignal, For, Show } from "solid-js"
 
-export interface StoryCompleted {
-  readonly content: string
-  readonly contribs: number
+function nonNullEq<T>(x: T | null | undefined, y: T | null | undefined) {
+  return x != null && y != null && x === y
 }
 
 export function Main() {
+  const user = requireUser()
+
   const groupId = new URL(location.href).searchParams.get("id")
 
-  const [gems] = createSignal(23)
-  const [activeCount] = createSignal(7)
+  if (!groupId) {
+    location.href = "/story"
+    return "Redirecting..."
+  }
 
-  const [completed] = createSignal<readonly StoryCompleted[]>(
-    (import.meta.env.PUBLIC_STORIES_COMPLETED as string)
-      .split("\n")
-      .map((content) => ({
-        content,
-        contribs: content.split(".").length,
-      })),
-  )
+  const [activeCount] = createSignal(7)
 
   const [stats] = createResource(
     async () =>
@@ -42,6 +43,51 @@ export function Main() {
         .from("StoryMemberStatsUI")
         .select()
         .filter("group", "eq", groupId),
+  )
+
+  const [group] = createResource(
+    async () =>
+      await supabase
+        .from("StoryGroup")
+        .select("name, manager")
+        .match({ id: groupId })
+        .single(),
+  )
+
+  const [myself] = createResource(
+    async () =>
+      await supabase
+        .from("StoryMemberStats")
+        .select()
+        .match({ group: groupId, user: (await user).id })
+        .single(),
+  )
+
+  const [completeThreads] = createResource(
+    async () =>
+      await supabase
+        .from("StoryThreadCompleteWithContent")
+        .select()
+        .eq("group", groupId),
+  )
+
+  const completed = createMemo(() => {
+    const threads = completeThreads()
+    if (!threads || threads.error) {
+      return threads
+    }
+    const grouped = new Map<number, string[]>()
+    let v: string[]
+    for (const el of threads.data) {
+      const contents =
+        grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
+      contents.push(el.content!)
+    }
+    return pgok(grouped, grouped.size)
+  })
+
+  const isManager = createMemo(() =>
+    nonNullEq(user.resource()?.id, group()?.data?.manager),
   )
 
   function Td(props: {
@@ -73,7 +119,12 @@ export function Main() {
           <p class="text-center text-red-500">{activeCount()}</p>
         </div>
         <div class="flex h-full flex-1 items-center justify-center px-2 text-center text-xl font-light text-z-heading">
-          Story Title
+          <MatchQuery
+            result={group()}
+            loading={<QueryLoading message="[loading...]" />}
+            error={queryError}
+            ok={({ name }) => name}
+          />
         </div>
         <div class="flex items-center gap-2">
           <Fa
@@ -81,7 +132,14 @@ export function Main() {
             icon={faGem}
             title="Gems"
           />
-          <p class="text-center text-blue-500">{gems()}</p>
+          <p class="text-center text-blue-500">
+            <MatchQuery
+              result={myself()}
+              loading="..."
+              error={() => "ERROR"}
+              ok={({ gems }) => gems}
+            />
+          </p>
         </div>
       </div>
 
@@ -101,6 +159,18 @@ export function Main() {
             <Fa class="size-4" icon={faCheck} title={false} />
             Complete story
           </button>
+
+          <Show when={isManager() || true}>
+            <button class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none">
+              <Fa class="size-4" icon={faUserPlus} title={false} />
+              Add member
+            </button>
+
+            <button class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none">
+              <Fa class="size-4" icon={faTag} title={false} />
+              Rename story
+            </button>
+          </Show>
         </div>
       </div>
 
@@ -111,8 +181,8 @@ export function Main() {
 
             <p>
               The table below shows each person added to this group, along with
-              1) how many contributions they've made, 2) how many stories
-              they've started, and 3) the last time they wrote.
+              1{")"} how many contributions they've made, 2{")"} how many
+              stories they've started, and 3{")"} the last time they wrote.
               {/* , and 4) how many contributions they <em>could</em> make. */}
             </p>
           </div>
@@ -124,7 +194,7 @@ export function Main() {
             ok={(stats) => (
               <table class="w-full">
                 <thead>
-                  <tr class="group overflow-clip rounded">
+                  <tr class="overflow-clip rounded">
                     <td class="px-1 pl-2 first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
                       Username
                     </td>
@@ -169,23 +239,39 @@ export function Main() {
           />
         </div>
 
-        <ul class="flex flex-col gap-2 border-l border-z pl-2 pt-2">
-          <For each={completed()}>
-            {({ content, contribs }) => (
-              <li class="flex flex-col">
-                <p>
-                  <strong>{contribs}</strong>{" "}
-                  <span class="text-sm text-z-subtitle">contribs</span> •{" "}
-                  <strong>{content.split(/\s+/g).length}</strong>{" "}
-                  <span class="text-sm text-z-subtitle">words</span> •{" "}
-                  <button class="text-sm text-z-link underline underline-offset-2">
-                    read more
-                  </button>
-                </p>
-                <p class="line-clamp-4 pl-4">{content}</p>
-              </li>
+        <ul class="flex h-full flex-col gap-2 border-l border-z pl-2 pt-2">
+          <MatchQuery
+            result={completed()}
+            loading={<QueryLoading message="Loading completed threads..." />}
+            error={queryError}
+            ok={(data) => (
+              <For
+                each={[...data.entries()]}
+                fallback={
+                  <QueryEmpty message="No stories complete yet. Start a story and add to it with your friends!" />
+                }
+              >
+                {([, contents]) => (
+                  <li class="flex flex-col">
+                    <p>
+                      <strong>{contents.length}</strong>{" "}
+                      <span class="text-sm text-z-subtitle">contribs</span> •{" "}
+                      <strong>
+                        {contents
+                          .map((x) => x.split(/\s+/g).length)
+                          .reduce((a, b) => a + b, 0)}
+                      </strong>{" "}
+                      <span class="text-sm text-z-subtitle">words</span> •{" "}
+                      <button class="text-sm text-z-link underline underline-offset-2">
+                        read more
+                      </button>
+                    </p>
+                    <p class="line-clamp-4 pl-4">{contents.join(" ")}</p>
+                  </li>
+                )}
+              </For>
             )}
-          </For>
+          ></MatchQuery>
         </ul>
       </div>
     </div>
