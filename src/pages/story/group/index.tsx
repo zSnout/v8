@@ -435,7 +435,7 @@ export function Main() {
     }
     const { content, id: contribId } = resultLastContrib.data
     const next = (
-      await prompt({
+      await textarea({
         owner,
         title: "Add to a story",
         minlength: 40,
@@ -447,6 +447,34 @@ export function Main() {
     if (!next) {
       return
     }
+    const resultFinal = await load(
+      owner,
+      supabase.rpc("push_contrib", {
+        last_contrib: contribId,
+        my_content: next,
+      }),
+    )
+    if (resultFinal.error) {
+      await alert({
+        owner,
+        title: "Failed to add to story",
+        get description() {
+          return (
+            <>
+              <ModalDescription>{resultFinal.error.message}</ModalDescription>
+              <ModalDescription>
+                Since your contribution wasn't saved, you may want to copy it if
+                it was important to you:
+              </ModalDescription>
+              <ModalDescription>{next}</ModalDescription>
+            </>
+          )
+        },
+      })
+      return
+    }
+    refetchMyself()
+    refetchStats()
   }
 
   async function btnCreateStory() {

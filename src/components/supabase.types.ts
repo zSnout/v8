@@ -327,6 +327,13 @@ export type Database = {
           id: number
         }[]
       }
+      push_contrib: {
+        Args: {
+          last_contrib: number
+          my_content: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
