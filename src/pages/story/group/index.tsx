@@ -80,19 +80,19 @@ export function Main() {
         .eq("group", groupId),
   )
 
-  const [incompleteThreads, { refetch: refetchIncomplete }] = createResource(
+  const [incompleteStories, { refetch: refetchIncomplete }] = createResource(
     async () =>
       await supabase.rpc("get_incomplete_contribs", { group_id: groupId }),
   )
 
   const completed = createMemo(() => {
-    const threads = completeThreads()
-    if (!threads || threads.error) {
-      return threads
+    const stories = completeThreads()
+    if (!stories || stories.error) {
+      return stories
     }
     const grouped = new Map<number, string[]>()
     let v: string[]
-    for (const el of threads.data) {
+    for (const el of stories.data) {
       const contents =
         grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
       contents.push(el.content!)
@@ -102,13 +102,13 @@ export function Main() {
 
   const owner = getOwner()
 
-  function computeIncomplete(threads: ReturnType<typeof incompleteThreads>) {
-    if (!threads || threads.error) {
-      return threads
+  function computeIncomplete(stories: ReturnType<typeof incompleteStories>) {
+    if (!stories || stories.error) {
+      return stories
     }
     const grouped = new Map<number, { contrib: number; mine: boolean }[]>()
     let v: { contrib: number; mine: boolean }[]
-    for (const el of threads.data) {
+    for (const el of stories.data) {
       const contents =
         grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
       contents.push({ contrib: el.contrib!, mine: el.is_mine! })
@@ -146,7 +146,19 @@ export function Main() {
     return ret
   }
 
-  const incomplete = createMemo(() => computeIncomplete(incompleteThreads()))
+  function withAtLeast20<T extends { length: number }>(map: Map<number, T>) {
+    const ret: typeof map = new Map()
+
+    for (const [k, v] of map) {
+      if (v.length >= 20) {
+        ret.set(k, v)
+      }
+    }
+
+    return ret
+  }
+
+  const incomplete = createMemo(() => computeIncomplete(incompleteStories()))
 
   const isManager = createMemo(() =>
     nonNullEq(user.resource()?.id, group()?.data?.manager),
@@ -288,7 +300,7 @@ export function Main() {
                       title="Contributions"
                       value="Contribs"
                     />
-                    <Td icon={faBook} title="Threads Created" value="Threads" />
+                    <Td icon={faBook} title="Stories Created" value="Stories" />
                     <Td
                       icon={faClock}
                       title="Last Contribution"
@@ -359,7 +371,7 @@ export function Main() {
             </h2>
           </div>
 
-          <ul class="flex h-full flex-col gap-2 border-z pl-2 pt-2 transition">
+          <ul class="flex h-full flex-col gap-2 border-z pl-2 transition">
             <MatchQuery
               result={completed()}
               loading={<QueryLoading message="Loading completed threads..." />}
@@ -510,13 +522,13 @@ export function Main() {
   async function btnCreateStory() {
     const me = await psrc(myself)
     if (me.error) {
-      await alertError("You are not a member of this story", me.error.message)
+      await alertError("You are not a member of this group", me.error.message)
       return
     }
     if (me.data.gems < 10) {
       await alert({
         owner,
-        title: "You need 10 gems to create a thread",
+        title: "You need 10 gems to create a story",
         get description() {
           return (
             <>
@@ -567,10 +579,147 @@ export function Main() {
   }
 
   async function btnCompleteStory() {
-    await alertError(
-      "This button doesn't do anything yet",
-      "Try not pressing it until it's implemented properly.",
+    const me = await psrc(myself)
+    if (me.error) {
+      await alertError("You are not a member of this group", me.error.message)
+      return
+    }
+    if (me.data.gems < 10) {
+      await alert({
+        owner,
+        title: "You need 10 gems to complete a story",
+        get description() {
+          return (
+            <>
+              <ModalDescription>
+                You can earn gems by adding onto existing stories.
+              </ModalDescription>
+
+              <ModalDescription>
+                If there aren't enough existing stories or you've written too
+                recently on them to be able to earn gems, ask your friends to
+                add onto them.
+              </ModalDescription>
+            </>
+          )
+        },
+      })
+      return
+    }
+    const res = await load(
+      owner,
+      Promise.all([refetchIncomplete(), getMinRecency()]),
+      () => <ModalDescription>Picking a story for you...</ModalDescription>,
+      true,
     )
+    if (!res) {
+      return
+    }
+    const [result, minRecency] = res
+    const incomplete = computeIncomplete(result ?? undefined)
+    if (!incomplete) {
+      await alertError(
+        "Unable to find stories",
+        "Something went very wrong. Please reload the page and try again.",
+      )
+      return
+    }
+    if (incomplete.error) {
+      await alertError(
+        "Error occurred while picking stories",
+        incomplete.error.message,
+      )
+      return
+    }
+    const stories = withRecency(incomplete.data)
+    if (!stories.size) {
+      await alertError(
+        "No stories exist",
+        'There aren\'t any stories in this group! Try making one using the "Create story" button.',
+      )
+      return
+    }
+    if (stories.size < 2) {
+      await alertError(
+        "Not enough stories",
+        "There must be at least two active stories before any of them can be completed.",
+      )
+      return
+    }
+    const storiesWithAtLeast20 = withAtLeast20(stories)
+    if (!storiesWithAtLeast20.size) {
+      await alertError(
+        "Not enough contributions",
+        "There aren't any stories with at least 20 contributions, and you need at least 20 contributions before a story can be completed.",
+      )
+      return
+    }
+    const available = [...storiesWithAtLeast20.entries()].filter(
+      ([, { recency }]) => recency == null || recency >= minRecency,
+    )
+    const picked = randomItem(available)
+    if (!picked) {
+      await alertError(
+        "No stories available",
+        "You've contributed too recently to all of your group's active stories that have at least 20 contributions. Ask your friends to add to some stories, then try again.",
+      )
+      return
+    }
+    const threadId = picked[0]
+    const resultLastContrib = await load(
+      owner,
+      supabase.rpc("get_last_contrib", { thread_id: threadId }).single(),
+      () => "Fetching last contribution...",
+    )
+    if (resultLastContrib.error) {
+      await alertError(
+        "Unable to fetch last contribution",
+        resultLastContrib.error.message,
+      )
+      return
+    }
+    const { content, id: contribId } = resultLastContrib.data
+    const next = (
+      await textarea({
+        owner,
+        title: "Complete a story",
+        minlength: 40,
+        get description() {
+          return <ModalDescription>{content}</ModalDescription>
+        },
+      })
+    )?.trim()
+    if (!next) {
+      return
+    }
+    const resultFinal = await load(
+      owner,
+      supabase.rpc("push_final_contrib", {
+        last_contrib: contribId,
+        my_content: next,
+      }),
+    )
+    if (resultFinal.error) {
+      await alert({
+        owner,
+        title: "Failed to complete story",
+        get description() {
+          return (
+            <>
+              <ModalDescription>{resultFinal.error.message}</ModalDescription>
+              <ModalDescription>
+                Since your contribution wasn't saved, you may want to copy it if
+                it was important to you:
+              </ModalDescription>
+              <ModalDescription>{next}</ModalDescription>
+            </>
+          )
+        },
+      })
+      return
+    }
+    refetchMyself()
+    refetchStats()
   }
 
   async function btnAddMember() {
