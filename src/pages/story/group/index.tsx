@@ -35,8 +35,6 @@ export function Main() {
     return "Redirecting..."
   }
 
-  const [activeCount] = createSignal(7)
-
   const [stats] = createResource(
     async () =>
       await supabase
@@ -71,6 +69,14 @@ export function Main() {
         .eq("group", groupId),
   )
 
+  const [incompleteThreads] = createResource(
+    async () =>
+      await supabase
+        .from("StoryContribOnIncomplete")
+        .select()
+        .eq("group", groupId),
+  )
+
   const completed = createMemo(() => {
     const threads = completeThreads()
     if (!threads || threads.error) {
@@ -82,6 +88,21 @@ export function Main() {
       const contents =
         grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
       contents.push(el.content!)
+    }
+    return pgok(grouped, grouped.size)
+  })
+
+  const incomplete = createMemo(() => {
+    const threads = incompleteThreads()
+    if (!threads || threads.error) {
+      return threads
+    }
+    const grouped = new Map<number, { contrib: number; mine: boolean }[]>()
+    let v: { contrib: number; mine: boolean }[]
+    for (const el of threads.data) {
+      const contents =
+        grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
+      contents.push({ contrib: el.contrib!, mine: el.is_mine! })
     }
     return pgok(grouped, grouped.size)
   })
@@ -116,7 +137,14 @@ export function Main() {
             icon={faBook}
             title="Active Stories"
           />
-          <p class="text-center text-red-500">{activeCount()}</p>
+          <p class="text-center text-red-500">
+            <MatchQuery
+              result={incomplete()}
+              loading="..."
+              error={() => "ERROR"}
+              ok={({ size }) => size}
+            />
+          </p>
         </div>
         <div class="flex h-full flex-1 items-center justify-center px-2 text-center text-xl font-light text-z-heading">
           <MatchQuery
