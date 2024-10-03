@@ -352,7 +352,10 @@ export function Main() {
                           .reduce((a, b) => a + b, 0)}
                       </strong>{" "}
                       <span class="text-sm text-z-subtitle">words</span> •{" "}
-                      <button class="text-sm text-z-link underline underline-offset-2">
+                      <button
+                        class="text-sm text-z-link underline underline-offset-2"
+                        onClick={btnReadMore}
+                      >
                         read more
                       </button>
                     </p>
@@ -367,13 +370,21 @@ export function Main() {
     </div>
   )
 
+  async function getMinRecency() {
+    return 3
+  }
+
   async function btnAddToStory() {
-    const result = await load(
+    const res = await load(
       owner,
-      refetchIncomplete(),
+      Promise.all([refetchIncomplete(), getMinRecency()]),
       () => <ModalDescription>Picking a story for you...</ModalDescription>,
       true,
     )
+    if (!res) {
+      return
+    }
+    const [result, minRecency] = res
     const incomplete = computeIncomplete(result ?? undefined)
     if (!incomplete) {
       await alert({
@@ -397,6 +408,41 @@ export function Main() {
           return (
             <ModalDescription>
               Please reload the page and try again. {incomplete.error.message}
+            </ModalDescription>
+          )
+        },
+      })
+      return
+    }
+    const stories = withRecency(incomplete.data)
+    if (!stories.size) {
+      await alert({
+        owner,
+        title: "No stories exist",
+        get description() {
+          return (
+            <ModalDescription>
+              There aren't any stories in this group! Try making one using the
+              "Create story" button.
+            </ModalDescription>
+          )
+        },
+      })
+      return
+    }
+    const available = [...stories.entries()].filter(
+      ([, { recency }]) => recency == null || recency >= minRecency,
+    )
+    if (!available.length) {
+      await alert({
+        owner,
+        title: "No stories available",
+        get description() {
+          return (
+            <ModalDescription>
+              You've contributed too recently to all of your group's currently
+              active stories. Ask your friends to add to the stories, then try
+              again.
             </ModalDescription>
           )
         },
@@ -565,5 +611,19 @@ export function Main() {
       return
     }
     refetchGroup()
+  }
+
+  async function btnReadMore() {
+    alert({
+      owner,
+      title: "This button doesn't do anything yet",
+      get description() {
+        return (
+          <ModalDescription>
+            Try not pressing it until it's implemented properly.
+          </ModalDescription>
+        )
+      },
+    })
   }
 }
