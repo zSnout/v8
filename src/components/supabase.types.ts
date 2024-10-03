@@ -143,6 +143,7 @@ export type Database = {
           id: number
           stat_contribs: number
           stat_last_contrib: string | null
+          stat_threads_completed: number
           stat_threads_created: number
           stat_unique_thread_contribs: number
           user: string
@@ -154,6 +155,7 @@ export type Database = {
           id?: number
           stat_contribs?: number
           stat_last_contrib?: string | null
+          stat_threads_completed?: number
           stat_threads_created?: number
           stat_unique_thread_contribs?: number
           user: string
@@ -165,6 +167,7 @@ export type Database = {
           id?: number
           stat_contribs?: number
           stat_last_contrib?: string | null
+          stat_threads_completed?: number
           stat_threads_created?: number
           stat_unique_thread_contribs?: number
           user?: string
@@ -328,6 +331,13 @@ export type Database = {
         }[]
       }
       push_contrib: {
+        Args: {
+          last_contrib: number
+          my_content: string
+        }
+        Returns: undefined
+      }
+      push_final_contrib: {
         Args: {
           last_contrib: number
           my_content: string

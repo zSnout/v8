@@ -72,7 +72,7 @@ export function Main() {
         .single(),
   )
 
-  const [completeThreads] = createResource(
+  const [completeThreads, { refetch: refetchComplete }] = createResource(
     async () =>
       await supabase
         .from("StoryThreadCompleteWithContent")
@@ -720,6 +720,7 @@ export function Main() {
     }
     refetchMyself()
     refetchStats()
+    refetchComplete()
   }
 
   async function btnAddMember() {
