@@ -55,6 +55,10 @@ export function ModalDescription(props: { children: JSX.Element }) {
   return <p class="mt-2 text-sm text-z-subtitle">{props.children}</p>
 }
 
+export function ModalParagraph(props: { children: JSX.Element }) {
+  return <p class="mt-2 text-z">{props.children}</p>
+}
+
 export function ModalCode(props: { children: JSX.Element }) {
   return (
     <code class="rounded bg-z-body-selected px-1 text-z">{props.children}</code>

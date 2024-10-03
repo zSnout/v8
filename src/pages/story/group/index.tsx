@@ -2,7 +2,11 @@ import { Fa } from "@/components/Fa"
 import {
   alert,
   load,
+  ModalButtons,
+  ModalConfirm,
   ModalDescription,
+  ModalParagraph,
+  popup,
   prompt,
   textarea,
 } from "@/components/Modal"
@@ -383,27 +387,31 @@ export function Main() {
                     <QueryEmpty message="No stories complete yet. Start a story and add to it with your friends!" />
                   }
                 >
-                  {([, contents]) => (
-                    <li class="flex flex-col">
-                      <p>
-                        <strong>{contents.length}</strong>{" "}
-                        <span class="text-sm text-z-subtitle">contribs</span> •{" "}
-                        <strong>
-                          {contents
-                            .map((x) => x.split(/\s+/g).length)
-                            .reduce((a, b) => a + b, 0)}
-                        </strong>{" "}
-                        <span class="text-sm text-z-subtitle">words</span> •{" "}
-                        <button
-                          class="text-sm text-z-link underline underline-offset-2"
-                          onClick={btnReadMore}
-                        >
-                          read more
-                        </button>
-                      </p>
-                      <p class="line-clamp-4 pl-4">{contents.join(" ")}</p>
-                    </li>
-                  )}
+                  {([, contentsRaw]) => {
+                    const contribs = contentsRaw.length
+                    const words = contentsRaw
+                      .map((x) => x.split(/\s+/g).length)
+                      .reduce((a, b) => a + b, 0)
+                    const contents = contentsRaw.join(" ")
+                    const data = { contribs, words, contents }
+                    return (
+                      <li class="flex flex-col">
+                        <p>
+                          <strong>{contribs}</strong>{" "}
+                          <span class="text-sm text-z-subtitle">contribs</span>{" "}
+                          • <strong>{words}</strong>{" "}
+                          <span class="text-sm text-z-subtitle">words</span> •{" "}
+                          <button
+                            class="text-sm text-z-link underline underline-offset-2"
+                            onClick={[btnReadMore, data]}
+                          >
+                            read more
+                          </button>
+                        </p>
+                        <p class="line-clamp-4 pl-4">{contents}</p>
+                      </li>
+                    )
+                  }}
                 </For>
               )}
             ></MatchQuery>
@@ -782,11 +790,35 @@ export function Main() {
     refetchGroup()
   }
 
-  async function btnReadMore() {
-    await alertError(
-      "This button doesn't do anything yet",
-      "Try not pressing it until it's implemented properly.",
-    )
+  async function btnReadMore({
+    contribs,
+    contents,
+    words,
+  }: {
+    contribs: number
+    words: number
+    contents: string
+  }) {
+    await popup<void>({
+      owner,
+      onCancel: undefined,
+      children(close) {
+        return (
+          <>
+            <p class="mb-4 text-center text-z">
+              <strong>{contribs}</strong>{" "}
+              <span class="text-sm text-z-subtitle">contribs</span> •{" "}
+              <strong>{words}</strong>{" "}
+              <span class="text-sm text-z-subtitle">words</span>
+            </p>
+            <ModalParagraph>{contents}</ModalParagraph>
+            <ModalButtons>
+              <ModalConfirm onClick={() => close()}>OK</ModalConfirm>
+            </ModalButtons>
+          </>
+        )
+      },
+    })
   }
 
   async function alertError(title: string, description: string) {

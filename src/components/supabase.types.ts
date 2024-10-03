@@ -303,6 +303,13 @@ export type Database = {
       }
     }
     Functions: {
+      create_story: {
+        Args: {
+          name: string
+          group_id: number
+        }
+        Returns: undefined
+      }
       create_thread: {
         Args: {
           group_id: number
