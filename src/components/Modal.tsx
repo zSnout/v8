@@ -4,6 +4,7 @@ import {
   JSX,
   Owner,
   runWithOwner,
+  Show,
   untrack,
 } from "solid-js"
 import { Portal } from "solid-js/web"
@@ -394,5 +395,88 @@ export function textarea(props: {
       )
     },
     onCancel: "",
+  })
+}
+
+export function loading(
+  owner: Owner | null,
+  message?: () => JSX.Element,
+  /** If present, shows a cancel button. */
+  onCancel?: () => void,
+) {
+  let close!: () => void
+
+  popup<void>({
+    owner,
+    onCancel() {},
+    children(c) {
+      close = c
+      return (
+        <>
+          <ModalTitle>Loading...</ModalTitle>
+          {message?.()}
+          <Show when={onCancel}>
+            <ModalButtons>
+              <ModalCancel
+                onClick={() => {
+                  c()
+                  onCancel!()
+                }}
+              >
+                Cancel
+              </ModalCancel>
+            </ModalButtons>
+          </Show>
+        </>
+      )
+    },
+  })
+
+  return close
+}
+
+export function load<T>(
+  owner: Owner | null,
+  value: T,
+  message?: () => JSX.Element,
+  cancelable?: false,
+  delayBeforeShowing?: number,
+): Promise<Awaited<T>>
+
+export function load<T>(
+  owner: Owner | null,
+  value: T,
+  message?: () => JSX.Element,
+  cancelable?: boolean,
+  delayBeforeShowing?: number,
+): Promise<Awaited<T> | null>
+
+export function load<T>(
+  owner: Owner | null,
+  value: T,
+  message?: () => JSX.Element,
+  cancelable?: boolean,
+  delayBeforeShowing = 100,
+) {
+  return new Promise<Awaited<T> | null>(async (resolve) => {
+    let done = false
+    let close: (() => void) | undefined
+    setTimeout(() => {
+      if (done) return
+      close = loading(
+        owner,
+        message,
+        cancelable ?
+          () => {
+            resolve(null)
+            done = true
+          }
+        : undefined,
+      )
+    }, delayBeforeShowing)
+    const v = await value
+    done = true
+    close?.()
+    resolve(v)
   })
 }

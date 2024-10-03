@@ -9,7 +9,7 @@ import { createResource, For } from "solid-js"
 
 export function Main() {
   const [stories] = createResource(
-    async () => await supabase.from("StoryGroupMine").select(),
+    async () => await supabase.from("StoryGroup").select(),
   )
 
   return (

@@ -3,14 +3,7 @@ import {
   type PostgrestError,
   type PostgrestSingleResponse,
 } from "@supabase/supabase-js"
-import {
-  createEffect,
-  createResource,
-  Match,
-  Switch,
-  type JSX,
-  type Resource,
-} from "solid-js"
+import { createEffect, createResource, Match, Switch, type JSX } from "solid-js"
 import { error } from "./result"
 import type { Database } from "./supabase.types"
 
@@ -98,14 +91,13 @@ export function pgerr<T>(err: unknown): PostgrestSingleResponse<T> {
 }
 
 export function psrc<T>(
-  resource: Resource<PostgrestSingleResponse<T>>,
+  resource: () => PostgrestSingleResponse<T> | undefined,
 ): Promise<PostgrestSingleResponse<T>> {
   return new Promise((resolve) => {
     createEffect(() => {
-      if (resource.state == "errored") {
-        resolve(pgerr(resource.error))
-      } else if (resource.state == "ready") {
-        resolve(resource.latest)
+      const result = resource()
+      if (result) {
+        resolve(result)
       }
     })
   })

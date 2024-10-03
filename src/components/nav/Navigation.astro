@@ -54,9 +54,19 @@ export interface Props {
       class="pointer-events-auto relative left-[calc(-0.5rem_-_1px)] z-20 mr-auto flex items-baseline text-2xl font-extralight text-z-heading"
     >
       <a
-        class={"rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition hover:decoration-current focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring " +
-          (Astro.props.floating ? "backdrop-blur-sm bg-z-body-partial" : "")}
-        href="/">zSnout</a
+        class={clsx(
+          "rounded-lg border border-transparent px-2 py-0.5 underline decoration-transparent decoration-1 underline-offset-2 ring-z-focus transition hover:decoration-current focus-visible:border-z-focus focus-visible:outline-none focus-visible:ring relative",
+          Astro.props.floating && "backdrop-blur-sm bg-z-body-partial",
+        )}
+        href="/"
+        >zSnout{
+          import.meta.env.DEV && (
+            <div
+              class="-mt-2 text-center text-xs font-normal text-z-subtitle"
+              id="z-identity"
+            />
+          )
+        }</a
       >
 
       {
@@ -94,3 +104,16 @@ export interface Props {
     />
   </div>
 </header>
+
+<script>
+  if (import.meta.env.DEV) {
+    const identity = document.getElementById("z-identity")!
+    import("../supabase")
+      .then(({ supabase }) => supabase.auth.getUser())
+      .then(({ data: { user } }) => {
+        if (user) {
+          identity.textContent = user.user_metadata.username
+        }
+      })
+  }
+</script>
