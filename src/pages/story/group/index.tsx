@@ -299,23 +299,9 @@ export function Main() {
                 <tbody>
                   <For
                     each={stats.sort(
-                      (
-                        { stat_last_contrib: a_ },
-                        { stat_last_contrib: b_ },
-                      ) => {
-                        let a = a_ ? Date.parse(a_ + "Z") : null
-                        let b = b_ ? Date.parse(b_ + "Z") : null
-                        if (a == null && b == null) {
-                          return 0
-                        }
-                        if (a == null) {
-                          return 1
-                        }
-                        if (b == null) {
-                          return -1
-                        }
-                        return a - b
-                      },
+                      ({ stat_last_contrib: a_ }, { stat_last_contrib: b_ }) =>
+                        (b_ ? Date.parse(b_ + "Z") : 0) -
+                        (a_ ? Date.parse(a_ + "Z") : 0),
                     )}
                   >
                     {({
