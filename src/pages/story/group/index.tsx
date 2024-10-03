@@ -341,15 +341,21 @@ export function Main() {
                         <Td
                           icon={faClock}
                           title="Last Active"
-                          value={
-                            stat_last_contrib ?
-                              timestampDist(
-                                (Date.now() -
-                                  Date.parse(stat_last_contrib + "Z")) /
-                                  1000,
-                              ) + " ago"
-                            : null
-                          }
+                          value={(() => {
+                            if (!stat_last_contrib) {
+                              return null
+                            }
+                            const msg = timestampDist(
+                              (Date.now() -
+                                Date.parse(stat_last_contrib + "Z")) /
+                                1000,
+                            )
+                            if (msg == "now") {
+                              return "now"
+                            } else {
+                              return `${msg} ago`
+                            }
+                          })()}
                         />
                       </tr>
                     )}
