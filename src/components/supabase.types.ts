@@ -68,6 +68,13 @@ export type Database = {
             foreignKeyName: "StoryContrib_thread_fkey"
             columns: ["thread"]
             isOneToOne: false
+            referencedRelation: "StoryContribOnIncomplete"
+            referencedColumns: ["thread"]
+          },
+          {
+            foreignKeyName: "StoryContrib_thread_fkey"
+            columns: ["thread"]
+            isOneToOne: false
             referencedRelation: "StoryThread"
             referencedColumns: ["id"]
           },
@@ -266,6 +273,30 @@ export type Database = {
       }
     }
     Views: {
+      StoryContribOnIncomplete: {
+        Row: {
+          contrib: number | null
+          group: number | null
+          is_mine: boolean | null
+          thread: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "StoryThread_group_fkey"
+            columns: ["group"]
+            isOneToOne: false
+            referencedRelation: "StoryGroup"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "StoryThread_group_fkey"
+            columns: ["group"]
+            isOneToOne: false
+            referencedRelation: "StoryGroupMine"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       StoryGroupMine: {
         Row: {
           created_at: string | null
@@ -333,6 +364,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "StoryThread"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "StoryContrib_thread_fkey"
+            columns: ["thread"]
+            isOneToOne: false
+            referencedRelation: "StoryContribOnIncomplete"
+            referencedColumns: ["thread"]
           },
           {
             foreignKeyName: "StoryThread_group_fkey"
