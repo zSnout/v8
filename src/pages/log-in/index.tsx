@@ -1,24 +1,28 @@
+import { Form, FormAlternative, FormField } from "@/components/form"
 import { supabase } from "@/components/supabase"
 import { delay, wait } from "@/components/wait"
-import { createSignal, Show } from "solid-js"
 
 export function Main() {
-  const [processing, setProcessing] = createSignal(false)
-  const [message, setMessage] = createSignal<string>()
   return (
-    <form
-      class="my-auto"
-      onSubmit={async (event) => {
-        event.preventDefault()
-        setProcessing(true)
-        setMessage()
-        const data = new FormData(event.currentTarget)
+    <Form
+      title="Log in to zSnout"
+      submit="Log In"
+      footer={
+        <FormAlternative>
+          Or{" "}
+          <a href="/sign-up" class="text-z-link underline underline-offset-2">
+            sign up for a new account
+          </a>
+          .
+        </FormAlternative>
+      }
+      onSubmit={async (info) => {
+        const data = info.data()
         const email = String(data.get("email") ?? "")
         const password = String(data.get("password") ?? "")
         if (!(email && password)) {
           await wait(300)
-          setProcessing(false)
-          setMessage("Invalid data entered. Please try again.")
+          return "Invalid data entered. Please try again."
         }
         const resp = await delay(
           supabase.auth.signInWithPassword({
@@ -29,62 +33,37 @@ export function Main() {
         )
         if (resp.error) {
           console.error(resp.error)
-          setProcessing(false)
-          setMessage(resp.error.message)
-          return
+          return resp.error.message
         }
-        setProcessing(false)
-        setMessage("Redirecting you to account management...")
         location.href = "/account"
+        return "Redirecting you to account management..."
       }}
     >
-      <h1 class="mb-8 text-center text-lg font-semibold text-z-heading">
-        Log in to zSnout
-      </h1>
+      {() => (
+        <>
+          <FormField label="Email Address">
+            <input
+              class="z-field w-full shadow-none"
+              type="email"
+              autocomplete="email"
+              name="email"
+              required
+            />
+          </FormField>
 
-      <label class="block">
-        <p class="mb-1 text-z-subtitle">Email Address</p>
-        <input
-          class="z-field w-full shadow-none"
-          type="email"
-          autocomplete="email"
-          name="email"
-          required
-        />
-      </label>
-
-      <label class="mt-6 block">
-        <p class="mb-1 text-z-subtitle">Password</p>
-        <input
-          class="z-field w-full shadow-none"
-          type="password"
-          autocomplete="new-password"
-          name="password"
-          required
-          pattern=".*[A-Za-z].*[0-9].*|.*[0-9].*[A-Za-z].*"
-          minlength="8"
-        />
-      </label>
-
-      <button
-        class="z-field mt-12 w-full shadow-none"
-        type="submit"
-        disabled={processing()}
-      >
-        {processing() ? "Processing..." : "Log In"}
-      </button>
-
-      <p class="mt-8 text-center">
-        Or{" "}
-        <a href="/sign-up" class="text-z-link underline underline-offset-2">
-          sign up for a new account
-        </a>
-        .
-      </p>
-
-      <Show when={message()}>
-        <p class="mt-8 text-center">{message()}</p>
-      </Show>
-    </form>
+          <FormField label="Password">
+            <input
+              class="z-field w-full shadow-none"
+              type="password"
+              autocomplete="new-password"
+              name="password"
+              required
+              pattern=".*[A-Za-z].*[0-9].*|.*[0-9].*[A-Za-z].*"
+              minlength="8"
+            />
+          </FormField>
+        </>
+      )}
+    </Form>
   )
 }

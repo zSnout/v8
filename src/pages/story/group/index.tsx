@@ -1,5 +1,10 @@
 import { Fa } from "@/components/Fa"
-import { faCalendarXmark } from "@fortawesome/free-regular-svg-icons"
+import {
+  MatchQuery,
+  queryError,
+  QueryLoading,
+  supabase,
+} from "@/components/supabase"
 import {
   faBook,
   faCheck,
@@ -9,7 +14,7 @@ import {
   faPlus,
   type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import { createSignal, For, Show } from "solid-js"
+import { createResource, createSignal, For, Show } from "solid-js"
 
 export interface StoryCompleted {
   readonly content: string
@@ -17,6 +22,8 @@ export interface StoryCompleted {
 }
 
 export function Main() {
+  const groupId = new URL(location.href).searchParams.get("id")
+
   const [gems] = createSignal(23)
   const [activeCount] = createSignal(7)
 
@@ -29,18 +36,16 @@ export function Main() {
       })),
   )
 
-  const [stats] = createSignal<
-    readonly {
-      name: string
-      contribs: number
-      contrib_recents: string
-      possible: string
-      thread?: number
-    }[]
-  >(JSON.parse(import.meta.env.PUBLIC_STORIES_STATS))
+  const [stats] = createResource(
+    async () =>
+      await supabase
+        .from("StoryMemberStatsUI")
+        .select()
+        .filter("group", "eq", groupId),
+  )
 
   function Td(props: {
-    value: string | number | undefined
+    value: string | number | null | undefined
     icon: IconDefinition
     title: string
   }) {
@@ -107,40 +112,59 @@ export function Main() {
             <p>
               The table below shows each person added to this group, along with
               1) how many contributions they've made, 2) how many stories
-              they've started, 3) the last time they wrote, and 4) how many
-              contributions they <em>could</em> make.
+              they've started, and 3) the last time they wrote.
+              {/* , and 4) how many contributions they <em>could</em> make. */}
             </p>
           </div>
 
-          <table class="w-full">
-            <tbody>
-              <For each={stats()}>
-                {({ name, contrib_recents, contribs, possible, thread }) => (
-                  <tr class="group overflow-clip rounded">
-                    <td class="px-1 pl-2 first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
-                      {name}
-                    </td>
-                    <Td
-                      icon={faComment}
-                      title="Contributions"
-                      value={contribs}
-                    />
-                    <Td icon={faBook} title="Threads Created" value={thread} />
-                    <Td
-                      icon={faClock}
-                      title="Last Contribution"
-                      value={contrib_recents}
-                    />
-                    <Td
-                      icon={faCalendarXmark}
-                      title="Possible Contributions"
-                      value={possible}
-                    />
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+          <MatchQuery
+            result={stats()}
+            loading={<QueryLoading message="Loading statistics..." />}
+            error={queryError}
+            ok={(stats) => (
+              <table class="w-full">
+                <tbody>
+                  <For each={stats}>
+                    {({
+                      created_at,
+                      gems,
+                      username,
+                      stat_contribs,
+                      stat_last_contrib,
+                      stat_threads_created,
+                      stat_unique_thread_contribs,
+                    }) => (
+                      <tr class="group overflow-clip rounded">
+                        <td class="px-1 pl-2 first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+                          {username}
+                        </td>
+                        <Td
+                          icon={faComment}
+                          title="Contributions"
+                          value={stat_contribs!}
+                        />
+                        <Td
+                          icon={faBook}
+                          title="Threads Created"
+                          value={stat_threads_created!}
+                        />
+                        <Td
+                          icon={faClock}
+                          title="Last Contribution"
+                          value={stat_last_contrib!}
+                        />
+                        {/* <Td
+                          icon={faCalendarXmark}
+                          title="Possible Contributions"
+                          value={possible}
+                        /> */}
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            )}
+          />
         </div>
 
         <ul class="flex flex-col gap-2 border-l border-z pl-2 pt-2">

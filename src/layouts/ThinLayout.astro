@@ -1,0 +1,13 @@
+---
+import PaddedLayout, {
+  type Props as PaddedLayoutProps,
+} from "./PaddedLayout.astro"
+
+export interface Props extends Omit<PaddedLayoutProps, "maxWidth"> {}
+---
+
+<PaddedLayout maxWidth="max-w-sm" {...Astro.props}>
+  <div class="mx-auto flex w-full max-w-sm flex-1 flex-col text-z transition">
+    <slot />
+  </div>
+</PaddedLayout>

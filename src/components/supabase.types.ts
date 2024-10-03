@@ -43,7 +43,7 @@ export type Database = {
           thread: number
         }
         Insert: {
-          author?: string
+          author: string
           content: string
           created_at?: string
           id?: number
@@ -78,16 +78,19 @@ export type Database = {
           created_at: string
           id: number
           manager: string
+          name: string
         }
         Insert: {
           created_at?: string
           id: number
-          manager: string
+          manager?: string
+          name: string
         }
         Update: {
           created_at?: string
           id?: number
           manager?: string
+          name?: string
         }
         Relationships: [
           {
@@ -99,44 +102,77 @@ export type Database = {
           },
         ]
       }
-      StoryMember: {
+      StoryMemberRaw: {
+        Row: {
+          group: number
+          id: number
+          user: string
+        }
+        Insert: {
+          group: number
+          id?: number
+          user: string
+        }
+        Update: {
+          group?: number
+          id?: number
+          user?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "StoryMemberRaw_group_fkey"
+            columns: ["group"]
+            isOneToOne: false
+            referencedRelation: "StoryGroup"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "StoryMemberRaw_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      StoryMemberStats: {
         Row: {
           created_at: string
           gems: number
+          group: number
           id: number
           stat_contribs: number
           stat_last_contrib: string
           stat_threads_created: number
           stat_unique_thread_contribs: number
-          story_group: number
           user: string
         }
         Insert: {
           created_at?: string
           gems?: number
+          group: number
           id?: number
           stat_contribs?: number
           stat_last_contrib?: string
           stat_threads_created?: number
           stat_unique_thread_contribs?: number
-          story_group: number
-          user?: string
+          user: string
         }
         Update: {
           created_at?: string
           gems?: number
+          group?: number
           id?: number
           stat_contribs?: number
           stat_last_contrib?: string
           stat_threads_created?: number
           stat_unique_thread_contribs?: number
-          story_group?: number
           user?: string
         }
         Relationships: [
           {
-            foreignKeyName: "StoryMember_story_group_fkey"
-            columns: ["story_group"]
+            foreignKeyName: "StoryMember_group_fkey"
+            columns: ["group"]
             isOneToOne: false
             referencedRelation: "StoryGroup"
             referencedColumns: ["id"]
@@ -152,21 +188,34 @@ export type Database = {
       }
       StoryThread: {
         Row: {
+          author: string
+          complete: boolean
           created_at: string
           group: number
           id: number
         }
         Insert: {
+          author: string
+          complete?: boolean
           created_at?: string
           group: number
           id: number
         }
         Update: {
+          author?: string
+          complete?: boolean
           created_at?: string
           group?: number
           id?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "StoryThread_author_fkey"
+            columns: ["author"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "StoryThread_group_fkey"
             columns: ["group"]
@@ -196,7 +245,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      StoryMemberStatsUI: {
+        Row: {
+          created_at: string | null
+          gems: number | null
+          group: number | null
+          id: number | null
+          stat_contribs: number | null
+          stat_last_contrib: string | null
+          stat_threads_created: number | null
+          stat_unique_thread_contribs: number | null
+          user: string | null
+          username: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "StoryMember_group_fkey"
+            columns: ["group"]
+            isOneToOne: false
+            referencedRelation: "StoryGroup"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "StoryMember_user_fkey"
+            columns: ["user"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
@@ -314,10 +392,3 @@ export type Enums<
   : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"] ?
     PublicSchema["Enums"][PublicEnumNameOrOptions]
   : never
-
-import { createClient } from "@supabase/supabase-js"
-
-const supabaseUrl = import.meta.env.PUBLIC_V8_SUPABASE_URL
-const supabaseKey = import.meta.env.PUBLIC_V8_SUPABASE_ANON_KEY
-
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey)
