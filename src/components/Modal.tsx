@@ -456,7 +456,7 @@ export function load<T>(
   value: T,
   message?: () => JSX.Element,
   cancelable?: boolean,
-  delayBeforeShowing = 100,
+  delayBeforeShowing = 300,
 ) {
   return new Promise<Awaited<T> | null>(async (resolve) => {
     let done = false

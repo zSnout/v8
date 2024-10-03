@@ -6,6 +6,7 @@ import {
   prompt,
   textarea,
 } from "@/components/Modal"
+import { randomItem } from "@/components/random"
 import {
   MatchQuery,
   pgok,
@@ -387,66 +388,63 @@ export function Main() {
     const [result, minRecency] = res
     const incomplete = computeIncomplete(result ?? undefined)
     if (!incomplete) {
-      await alert({
-        owner,
-        title: "Unable to find stories",
-        get description() {
-          return (
-            <ModalDescription>
-              Something went very wrong. Please reload the page and try again.
-            </ModalDescription>
-          )
-        },
-      })
+      await alertError(
+        "Unable to find stories",
+        "Something went very wrong. Please reload the page and try again.",
+      )
       return
     }
     if (incomplete.error) {
-      await alert({
-        owner,
-        title: "Error occurred while picking stories",
-        get description() {
-          return (
-            <ModalDescription>
-              Please reload the page and try again. {incomplete.error.message}
-            </ModalDescription>
-          )
-        },
-      })
+      await alertError(
+        "Error occurred while picking stories",
+        incomplete.error.message,
+      )
       return
     }
     const stories = withRecency(incomplete.data)
     if (!stories.size) {
-      await alert({
-        owner,
-        title: "No stories exist",
-        get description() {
-          return (
-            <ModalDescription>
-              There aren't any stories in this group! Try making one using the
-              "Create story" button.
-            </ModalDescription>
-          )
-        },
-      })
+      await alertError(
+        "No stories exist",
+        'There aren\'t any stories in this group! Try making one using the "Create story" button.',
+      )
       return
     }
     const available = [...stories.entries()].filter(
       ([, { recency }]) => recency == null || recency >= minRecency,
     )
-    if (!available.length) {
-      await alert({
+    const picked = randomItem(available)
+    if (!picked) {
+      await alertError(
+        "No stories available",
+        "You've contributed too recently to all of your group's currently active stories. Ask your friends to add to some stories, then try again.",
+      )
+      return
+    }
+    const threadId = picked[0]
+    const resultLastContrib = await load(
+      owner,
+      supabase.rpc("get_last_contrib", { thread_id: threadId }).single(),
+      () => "Fetching last contribution...",
+    )
+    if (resultLastContrib.error) {
+      await alertError(
+        "Unable to fetch last contribution",
+        resultLastContrib.error.message,
+      )
+      return
+    }
+    const { content, id: contribId } = resultLastContrib.data
+    const next = (
+      await prompt({
         owner,
-        title: "No stories available",
+        title: "Add to a story",
+        minlength: 40,
         get description() {
-          return (
-            <ModalDescription>
-              You've contributed too recently to all of your group's currently
-              active stories. Ask your friends to add to the stories, then try
-              again.
-            </ModalDescription>
-          )
+          return <ModalDescription>{content}</ModalDescription>
         },
       })
+    )?.trim()
+    if (!next) {
       return
     }
   }
@@ -454,13 +452,7 @@ export function Main() {
   async function btnCreateStory() {
     const me = await psrc(myself)
     if (me.error) {
-      await alert({
-        owner,
-        title: "You are not a member of this story",
-        get description() {
-          return <ModalDescription>{me.error.message}</ModalDescription>
-        },
-      })
+      await alertError("You are not a member of this story", me.error.message)
       return
     }
     if (me.data.gems < 10) {
@@ -508,13 +500,7 @@ export function Main() {
       thread_id: randomId(),
     })
     if (result.error) {
-      await alert({
-        owner,
-        title: "Failed to create thread",
-        get description() {
-          return <ModalDescription>{result.error.message}</ModalDescription>
-        },
-      })
+      await alertError("Failed to create thread", result.error.message)
       return
     }
     refetchMyself()
@@ -523,17 +509,10 @@ export function Main() {
   }
 
   async function btnCompleteStory() {
-    alert({
-      owner,
-      title: "This button doesn't do anything yet",
-      get description() {
-        return (
-          <ModalDescription>
-            Try not pressing it until it's implemented properly.
-          </ModalDescription>
-        )
-      },
-    })
+    await alertError(
+      "This button doesn't do anything yet",
+      "Try not pressing it until it's implemented properly.",
+    )
   }
 
   async function btnAddMember() {
@@ -559,26 +538,14 @@ export function Main() {
       .eq("username", username)
       .single()
     if (user.error) {
-      await alert({
-        owner,
-        title: "User does not exist",
-        get description() {
-          return <ModalDescription>{user.error.message}</ModalDescription>
-        },
-      })
+      await alertError("User does not exist", user.error.message)
       return
     }
     const result = await supabase
       .from("StoryMemberStats")
       .insert({ group: groupId, user: user.data.id })
     if (result.error) {
-      await alert({
-        owner,
-        title: "Failed to add user",
-        get description() {
-          return <ModalDescription>{result.error.message}</ModalDescription>
-        },
-      })
+      await alertError("Failed to add user", result.error.message)
       return
     }
     refetchStats()
@@ -601,28 +568,25 @@ export function Main() {
       .eq("id", groupId)
       .single()
     if (result.error) {
-      await alert({
-        owner,
-        title: "Failed to rename group",
-        get description() {
-          return <ModalDescription>{result.error.message}</ModalDescription>
-        },
-      })
+      await alertError("Failed to rename group", result.error.message)
       return
     }
     refetchGroup()
   }
 
   async function btnReadMore() {
-    alert({
+    await alertError(
+      "This button doesn't do anything yet",
+      "Try not pressing it until it's implemented properly.",
+    )
+  }
+
+  async function alertError(title: string, description: string) {
+    await alert({
       owner,
-      title: "This button doesn't do anything yet",
+      title,
       get description() {
-        return (
-          <ModalDescription>
-            Try not pressing it until it's implemented properly.
-          </ModalDescription>
-        )
+        return <ModalDescription>{description}</ModalDescription>
       },
     })
   }

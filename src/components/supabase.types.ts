@@ -127,13 +127,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "StoryMemberRaw_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "StoryGroupMine"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "StoryMemberRaw_user_fkey"
             columns: ["user"]
             isOneToOne: false
@@ -185,13 +178,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "StoryMember_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "StoryGroupMine"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "StoryMember_user_fkey"
             columns: ["user"]
             isOneToOne: false
@@ -237,13 +223,6 @@ export type Database = {
             referencedRelation: "StoryGroup"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "StoryThread_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "StoryGroupMine"
-            referencedColumns: ["id"]
-          },
         ]
       }
       User: {
@@ -266,23 +245,6 @@ export type Database = {
       }
     }
     Views: {
-      StoryGroupMine: {
-        Row: {
-          created_at: string | null
-          id: number | null
-          manager: string | null
-          name: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "StoryGroup_manager_fkey"
-            columns: ["manager"]
-            isOneToOne: false
-            referencedRelation: "User"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       StoryMemberStatsUI: {
         Row: {
           created_at: string | null
@@ -302,13 +264,6 @@ export type Database = {
             columns: ["group"]
             isOneToOne: false
             referencedRelation: "StoryGroup"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "StoryMember_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "StoryGroupMine"
             referencedColumns: ["id"]
           },
           {
@@ -341,13 +296,6 @@ export type Database = {
             referencedRelation: "StoryGroup"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "StoryThread_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "StoryGroupMine"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
@@ -368,6 +316,15 @@ export type Database = {
           contrib: number
           thread: number
           is_mine: boolean
+        }[]
+      }
+      get_last_contrib: {
+        Args: {
+          thread_id: number
+        }
+        Returns: {
+          content: string
+          id: number
         }[]
       }
     }
