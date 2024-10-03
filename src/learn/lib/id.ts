@@ -1,7 +1,7 @@
 import * as v from "valibot"
 
 export function randomId(): Id {
-  return (Math.floor(Math.random() * Number.MAX_SAFE_INTEGER) + 1) as Id
+  return (Math.floor(Math.random() * (Number.MAX_SAFE_INTEGER / 2)) + 1) as Id
 }
 
 export function timestampId(now: number | Date): Id {

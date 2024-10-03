@@ -1,20 +1,16 @@
 import { Fa } from "@/components/Fa"
-import {
-  alert,
-  Modal,
-  ModalDescription,
-  prompt,
-  promptLong,
-} from "@/components/Modal"
+import { alert, ModalDescription, prompt, textarea } from "@/components/Modal"
 import {
   MatchQuery,
   pgok,
+  psrc,
   QueryEmpty,
   queryError,
   QueryLoading,
   requireUser,
   supabase,
 } from "@/components/supabase"
+import { randomId } from "@/learn/lib/id"
 import {
   faBook,
   faCheck,
@@ -59,7 +55,7 @@ export function Main() {
         .single(),
   )
 
-  const [myself] = createResource(
+  const [myself, { refetch: refetchMyself }] = createResource(
     async () =>
       await supabase
         .from("StoryMemberStats")
@@ -76,12 +72,9 @@ export function Main() {
         .eq("group", groupId),
   )
 
-  const [incompleteThreads] = createResource(
+  const [incompleteThreads, { refetch: refetchIncomplete }] = createResource(
     async () =>
-      await supabase
-        .from("StoryContribOnIncomplete")
-        .select()
-        .eq("group", groupId),
+      await supabase.rpc("get_incomplete_contribs", { group_id: groupId }),
   )
 
   const completed = createMemo(() => {
@@ -151,7 +144,7 @@ export function Main() {
               result={incomplete()}
               loading="..."
               error={() => "ERROR"}
-              ok={({ size }) => size}
+              ok={(map) => map.size}
             />
           </p>
         </div>
@@ -193,9 +186,44 @@ export function Main() {
               "opacity-30": !myself()?.data?.gems || myself()?.data?.gems! < 10,
             }}
             onClick={async () => {
-              const name = await promptLong({
+              const me = await psrc(myself)
+              if (me.error) {
+                await alert({
+                  owner,
+                  title: "You are not a member of this story",
+                  get description() {
+                    return (
+                      <ModalDescription>{me.error.message}</ModalDescription>
+                    )
+                  },
+                })
+                return
+              }
+              if (me.data.gems < 10) {
+                await alert({
+                  owner,
+                  title: "You need 10 gems to create a thread",
+                  get description() {
+                    return (
+                      <>
+                        <ModalDescription>
+                          You can earn gems by adding onto existing stories.
+                        </ModalDescription>
+
+                        <ModalDescription>
+                          If there aren't enough existing stories or you've
+                          written too recently on them to be able to earn gems,
+                          ask your friends to add onto them.
+                        </ModalDescription>
+                      </>
+                    )
+                  },
+                })
+                return
+              }
+              const content = await textarea({
                 owner,
-                title: "Create story",
+                title: "New story",
                 get description() {
                   return (
                     <ModalDescription>
@@ -204,20 +232,22 @@ export function Main() {
                     </ModalDescription>
                   )
                 },
+                minlength: 40,
                 cancelText: "Cancel",
                 okText: "OK",
               })
-              if (!name) {
+              if (!content) {
                 return
               }
-              const result = await supabase
-                .from("StoryGroup")
-                .update({ name })
-                .eq("id", groupId)
+              const result = await supabase.rpc("create_thread", {
+                content_new: content,
+                group_id: groupId,
+                thread_id: randomId(),
+              })
               if (result.error) {
                 await alert({
                   owner,
-                  title: "Failed to rename group",
+                  title: "Failed to create thread",
                   get description() {
                     return (
                       <ModalDescription>
@@ -228,7 +258,9 @@ export function Main() {
                 })
                 return
               }
-              refetchGroup()
+              refetchMyself()
+              refetchIncomplete()
+              refetchStats()
             }}
           >
             <Fa class="size-4" icon={faPlus} title={false} />

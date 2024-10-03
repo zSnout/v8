@@ -3,7 +3,15 @@ import {
   type PostgrestError,
   type PostgrestSingleResponse,
 } from "@supabase/supabase-js"
-import { createResource, Match, Switch, type JSX } from "solid-js"
+import {
+  createEffect,
+  createResource,
+  Match,
+  Switch,
+  type JSX,
+  type Resource,
+} from "solid-js"
+import { error } from "./result"
 import type { Database } from "./supabase.types"
 
 const supabaseUrl = import.meta.env.PUBLIC_V8_SUPABASE_URL
@@ -72,4 +80,33 @@ export function pgok<T>(
     status: 200,
     statusText: "OK",
   }
+}
+
+export function pgerr<T>(err: unknown): PostgrestSingleResponse<T> {
+  return {
+    count: null,
+    data: null,
+    error: {
+      message: error(err).reason,
+      code: "unknown_error",
+      details: "",
+      hint: "",
+    },
+    status: 400,
+    statusText: "Error",
+  }
+}
+
+export function psrc<T>(
+  resource: Resource<PostgrestSingleResponse<T>>,
+): Promise<PostgrestSingleResponse<T>> {
+  return new Promise((resolve) => {
+    createEffect(() => {
+      if (resource.state == "errored") {
+        resolve(pgerr(resource.error))
+      } else if (resource.state == "ready") {
+        resolve(resource.latest)
+      }
+    })
+  })
 }

@@ -68,13 +68,6 @@ export type Database = {
             foreignKeyName: "StoryContrib_thread_fkey"
             columns: ["thread"]
             isOneToOne: false
-            referencedRelation: "StoryContribOnIncomplete"
-            referencedColumns: ["thread"]
-          },
-          {
-            foreignKeyName: "StoryContrib_thread_fkey"
-            columns: ["thread"]
-            isOneToOne: false
             referencedRelation: "StoryThread"
             referencedColumns: ["id"]
           },
@@ -273,30 +266,6 @@ export type Database = {
       }
     }
     Views: {
-      StoryContribOnIncomplete: {
-        Row: {
-          contrib: number | null
-          group: number | null
-          is_mine: boolean | null
-          thread: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "StoryThread_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "StoryGroup"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "StoryThread_group_fkey"
-            columns: ["group"]
-            isOneToOne: false
-            referencedRelation: "StoryGroupMine"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       StoryGroupMine: {
         Row: {
           created_at: string | null
@@ -366,13 +335,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "StoryContrib_thread_fkey"
-            columns: ["thread"]
-            isOneToOne: false
-            referencedRelation: "StoryContribOnIncomplete"
-            referencedColumns: ["thread"]
-          },
-          {
             foreignKeyName: "StoryThread_group_fkey"
             columns: ["group"]
             isOneToOne: false
@@ -390,7 +352,24 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      create_thread: {
+        Args: {
+          group_id: number
+          content_new: string
+          thread_id: number
+        }
+        Returns: undefined
+      }
+      get_incomplete_contribs: {
+        Args: {
+          group_id: number
+        }
+        Returns: {
+          contrib: number
+          thread: number
+          is_mine: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

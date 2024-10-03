@@ -86,7 +86,7 @@ export function ModalField(props: {
   )
 }
 
-export function ModalFieldLong(props: {
+export function ModalTextarea(props: {
   value?: string
   placeholder?: string
   onInput?: JSX.InputEventHandlerUnion<HTMLTextAreaElement, InputEvent>
@@ -352,7 +352,7 @@ export function prompt(props: {
   })
 }
 
-export function promptLong(props: {
+export function textarea(props: {
   owner: Owner | null
   title: JSX.Element
   description?: JSX.Element
@@ -376,7 +376,7 @@ export function promptLong(props: {
               close(value)
             }}
           >
-            <ModalFieldLong
+            <ModalTextarea
               minlength={props.minlength}
               value={untrack(() => props.value)}
               onInput={(el) => (value = el.currentTarget.value)}
