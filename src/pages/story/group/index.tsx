@@ -1,5 +1,12 @@
 import { Fa } from "@/components/Fa"
 import {
+  alert,
+  Modal,
+  ModalDescription,
+  prompt,
+  promptLong,
+} from "@/components/Modal"
+import {
   MatchQuery,
   pgok,
   QueryEmpty,
@@ -19,7 +26,7 @@ import {
   faUserPlus,
   type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import { createMemo, createResource, createSignal, For, Show } from "solid-js"
+import { createMemo, createResource, For, getOwner, Show } from "solid-js"
 
 function nonNullEq<T>(x: T | null | undefined, y: T | null | undefined) {
   return x != null && y != null && x === y
@@ -28,14 +35,14 @@ function nonNullEq<T>(x: T | null | undefined, y: T | null | undefined) {
 export function Main() {
   const user = requireUser()
 
-  const groupId = new URL(location.href).searchParams.get("id")
+  const groupId = Number(new URL(location.href).searchParams.get("id"))
 
-  if (!groupId) {
+  if (!Number.isSafeInteger(groupId)) {
     location.href = "/story"
     return "Redirecting..."
   }
 
-  const [stats] = createResource(
+  const [stats, { refetch: refetchStats }] = createResource(
     async () =>
       await supabase
         .from("StoryMemberStatsUI")
@@ -43,7 +50,7 @@ export function Main() {
         .filter("group", "eq", groupId),
   )
 
-  const [group] = createResource(
+  const [group, { refetch: refetchGroup }] = createResource(
     async () =>
       await supabase
         .from("StoryGroup")
@@ -92,6 +99,8 @@ export function Main() {
     return pgok(grouped, grouped.size)
   })
 
+  const owner = getOwner()
+
   const incomplete = createMemo(() => {
     const threads = incompleteThreads()
     if (!threads || threads.error) {
@@ -117,7 +126,7 @@ export function Main() {
     title: string
   }) {
     return (
-      <td class="px-1 first:rounded-l last:rounded-r last:pr-2 group-odd:bg-[--z-table-row-alt]">
+      <td class="px-1 transition first:rounded-l last:rounded-r last:pr-2 group-odd:bg-[--z-table-row-alt]">
         <Show when={props.value}>
           <div class="flex items-center gap-2">
             <Fa icon={props.icon} class="inline size-4" title={props.title} />
@@ -146,7 +155,7 @@ export function Main() {
             />
           </p>
         </div>
-        <div class="flex h-full flex-1 items-center justify-center px-2 text-center text-xl font-light text-z-heading">
+        <div class="flex h-full flex-1 items-center justify-center px-2 text-center text-xl font-light text-z-heading transition">
           <MatchQuery
             result={group()}
             loading={<QueryLoading message="[loading...]" />}
@@ -171,30 +180,168 @@ export function Main() {
         </div>
       </div>
 
-      <div class="mt-2 flex w-full border-y border-z py-4">
+      <div class="mt-2 flex w-full border-y border-z py-4 transition">
         <div class="mx-auto grid w-full max-w-96 grid-cols-2 justify-center gap-2">
           <button class="z-field col-span-2 flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-3 py-2 text-lg shadow-none">
             <Fa class="size-6" icon={faComment} title={false} />
             Add to a story
           </button>
 
-          <button class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none">
+          <button
+            class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+            classList={{
+              "opacity-30": !myself()?.data?.gems || myself()?.data?.gems! < 10,
+            }}
+            onClick={async () => {
+              const name = await promptLong({
+                owner,
+                title: "Create story",
+                get description() {
+                  return (
+                    <ModalDescription>
+                      Write the first sentence of this group's next thrilling
+                      tale!
+                    </ModalDescription>
+                  )
+                },
+                cancelText: "Cancel",
+                okText: "OK",
+              })
+              if (!name) {
+                return
+              }
+              const result = await supabase
+                .from("StoryGroup")
+                .update({ name })
+                .eq("id", groupId)
+              if (result.error) {
+                await alert({
+                  owner,
+                  title: "Failed to rename group",
+                  get description() {
+                    return (
+                      <ModalDescription>
+                        {result.error.message}
+                      </ModalDescription>
+                    )
+                  },
+                })
+                return
+              }
+              refetchGroup()
+            }}
+          >
             <Fa class="size-4" icon={faPlus} title={false} />
             Create story
           </button>
 
-          <button class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none">
+          <button
+            class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+            classList={{
+              "opacity-30": !myself()?.data?.gems || myself()?.data?.gems! < 10,
+            }}
+          >
             <Fa class="size-4" icon={faCheck} title={false} />
             Complete story
           </button>
 
           <Show when={isManager() || true}>
-            <button class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none">
+            <button
+              class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+              onClick={async () => {
+                const username = await prompt({
+                  owner,
+                  title: "Add new member",
+                  get description() {
+                    return (
+                      <ModalDescription>
+                        Enter the username of the member you want to add.
+                      </ModalDescription>
+                    )
+                  },
+                  cancelText: "Cancel",
+                  okText: "Add",
+                })
+                if (!username) {
+                  return
+                }
+                const user = await supabase
+                  .from("User")
+                  .select("id")
+                  .eq("username", username)
+                  .single()
+                if (user.error) {
+                  await alert({
+                    owner,
+                    title: "User does not exist",
+                    get description() {
+                      return (
+                        <ModalDescription>
+                          {user.error.message}
+                        </ModalDescription>
+                      )
+                    },
+                  })
+                  return
+                }
+                const result = await supabase
+                  .from("StoryMemberStats")
+                  .insert({ group: groupId, user: user.data.id })
+                if (result.error) {
+                  await alert({
+                    owner,
+                    title: "Failed to add user",
+                    get description() {
+                      return (
+                        <ModalDescription>
+                          {result.error.message}
+                        </ModalDescription>
+                      )
+                    },
+                  })
+                  return
+                }
+                refetchStats()
+              }}
+            >
               <Fa class="size-4" icon={faUserPlus} title={false} />
               Add member
             </button>
 
-            <button class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none">
+            <button
+              class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none"
+              onClick={async () => {
+                const name = await prompt({
+                  owner,
+                  title: "Rename story",
+                  cancelText: "Cancel",
+                  okText: "Rename",
+                  minlength: 4,
+                })
+                if (!name) {
+                  return
+                }
+                const result = await supabase
+                  .from("StoryGroup")
+                  .update({ name })
+                  .eq("id", groupId)
+                if (result.error) {
+                  await alert({
+                    owner,
+                    title: "Failed to rename group",
+                    get description() {
+                      return (
+                        <ModalDescription>
+                          {result.error.message}
+                        </ModalDescription>
+                      )
+                    },
+                  })
+                  return
+                }
+                refetchGroup()
+              }}
+            >
               <Fa class="size-4" icon={faTag} title={false} />
               Rename story
             </button>
@@ -205,7 +352,9 @@ export function Main() {
       <div class="grid flex-1 grid-cols-[auto,18rem]">
         <div class="flex flex-col pb-2 pr-6 pt-4">
           <div class="mx-auto mb-4 flex w-full max-w-96 flex-col gap-1">
-            <h2 class="text-center font-bold text-z-heading">Statistics</h2>
+            <h2 class="text-center font-bold text-z-heading transition">
+              Statistics
+            </h2>
 
             <p>
               The table below shows each person added to this group, along with
@@ -223,7 +372,7 @@ export function Main() {
               <table class="w-full">
                 <thead>
                   <tr class="overflow-clip rounded">
-                    <td class="px-1 pl-2 first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+                    <td class="px-1 pl-2 transition first:rounded-l last:rounded-r">
                       Username
                     </td>
                     <Td icon={faComment} title="Contributions" value=" " />
@@ -240,7 +389,7 @@ export function Main() {
                       stat_threads_created,
                     }) => (
                       <tr class="group overflow-clip rounded">
-                        <td class="px-1 pl-2 first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+                        <td class="px-1 pl-2 transition first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
                           {username}
                         </td>
                         <Td
@@ -267,7 +416,7 @@ export function Main() {
           />
         </div>
 
-        <ul class="flex h-full flex-col gap-2 border-l border-z pl-2 pt-2">
+        <ul class="flex h-full flex-col gap-2 border-l border-z pl-2 pt-2 transition">
           <MatchQuery
             result={completed()}
             loading={<QueryLoading message="Loading completed threads..." />}

@@ -7,6 +7,7 @@ import {
   untrack,
 } from "solid-js"
 import { Portal } from "solid-js/web"
+import { AutoResizeTextarea } from "./fields/AutoResizeTextarea"
 
 export function ModalCancel(props: {
   children: JSX.Element
@@ -69,6 +70,7 @@ export function ModalField(props: {
   onInput?: JSX.InputEventHandlerUnion<HTMLInputElement, InputEvent>
   onChange?: JSX.ChangeEventHandlerUnion<HTMLInputElement, Event>
   autofocus?: boolean
+  minlength?: number
 }) {
   return (
     <input
@@ -79,6 +81,28 @@ export function ModalField(props: {
       onInput={props.onInput}
       onChange={props.onChange}
       autofocus={props.autofocus}
+      minlength={props.minlength}
+    />
+  )
+}
+
+export function ModalFieldLong(props: {
+  value?: string
+  placeholder?: string
+  onInput?: JSX.InputEventHandlerUnion<HTMLTextAreaElement, InputEvent>
+  onChange?: JSX.ChangeEventHandlerUnion<HTMLTextAreaElement, Event>
+  autofocus?: boolean
+  minlength?: number
+}) {
+  return (
+    <AutoResizeTextarea
+      class="z-field mt-3 min-h-24 w-full shadow-none placeholder:opacity-50"
+      value={props.value ?? []}
+      placeholder={props.placeholder}
+      onInput={props.onInput}
+      onChange={props.onChange}
+      autofocus={props.autofocus}
+      minlength={props.minlength}
     />
   )
 }
@@ -290,6 +314,7 @@ export function prompt(props: {
   cancelText?: string
   okText?: string
   value?: string
+  minlength?: number
 }): Promise<string | undefined> {
   return popup({
     owner: props.owner,
@@ -307,6 +332,52 @@ export function prompt(props: {
             }}
           >
             <ModalField
+              minlength={props.minlength}
+              value={untrack(() => props.value)}
+              onInput={(el) => (value = el.currentTarget.value)}
+            />
+          </form>
+          <ModalButtons>
+            <ModalCancel onClick={() => close(undefined)}>
+              {props.cancelText || "Cancel"}
+            </ModalCancel>
+            <ModalConfirm onClick={() => close(value)}>
+              {props.okText || "OK"}
+            </ModalConfirm>
+          </ModalButtons>
+        </>
+      )
+    },
+    onCancel: "",
+  })
+}
+
+export function promptLong(props: {
+  owner: Owner | null
+  title: JSX.Element
+  description?: JSX.Element
+  cancelText?: string
+  okText?: string
+  value?: string
+  minlength?: number
+}): Promise<string | undefined> {
+  return popup({
+    owner: props.owner,
+    children(close) {
+      let value = untrack(() => props.value)
+
+      return (
+        <>
+          <ModalTitle>{props.title}</ModalTitle>
+          {props.description}
+          <form
+            onSubmit={(event) => {
+              event.preventDefault()
+              close(value)
+            }}
+          >
+            <ModalFieldLong
+              minlength={props.minlength}
               value={untrack(() => props.value)}
               onInput={(el) => (value = el.currentTarget.value)}
             />
