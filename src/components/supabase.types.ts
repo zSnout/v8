@@ -142,7 +142,7 @@ export type Database = {
           group: number
           id: number
           stat_contribs: number
-          stat_last_contrib: string
+          stat_last_contrib: string | null
           stat_threads_created: number
           stat_unique_thread_contribs: number
           user: string
@@ -153,7 +153,7 @@ export type Database = {
           group: number
           id?: number
           stat_contribs?: number
-          stat_last_contrib?: string
+          stat_last_contrib?: string | null
           stat_threads_created?: number
           stat_unique_thread_contribs?: number
           user: string
@@ -164,7 +164,7 @@ export type Database = {
           group?: number
           id?: number
           stat_contribs?: number
-          stat_last_contrib?: string
+          stat_last_contrib?: string | null
           stat_threads_created?: number
           stat_unique_thread_contribs?: number
           user?: string

@@ -18,6 +18,7 @@ import {
   supabase,
 } from "@/components/supabase"
 import { randomId } from "@/learn/lib/id"
+import { timestampDist } from "@/pages/quiz/shared"
 import {
   faBook,
   faCheck,
@@ -264,18 +265,11 @@ export function Main() {
       </div>
 
       <div class="grid flex-1 grid-cols-[auto,18rem]">
-        <div class="flex flex-col pb-2 pr-6 pt-4">
-          <div class="mx-auto mb-4 flex w-full max-w-96 flex-col gap-1">
-            <h2 class="text-center font-bold text-z-heading transition">
-              Statistics
+        <div class="flex flex-col pb-2 pt-4">
+          <div class="mx-auto mb-2 flex w-full max-w-96 flex-col gap-1">
+            <h2 class="text-center font-semibold text-z-heading transition">
+              Group Leaderboard
             </h2>
-
-            <p>
-              The table below shows each person added to this group, along with
-              1{")"} how many contributions they've made, 2{")"} how many
-              stories they've started, and 3{")"} the last time they wrote.
-              {/* , and 4) how many contributions they <em>could</em> make. */}
-            </p>
           </div>
 
           <MatchQuery
@@ -285,17 +279,45 @@ export function Main() {
             ok={(stats) => (
               <table class="w-full">
                 <thead>
-                  <tr class="overflow-clip rounded">
+                  <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
                     <td class="px-1 pl-2 transition first:rounded-l last:rounded-r">
                       Username
                     </td>
-                    <Td icon={faComment} title="Contributions" value=" " />
-                    <Td icon={faBook} title="Threads Created" value=" " />
-                    <Td icon={faClock} title="Last Contribution" value=" " />
+                    <Td
+                      icon={faComment}
+                      title="Contributions"
+                      value="Contribs"
+                    />
+                    <Td icon={faBook} title="Threads Created" value="Threads" />
+                    <Td
+                      icon={faClock}
+                      title="Last Contribution"
+                      value="Last Active"
+                    />
                   </tr>
                 </thead>
                 <tbody>
-                  <For each={stats}>
+                  <For
+                    each={stats.sort(
+                      (
+                        { stat_last_contrib: a_ },
+                        { stat_last_contrib: b_ },
+                      ) => {
+                        let a = a_ ? Date.parse(a_ + "Z") : null
+                        let b = b_ ? Date.parse(b_ + "Z") : null
+                        if (a == null && b == null) {
+                          return 0
+                        }
+                        if (a == null) {
+                          return 1
+                        }
+                        if (b == null) {
+                          return -1
+                        }
+                        return a - b
+                      },
+                    )}
+                  >
                     {({
                       username,
                       stat_contribs,
@@ -318,8 +340,16 @@ export function Main() {
                         />
                         <Td
                           icon={faClock}
-                          title="Last Contribution"
-                          value={stat_last_contrib!}
+                          title="Last Active"
+                          value={
+                            stat_last_contrib ?
+                              timestampDist(
+                                (Date.now() -
+                                  Date.parse(stat_last_contrib + "Z")) /
+                                  1000,
+                              ) + " ago"
+                            : null
+                          }
                         />
                       </tr>
                     )}
@@ -330,43 +360,51 @@ export function Main() {
           />
         </div>
 
-        <ul class="flex h-full flex-col gap-2 border-l border-z pl-2 pt-2 transition">
-          <MatchQuery
-            result={completed()}
-            loading={<QueryLoading message="Loading completed threads..." />}
-            error={queryError}
-            ok={(data) => (
-              <For
-                each={[...data.entries()]}
-                fallback={
-                  <QueryEmpty message="No stories complete yet. Start a story and add to it with your friends!" />
-                }
-              >
-                {([, contents]) => (
-                  <li class="flex flex-col">
-                    <p>
-                      <strong>{contents.length}</strong>{" "}
-                      <span class="text-sm text-z-subtitle">contribs</span> •{" "}
-                      <strong>
-                        {contents
-                          .map((x) => x.split(/\s+/g).length)
-                          .reduce((a, b) => a + b, 0)}
-                      </strong>{" "}
-                      <span class="text-sm text-z-subtitle">words</span> •{" "}
-                      <button
-                        class="text-sm text-z-link underline underline-offset-2"
-                        onClick={btnReadMore}
-                      >
-                        read more
-                      </button>
-                    </p>
-                    <p class="line-clamp-4 pl-4">{contents.join(" ")}</p>
-                  </li>
-                )}
-              </For>
-            )}
-          ></MatchQuery>
-        </ul>
+        <div class="flex h-full flex-col">
+          <div class="mx-auto mb-2 mt-4 flex w-full max-w-96 flex-col gap-1">
+            <h2 class="text-center font-semibold text-z-heading transition">
+              Completed Stories
+            </h2>
+          </div>
+
+          <ul class="flex h-full flex-col gap-2 border-z pl-2 pt-2 transition">
+            <MatchQuery
+              result={completed()}
+              loading={<QueryLoading message="Loading completed threads..." />}
+              error={queryError}
+              ok={(data) => (
+                <For
+                  each={[...data.entries()]}
+                  fallback={
+                    <QueryEmpty message="No stories complete yet. Start a story and add to it with your friends!" />
+                  }
+                >
+                  {([, contents]) => (
+                    <li class="flex flex-col">
+                      <p>
+                        <strong>{contents.length}</strong>{" "}
+                        <span class="text-sm text-z-subtitle">contribs</span> •{" "}
+                        <strong>
+                          {contents
+                            .map((x) => x.split(/\s+/g).length)
+                            .reduce((a, b) => a + b, 0)}
+                        </strong>{" "}
+                        <span class="text-sm text-z-subtitle">words</span> •{" "}
+                        <button
+                          class="text-sm text-z-link underline underline-offset-2"
+                          onClick={btnReadMore}
+                        >
+                          read more
+                        </button>
+                      </p>
+                      <p class="line-clamp-4 pl-4">{contents.join(" ")}</p>
+                    </li>
+                  )}
+                </For>
+              )}
+            ></MatchQuery>
+          </ul>
+        </div>
       </div>
     </div>
   )
