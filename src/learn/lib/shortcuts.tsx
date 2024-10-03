@@ -154,21 +154,6 @@ export function matchesShortcut(event: KeyboardEvent, shortcut: Shortcut) {
   )
 }
 
-export function Write(props: { shortcut: Shortcut }) {
-  return (
-    <span class="text-right text-sm text-z-subtitle">
-      {shortcutToString(props.shortcut)
-        .match(/[⇧⌘⌥⌫↩]/g)
-        ?.join("") ?? ""}
-      <span class="font-mono">
-        {shortcutToString(props.shortcut)
-          .match(/[^⇧⌘⌥⌫↩]/g)
-          ?.join("") ?? ""}
-      </span>
-    </span>
-  )
-}
-
 export class ShortcutManager {
   private map = new Map<
     string,
