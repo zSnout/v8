@@ -1,4 +1,4 @@
-import { createSignal, Show, type JSX } from "solid-js"
+import { children, createSignal, Show, type JSX } from "solid-js"
 import { clsx } from "./clsx"
 import { error } from "./result"
 
@@ -80,6 +80,8 @@ export function Form(props: {
   title?: JSX.Element
   /** Form fields */
   children(info: FormInfo): JSX.Element
+  /** Header between title and fields */
+  header?: JSX.Element
   /** Footer below the submit button and message */
   footer?: JSX.Element
   /** Default message on submit button */
@@ -109,6 +111,8 @@ export function Form(props: {
     },
   }
 
+  const header = children(() => props.header)
+
   return (
     <form
       class="my-auto"
@@ -128,7 +132,11 @@ export function Form(props: {
       }}
     >
       <Show when={props.title}>
-        <FormTitle class="mb-8">{props.title}</FormTitle>
+        <FormTitle class={header() ? "mb-1" : "mb-8"}>{props.title}</FormTitle>
+        {header()}
+        <Show when={header()}>
+          <div class="mb-8" />
+        </Show>
       </Show>
 
       <FormFieldGroup>{props.children(info)}</FormFieldGroup>

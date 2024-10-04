@@ -1,25 +1,41 @@
+import { Form, FormField } from "@/components/form"
 import { supabase } from "@/components/supabase"
 import { delay, wait } from "@/components/wait"
-import { createSignal, Show } from "solid-js"
 
 export function Main() {
-  const [processing, setProcessing] = createSignal(false)
-  const [message, setMessage] = createSignal<string>()
   return (
-    <form
-      class="my-auto"
-      onSubmit={async (event) => {
-        event.preventDefault()
-        setProcessing(true)
-        setMessage()
-        const data = new FormData(event.currentTarget)
+    <Form
+      title="Sign up for zSnout"
+      submit="Sign Up"
+      header={
+        <p class="text-center text-sm text-z-subtitle">
+          By signing up, you agree to our{" "}
+          <a
+            href="/blog/privacy"
+            class="text-z-link underline underline-offset-2"
+          >
+            privacy policy
+          </a>
+          .
+        </p>
+      }
+      footer={
+        <p class="mt-8 text-center">
+          Or{" "}
+          <a href="/log-in" class="text-z-link underline underline-offset-2">
+            log in to an existing account
+          </a>
+          .
+        </p>
+      }
+      onSubmit={async (info) => {
+        const data = info.data()
         const username = String(data.get("username") ?? "")
         const email = String(data.get("email") ?? "")
         const password = String(data.get("password") ?? "")
         if (!(username && email && password)) {
           await wait(300)
-          setProcessing(false)
-          setMessage("Invalid data entered. Please try again.")
+          return "Invalid data entered. Please try again."
         }
         const resp = await delay(
           supabase.auth.signUp({
@@ -34,85 +50,55 @@ export function Main() {
         )
         if (resp.error) {
           console.error(resp.error)
-          setProcessing(false)
-          setMessage(
-            resp.error.message == "Database error saving new user" ?
+          return resp.error.message == "Database error saving new user" ?
               "That username is taken; try another"
-            : resp.error.message,
-          )
-          return
+            : resp.error.message
         }
-        setProcessing(false)
         if (resp.data.user?.confirmed_at == null) {
-          setMessage("Check your email for a confirmation message!")
+          return "Check your email for a confirmation message!"
         } else {
-          setMessage("Redirecting you to account management...")
           location.href = "/account"
+          return "Redirecting you to account management..."
         }
       }}
     >
-      <h1 class="mb-8 text-center text-lg font-semibold text-z-heading">
-        Sign up for zSnout
-      </h1>
+      {() => (
+        <>
+          <FormField label="Email Address">
+            <input
+              class="z-field w-full shadow-none"
+              type="email"
+              autocomplete="email"
+              name="email"
+              required
+            />
+          </FormField>
 
-      <label class="block">
-        <p class="mb-1 text-z-subtitle">Email Address</p>
-        <input
-          class="z-field w-full shadow-none"
-          type="email"
-          autocomplete="email"
-          name="email"
-          required
-        />
-      </label>
+          <FormField label="Username">
+            <input
+              class="z-field w-full shadow-none"
+              type="text"
+              autocomplete="username"
+              name="username"
+              required
+              minlength="4"
+              maxlength="32"
+            />
+          </FormField>
 
-      <label class="mt-6 block">
-        <p class="mb-1 text-z-subtitle">Username</p>
-        <input
-          class="z-field w-full shadow-none"
-          type="text"
-          autocomplete="username"
-          name="username"
-          required
-          minlength="4"
-          maxlength="32"
-        />
-      </label>
-
-      <label class="mt-6 block">
-        <p class="mb-1 text-z-subtitle">
-          Password (8+ chars; use letters and numbers)
-        </p>
-        <input
-          class="z-field w-full shadow-none"
-          type="password"
-          autocomplete="new-password"
-          name="password"
-          required
-          pattern=".*[A-Za-z].*[0-9].*|.*[0-9].*[A-Za-z].*"
-          minlength="8"
-        />
-      </label>
-
-      <button
-        class="z-field mt-12 w-full shadow-none"
-        type="submit"
-        disabled={processing()}
-      >
-        {processing() ? "Processing..." : "Sign Up"}
-      </button>
-
-      <p class="mt-8 text-center">
-        Or{" "}
-        <a href="/log-in" class="text-z-link underline underline-offset-2">
-          log in to an existing account
-        </a>
-        .
-      </p>
-
-      <Show when={message()}>
-        <p class="mt-8 text-center">{message()}</p>
-      </Show>
-    </form>
+          <FormField label="Password (8+ chars; use letters and numbers)">
+            <input
+              class="z-field w-full shadow-none"
+              type="password"
+              autocomplete="new-password"
+              name="password"
+              required
+              pattern=".*[A-Za-z].*[0-9].*|.*[0-9].*[A-Za-z].*"
+              minlength="8"
+            />
+          </FormField>
+        </>
+      )}
+    </Form>
   )
 }
