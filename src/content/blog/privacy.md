@@ -106,7 +106,7 @@ in is never visible to anybody, not even our site's owners.
 zSnout promises never to share your information with third-parties. If you have
 concerns about anything relating to your data or privacy policy,
 [create a publicly viewable issue in our GitHub repository](https://github.com/zSnout/v8/issues)
-or email us privately at `zsakowitz [at] zsnout [dot] com`.
+or email us privately at `sakawi [at] zsnout [dot] com`.
 
 ## Footnotes
 
