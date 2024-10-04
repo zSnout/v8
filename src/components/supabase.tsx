@@ -27,20 +27,23 @@ export function requireUser() {
   return Object.assign(p, { resource: Object.assign(resource[0], resource) })
 }
 
-export function MatchQuery<T>(props: {
-  result: PostgrestSingleResponse<T> | undefined
+export function MatchQuery<T, E extends object>(props: {
+  result:
+    | { data: T; error?: null; count?: number | null }
+    | { error: E; data?: unknown; count?: number | null }
+    | undefined
   loading: JSX.Element
-  error: (error: PostgrestError) => JSX.Element
-  ok: (data: T, count: number | null) => JSX.Element
+  error: (error: E) => JSX.Element
+  ok: (data: T, count: number | null | undefined) => JSX.Element
 }) {
   return (
     <Switch>
       <Match when={props.result == null}>{props.loading}</Match>
-      <Match when={props.result && props.result.error}>
+      <Match when={props.result && props.result.error != null}>
         {props.error(props.result?.error!)}
       </Match>
-      <Match when={props.result && !props.result.error}>
-        {props.ok(props.result?.data!, props.result?.count!)}
+      <Match when={props.result && props.result.error == null}>
+        {props.ok(props.result?.data as T, props.result?.count!)}
       </Match>
     </Switch>
   )

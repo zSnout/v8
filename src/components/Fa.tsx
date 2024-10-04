@@ -1,5 +1,6 @@
 import type { IconDefinition } from "@fortawesome/free-solid-svg-icons"
 import { Show } from "solid-js"
+import { clsx } from "./clsx"
 
 export function Fa(props: {
   class: string
@@ -8,7 +9,7 @@ export function Fa(props: {
 }) {
   return (
     <svg
-      class={`overflow-visible transition ${props.class}`}
+      class={clsx("overflow-visible transition", props.class)}
       fill="var(--icon-fill)"
       role={props.title === false ? "presentation" : "img"}
       viewBox={`0 0 ${props.icon?.icon[0]} ${props.icon?.icon[1]}`}

@@ -2,7 +2,7 @@ import type { Page } from "../pages"
 
 export function SideCard(props: Page) {
   return (
-    <div class="flex w-full gap-4 lg:max-w-md">
+    <div class="flex w-full gap-4">
       <a
         class="h-40 min-h-[10rem] w-40 min-w-[10rem] overflow-clip rounded-lg"
         draggable={false}

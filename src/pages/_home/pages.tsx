@@ -15,9 +15,11 @@ import tropeHighlighterOpenGraph from "../trope-highlighter/open-graph.png"
 import vjosaliOpenGraph from "../vjosali/open-graph.png"
 
 export type Tag =
+  | "account"
   | "art"
   | "blog"
   | "code"
+  | "collaborative"
   | "debug"
   | "language"
   | "math"
@@ -40,6 +42,9 @@ export interface Page {
   imageSrc: string
   imageAlt: string
 }
+
+export interface PageTextOnly
+  extends Omit<Page, "published" | "categoryHref" | "imageSrc" | "imageAlt"> {}
 
 const nonBlogPages: readonly Page[] = [
   {
@@ -252,5 +257,39 @@ const blogPages: readonly Page[] = await Promise.all(
       ).default,
     })),
 )
+
+export const accountEntry: readonly PageTextOnly[] = [
+  {
+    href: "/log-in",
+    title: "Log In",
+    subtitle:
+      "Log in to your zSnout account to unlock access to additional pages, such as the recently updated Stories.",
+    tags: ["account"],
+  },
+  {
+    href: "/sign-up",
+    title: "Sign Up",
+    subtitle:
+      "Sign up for a free zSnout account to unlock access to additional pages, such as the recently updated Stories.",
+    tags: ["account"],
+  },
+]
+
+export const accountVerified: readonly PageTextOnly[] = [
+  {
+    href: "/story",
+    title: "Story Groups",
+    subtitle:
+      "Collaboratively write with friends, but with a twist: you can only see the immediately previous sentence written.",
+    tags: ["account", "collaborative"],
+  },
+  {
+    href: "/account",
+    title: "My Account",
+    subtitle:
+      "See details about your account, including your username, email, and verification date. Also includes a button to sign out on this device.",
+    tags: ["account"],
+  },
+]
 
 export const pages: readonly Page[] = [...blogPages, ...nonBlogPages]

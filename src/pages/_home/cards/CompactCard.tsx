@@ -1,12 +1,12 @@
 import { Show } from "solid-js"
 import { BlueGreenText } from "../BlueGreenText"
-import type { Page } from "../pages"
+import type { PageTextOnly } from "../pages"
 
-export function CompactCard(props: { page: Page }) {
+export function CompactCard(props: { page: PageTextOnly }) {
   return (
     <div class="flex flex-col">
       <Show when={props.page.category}>
-        <BlueGreenText name={props.page.category || ""} />
+        <BlueGreenText name={props.page.category!} />
       </Show>
 
       <a

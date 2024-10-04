@@ -5,7 +5,7 @@ import type { Page } from "../pages"
 
 export function MegaCard(props: Page) {
   return (
-    <div class="flex w-full flex-col lg:max-w-2xl">
+    <div class="flex w-full flex-1 flex-col lg:max-w-2xl lg:basis-96">
       <a
         class="aspect-open-graph w-full overflow-clip rounded-lg"
         draggable={false}
