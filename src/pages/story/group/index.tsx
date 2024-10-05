@@ -212,8 +212,8 @@ export function Main() {
     onClick: () => void
   }) {
     return (
-      <th class="text-z-heading transition icon-z-text-heading first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
-        <button class="w-full px-1 last:pr-2" onClick={props.onClick}>
+      <th class="group/th p-0 font-semibold text-z-heading transition icon-z-text-heading first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+        <button class="w-full px-1 group-last/th:pr-2" onClick={props.onClick}>
           <TdInner {...props} />
         </button>
       </th>
@@ -360,7 +360,7 @@ export function Main() {
               <table class="w-full">
                 <thead>
                   <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
-                    <td class="transition first:rounded-l last:rounded-r">
+                    <td class="p-0 transition first:rounded-l last:rounded-r">
                       <button
                         class="px-1 pl-2"
                         onClick={() => {
