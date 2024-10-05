@@ -105,3 +105,21 @@ export function psrc<T>(
     })
   })
 }
+
+export function pgmap<
+  T extends PostgrestSingleResponse<unknown> | null | undefined,
+  U,
+>(
+  resp: T,
+  f: (value: Extract<T, { error: null; data: unknown }>["data"]) => U,
+): PostgrestSingleResponse<U> | Extract<T, null | undefined> {
+  if (resp == null) {
+    return resp as Extract<T, null | undefined>
+  }
+
+  if (resp.error) {
+    return resp as PostgrestSingleResponse<U>
+  }
+
+  return { ...resp, data: f(resp.data) } as PostgrestSingleResponse<U>
+}

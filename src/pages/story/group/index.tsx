@@ -13,6 +13,7 @@ import {
 import { randomItem } from "@/components/random"
 import {
   MatchQuery,
+  pgmap,
   pgok,
   psrc,
   QueryEmpty,
@@ -59,9 +60,15 @@ export function Main() {
     return "Redirecting..."
   }
 
-  const [stats, { refetch: refetchStats }] = createResource(
-    async () => await supabase.rpc("full_stats", { group_id: groupId }),
-  )
+  const [stats, { refetch: refetchStats, mutate: mutateStats }] =
+    createResource(async () =>
+      pgmap(await supabase.rpc("full_stats", { group_id: groupId }), (data) =>
+        data.sort(
+          ({ stat_last_contrib: a_ }, { stat_last_contrib: b_ }) =>
+            (b_ ? Date.parse(b_ + "Z") : 0) - (a_ ? Date.parse(a_ + "Z") : 0),
+        ),
+      ),
+    )
 
   const [group, { refetch: refetchGroup }] = createResource(
     async () =>
@@ -182,6 +189,21 @@ export function Main() {
       <td class="px-1 transition first:rounded-l last:rounded-r last:pr-2 group-odd:bg-[--z-table-row-alt]">
         <TdInner {...props} />
       </td>
+    )
+  }
+
+  function Th(props: {
+    value: JSX.Element
+    icon: IconDefinition
+    title: string
+    onClick: () => void
+  }) {
+    return (
+      <th class="text-z-heading transition icon-z-text-heading first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+        <button class="w-full px-1 last:pr-2" onClick={props.onClick}>
+          <TdInner {...props} />
+        </button>
+      </th>
     )
   }
 
@@ -325,35 +347,112 @@ export function Main() {
               <table class="w-full">
                 <thead>
                   <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
-                    <td class="px-1 pl-2 transition first:rounded-l last:rounded-r">
-                      Username
+                    <td class="transition first:rounded-l last:rounded-r">
+                      <button
+                        class="px-1 pl-2"
+                        onClick={() => {
+                          mutateStats((stats) =>
+                            pgmap(stats, (data) =>
+                              data
+                                .slice()
+                                .sort(({ username: a }, { username: b }) =>
+                                  a < b ? -1 : 1,
+                                ),
+                            ),
+                          )
+                        }}
+                      >
+                        Username
+                      </button>
                     </td>
-                    <Td
+                    <Th
                       icon={faComment}
                       title="Contributions"
                       value="Contribs"
+                      onClick={() => {
+                        mutateStats((stats) =>
+                          pgmap(stats, (data) =>
+                            data
+                              .slice()
+                              .sort(
+                                ({ stat_contribs: a }, { stat_contribs: b }) =>
+                                  b - a,
+                              ),
+                          ),
+                        )
+                      }}
                     />
-                    <Td icon={faBook} title="Stories Created" value="Stories" />
-                    <Td
+                    <Th
+                      icon={faBook}
+                      title="Stories Created"
+                      value="Stories"
+                      onClick={() => {
+                        mutateStats((stats) =>
+                          pgmap(stats, (data) =>
+                            data
+                              .slice()
+                              .sort(
+                                (
+                                  { stat_threads_created: a },
+                                  { stat_threads_created: b },
+                                ) => b - a,
+                              ),
+                          ),
+                        )
+                      }}
+                    />
+                    <Th
                       icon={faClock}
                       title="Last Contribution"
                       value="Last Active"
+                      onClick={() => {
+                        mutateStats((stats) => {
+                          if (!stats || stats.error) {
+                            return stats
+                          }
+                          return {
+                            ...stats,
+                            data: stats.data
+                              .slice()
+                              .sort(
+                                (
+                                  { stat_last_contrib: a_ },
+                                  { stat_last_contrib: b_ },
+                                ) =>
+                                  (b_ ? Date.parse(b_ + "Z") : 0) -
+                                  (a_ ? Date.parse(a_ + "Z") : 0),
+                              ),
+                          }
+                        })
+                      }}
                     />
-                    <Td
+                    <Th
                       icon={faCommentDots}
                       title="Possible Contributions"
                       value="Possible"
+                      onClick={() => {
+                        mutateStats((stats) => {
+                          if (!stats || stats.error) {
+                            return stats
+                          }
+                          return {
+                            ...stats,
+                            data: stats.data
+                              .slice()
+                              .sort(
+                                (a, b) =>
+                                  Math.floor(b.gems / 10) -
+                                  b.blocked_on -
+                                  (Math.floor(a.gems / 10) - a.blocked_on),
+                              ),
+                          }
+                        })
+                      }}
                     />
                   </tr>
                 </thead>
                 <tbody>
-                  <For
-                    each={stats.sort(
-                      ({ stat_last_contrib: a_ }, { stat_last_contrib: b_ }) =>
-                        (b_ ? Date.parse(b_ + "Z") : 0) -
-                        (a_ ? Date.parse(a_ + "Z") : 0),
-                    )}
-                  >
+                  <For each={stats}>
                     {({
                       username,
                       stat_contribs,
