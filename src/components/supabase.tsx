@@ -29,7 +29,7 @@ export function requireUser() {
 
 export function MatchQuery<T, E extends object>(props: {
   result:
-    | { data: T; error?: null; count?: number | null }
+    | { data: T; error: null; count?: number | null }
     | { error: E; data?: unknown; count?: number | null }
     | undefined
   loading: JSX.Element
