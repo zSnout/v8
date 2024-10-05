@@ -23,6 +23,7 @@ import {
 } from "@/components/supabase"
 import { randomId } from "@/learn/lib/id"
 import { timestampDist } from "@/pages/quiz/shared"
+import { faCommentDots } from "@fortawesome/free-regular-svg-icons"
 import {
   faBook,
   faCheck,
@@ -34,7 +35,15 @@ import {
   faUserPlus,
   type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
-import { createMemo, createResource, For, getOwner, Show } from "solid-js"
+import {
+  children,
+  createMemo,
+  createResource,
+  For,
+  getOwner,
+  Show,
+  type JSX,
+} from "solid-js"
 
 function nonNullEq<T>(x: T | null | undefined, y: T | null | undefined) {
   return x != null && y != null && x === y
@@ -51,11 +60,7 @@ export function Main() {
   }
 
   const [stats, { refetch: refetchStats }] = createResource(
-    async () =>
-      await supabase
-        .from("StoryMemberStatsUI")
-        .select()
-        .filter("group", "eq", groupId),
+    async () => await supabase.rpc("full_stats", { group_id: groupId }),
   )
 
   const [group, { refetch: refetchGroup }] = createResource(
@@ -169,19 +174,43 @@ export function Main() {
   )
 
   function Td(props: {
-    value: string | number | null | undefined
+    value: JSX.Element
     icon: IconDefinition
     title: string
   }) {
     return (
       <td class="px-1 transition first:rounded-l last:rounded-r last:pr-2 group-odd:bg-[--z-table-row-alt]">
-        <Show when={props.value}>
-          <div class="flex items-center gap-2">
-            <Fa icon={props.icon} class="inline size-4" title={props.title} />
-            {props.value}
-          </div>
-        </Show>
+        <TdInner {...props} />
       </td>
+    )
+  }
+
+  function TdAsLabel(props: {
+    value: JSX.Element
+    icon: IconDefinition
+    title: string
+  }) {
+    return (
+      <div class="px-1 text-z-heading transition icon-z-text-heading first:rounded-l last:rounded-r last:pr-2 group-odd:bg-[--z-table-row-alt]">
+        <TdInner {...props} />
+      </div>
+    )
+  }
+
+  function TdInner(props: {
+    value: JSX.Element
+    icon: IconDefinition
+    title: string
+  }) {
+    const value = children(() => props.value)
+
+    return (
+      <Show when={value()}>
+        <div class="flex items-center gap-2">
+          <Fa icon={props.icon} class="inline size-4" title={props.title} />
+          {value()}
+        </div>
+      </Show>
     )
   }
 
@@ -310,6 +339,11 @@ export function Main() {
                       title="Last Contribution"
                       value="Last Active"
                     />
+                    <Td
+                      icon={faCommentDots}
+                      title="Possible Contributions"
+                      value="Possible"
+                    />
                   </tr>
                 </thead>
                 <tbody>
@@ -325,6 +359,8 @@ export function Main() {
                       stat_contribs,
                       stat_last_contrib,
                       stat_threads_created,
+                      blocked_on,
+                      gems,
                     }) => (
                       <tr class="group overflow-clip rounded">
                         <td class="px-1 pl-2 transition first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
@@ -359,6 +395,20 @@ export function Main() {
                             }
                           })()}
                         />
+                        <Td
+                          icon={faCommentDots}
+                          title="Blocked Contributions"
+                          value={
+                            <MatchQuery
+                              result={incomplete()}
+                              loading="..."
+                              error={() => "ERROR"}
+                              ok={(map) =>
+                                map.size - blocked_on + Math.floor(gems / 10)
+                              }
+                            />
+                          }
+                        />
                       </tr>
                     )}
                   </For>
@@ -366,6 +416,32 @@ export function Main() {
               </table>
             )}
           />
+
+          <div class="mt-4 grid grid-cols-[auto,auto] gap-x-4 border-t border-z py-2">
+            <TdAsLabel
+              icon={faComment}
+              title="Contributions"
+              value="Contribs"
+            />
+            <p>is the number of contributions somebody has made.</p>
+            <TdAsLabel icon={faBook} title="Stories Created" value="Stories" />
+            <p>is the number of stories somebody has created.</p>
+            <TdAsLabel
+              icon={faClock}
+              title="Last Contribution"
+              value="Last Active"
+            />
+            <p>is how long ago somebody's last contribution was.</p>
+            <TdAsLabel
+              icon={faCommentDots}
+              title="Possible Contributions"
+              value="Possible"
+            />
+            <p>
+              is how many contributions somebody <em>could</em> make when they
+              next log in.
+            </p>
+          </div>
         </div>
 
         <div class="flex h-full flex-col">

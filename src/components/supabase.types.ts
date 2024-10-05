@@ -318,6 +318,21 @@ export type Database = {
         }
         Returns: undefined
       }
+      full_stats: {
+        Args: {
+          group_id: number
+        }
+        Returns: {
+          gems: number
+          stat_contribs: number
+          stat_last_contrib: string
+          stat_threads_completed: number
+          stat_threads_created: number
+          stat_unique_thread_contribs: number
+          username: string
+          blocked_on: number
+        }[]
+      }
       get_incomplete_contribs: {
         Args: {
           group_id: number
