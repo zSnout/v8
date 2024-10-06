@@ -62,7 +62,7 @@ export interface Props {
         >zSnout{
           import.meta.env.DEV && (
             <div
-              class="-mt-2 text-center text-xs font-normal text-z-subtitle"
+              class="-mt-2 hidden text-center text-xs font-normal text-z-subtitle"
               id="z-identity"
             />
           )
@@ -113,6 +113,7 @@ export interface Props {
       .then(({ data: { user } }) => {
         if (user) {
           identity.textContent = user.user_metadata.username
+          identity.classList.remove("hidden")
         }
       })
   }

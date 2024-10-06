@@ -76,58 +76,6 @@ export interface InnerThemeInfo {
   help(props: { a: boolean; b: boolean }): InnerHelp
 }
 
-/*
- * simple: [
-    p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
-
-    p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
-
-    true // TODO:effectSplit()
-      ? p`${"split?"} is enabled, so points that escape and
-        end up below the ${"y = 0"} line will be colored
-        according to the opposite direction of usual (e.g. towards
-        oranges and yellows instead of purples and blues).`
-      : undefined,
-  ],
-
-  gradient: [
-    p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
-
-    p`Once ${"z"} escapes this region or once the iteration function has been applied ${detail()} (detail level) times, the point on-screen is colored according to the path it took and the final value of ${"z"}.`,
-
-    true // TODO:effectSplit()
-      ? p`${"split?"} is enabled, so the colors of points that escape will be adjusted according to the magnitudes of the last three values of ${"z"}.`
-      : undefined,
-  ],
-
-  plot: (true // TODO: effectSplit()
-    ? [
-        p`${"z"} is set to ${equation()} (iteration function). The iteration function is then applied ${detail()} (detail level) times.`,
-      ]
-    : [
-        p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin, being applied at most ${detail()} (detail level) times.`,
-      ]
-  ).concat([
-    p`The hue of the point is then given by ${"z"}'s direction from the origin, and the darkness is given by how close ${"z"} is to the origin. How much space is covered by darkness is adjustable using the ${"plot size"} setting.`,
-  ]),
-
-  trig: [
-    p`${"z"} is set to ${equation()} (iteration function). The iteration function is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin.`,
-
-    p`If ${"z"} escapes this region within ${detail()} (detail level) applications of the iteration function, the point on-screen is assigned a color based on how quickly ${"z"} escaped. If it stays bounded, it is colored black.`,
-
-    true // TODO:effectSplit()
-      ? p`${"split?"} is enabled, so points that escape and
-        end up below the ${"y = 0"} line will be colored
-        according to the opposite direction of usual (e.g. towards
-        oranges and yellows instead of purples and blues).`
-      : undefined,
-  ],
-
-  black: "TODO:",
-  none: "TODO:",
- */
-
 export const themeMap: Record<Theme, OuterThemeInfo> = {
   simple: {
     id: 1,
@@ -136,12 +84,6 @@ export const themeMap: Record<Theme, OuterThemeInfo> = {
     help() {
       return {
         main: p`If ${"z"} escapes that region, the point on-screen is assigned a color based on how quickly ${"z"} escaped.`,
-
-        // notes: (
-        //   <Show when={props.a}>
-        //     {p`${"split out"} is enabled, so points that escape and end up below the ${"y = 0"} line will be colored according to the opposite direction of usual (e.g. towards oranges and yellows instead of purples and blues).`}
-        //   </Show>
-        // ),
       }
     },
   },
