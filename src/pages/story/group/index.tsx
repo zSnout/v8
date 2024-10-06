@@ -808,7 +808,7 @@ export function Main() {
     const next = (
       await textarea({
         owner,
-        title: "Add to a story",
+        title: "Write the next sentence",
         minlength: 40,
         get description() {
           return <ModalDescription>{content}</ModalDescription>
