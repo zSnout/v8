@@ -1,5 +1,7 @@
 // TODO: add index.astro
 
+import { IntegratedCodeField } from "@/learn/el/IntegratedField"
+
 interface FieldBase {
   readonly id: string
 }
@@ -30,8 +32,8 @@ interface Option {
 export function Main() {
   return (
     <div class="grid h-full w-full grid-cols-[24rem,auto]">
-      <div class="h-full overflow-y-auto border-r border-z px-3 pb-4 pt-12">
-        <div class="bg-red-500">hi</div>
+      <div class="relative h-full overflow-y-auto border-r border-z pb-4 pt-12">
+        <textarea class="z-field min-h-96 w-full resize-y rounded-none border-transparent bg-z-body-selected px-2 py-1 font-mono text-sm shadow-none"></textarea>
       </div>
       <div class="bg-purple-100"></div>
     </div>

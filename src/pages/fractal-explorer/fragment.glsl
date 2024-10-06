@@ -209,21 +209,97 @@ void run_with_sz(vec2 p, vec2 c, vec2 z, bool dual) {
   inner_palette(i, z, sz, sz2);
 }
 
+float sqr(float v) {
+  return v * v;
+}
+
 void main() {
   vec2 p = coords.xy;
-  bool dual = false;
 
-  if (u_dual_enabled && position.x > 0.5f && position.y < 0.5f) {
-    dual = true;
-    p = coords_for_dual.xy;
+  if (length(p) < 0.01) {
+    color = vec4(0.58f, 0.0f, 1.0f, 1.0f);
+    return;
   }
 
-  vec2 c = EQ_C;
-  vec2 z = EQ_Z;
+  vec2 ia = u_mouse;
+  vec2 iav = vec2(0, 0);
+  vec2 ib = vec2(0, 0.5);
+  vec2 ibv = vec2(0, -0.5);
+  vec2 ic = p;
+  vec2 icv = vec2(0);
 
-  if (u_theme == 2.0f || u_inner_theme == 2.0f || u_inner_theme == 4.0f) {
-    run_with_sz(p, c, z, dual);
-  } else {
-    run(p, c, z, dual);
+  vec2 a = ia;
+  vec2 av = iav;
+  vec2 b = ib;
+  vec2 bv = ibv;
+  vec2 c = ic;
+  vec2 cv = icv;
+
+  const float DELTA = 0.1;
+  const float G = 0.1;
+
+  if (length(a - p) < 0.005) {
+    color = vec4(0, 0, 0, 1);
+    return;
   }
+
+  if (length(b - p) < 0.005) {
+    color = vec4(0, 0, 0, 1);
+    return;
+  }
+
+  for (int i = 0; i < 500; i++) {
+    vec2 pa = a;
+    vec2 pav = av;
+    vec2 pb = b;
+    vec2 pbv = bv;
+    vec2 pc = c;
+    vec2 pcv = cv;
+
+    a += pav * DELTA;
+    b += pbv * DELTA;
+    c += pcv * DELTA;
+
+    cv += normalize(pc - pa) / sqr(distance(pc, pa)) * DELTA * G;
+    cv += normalize(pc - pb) / sqr(distance(pc, pb)) * DELTA * G;
+
+    av += normalize(pa - pb) / sqr(distance(pa, pb)) * DELTA * G;
+    av += normalize(pa - pc) / sqr(distance(pa, pc)) * DELTA * G;
+
+    bv += normalize(pb - pa) / sqr(distance(pb, pa)) * DELTA * G;
+    bv += normalize(pb - pc) / sqr(distance(pb, pc)) * DELTA * G;
+  }
+
+  float value = min(length(c) / 1.0, 1.0);
+  color = vec4(hsv2rgb(vec3(atan(c.y, c.x) / 6.28, 1.0, value)), 1);
+
+  //   if (length(ia - c) < length(ib - c)) {
+  //     color = vec4(1, 0, 0, 1);
+  //   } else {
+  //     color = vec4(0, 0, 1, 1);
+  //   }
+  //
+  //   color *= 1.0 / length(c);
+  //   color = vec4(c, 0, 1);
+
+  // color = vec4();
+
+  // color = vec4(c.x, c.y, 0, 1);
+
+  //   bool dual = false;
+  //
+  //   if (u_dual_enabled && position.x > 0.5f && position.y < 0.5f) {
+  //     dual = true;
+  //     p = coords_for_dual.xy;
+  //   }
+  //
+  //   vec2 c = EQ_C;
+  //   vec2 z = EQ_Z;
+  //
+  //   if (u_theme == 2.0f || u_inner_theme == 2.0f || u_inner_theme == 4.0f) {
+  //     run_with_sz(p, c, z, dual);
+  //   } else {
+  //     run(p, c, z, dual);
+  //   }
+
 }
