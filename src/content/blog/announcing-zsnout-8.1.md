@@ -1,9 +1,10 @@
 ---
 category: code
-description: TODO:
-excerpt: TODO:
+description: TODO
+excerpt: TODO
 published: 2024-10-05
 title: Announcing zSnout 8.1
+imageAlt: TODO
 draft: true
 ---
 
