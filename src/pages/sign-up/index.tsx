@@ -83,6 +83,7 @@ export function Main() {
               required
               minlength="4"
               maxlength="32"
+              pattern="^[A-Za-z][A-Za-z0-9_]{3,31}$"
             />
           </FormField>
 
