@@ -297,6 +297,13 @@ export function Main() {
           <button
             class="z-field col-span-2 flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-3 py-2 text-lg shadow-none"
             onClick={btnAddToStory}
+            classList={{
+              "opacity-30":
+                stats()?.data?.find(
+                  (x) =>
+                    x.username === user.resource[0]()?.user_metadata.username,
+                )?.blocked_on === (incomplete()?.data?.size ?? 0),
+            }}
           >
             <Fa class="size-6" icon={faComment} title={false} />
             Add to a story
