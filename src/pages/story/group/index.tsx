@@ -317,7 +317,7 @@ export function Main() {
           <button
             class="z-field flex items-center justify-center gap-2 rounded-lg border-transparent bg-z-body-selected px-2 py-1 shadow-none"
             classList={{
-              "opacity-30": !myself()?.data?.gems || myself()?.data?.gems! < 10,
+              "opacity-30": !myself()?.data?.gems || myself()?.data?.gems! < 8,
             }}
             onClick={btnCreateStory}
           >
@@ -330,7 +330,7 @@ export function Main() {
             classList={{
               "opacity-30":
                 !myself()?.data?.gems ||
-                myself()?.data?.gems! < 10 ||
+                myself()?.data?.gems! < 12 ||
                 canComplete() === false,
             }}
             onClick={() => btnCompleteStory(false)}
@@ -520,9 +520,9 @@ export function Main() {
                                 .slice()
                                 .sort(
                                   (a, b) =>
-                                    Math.floor(b.gems / 10) -
+                                    Math.floor(b.gems / 8) -
                                     b.blocked_on -
-                                    (Math.floor(a.gems / 10) - a.blocked_on),
+                                    (Math.floor(a.gems / 8) - a.blocked_on),
                                 ),
                             }
                           })
@@ -606,7 +606,7 @@ export function Main() {
                                 loading="..."
                                 error={() => "ERROR"}
                                 ok={(map) =>
-                                  map.size - blocked_on + Math.floor(gems / 10)
+                                  map.size - blocked_on + Math.floor(gems / 8)
                                 }
                               />
                             }
@@ -869,10 +869,10 @@ export function Main() {
       await alertError("You are not a member of this group", me.error.message)
       return
     }
-    if (me.data.gems < 10) {
+    if (me.data.gems < 8) {
       await alert({
         owner,
-        title: "You need 10 gems to create a story",
+        title: "You need 8 gems to create a story",
         get description() {
           return (
             <>
@@ -929,11 +929,11 @@ export function Main() {
         await alertError("You are not a member of this group", me.error.message)
       return false
     }
-    if (me.data.gems < 10) {
+    if (me.data.gems < 12) {
       if (!silent)
         await alert({
           owner,
-          title: "You need 10 gems to complete a story",
+          title: "You need 12 gems to complete a story",
           get description() {
             return (
               <>
