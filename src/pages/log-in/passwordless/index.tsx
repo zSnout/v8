@@ -6,7 +6,7 @@ export function Main() {
   return (
     <Form
       title="Log in to zSnout"
-      submit="Log In (Passwordless)"
+      submit="Log In"
       footer={
         <FormAlternative>
           Or{" "}

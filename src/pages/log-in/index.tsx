@@ -10,6 +10,15 @@ export function Main() {
       footer={
         <FormAlternative>
           Or{" "}
+          <a
+            href="/log-in/passwordless"
+            class="text-z-link underline underline-offset-2"
+          >
+            log in without a password.
+          </a>
+          .
+          <br />
+          Or{" "}
           <a href="/sign-up" class="text-z-link underline underline-offset-2">
             sign up for a new account
           </a>
