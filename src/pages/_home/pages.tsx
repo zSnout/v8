@@ -260,7 +260,7 @@ const blogPages: readonly Page[] = await Promise.all(
 
 export const accountEntry: readonly PageTextOnly[] = [
   {
-    href: "/log-in",
+    href: "/log-in/passwordless",
     title: "Log In",
     subtitle:
       "Log in to your zSnout account to unlock access to additional pages, such as the recently updated Stories.",

@@ -4,6 +4,7 @@ import {
   MatchQuery,
   queryError,
   QueryLoading,
+  requireUser,
   supabase,
 } from "@/components/supabase"
 import {
@@ -16,15 +17,7 @@ import {
 import { createResource, Show, type JSX } from "solid-js"
 
 export function Main() {
-  const [user] = createResource(async () => {
-    const user = await supabase.auth.getUser()
-    if (user.error) {
-      location.href = "/log-in"
-      return
-    } else {
-      return user.data
-    }
-  })
+  const { resource: user } = requireUser()
 
   const [storyCount] = createResource(
     async () => await supabase.from("StoryMemberRaw").select(),
@@ -40,11 +33,9 @@ export function Main() {
         {(user) => (
           <>
             <FormTitle class="mb-1">
-              {user.user.user_metadata.username}'s account
+              {user.user_metadata.username}'s account
             </FormTitle>
-            <p class="mb-8 text-center text-sm text-z-subtitle">
-              {user.user.email}
-            </p>
+            <p class="mb-8 text-center text-sm text-z-subtitle">{user.email}</p>
           </>
         )}
       </Show>
@@ -57,18 +48,15 @@ export function Main() {
         {(user) => (
           <div class="flex flex-col gap-2">
             <Show
-              when={user.user.email_confirmed_at}
+              when={user.email_confirmed_at}
               keyed
               fallback={
                 <Card
                   icon={faUserPlus}
                   label="Joined as unverified on:"
-                  value={new Date(user.user.created_at).toLocaleString(
-                    undefined,
-                    {
-                      dateStyle: "long",
-                    },
-                  )}
+                  value={new Date(user.created_at).toLocaleString(undefined, {
+                    dateStyle: "long",
+                  })}
                 />
               }
             >

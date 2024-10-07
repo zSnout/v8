@@ -22,7 +22,10 @@ export function Main() {
       footer={
         <p class="mt-8 text-center">
           Or{" "}
-          <a href="/log-in" class="text-z-link underline underline-offset-2">
+          <a
+            href="/log-in/passwordless"
+            class="text-z-link underline underline-offset-2"
+          >
             log in to an existing account
           </a>
           .
