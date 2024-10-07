@@ -25,7 +25,7 @@ import {
 } from "@/components/supabase"
 import { randomId } from "@/learn/lib/id"
 import { timestampDist } from "@/pages/quiz/shared"
-import { faCommentDots } from "@fortawesome/free-regular-svg-icons"
+import { faCommentDots, faLightbulb } from "@fortawesome/free-regular-svg-icons"
 import {
   faBook,
   faBookDead,
@@ -71,6 +71,7 @@ export function Main() {
     stat_threads_completed: false,
     stat_last_contrib: true,
     blocked_on: true,
+    theoretical_contribs: false,
   })
 
   const [stats, { refetch: refetchStats, mutate: mutateStats }] =
@@ -150,7 +151,7 @@ export function Main() {
         <Actions />
       </div>
 
-      <div class="flex flex-1 flex-col md:grid md:grid-cols-[auto,18rem]">
+      <div class="flex flex-1 flex-col md:grid md:grid-cols-[calc(100%_-_18rem),18rem]">
         <div class="flex flex-col pb-2 pt-4">
           <StatsTitle />
           <StatsData />
@@ -465,7 +466,7 @@ export function Main() {
         loading={<QueryLoading message="Loading statistics..." />}
         error={queryError}
         ok={(stats) => (
-          <div class="-mx-6 w-screen overflow-x-auto px-6 pb-4 md:mx-0 md:w-full md:px-0">
+          <div class="-mx-6 w-screen overflow-x-auto whitespace-nowrap px-6 pb-4 md:mx-0 md:w-full md:px-0">
             <table class="w-full">
               <thead>
                 <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
@@ -621,6 +622,34 @@ export function Main() {
                       }}
                     />
                   </Show>
+                  <Show when={shown.theoretical_contribs}>
+                    <Th
+                      icon={faLightbulb}
+                      title="Theoretical Contributions"
+                      value="Theoretical"
+                      onClick={() => {
+                        mutateStats((stats) => {
+                          if (!stats || stats.error) {
+                            return stats
+                          }
+                          return {
+                            ...stats,
+                            data: stats.data
+                              .slice()
+                              .sort(
+                                (a, b) =>
+                                  Math.floor(b.gems / 8) -
+                                  b.blocked_on +
+                                  b.stat_contribs -
+                                  (Math.floor(a.gems / 8) -
+                                    a.blocked_on +
+                                    a.stat_contribs),
+                              ),
+                          }
+                        })
+                      }}
+                    />
+                  </Show>
                 </tr>
               </thead>
               <tbody>
@@ -709,6 +738,25 @@ export function Main() {
                           }
                         />
                       </Show>
+                      <Show when={shown.theoretical_contribs}>
+                        <Td
+                          icon={faLightbulb}
+                          title="Theoretical Contributions"
+                          value={
+                            <MatchQuery
+                              result={incomplete()}
+                              loading="..."
+                              error={() => "ERROR"}
+                              ok={(map) =>
+                                map.size -
+                                blocked_on +
+                                Math.floor(gems / 8) +
+                                stat_contribs
+                              }
+                            />
+                          }
+                        />
+                      </Show>
                     </tr>
                   )}
                 </For>
@@ -790,6 +838,22 @@ export function Main() {
         <p>
           is how many contributions somebody <em>could</em> make when they next
           log in.
+        </p>
+
+        <label class="flex gap-2">
+          <Checkbox
+            checked={shown.theoretical_contribs}
+            onInput={(x) => setShown("theoretical_contribs", x)}
+          />
+          <TdAsLabel
+            icon={faLightbulb}
+            title="Theoretical Contributions"
+            value="Theoretical"
+          />
+        </label>
+        <p>
+          is how many contributions somebody <em>could</em> have if they
+          completed all their possible contributions.
         </p>
       </div>
     )
