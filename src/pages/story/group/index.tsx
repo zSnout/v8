@@ -77,10 +77,7 @@ export function Main() {
   const [stats, { refetch: refetchStats, mutate: mutateStats }] =
     createResource(async () =>
       pgmap(await supabase.rpc("full_stats", { group_id: groupId }), (data) =>
-        data.sort(
-          ({ stat_last_contrib: a_ }, { stat_last_contrib: b_ }) =>
-            (b_ ? Date.parse(b_ + "Z") : 0) - (a_ ? Date.parse(a_ + "Z") : 0),
-        ),
+        data.sort(({ stat_contribs: a }, { stat_contribs: b }) => b - a),
       ),
     )
 
