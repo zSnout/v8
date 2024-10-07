@@ -131,6 +131,40 @@ export function Main() {
 
   const owner = getOwner()
 
+  const incomplete = createMemo(() => computeIncomplete(incompleteStories()))
+
+  const isManager = createMemo(() =>
+    nonNullEq(user.resource()?.id, group()?.data?.manager),
+  )
+
+  const [canComplete] = createResource(
+    () => [myself(), incompleteStories()],
+    () => btnCompleteStory(true),
+  )
+
+  return (
+    <div class="flex flex-1 flex-col">
+      <Header />
+
+      <div class="mt-2 flex w-full border-y border-z py-4 transition">
+        <Actions />
+      </div>
+
+      <div class="flex flex-1 flex-col lg:grid lg:grid-cols-[auto,18rem]">
+        <div class="flex flex-col pb-2 pt-4">
+          <StatsTitle />
+          <StatsData />
+          <StatsCheckboxes />
+        </div>
+
+        <div class="flex h-full flex-col">
+          <CompletedTitle />
+          <CompletedUl />
+        </div>
+      </div>
+    </div>
+  )
+
   function computeIncomplete(stories: ReturnType<typeof incompleteStories>) {
     if (!stories || stories.error) {
       return stories
@@ -187,12 +221,6 @@ export function Main() {
     return ret
   }
 
-  const incomplete = createMemo(() => computeIncomplete(incompleteStories()))
-
-  const isManager = createMemo(() =>
-    nonNullEq(user.resource()?.id, group()?.data?.manager),
-  )
-
   function Td(props: {
     value: JSX.Element
     icon: IconDefinition
@@ -243,39 +271,11 @@ export function Main() {
       <Show when={value()}>
         <div class="flex items-center gap-2">
           <Fa icon={props.icon} class="inline size-4" title={props.title} />
-          {value()}
+          <span>{value()}</span>
         </div>
       </Show>
     )
   }
-
-  const [canComplete] = createResource(
-    () => [myself(), incompleteStories()],
-    () => btnCompleteStory(true),
-  )
-
-  return (
-    <div class="flex flex-1 flex-col">
-      <Header />
-
-      <div class="mt-2 flex w-full border-y border-z py-4 transition">
-        <Actions />
-      </div>
-
-      <div class="grid flex-1 grid-cols-[auto,18rem]">
-        <div class="flex flex-col pb-2 pt-4">
-          <StatsTitle />
-          <StatsData />
-          <StatsCheckboxes />
-        </div>
-
-        <div class="flex h-full flex-col">
-          <CompletedTitle />
-          <CompletedUl />
-        </div>
-      </div>
-    </div>
-  )
 
   function Header() {
     return (
@@ -572,7 +572,11 @@ export function Main() {
                   <Th
                     icon={faClock}
                     title="Last Contribution"
-                    value="Last Seen"
+                    value={
+                      <>
+                        Last<span class="hidden md:inline"> Seen</span>
+                      </>
+                    }
                     onClick={() => {
                       mutateStats((stats) => {
                         if (!stats || stats.error) {
@@ -681,7 +685,12 @@ export function Main() {
                           if (msg == "now") {
                             return "now"
                           } else {
-                            return `${msg} ago`
+                            return (
+                              <>
+                                {msg}
+                                <span class="hidden md:inline"> ago</span>
+                              </>
+                            )
                           }
                         })()}
                       />
