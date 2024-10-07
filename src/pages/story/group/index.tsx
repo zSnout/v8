@@ -912,7 +912,7 @@ export function Main() {
     const resultLastContrib = await load(
       owner,
       supabase.rpc("get_last_contrib", { thread_id: threadId }).single(),
-      () => "Fetching last contribution...",
+      () => <ModalDescription>Fetching last contribution...</ModalDescription>,
     )
     if (resultLastContrib.error) {
       await alertError(

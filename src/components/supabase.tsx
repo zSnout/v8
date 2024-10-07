@@ -16,7 +16,7 @@ export function requireUser() {
   const p = (async () => {
     const user = await supabase.auth.getUser()
     if (user.error) {
-      // location.href = "/log-in"
+      location.href = "/log-in"
       throw new Error("User is not logged in.")
     }
     return user.data.user
