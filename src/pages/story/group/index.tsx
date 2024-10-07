@@ -39,6 +39,7 @@ import {
   faUserPlus,
   type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
+import type { PostgrestSingleResponse } from "@supabase/supabase-js"
 import {
   children,
   createMemo,
@@ -49,10 +50,6 @@ import {
   type JSX,
 } from "solid-js"
 import { createStore } from "solid-js/store"
-
-function nonNullEq<T>(x: T | null | undefined, y: T | null | undefined) {
-  return x != null && y != null && x === y
-}
 
 export function Main() {
   const user = requireUser()
@@ -162,62 +159,6 @@ export function Main() {
       </div>
     </div>
   )
-
-  function computeIncomplete(stories: ReturnType<typeof incompleteStories>) {
-    if (!stories || stories.error) {
-      return stories
-    }
-    const grouped = new Map<number, { contrib: number; mine: boolean }[]>()
-    let v: { contrib: number; mine: boolean }[]
-    for (const el of stories.data) {
-      const contents =
-        grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
-      contents.push({ contrib: el.contrib!, mine: el.is_mine! })
-    }
-    return pgok(grouped, grouped.size)
-  }
-
-  function withRecency(
-    map: Map<number, { contrib: number; mine: boolean }[]>,
-  ): Map<
-    number,
-    { contrib: number; mine: boolean }[] & {
-      /**
-       * Null means we have never commented on this story. `0` means the last
-       * addition was ours, `1` means the 2nd-to-last addition was ours, and so
-       * on.
-       */
-      recency: number | null
-    }
-  > {
-    const ret = map as Map<
-      number,
-      { contrib: number; mine: boolean }[] & { recency: number | null }
-    >
-
-    for (const contribs of ret.values()) {
-      const last = contribs.findLastIndex((x) => x.mine)
-      if (last == -1) {
-        contribs.recency = null
-      } else {
-        contribs.recency = contribs.length - last - 1
-      }
-    }
-
-    return ret
-  }
-
-  function withAtLeast20<T extends { length: number }>(map: Map<number, T>) {
-    const ret: typeof map = new Map()
-
-    for (const [k, v] of map) {
-      if (v.length >= 20) {
-        ret.set(k, v)
-      }
-    }
-
-    return ret
-  }
 
   function Td(props: {
     value: JSX.Element
@@ -442,7 +383,7 @@ export function Main() {
             }}
           </For>
         )}
-      ></MatchQuery>
+      />
     )
   }
 
@@ -462,306 +403,323 @@ export function Main() {
         result={stats()}
         loading={<QueryLoading message="Loading statistics..." />}
         error={queryError}
-        ok={(stats) => (
-          <div class="-mx-6 w-screen overflow-x-auto whitespace-nowrap px-6 pb-4 md:mx-0 md:w-full md:px-0">
-            <table class="w-full">
-              <thead>
-                <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
-                  <td class="p-0 transition first:rounded-l last:rounded-r">
-                    <button
-                      class="px-1 pl-2"
-                      onClick={() => {
-                        mutateStats((stats) =>
-                          pgmap(stats, (data) =>
-                            data
-                              .slice()
-                              .sort(({ username: a }, { username: b }) =>
-                                a < b ? -1 : 1,
-                              ),
-                          ),
-                        )
-                      }}
-                    >
-                      Username
-                    </button>
-                  </td>
-                  <Show when={shown.stat_contribs}>
-                    <Th
-                      icon={faComment}
-                      title="Contributions"
-                      value="Contribs"
-                      onClick={() => {
-                        mutateStats((stats) =>
-                          pgmap(stats, (data) =>
-                            data
-                              .slice()
-                              .sort(
-                                ({ stat_contribs: a }, { stat_contribs: b }) =>
-                                  b - a,
-                              ),
-                          ),
-                        )
-                      }}
-                    />
-                  </Show>
-                  <Show when={shown.stat_unique_thread_contribs}>
-                    <Th
-                      icon={faComments}
-                      title="Threads Written On"
-                      value="Stories"
-                      onClick={() => {
-                        mutateStats((stats) =>
-                          pgmap(stats, (data) =>
-                            data
-                              .slice()
-                              .sort(
-                                (
-                                  { stat_unique_thread_contribs: a },
-                                  { stat_unique_thread_contribs: b },
-                                ) => b - a,
-                              ),
-                          ),
-                        )
-                      }}
-                    />
-                  </Show>
-                  <Show when={shown.stat_threads_created}>
-                    <Th
-                      icon={faBook}
-                      title="Stories Created"
-                      value="Started"
-                      onClick={() => {
-                        mutateStats((stats) =>
-                          pgmap(stats, (data) =>
-                            data
-                              .slice()
-                              .sort(
-                                (
-                                  { stat_threads_created: a },
-                                  { stat_threads_created: b },
-                                ) => b - a,
-                              ),
-                          ),
-                        )
-                      }}
-                    />
-                  </Show>
-                  <Show when={shown.stat_threads_completed}>
-                    <Th
-                      icon={faBookDead}
-                      title="Stories Completed"
-                      value="Finished"
-                      onClick={() => {
-                        mutateStats((stats) =>
-                          pgmap(stats, (data) =>
-                            data
-                              .slice()
-                              .sort(
-                                (
-                                  { stat_threads_completed: a },
-                                  { stat_threads_completed: b },
-                                ) => b - a,
-                              ),
-                          ),
-                        )
-                      }}
-                    />
-                  </Show>
-                  <Show when={shown.stat_last_contrib}>
-                    <Th
-                      icon={faClock}
-                      title="Last Contribution"
-                      value="Last"
-                      onClick={() => {
-                        mutateStats((stats) => {
-                          if (!stats || stats.error) {
-                            return stats
-                          }
-                          return {
-                            ...stats,
-                            data: stats.data
-                              .slice()
-                              .sort(
-                                (
-                                  { stat_last_contrib: a_ },
-                                  { stat_last_contrib: b_ },
-                                ) =>
-                                  (b_ ? Date.parse(b_ + "Z") : 0) -
-                                  (a_ ? Date.parse(a_ + "Z") : 0),
-                              ),
-                          }
-                        })
-                      }}
-                    />
-                  </Show>
-                  <Show when={shown.blocked_on}>
-                    <Th
-                      icon={faCommentDots}
-                      title="Possible Contributions"
-                      value="Possible"
-                      onClick={() => {
-                        mutateStats((stats) => {
-                          if (!stats || stats.error) {
-                            return stats
-                          }
-                          return {
-                            ...stats,
-                            data: stats.data
-                              .slice()
-                              .sort(
-                                (a, b) =>
-                                  Math.floor(b.gems / 8) -
-                                  b.blocked_on -
-                                  (Math.floor(a.gems / 8) - a.blocked_on),
-                              ),
-                          }
-                        })
-                      }}
-                    />
-                  </Show>
-                  <Show when={shown.theoretical_contribs}>
-                    <Th
-                      icon={faLightbulb}
-                      title="Theoretical Contributions"
-                      value="Theoretical"
-                      onClick={() => {
-                        mutateStats((stats) => {
-                          if (!stats || stats.error) {
-                            return stats
-                          }
-                          return {
-                            ...stats,
-                            data: stats.data
-                              .slice()
-                              .sort(
-                                (a, b) =>
-                                  Math.floor(b.gems / 8) -
-                                  b.blocked_on +
-                                  b.stat_contribs -
-                                  (Math.floor(a.gems / 8) -
-                                    a.blocked_on +
-                                    a.stat_contribs),
-                              ),
-                          }
-                        })
-                      }}
-                    />
-                  </Show>
-                </tr>
-              </thead>
-              <tbody>
-                <For each={stats}>
-                  {({
-                    username,
-                    stat_contribs,
-                    stat_last_contrib,
-                    stat_threads_created,
-                    stat_threads_completed,
-                    stat_unique_thread_contribs,
-                    blocked_on,
-                    gems,
-                  }) => (
-                    <tr class="group overflow-clip rounded">
-                      <td class="px-1 pl-2 transition first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
-                        {username}
-                      </td>
-                      <Show when={shown.stat_contribs}>
-                        <Td
-                          icon={faComment}
-                          title="Contributions"
-                          value={stat_contribs}
-                        />
-                      </Show>
-                      <Show when={shown.stat_unique_thread_contribs}>
-                        <Td
-                          icon={faComments}
-                          title="Part of X threads"
-                          value={stat_unique_thread_contribs}
-                        />
-                      </Show>
-                      <Show when={shown.stat_threads_created}>
-                        <Td
-                          icon={faBook}
-                          title="Threads Created"
-                          value={stat_threads_created}
-                        />
-                      </Show>
-                      <Show when={shown.stat_threads_completed}>
-                        <Td
-                          icon={faBookDead}
-                          title="Threads Completed"
-                          value={stat_threads_completed}
-                        />
-                      </Show>
-                      <Show when={shown.stat_last_contrib}>
-                        <Td
-                          icon={faClock}
-                          title="Last Seen"
-                          value={(() => {
-                            if (!stat_last_contrib) {
-                              return null
-                            }
-                            const msg = timestampDist(
-                              (Date.now() -
-                                Date.parse(stat_last_contrib + "Z")) /
-                                1000,
-                            )
-                            if (msg == "now") {
-                              return "now"
-                            } else {
-                              return (
-                                <>
-                                  {msg}
-                                  <span class="hidden md:inline"> ago</span>
-                                </>
-                              )
-                            }
-                          })()}
-                        />
-                      </Show>
-                      <Show when={shown.blocked_on}>
-                        <Td
-                          icon={faCommentDots}
-                          title="Blocked Contributions"
-                          value={
-                            <MatchQuery
-                              result={incomplete()}
-                              loading="..."
-                              error={() => "ERROR"}
-                              ok={(map) =>
-                                map.size - blocked_on + Math.floor(gems / 8)
-                              }
-                            />
-                          }
-                        />
-                      </Show>
-                      <Show when={shown.theoretical_contribs}>
-                        <Td
-                          icon={faLightbulb}
-                          title="Theoretical Contributions"
-                          value={
-                            <MatchQuery
-                              result={incomplete()}
-                              loading="..."
-                              error={() => "ERROR"}
-                              ok={(map) =>
-                                map.size -
-                                blocked_on +
-                                Math.floor(gems / 8) +
-                                stat_contribs
-                              }
-                            />
-                          }
-                        />
-                      </Show>
-                    </tr>
-                  )}
-                </For>
-              </tbody>
-            </table>
-          </div>
-        )}
+        ok={StatsDataOk}
       />
+    )
+  }
+
+  function StatsDataOk(
+    stats: {
+      gems: number
+      stat_contribs: number
+      stat_last_contrib: string
+      stat_threads_completed: number
+      stat_threads_created: number
+      stat_unique_thread_contribs: number
+      username: string
+      blocked_on: number
+    }[],
+  ): JSX.Element {
+    return (
+      <div class="-mx-6 w-screen overflow-x-auto whitespace-nowrap px-6 pb-4 md:mx-0 md:w-full md:px-0">
+        <table class="w-full">
+          <thead>
+            <StatsDataOkHead />
+          </thead>
+          <tbody>
+            <For each={stats}>{StatsDataOkRow}</For>
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  function StatsDataOkRow({
+    username,
+    stat_contribs,
+    stat_last_contrib,
+    stat_threads_created,
+    stat_threads_completed,
+    stat_unique_thread_contribs,
+    blocked_on,
+    gems,
+  }: {
+    username: string
+    stat_contribs: number
+    stat_unique_thread_contribs: number
+    stat_threads_created: number
+    stat_threads_completed: number
+    stat_last_contrib: string
+    blocked_on: number
+    gems: number
+  }): JSX.Element {
+    return (
+      <tr class="group overflow-clip rounded">
+        <td class="px-1 pl-2 transition first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+          {username}
+        </td>
+        <Show when={shown.stat_contribs}>
+          <Td icon={faComment} title="Contributions" value={stat_contribs} />
+        </Show>
+        <Show when={shown.stat_unique_thread_contribs}>
+          <Td
+            icon={faComments}
+            title="Part of X threads"
+            value={stat_unique_thread_contribs}
+          />
+        </Show>
+        <Show when={shown.stat_threads_created}>
+          <Td
+            icon={faBook}
+            title="Threads Created"
+            value={stat_threads_created}
+          />
+        </Show>
+        <Show when={shown.stat_threads_completed}>
+          <Td
+            icon={faBookDead}
+            title="Threads Completed"
+            value={stat_threads_completed}
+          />
+        </Show>
+        <Show when={shown.stat_last_contrib}>
+          <Td
+            icon={faClock}
+            title="Last Seen"
+            value={(() => {
+              if (!stat_last_contrib) {
+                return null
+              }
+              const msg = timestampDist(
+                (Date.now() - Date.parse(stat_last_contrib + "Z")) / 1000,
+              )
+              if (msg == "now") {
+                return "now"
+              } else {
+                return (
+                  <>
+                    {msg}
+                    <span class="hidden md:inline"> ago</span>
+                  </>
+                )
+              }
+            })()}
+          />
+        </Show>
+        <Show when={shown.blocked_on}>
+          <Td
+            icon={faCommentDots}
+            title="Blocked Contributions"
+            value={
+              <MatchQuery
+                result={incomplete()}
+                loading="..."
+                error={() => "ERROR"}
+                ok={(map) => map.size - blocked_on + Math.floor(gems / 8)}
+              />
+            }
+          />
+        </Show>
+        <Show when={shown.theoretical_contribs}>
+          <Td
+            icon={faLightbulb}
+            title="Theoretical Contributions"
+            value={
+              <MatchQuery
+                result={incomplete()}
+                loading="..."
+                error={() => "ERROR"}
+                ok={(map) =>
+                  map.size - blocked_on + Math.floor(gems / 8) + stat_contribs
+                }
+              />
+            }
+          />
+        </Show>
+      </tr>
+    )
+  }
+
+  function StatsDataOkHead() {
+    return (
+      <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
+        <td class="p-0 transition first:rounded-l last:rounded-r">
+          <button
+            class="px-1 pl-2"
+            onClick={() => {
+              mutateStats((stats) =>
+                pgmap(stats, (data) =>
+                  data
+                    .slice()
+                    .sort(({ username: a }, { username: b }) =>
+                      a < b ? -1 : 1,
+                    ),
+                ),
+              )
+            }}
+          >
+            Username
+          </button>
+        </td>
+        <Show when={shown.stat_contribs}>
+          <Th
+            icon={faComment}
+            title="Contributions"
+            value="Contribs"
+            onClick={() => {
+              mutateStats((stats) =>
+                pgmap(stats, (data) =>
+                  data
+                    .slice()
+                    .sort(
+                      ({ stat_contribs: a }, { stat_contribs: b }) => b - a,
+                    ),
+                ),
+              )
+            }}
+          />
+        </Show>
+        <Show when={shown.stat_unique_thread_contribs}>
+          <Th
+            icon={faComments}
+            title="Threads Written On"
+            value="Stories"
+            onClick={() => {
+              mutateStats((stats) =>
+                pgmap(stats, (data) =>
+                  data
+                    .slice()
+                    .sort(
+                      (
+                        { stat_unique_thread_contribs: a },
+                        { stat_unique_thread_contribs: b },
+                      ) => b - a,
+                    ),
+                ),
+              )
+            }}
+          />
+        </Show>
+        <Show when={shown.stat_threads_created}>
+          <Th
+            icon={faBook}
+            title="Stories Created"
+            value="Started"
+            onClick={() => {
+              mutateStats((stats) =>
+                pgmap(stats, (data) =>
+                  data
+                    .slice()
+                    .sort(
+                      (
+                        { stat_threads_created: a },
+                        { stat_threads_created: b },
+                      ) => b - a,
+                    ),
+                ),
+              )
+            }}
+          />
+        </Show>
+        <Show when={shown.stat_threads_completed}>
+          <Th
+            icon={faBookDead}
+            title="Stories Completed"
+            value="Finished"
+            onClick={() => {
+              mutateStats((stats) =>
+                pgmap(stats, (data) =>
+                  data
+                    .slice()
+                    .sort(
+                      (
+                        { stat_threads_completed: a },
+                        { stat_threads_completed: b },
+                      ) => b - a,
+                    ),
+                ),
+              )
+            }}
+          />
+        </Show>
+        <Show when={shown.stat_last_contrib}>
+          <Th
+            icon={faClock}
+            title="Last Contribution"
+            value="Last"
+            onClick={() => {
+              mutateStats((stats) => {
+                if (!stats || stats.error) {
+                  return stats
+                }
+                return {
+                  ...stats,
+                  data: stats.data
+                    .slice()
+                    .sort(
+                      ({ stat_last_contrib: a_ }, { stat_last_contrib: b_ }) =>
+                        (b_ ? Date.parse(b_ + "Z") : 0) -
+                        (a_ ? Date.parse(a_ + "Z") : 0),
+                    ),
+                }
+              })
+            }}
+          />
+        </Show>
+        <Show when={shown.blocked_on}>
+          <Th
+            icon={faCommentDots}
+            title="Possible Contributions"
+            value="Possible"
+            onClick={() => {
+              mutateStats((stats) => {
+                if (!stats || stats.error) {
+                  return stats
+                }
+                return {
+                  ...stats,
+                  data: stats.data
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        Math.floor(b.gems / 8) -
+                        b.blocked_on -
+                        (Math.floor(a.gems / 8) - a.blocked_on),
+                    ),
+                }
+              })
+            }}
+          />
+        </Show>
+        <Show when={shown.theoretical_contribs}>
+          <Th
+            icon={faLightbulb}
+            title="Theoretical Contributions"
+            value="Theoretical"
+            onClick={() => {
+              mutateStats((stats) => {
+                if (!stats || stats.error) {
+                  return stats
+                }
+                return {
+                  ...stats,
+                  data: stats.data
+                    .slice()
+                    .sort(
+                      (a, b) =>
+                        Math.floor(b.gems / 8) -
+                        b.blocked_on +
+                        b.stat_contribs -
+                        (Math.floor(a.gems / 8) -
+                          a.blocked_on +
+                          a.stat_contribs),
+                    ),
+                }
+              })
+            }}
+          />
+        </Show>
+      </tr>
     )
   }
 
@@ -848,10 +806,7 @@ export function Main() {
             value="Theoretical"
           />
         </label>
-        <p>
-          is how many contributions somebody <em>could</em> have if they
-          completed all their possible contributions.
-        </p>
+        <p>is “contributions now” plus “possible contributions”.</p>
       </div>
     )
   }
@@ -1281,4 +1236,74 @@ export function Main() {
       },
     })
   }
+}
+
+function nonNullEq<T>(x: T | null | undefined, y: T | null | undefined) {
+  return x != null && y != null && x === y
+}
+
+function withRecency(
+  map: Map<number, { contrib: number; mine: boolean }[]>,
+): Map<
+  number,
+  { contrib: number; mine: boolean }[] & {
+    /**
+     * Null means we have never commented on this story. `0` means the last
+     * addition was ours, `1` means the 2nd-to-last addition was ours, and so
+     * on.
+     */
+    recency: number | null
+  }
+> {
+  const ret = map as Map<
+    number,
+    { contrib: number; mine: boolean }[] & { recency: number | null }
+  >
+
+  for (const contribs of ret.values()) {
+    const last = contribs.findLastIndex((x) => x.mine)
+    if (last == -1) {
+      contribs.recency = null
+    } else {
+      contribs.recency = contribs.length - last - 1
+    }
+  }
+
+  return ret
+}
+
+function withAtLeast20<T extends { length: number }>(map: Map<number, T>) {
+  const ret: typeof map = new Map()
+
+  for (const [k, v] of map) {
+    if (v.length >= 20) {
+      ret.set(k, v)
+    }
+  }
+
+  return ret
+}
+
+function computeIncomplete(
+  stories:
+    | PostgrestSingleResponse<
+        {
+          contrib: number
+          thread: number
+          is_mine: boolean
+        }[]
+      >
+    | undefined,
+) {
+  if (!stories || stories.error) {
+    return stories
+  }
+  const grouped = new Map<number, { contrib: number; mine: boolean }[]>()
+  let v: { contrib: number; mine: boolean }[]
+  for (const el of stories.data) {
+    const contents =
+      grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
+    contents.push({ contrib: el.contrib!, mine: el.is_mine! })
+  }
+  return pgok(grouped, grouped.size)
 }
