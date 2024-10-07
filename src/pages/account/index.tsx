@@ -107,22 +107,42 @@ export function Main() {
     href?: string
   }) {
     return (
-      <div class="z-field relative flex flex-1 px-4 shadow-none">
-        <div class="mx-auto grid max-w-full grid-cols-[1.5rem,1fr] items-center gap-x-4">
-          <Fa icon={props.icon} class="row-span-2 block size-6" title={false} />
-          <p class="text-sm text-z-subtitle">{props.label}</p>
-          <p class="min-w-40">{props.value}</p>
-        </div>
-        <Show when={props.href}>
-          <a class="absolute right-0 top-0 p-2" href={props.href}>
+      <Show
+        when={props.href}
+        fallback={
+          <div class="z-field relative flex flex-1 px-4 shadow-none">
+            <div class="mx-auto grid max-w-full grid-cols-[1.5rem,1fr] items-center gap-x-4">
+              <Fa
+                icon={props.icon}
+                class="row-span-2 block size-6"
+                title={false}
+              />
+              <p class="text-sm text-z-subtitle">{props.label}</p>
+              <p class="min-w-40">{props.value}</p>
+            </div>
+          </div>
+        }
+      >
+        <a
+          class="z-field relative flex flex-1 px-4 shadow-none"
+          href={props.href}
+        >
+          <div class="mx-auto grid max-w-full grid-cols-[1.5rem,1fr] items-center gap-x-4">
             <Fa
-              class="size-4 icon-blue-500"
-              icon={faExternalLink}
-              title="Open Link"
+              icon={props.icon}
+              class="row-span-2 block size-6"
+              title={false}
             />
-          </a>
-        </Show>
-      </div>
+            <p class="text-sm text-z-subtitle">{props.label}</p>
+            <p class="min-w-40">{props.value}</p>
+          </div>
+          <Fa
+            class="absolute right-2 top-2 size-4 icon-blue-500"
+            icon={faExternalLink}
+            title="Open Link"
+          />
+        </a>
+      </Show>
     )
   }
 }
