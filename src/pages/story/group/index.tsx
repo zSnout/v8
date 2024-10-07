@@ -150,7 +150,7 @@ export function Main() {
         <Actions />
       </div>
 
-      <div class="flex flex-1 flex-col lg:grid lg:grid-cols-[auto,18rem]">
+      <div class="flex flex-1 flex-col md:grid md:grid-cols-[auto,18rem]">
         <div class="flex flex-col pb-2 pt-4">
           <StatsTitle />
           <StatsData />
@@ -465,257 +465,256 @@ export function Main() {
         loading={<QueryLoading message="Loading statistics..." />}
         error={queryError}
         ok={(stats) => (
-          <table class="w-full">
-            <thead>
-              <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
-                <td class="p-0 transition first:rounded-l last:rounded-r">
-                  <button
-                    class="px-1 pl-2"
-                    onClick={() => {
-                      mutateStats((stats) =>
-                        pgmap(stats, (data) =>
-                          data
-                            .slice()
-                            .sort(({ username: a }, { username: b }) =>
-                              a < b ? -1 : 1,
-                            ),
-                        ),
-                      )
-                    }}
-                  >
-                    Username
-                  </button>
-                </td>
-                <Show when={shown.stat_contribs}>
-                  <Th
-                    icon={faComment}
-                    title="Contributions"
-                    value="Contribs"
-                    onClick={() => {
-                      mutateStats((stats) =>
-                        pgmap(stats, (data) =>
-                          data
-                            .slice()
-                            .sort(
-                              ({ stat_contribs: a }, { stat_contribs: b }) =>
-                                b - a,
-                            ),
-                        ),
-                      )
-                    }}
-                  />
-                </Show>
-                <Show when={shown.stat_unique_thread_contribs}>
-                  <Th
-                    icon={faComments}
-                    title="Threads Written On"
-                    value="Stories"
-                    onClick={() => {
-                      mutateStats((stats) =>
-                        pgmap(stats, (data) =>
-                          data
-                            .slice()
-                            .sort(
-                              (
-                                { stat_unique_thread_contribs: a },
-                                { stat_unique_thread_contribs: b },
-                              ) => b - a,
-                            ),
-                        ),
-                      )
-                    }}
-                  />
-                </Show>
-                <Show when={shown.stat_threads_created}>
-                  <Th
-                    icon={faBook}
-                    title="Stories Created"
-                    value="Started"
-                    onClick={() => {
-                      mutateStats((stats) =>
-                        pgmap(stats, (data) =>
-                          data
-                            .slice()
-                            .sort(
-                              (
-                                { stat_threads_created: a },
-                                { stat_threads_created: b },
-                              ) => b - a,
-                            ),
-                        ),
-                      )
-                    }}
-                  />
-                </Show>
-                <Show when={shown.stat_threads_completed}>
-                  <Th
-                    icon={faBookDead}
-                    title="Stories Completed"
-                    value="Finished"
-                    onClick={() => {
-                      mutateStats((stats) =>
-                        pgmap(stats, (data) =>
-                          data
-                            .slice()
-                            .sort(
-                              (
-                                { stat_threads_completed: a },
-                                { stat_threads_completed: b },
-                              ) => b - a,
-                            ),
-                        ),
-                      )
-                    }}
-                  />
-                </Show>
-                <Show when={shown.stat_last_contrib}>
-                  <Th
-                    icon={faClock}
-                    title="Last Contribution"
-                    value={
-                      <>
-                        Last<span class="hidden md:inline"> Seen</span>
-                      </>
-                    }
-                    onClick={() => {
-                      mutateStats((stats) => {
-                        if (!stats || stats.error) {
-                          return stats
-                        }
-                        return {
-                          ...stats,
-                          data: stats.data
-                            .slice()
-                            .sort(
-                              (
-                                { stat_last_contrib: a_ },
-                                { stat_last_contrib: b_ },
-                              ) =>
-                                (b_ ? Date.parse(b_ + "Z") : 0) -
-                                (a_ ? Date.parse(a_ + "Z") : 0),
-                            ),
-                        }
-                      })
-                    }}
-                  />
-                </Show>
-                <Show when={shown.blocked_on}>
-                  <Th
-                    icon={faCommentDots}
-                    title="Possible Contributions"
-                    value="Possible"
-                    onClick={() => {
-                      mutateStats((stats) => {
-                        if (!stats || stats.error) {
-                          return stats
-                        }
-                        return {
-                          ...stats,
-                          data: stats.data
-                            .slice()
-                            .sort(
-                              (a, b) =>
-                                Math.floor(b.gems / 8) -
-                                b.blocked_on -
-                                (Math.floor(a.gems / 8) - a.blocked_on),
-                            ),
-                        }
-                      })
-                    }}
-                  />
-                </Show>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={stats}>
-                {({
-                  username,
-                  stat_contribs,
-                  stat_last_contrib,
-                  stat_threads_created,
-                  stat_threads_completed,
-                  stat_unique_thread_contribs,
-                  blocked_on,
-                  gems,
-                }) => (
-                  <tr class="group overflow-clip rounded">
-                    <td class="px-1 pl-2 transition first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
-                      {username}
-                    </td>
-                    <Show when={shown.stat_contribs}>
-                      <Td
-                        icon={faComment}
-                        title="Contributions"
-                        value={stat_contribs}
-                      />
-                    </Show>
-                    <Show when={shown.stat_unique_thread_contribs}>
-                      <Td
-                        icon={faComments}
-                        title="Part of X threads"
-                        value={stat_unique_thread_contribs}
-                      />
-                    </Show>
-                    <Show when={shown.stat_threads_created}>
-                      <Td
-                        icon={faBook}
-                        title="Threads Created"
-                        value={stat_threads_created}
-                      />
-                    </Show>
-                    <Show when={shown.stat_threads_completed}>
-                      <Td
-                        icon={faBookDead}
-                        title="Threads Completed"
-                        value={stat_threads_completed}
-                      />
-                    </Show>
-                    <Show when={shown.stat_last_contrib}>
-                      <Td
-                        icon={faClock}
-                        title="Last Seen"
-                        value={(() => {
-                          if (!stat_last_contrib) {
-                            return null
+          <div class="-mx-6 w-screen overflow-x-auto px-6 pb-4 md:mx-0 md:w-full md:px-0">
+            <table class="w-full">
+              <thead>
+                <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
+                  <td class="p-0 transition first:rounded-l last:rounded-r">
+                    <button
+                      class="px-1 pl-2"
+                      onClick={() => {
+                        mutateStats((stats) =>
+                          pgmap(stats, (data) =>
+                            data
+                              .slice()
+                              .sort(({ username: a }, { username: b }) =>
+                                a < b ? -1 : 1,
+                              ),
+                          ),
+                        )
+                      }}
+                    >
+                      Username
+                    </button>
+                  </td>
+                  <Show when={shown.stat_contribs}>
+                    <Th
+                      icon={faComment}
+                      title="Contributions"
+                      value="Contribs"
+                      onClick={() => {
+                        mutateStats((stats) =>
+                          pgmap(stats, (data) =>
+                            data
+                              .slice()
+                              .sort(
+                                ({ stat_contribs: a }, { stat_contribs: b }) =>
+                                  b - a,
+                              ),
+                          ),
+                        )
+                      }}
+                    />
+                  </Show>
+                  <Show when={shown.stat_unique_thread_contribs}>
+                    <Th
+                      icon={faComments}
+                      title="Threads Written On"
+                      value="Stories"
+                      onClick={() => {
+                        mutateStats((stats) =>
+                          pgmap(stats, (data) =>
+                            data
+                              .slice()
+                              .sort(
+                                (
+                                  { stat_unique_thread_contribs: a },
+                                  { stat_unique_thread_contribs: b },
+                                ) => b - a,
+                              ),
+                          ),
+                        )
+                      }}
+                    />
+                  </Show>
+                  <Show when={shown.stat_threads_created}>
+                    <Th
+                      icon={faBook}
+                      title="Stories Created"
+                      value="Started"
+                      onClick={() => {
+                        mutateStats((stats) =>
+                          pgmap(stats, (data) =>
+                            data
+                              .slice()
+                              .sort(
+                                (
+                                  { stat_threads_created: a },
+                                  { stat_threads_created: b },
+                                ) => b - a,
+                              ),
+                          ),
+                        )
+                      }}
+                    />
+                  </Show>
+                  <Show when={shown.stat_threads_completed}>
+                    <Th
+                      icon={faBookDead}
+                      title="Stories Completed"
+                      value="Finished"
+                      onClick={() => {
+                        mutateStats((stats) =>
+                          pgmap(stats, (data) =>
+                            data
+                              .slice()
+                              .sort(
+                                (
+                                  { stat_threads_completed: a },
+                                  { stat_threads_completed: b },
+                                ) => b - a,
+                              ),
+                          ),
+                        )
+                      }}
+                    />
+                  </Show>
+                  <Show when={shown.stat_last_contrib}>
+                    <Th
+                      icon={faClock}
+                      title="Last Contribution"
+                      value="Last"
+                      onClick={() => {
+                        mutateStats((stats) => {
+                          if (!stats || stats.error) {
+                            return stats
                           }
-                          const msg = timestampDist(
-                            (Date.now() - Date.parse(stat_last_contrib + "Z")) /
-                              1000,
-                          )
-                          if (msg == "now") {
-                            return "now"
-                          } else {
-                            return (
-                              <>
-                                {msg}
-                                <span class="hidden md:inline"> ago</span>
-                              </>
-                            )
+                          return {
+                            ...stats,
+                            data: stats.data
+                              .slice()
+                              .sort(
+                                (
+                                  { stat_last_contrib: a_ },
+                                  { stat_last_contrib: b_ },
+                                ) =>
+                                  (b_ ? Date.parse(b_ + "Z") : 0) -
+                                  (a_ ? Date.parse(a_ + "Z") : 0),
+                              ),
                           }
-                        })()}
-                      />
-                    </Show>
-                    <Show when={shown.blocked_on}>
-                      <Td
-                        icon={faCommentDots}
-                        title="Blocked Contributions"
-                        value={
-                          <MatchQuery
-                            result={incomplete()}
-                            loading="..."
-                            error={() => "ERROR"}
-                            ok={(map) =>
-                              map.size - blocked_on + Math.floor(gems / 8)
+                        })
+                      }}
+                    />
+                  </Show>
+                  <Show when={shown.blocked_on}>
+                    <Th
+                      icon={faCommentDots}
+                      title="Possible Contributions"
+                      value="Possible"
+                      onClick={() => {
+                        mutateStats((stats) => {
+                          if (!stats || stats.error) {
+                            return stats
+                          }
+                          return {
+                            ...stats,
+                            data: stats.data
+                              .slice()
+                              .sort(
+                                (a, b) =>
+                                  Math.floor(b.gems / 8) -
+                                  b.blocked_on -
+                                  (Math.floor(a.gems / 8) - a.blocked_on),
+                              ),
+                          }
+                        })
+                      }}
+                    />
+                  </Show>
+                </tr>
+              </thead>
+              <tbody>
+                <For each={stats}>
+                  {({
+                    username,
+                    stat_contribs,
+                    stat_last_contrib,
+                    stat_threads_created,
+                    stat_threads_completed,
+                    stat_unique_thread_contribs,
+                    blocked_on,
+                    gems,
+                  }) => (
+                    <tr class="group overflow-clip rounded">
+                      <td class="px-1 pl-2 transition first:rounded-l last:rounded-r group-odd:bg-[--z-table-row-alt]">
+                        {username}
+                      </td>
+                      <Show when={shown.stat_contribs}>
+                        <Td
+                          icon={faComment}
+                          title="Contributions"
+                          value={stat_contribs}
+                        />
+                      </Show>
+                      <Show when={shown.stat_unique_thread_contribs}>
+                        <Td
+                          icon={faComments}
+                          title="Part of X threads"
+                          value={stat_unique_thread_contribs}
+                        />
+                      </Show>
+                      <Show when={shown.stat_threads_created}>
+                        <Td
+                          icon={faBook}
+                          title="Threads Created"
+                          value={stat_threads_created}
+                        />
+                      </Show>
+                      <Show when={shown.stat_threads_completed}>
+                        <Td
+                          icon={faBookDead}
+                          title="Threads Completed"
+                          value={stat_threads_completed}
+                        />
+                      </Show>
+                      <Show when={shown.stat_last_contrib}>
+                        <Td
+                          icon={faClock}
+                          title="Last Seen"
+                          value={(() => {
+                            if (!stat_last_contrib) {
+                              return null
                             }
-                          />
-                        }
-                      />
-                    </Show>
-                  </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
+                            const msg = timestampDist(
+                              (Date.now() -
+                                Date.parse(stat_last_contrib + "Z")) /
+                                1000,
+                            )
+                            if (msg == "now") {
+                              return "now"
+                            } else {
+                              return (
+                                <>
+                                  {msg}
+                                  <span class="hidden md:inline"> ago</span>
+                                </>
+                              )
+                            }
+                          })()}
+                        />
+                      </Show>
+                      <Show when={shown.blocked_on}>
+                        <Td
+                          icon={faCommentDots}
+                          title="Blocked Contributions"
+                          value={
+                            <MatchQuery
+                              result={incomplete()}
+                              loading="..."
+                              error={() => "ERROR"}
+                              ok={(map) =>
+                                map.size - blocked_on + Math.floor(gems / 8)
+                              }
+                            />
+                          }
+                        />
+                      </Show>
+                    </tr>
+                  )}
+                </For>
+              </tbody>
+            </table>
+          </div>
         )}
       />
     )
@@ -723,7 +722,7 @@ export function Main() {
 
   function StatsCheckboxes() {
     return (
-      <div class="mt-4 grid grid-cols-[auto,auto] gap-x-4 border-t border-z py-2">
+      <div class="grid grid-cols-[auto,auto] gap-x-4 border-t border-z py-2">
         <label class="flex gap-2">
           <Checkbox
             checked={shown.stat_contribs}
@@ -773,11 +772,7 @@ export function Main() {
             checked={shown.stat_last_contrib}
             onInput={(x) => setShown("stat_last_contrib", x)}
           />
-          <TdAsLabel
-            icon={faClock}
-            title="Last Contribution"
-            value="Last Seen"
-          />
+          <TdAsLabel icon={faClock} title="Last Contribution" value="Last" />
         </label>
         <p>is how long ago somebody's last contribution was.</p>
 
