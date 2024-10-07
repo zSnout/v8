@@ -6,9 +6,15 @@ export function Main() {
   return (
     <Form
       title="Log in to zSnout"
-      submit="Log In"
+      submit="Log In (Passwordless)"
       footer={
         <FormAlternative>
+          Or{" "}
+          <a href="/log-in" class="text-z-link underline underline-offset-2">
+            log in using a password
+          </a>
+          .
+          <br />
           Or{" "}
           <a href="/sign-up" class="text-z-link underline underline-offset-2">
             sign up for a new account
@@ -19,15 +25,17 @@ export function Main() {
       onSubmit={async (info) => {
         const data = info.data()
         const email = String(data.get("email") ?? "")
-        const password = String(data.get("password") ?? "")
-        if (!(email && password)) {
+        if (!email) {
           await wait(300)
           return "Invalid data entered. Please try again."
         }
         const resp = await delay(
-          supabase.auth.signInWithPassword({
+          supabase.auth.signInWithOtp({
             email,
-            password,
+            options: {
+              shouldCreateUser: false,
+              emailRedirectTo: new URL("/account", location.href).href,
+            },
           }),
           300,
         )
@@ -35,8 +43,7 @@ export function Main() {
           console.error(resp.error)
           return resp.error.message
         }
-        location.href = "/account"
-        return "Redirecting you to account management..."
+        return "Check your email for a magic link."
       }}
     >
       {() => (
@@ -48,18 +55,6 @@ export function Main() {
               autocomplete="email"
               name="email"
               required
-            />
-          </FormField>
-
-          <FormField label="Password">
-            <input
-              class="z-field w-full shadow-none"
-              type="password"
-              autocomplete="password"
-              name="password"
-              required
-              pattern=".*[A-Za-z].*[0-9].*|.*[0-9].*[A-Za-z].*"
-              minlength="8"
             />
           </FormField>
         </>

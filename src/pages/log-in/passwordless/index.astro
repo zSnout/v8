@@ -1,0 +1,16 @@
+---
+import PaddedLayout from "@/layouts/PaddedLayout.astro"
+import { Main } from "."
+---
+
+<PaddedLayout
+  maxWidth="max-w-sm"
+  gray
+  title="Log In (Passwordless)"
+  description="TODO:"
+  og={{ imageAlt: "TODO:", imageSrc: "TODO:", title: "TODO:" }}
+>
+  <div class="mx-auto flex w-full max-w-sm flex-1 flex-col text-z transition">
+    <Main client:only />
+  </div>
+</PaddedLayout>
