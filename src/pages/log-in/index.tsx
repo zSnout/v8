@@ -14,7 +14,7 @@ export function Main() {
             href="/log-in/passwordless"
             class="text-z-link underline underline-offset-2"
           >
-            log in without a password.
+            log in without a password
           </a>
           .
           <br />
