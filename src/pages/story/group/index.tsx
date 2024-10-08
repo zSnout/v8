@@ -549,13 +549,13 @@ export function Main() {
         <Show when={shown.blocked_on}>
           <Td
             icon={faCommentDots}
-            title="Blocked Contributions"
+            title="Possible Contributions"
             value={
               <MatchQuery
                 result={incomplete()}
                 loading="..."
                 error={() => "ERROR"}
-                ok={(map) => map.size - blocked_on + Math.floor(gems / 8)}
+                ok={(map) => computePossible({ gems, blocked_on }, map.size)}
               />
             }
           />
@@ -570,7 +570,10 @@ export function Main() {
                 loading="..."
                 error={() => "ERROR"}
                 ok={(map) =>
-                  map.size - blocked_on + Math.floor(gems / 8) + stat_contribs
+                  computeTheoretical(
+                    { gems, blocked_on, stat_contribs },
+                    map.size,
+                  )
                 }
               />
             }
@@ -713,6 +716,7 @@ export function Main() {
             value="Possible"
             onClick={() => {
               mutateStats((stats) => {
+                const threadCount = incompleteStories()?.data?.length ?? 0
                 if (!stats || stats.error) {
                   return stats
                 }
@@ -722,9 +726,8 @@ export function Main() {
                     .slice()
                     .sort(
                       (a, b) =>
-                        Math.floor(b.gems / 8) -
-                        b.blocked_on -
-                        (Math.floor(a.gems / 8) - a.blocked_on),
+                        computePossible(b, threadCount) -
+                        computePossible(a, threadCount),
                     ),
                 }
               })
@@ -738,6 +741,7 @@ export function Main() {
             value="Theoretical"
             onClick={() => {
               mutateStats((stats) => {
+                const threadCount = incompleteStories()?.data?.length ?? 0
                 if (!stats || stats.error) {
                   return stats
                 }
@@ -747,12 +751,8 @@ export function Main() {
                     .slice()
                     .sort(
                       (a, b) =>
-                        Math.floor(b.gems / 8) -
-                        b.blocked_on +
-                        b.stat_contribs -
-                        (Math.floor(a.gems / 8) -
-                          a.blocked_on +
-                          a.stat_contribs),
+                        computeTheoretical(b, threadCount) -
+                        computeTheoretical(a, threadCount),
                     ),
                 }
               })
@@ -1378,4 +1378,19 @@ function constructData(
   }
 
   return output
+}
+
+function computePossible(
+  user: { gems: number; blocked_on: number },
+  threadCount: number,
+) {
+  const direct = threadCount - user.blocked_on
+  return direct + Math.floor((user.gems + direct) / 8)
+}
+
+function computeTheoretical(
+  user: { gems: number; blocked_on: number; stat_contribs: number },
+  threadCount: number,
+) {
+  return computePossible(user, threadCount) + user.stat_contribs
 }
