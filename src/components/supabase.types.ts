@@ -303,6 +303,14 @@ export type Database = {
       }
     }
     Functions: {
+      contrib_count_per_thread: {
+        Args: {
+          group_id: number
+        }
+        Returns: {
+          count: number
+        }[]
+      }
       contrib_timestamps: {
         Args: {
           group_id: number

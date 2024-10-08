@@ -112,6 +112,11 @@ export function Main() {
       await supabase.rpc("get_incomplete_contribs", { group_id: groupId }),
   )
 
+  const [perThreadCount, { refetch: refetchPerThreadCount }] = createResource(
+    async () =>
+      await supabase.rpc("contrib_count_per_thread", { group_id: groupId }),
+  )
+
   const completed = createMemo(() => {
     const stories = completeThreads()
     if (!stories || stories.error) {
@@ -157,6 +162,7 @@ export function Main() {
           <StatsTitle />
           <StatsData />
           <StatsCheckboxes />
+          <StatsPerThreadCount />
         </div>
 
         <div class="flex h-full flex-col">
@@ -765,7 +771,7 @@ export function Main() {
 
   function StatsCheckboxes() {
     return (
-      <div class="grid grid-cols-[auto,auto] gap-x-4 border-t border-z py-2">
+      <div class="grid grid-cols-[auto,auto] gap-x-4 border-y border-z py-3.5">
         <label class="flex gap-2">
           <Checkbox
             checked={shown.stat_contribs}
@@ -848,6 +854,36 @@ export function Main() {
         </label>
         <p>is “contributions now” plus “possible contributions”.</p>
       </div>
+    )
+  }
+
+  function StatsPerThreadCount() {
+    return (
+      <MatchQuery
+        result={perThreadCount()}
+        loading={<QueryLoading message="Loading contribs per thread..." />}
+        error={queryError}
+        ok={(data) => (
+          <>
+            <p class="mt-4 text-center">
+              <strong class="font-semibold text-z-heading">
+                Approximate contribs per thread:
+              </strong>
+              <br />
+              {data
+                .map((x) => x.count)
+                .map((x) => (x == 0 ? 1 : x))
+                .sort((a, b) => b - a)
+                .join(", ")}
+              <br />
+            </p>
+            <p class="mx-auto mt-2 max-w-96 text-center text-sm text-z-subtitle">
+              These values are rounded down to the nearest multiple of five to
+              prevent you from gathering too much context.
+            </p>
+          </>
+        )}
+      />
     )
   }
 
