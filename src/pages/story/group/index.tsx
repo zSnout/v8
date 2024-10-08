@@ -152,7 +152,7 @@ export function Main() {
         <Actions />
       </div>
 
-      <div class="flex flex-1 flex-col md:grid md:grid-cols-[calc(100%_-_18rem),18rem]">
+      <div class="flex flex-1 flex-col gap-4 md:grid md:grid-cols-[calc(100%_-_18rem),18rem]">
         <div class="flex flex-col pb-2 pt-4">
           <StatsTitle />
           <StatsData />
@@ -367,7 +367,7 @@ export function Main() {
 
   function CompletedUl() {
     return (
-      <ul class="flex h-full flex-col gap-2 border-z pl-2 transition">
+      <ul class="flex h-full flex-col gap-2 border-z transition">
         <CompletedItems />
       </ul>
     )
