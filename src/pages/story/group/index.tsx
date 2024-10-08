@@ -1352,10 +1352,7 @@ function constructData(
   times: number[],
   max?: number,
   gap = GAP,
-): {
-  time: UTCTimestamp
-  value: number
-}[] {
+): { time: UTCTimestamp; value: number }[] {
   times.sort((a, b) => a - b)
 
   const min = times[0]
