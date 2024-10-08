@@ -141,8 +141,16 @@ export function Main() {
   )
 
   const [canComplete] = createResource(
-    () => [myself(), incompleteStories()],
-    () => btnCompleteStory(true),
+    () => {
+      const me = myself()
+      const is = incompleteStories()
+      if (me && is) {
+        return [me, is] as const
+      } else {
+        return
+      }
+    },
+    ([myself, incomplete]) => canCompleteStory(myself, incomplete),
   )
 
   const [times] = createResource(
@@ -344,7 +352,7 @@ export function Main() {
               myself()?.data?.gems! < 12 ||
               canComplete() === false,
           }}
-          onClick={() => btnCompleteStory(false)}
+          onClick={btnCompleteStory}
         >
           <Fa class="size-4" icon={faCheck} title={false} />
           Complete story
@@ -1053,107 +1061,142 @@ export function Main() {
     refetchStats()
   }
 
-  async function btnCompleteStory(silent: boolean): Promise<boolean | "err"> {
-    const me = await psrc(myself)
+  async function canCompleteStory(
+    me: PostgrestSingleResponse<{
+      created_at: string
+      gems: number
+      group: number
+      id: number
+      stat_contribs: number
+      stat_last_contrib: string | null
+      stat_threads_completed: number
+      stat_threads_created: number
+      stat_unique_thread_contribs: number
+      user: string
+    }>,
+    result: PostgrestSingleResponse<
+      {
+        contrib: number
+        thread: number
+        is_mine: boolean
+      }[]
+    >,
+  ): Promise<boolean | "err"> {
     if (me.error) {
-      if (!silent)
-        await alertError("You are not a member of this group", me.error.message)
       return false
     }
     if (me.data.gems < 12) {
-      if (!silent)
-        await alert({
-          owner,
-          title: "You need 12 gems to complete a story",
-          get description() {
-            return (
-              <>
-                <ModalDescription>
-                  You can earn gems by adding onto existing stories.
-                </ModalDescription>
-
-                <ModalDescription>
-                  If there aren't enough existing stories or you've written too
-                  recently on them to be able to earn gems, ask your friends to
-                  add onto them.
-                </ModalDescription>
-              </>
-            )
-          },
-        })
       return false
     }
-    const promise = Promise.all([refetchIncomplete(), getMinRecency()])
-    const res =
-      silent ?
-        await promise
-      : await load(
-          owner,
-          promise,
-          () => <ModalDescription>Picking a story for you...</ModalDescription>,
-          true,
-        )
-    if (!res) {
-      return false
-    }
-    const [result, minRecency] = res
-    const incomplete = computeIncomplete(result ?? undefined)
-    if (!incomplete) {
-      if (!silent)
-        await alertError(
-          "Unable to find stories",
-          "Something went very wrong. Please reload the page and try again.",
-        )
-      return "err"
-    }
+    const minRecency = await getMinRecency()
+    const incomplete = computeIncomplete(result)!
     if (incomplete.error) {
-      if (!silent)
-        await alertError(
-          "Error occurred while picking stories",
-          incomplete.error.message,
-        )
       return "err"
     }
     const stories = withRecency(incomplete.data)
     if (!stories.size) {
-      if (!silent)
-        await alertError(
-          "No stories exist",
-          'There aren\'t any stories in this group! Try making one using the "Create story" button.',
-        )
       return false
     }
     if (stories.size < 2) {
-      if (!silent)
-        await alertError(
-          "Not enough stories",
-          "There must be at least two active stories before any of them can be completed.",
-        )
       return false
     }
     const storiesWithAtLeast20 = withAtLeast20(stories)
     if (!storiesWithAtLeast20.size) {
-      if (!silent)
-        await alertError(
-          "Not enough contributions",
-          "There aren't any stories with at least 20 contributions, and you need at least 20 contributions before a story can be completed.",
-        )
       return false
+    }
+    const available = [...storiesWithAtLeast20.entries()].filter(
+      ([, { recency }]) => recency == null || recency >= minRecency,
+    )
+    return available.length > 0
+  }
+
+  async function btnCompleteStory() {
+    const me = await psrc(myself)
+    if (me.error) {
+      await alertError("You are not a member of this group", me.error.message)
+      return
+    }
+    if (me.data.gems < 12) {
+      await alert({
+        owner,
+        title: "You need 12 gems to complete a story",
+        get description() {
+          return (
+            <>
+              <ModalDescription>
+                You can earn gems by adding onto existing stories.
+              </ModalDescription>
+
+              <ModalDescription>
+                If there aren't enough existing stories or you've written too
+                recently on them to be able to earn gems, ask your friends to
+                add onto them.
+              </ModalDescription>
+            </>
+          )
+        },
+      })
+      return
+    }
+    const promise = Promise.all([refetchIncomplete(), getMinRecency()])
+    const res = await load(
+      owner,
+      promise,
+      () => <ModalDescription>Picking a story for you...</ModalDescription>,
+      true,
+    )
+    if (!res) {
+      return
+    }
+    const [result, minRecency] = res
+    const incomplete = computeIncomplete(result ?? undefined)
+    if (!incomplete) {
+      await alertError(
+        "Unable to find stories",
+        "Something went very wrong. Please reload the page and try again.",
+      )
+      return
+    }
+    if (incomplete.error) {
+      await alertError(
+        "Error occurred while picking stories",
+        incomplete.error.message,
+      )
+      return
+    }
+    const stories = withRecency(incomplete.data)
+    if (!stories.size) {
+      await alertError(
+        "No stories exist",
+        'There aren\'t any stories in this group! Try making one using the "Create story" button.',
+      )
+      return
+    }
+    if (stories.size < 2) {
+      await alertError(
+        "Not enough stories",
+        "There must be at least two active stories before any of them can be completed.",
+      )
+      return
+    }
+    const storiesWithAtLeast20 = withAtLeast20(stories)
+    if (!storiesWithAtLeast20.size) {
+      await alertError(
+        "Not enough contributions",
+        "There aren't any stories with at least 20 contributions, and you need at least 20 contributions before a story can be completed.",
+      )
+      return
     }
     const available = [...storiesWithAtLeast20.entries()].filter(
       ([, { recency }]) => recency == null || recency >= minRecency,
     )
     const picked = randomItem(available)
     if (!picked) {
-      if (!silent)
-        await alertError(
-          "No stories available",
-          "You've contributed too recently to all of your group's active stories that have at least 20 contributions. Ask your friends to add to some stories, then try again.",
-        )
-      return false
-    }
-    if (silent) {
-      return true
+      await alertError(
+        "No stories available",
+        "You've contributed too recently to all of your group's active stories that have at least 20 contributions. Ask your friends to add to some stories, then try again.",
+      )
+      return
     }
     const threadId = picked[0]
     const resultLastContrib = await load(
@@ -1180,7 +1223,7 @@ export function Main() {
       })
     )?.trim()
     if (!next) {
-      return false
+      return
     }
     const resultFinal = await load(
       owner,
