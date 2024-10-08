@@ -1049,6 +1049,7 @@ export function Main() {
     }
     refetchMyself()
     refetchIncomplete()
+    refetchPerThreadCount()
     refetchStats()
   }
 
@@ -1210,6 +1211,7 @@ export function Main() {
     refetchMyself()
     refetchStats()
     refetchComplete()
+    refetchPerThreadCount()
     return true
   }
 
