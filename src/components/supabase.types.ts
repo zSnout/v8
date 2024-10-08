@@ -303,6 +303,14 @@ export type Database = {
       }
     }
     Functions: {
+      contrib_timestamps: {
+        Args: {
+          group_id: number
+        }
+        Returns: {
+          created_at: number
+        }[]
+      }
       create_story: {
         Args: {
           name: string

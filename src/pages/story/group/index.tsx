@@ -40,6 +40,7 @@ import {
   type IconDefinition,
 } from "@fortawesome/free-solid-svg-icons"
 import type { PostgrestSingleResponse } from "@supabase/supabase-js"
+import { createChart, type UTCTimestamp } from "lightweight-charts"
 import {
   children,
   createMemo,
@@ -50,6 +51,8 @@ import {
   type JSX,
 } from "solid-js"
 import { createStore } from "solid-js/store"
+
+const GAP = 60 * 60
 
 export function Main() {
   const user = requireUser()
@@ -137,6 +140,10 @@ export function Main() {
     () => btnCompleteStory(true),
   )
 
+  const [times] = createResource(
+    async () => await supabase.rpc("contrib_timestamps", { group_id: groupId }),
+  )
+
   return (
     <div class="flex flex-1 flex-col">
       <Header />
@@ -155,10 +162,43 @@ export function Main() {
         <div class="flex h-full flex-col">
           <CompletedTitle />
           <CompletedUl />
+          <Chart />
         </div>
       </div>
     </div>
   )
+
+  function Chart() {
+    return (
+      <MatchQuery
+        result={times()}
+        loading={<QueryLoading message="Loading chart..." />}
+        error={queryError}
+        ok={(data) => (
+          <div
+            class="aspect-square w-full [&_[title='Charting_by_TradingView']]:opacity-30"
+            ref={(el) => {
+              const chart = createChart(el, {
+                autoSize: true,
+                timeScale: { timeVisible: true },
+              })
+
+              const series = chart.addLineSeries({
+                priceFormat: { type: "volume" },
+              })
+              const offset = new Date().getTimezoneOffset() * 60
+              const tx = data.map((x) => x.created_at - offset)
+              const now = Math.floor((Date.now() / 1000 - offset) / GAP) * GAP
+              series.setData(constructData(tx, now))
+
+              setTimeout(() => chart.timeScale().fitContent(), 10)
+              setTimeout(() => chart.timeScale().fitContent(), 100)
+            }}
+          />
+        )}
+      />
+    )
+  }
 
   function Td(props: {
     value: JSX.Element
@@ -542,8 +582,8 @@ export function Main() {
 
   function StatsDataOkHead() {
     return (
-      <tr class="overflow-clip rounded font-semibold text-z-heading icon-z-text-heading">
-        <td class="p-0 transition first:rounded-l last:rounded-r">
+      <tr class="overflow-clip rounded text-z-heading icon-z-text-heading">
+        <th class="p-0 font-semibold transition first:rounded-l last:rounded-r">
           <button
             class="px-1 pl-2"
             onClick={() => {
@@ -560,7 +600,7 @@ export function Main() {
           >
             Username
           </button>
-        </td>
+        </th>
         <Show when={shown.stat_contribs}>
           <Th
             icon={faComment}
@@ -1306,4 +1346,39 @@ function computeIncomplete(
     contents.push({ contrib: el.contrib!, mine: el.is_mine! })
   }
   return pgok(grouped, grouped.size)
+}
+
+function constructData(
+  times: number[],
+  max?: number,
+  gap = GAP,
+): {
+  time: UTCTimestamp
+  value: number
+}[] {
+  times.sort((a, b) => a - b)
+
+  const min = times[0]
+  max ??= times[times.length - 1]
+
+  if (min == null || max == null) {
+    return []
+  }
+
+  let total = 0
+  const output: {
+    time: UTCTimestamp
+    value: number
+  }[] = []
+
+  let pos = 0
+  for (let i = Math.floor(min / gap) * gap; i <= max + gap; i += gap) {
+    while (pos < times.length && times[pos]! <= i) {
+      total += 1
+      pos += 1
+    }
+    output.push({ time: i as UTCTimestamp, value: total })
+  }
+
+  return output
 }
