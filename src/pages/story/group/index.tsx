@@ -122,11 +122,16 @@ export function Main() {
     if (!stories || stories.error) {
       return stories
     }
-    const grouped = new Map<number, string[]>()
+    const grouped = new Map<number, { completedAt: number; value: string[] }>()
     let v: string[]
     for (const el of stories.data) {
       const contents =
-        grouped.get(el.thread!) ?? (grouped.set(el.thread!, (v = [])), v)
+        grouped.get(el.thread!)?.value ??
+        (grouped.set(el.thread!, {
+          completedAt: new Date(el.completed_at!).getTime(),
+          value: (v = []),
+        }),
+        v)
       contents.push(el.content!)
     }
     return pgok(grouped, grouped.size)
@@ -405,18 +410,25 @@ export function Main() {
         error={queryError}
         ok={(data) => (
           <For
-            each={[...data.entries()]}
+            each={[...data.entries()].sort(
+              ([, { completedAt: a }], [, { completedAt: b }]) => b - a,
+            )}
             fallback={
               <QueryEmpty message="No stories complete yet. Start a story and add to it with your friends!" />
             }
           >
             {([, contentsRaw]) => {
-              const contribs = contentsRaw.length
-              const words = contentsRaw
+              const contribs = contentsRaw.value.length
+              const words = contentsRaw.value
                 .map((x) => x.split(/\s+/g).length)
                 .reduce((a, b) => a + b, 0)
-              const contents = contentsRaw.join(" ")
-              const data = { contribs, words, contents }
+              const contents = contentsRaw.value.join(" ")
+              const data = {
+                contribs,
+                words,
+                contents,
+                completedAt: contentsRaw.completedAt,
+              }
               return (
                 <li class="flex flex-col">
                   <p>
