@@ -193,6 +193,7 @@ export type Database = {
         Row: {
           author: string
           complete: boolean
+          completed_at: string | null
           created_at: string
           group: number
           id: number
@@ -200,6 +201,7 @@ export type Database = {
         Insert: {
           author: string
           complete?: boolean
+          completed_at?: string | null
           created_at?: string
           group: number
           id: number
@@ -207,6 +209,7 @@ export type Database = {
         Update: {
           author?: string
           complete?: boolean
+          completed_at?: string | null
           created_at?: string
           group?: number
           id?: number
@@ -280,6 +283,7 @@ export type Database = {
       }
       StoryThreadCompleteWithContent: {
         Row: {
+          completed_at: string | null
           content: string | null
           group: number | null
           thread: number | null

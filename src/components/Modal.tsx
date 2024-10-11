@@ -36,6 +36,7 @@ export function ModalConfirm(props: {
       // class="z-field rounded-md border-transparent bg-z-text-heading text-sm text-z-bg-body shadow-none hover:bg-z-text"
       // TODO: the hover style on light mode is too dark
       class="z-field rounded-md border-transparent bg-z-body-selected text-sm text-z shadow-none dark:hover:bg-z-field-selected hover:bg-z-text hover:text-z-bg-body dark:hover:border-transparent dark:hover:text-z"
+      type="submit"
       onClick={props.onClick}
     >
       {props.children}
@@ -154,9 +155,12 @@ export function Modal(props: {
   ref?: (ref: ModalRef) => void
   onCancel?: () => void
   onClose?: (value: string) => void
+  onSubmit?: (ref: ModalRef) => void
   refPortal?: (ref: HTMLDivElement) => void
 }) {
   const [open, setOpen] = createSignal(false)
+
+  let ref!: ModalRef
 
   return (
     <Portal ref={props.refPortal}>
@@ -166,7 +170,7 @@ export function Modal(props: {
           ref={(el) => {
             setOpen(el.open)
 
-            props.ref?.({
+            ref = {
               showModal() {
                 el.showModal()
                 setOpen(true)
@@ -189,7 +193,9 @@ export function Modal(props: {
                 props.onCancel?.()
                 props.onClose?.("")
               },
-            })
+            }
+
+            props.ref?.(ref)
           }}
           onClose={(event) => {
             event.currentTarget.close()
@@ -204,9 +210,15 @@ export function Modal(props: {
           }}
           inert={!open()}
         >
-          <div class="m-auto max-h-full w-full max-w-lg scale-95 overflow-y-auto rounded-lg bg-z-body px-6 py-6 opacity-0 shadow-lg transition group-open:scale-100 group-open:opacity-100">
+          <form
+            class="m-auto max-h-full w-full max-w-lg scale-95 overflow-y-auto rounded-lg bg-z-body px-6 py-6 opacity-0 shadow-lg transition group-open:scale-100 group-open:opacity-100"
+            onSubmit={(event) => {
+              event.preventDefault()
+              props.onSubmit?.(ref)
+            }}
+          >
             {props.children}
-          </div>
+          </form>
         </dialog>
       </div>
     </Portal>
@@ -219,13 +231,14 @@ export function popup<T>(props: {
   owner: Owner | null
   children: (close: CloseFn<T>) => JSX.Element
   onCancel: Exclude<NoInfer<T>, Function> | ((close: CloseFn<T>) => void)
+  onSubmit?: (close: CloseFn<T>) => void
 }): Promise<T> {
   return new Promise((resolve) => {
     let modal: ModalRef
     let portal: HTMLDivElement
 
     runWithOwner(props.owner, () => {
-      const inner = createMemo(() => props.children(close as CloseFn<T>))
+      const inner = createMemo(() => props.children(close))
 
       // return isn't strictly necessary, but it makes syntax highlighting work,
       // so we keep it
@@ -233,6 +246,9 @@ export function popup<T>(props: {
         <Modal
           ref={(e) => (modal = e)}
           refPortal={(e) => (portal = e)}
+          onSubmit={() => {
+            props.onSubmit?.(close)
+          }}
           onCancel={() => {
             if (typeof props.onCancel == "function") {
               ;(props.onCancel as (close: (value: T) => void) => void)(close)
@@ -308,6 +324,9 @@ export function alert(props: {
         </>
       )
     },
+    onSubmit(close) {
+      close()
+    },
     onCancel: undefined,
   })
 }
@@ -321,37 +340,31 @@ export function prompt(props: {
   value?: string
   minlength?: number
 }): Promise<string | undefined> {
+  let value = untrack(() => props.value)
+
   return popup({
     owner: props.owner,
     children(close) {
-      let value = untrack(() => props.value)
-
       return (
         <>
           <ModalTitle>{props.title}</ModalTitle>
           {props.description}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault()
-              close(value)
-            }}
-          >
-            <ModalField
-              minlength={props.minlength}
-              value={untrack(() => props.value)}
-              onInput={(el) => (value = el.currentTarget.value)}
-            />
-          </form>
+          <ModalField
+            minlength={props.minlength}
+            value={untrack(() => props.value)}
+            onInput={(el) => (value = el.currentTarget.value)}
+          />
           <ModalButtons>
             <ModalCancel onClick={() => close(undefined)}>
               {props.cancelText || "Cancel"}
             </ModalCancel>
-            <ModalConfirm onClick={() => close(value)}>
-              {props.okText || "OK"}
-            </ModalConfirm>
+            <ModalConfirm>{props.okText || "OK"}</ModalConfirm>
           </ModalButtons>
         </>
       )
+    },
+    onSubmit(close) {
+      close(value)
     },
     onCancel: "",
   })
@@ -366,37 +379,31 @@ export function textarea(props: {
   value?: string
   minlength?: number
 }): Promise<string | undefined> {
+  const [value, setValue] = createSignal(untrack(() => props.value ?? ""))
+
   return popup({
     owner: props.owner,
     children(close) {
-      let value = untrack(() => props.value)
-
       return (
         <>
           <ModalTitle>{props.title}</ModalTitle>
           {props.description}
-          <form
-            onSubmit={(event) => {
-              event.preventDefault()
-              close(value)
-            }}
-          >
-            <ModalTextarea
-              minlength={props.minlength}
-              value={untrack(() => props.value)}
-              onInput={(el) => (value = el.currentTarget.value)}
-            />
-          </form>
+          <ModalTextarea
+            minlength={props.minlength}
+            value={value()}
+            onInput={(el) => setValue(el.currentTarget.value)}
+          />
           <ModalButtons>
             <ModalCancel onClick={() => close(undefined)}>
               {props.cancelText || "Cancel"}
             </ModalCancel>
-            <ModalConfirm onClick={() => close(value)}>
-              {props.okText || "OK"}
-            </ModalConfirm>
+            <ModalConfirm>{props.okText || "OK"}</ModalConfirm>
           </ModalButtons>
         </>
       )
+    },
+    onSubmit(close) {
+      close(value())
     },
     onCancel: "",
   })
@@ -412,7 +419,7 @@ export function loading(
 
   popup<void>({
     owner,
-    onCancel() {},
+    onCancel,
     children(c) {
       close = c
       return (
