@@ -195,7 +195,7 @@ export function Main() {
         error={queryError}
         ok={(data) => (
           <div
-            class="aspect-square w-full [&_[title='Charting_by_TradingView']]:opacity-30"
+            class="mt-4 aspect-square w-full [&_[title='Charting_by_TradingView']]:opacity-30"
             ref={(el) => {
               const chart = createChart(el, {
                 autoSize: true,
