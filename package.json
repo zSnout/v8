@@ -38,7 +38,7 @@
     "@types/nearley": "^2.11.5",
     "@types/random-seed": "^0.3.5",
     "@types/sortablejs": "^1.15.8",
-    "@zsnout/ithkuil": "^0.1.102",
+    "@zsnout/ithkuil": "^0.1.103",
     "@zsnout/tailwind": "^0.1.15",
     "astro": "~2.10.15",
     "codemirror": "^6.0.1",
