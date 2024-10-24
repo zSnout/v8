@@ -80,7 +80,7 @@ function Sheet(props: {
     <div
       class={clsx(
         props.landscape ? "h-[8.5in] w-[11in]" : "h-[11in] w-[8.5in]",
-        "flex whitespace-nowrap rounded bg-white px-8 py-4 text-center font-[Carlito,ui-sans-serif,system-ui,sans-serif,'Apple_Color_Emoji','Segoe_UI_Emoji','Segoe_UI_Symbol','Noto_Color_Emoji'] text-black outline outline-purple-500",
+        "flex break-inside-avoid whitespace-nowrap bg-white px-8 py-4 text-center font-[Carlito,ui-sans-serif,system-ui,sans-serif,'Apple_Color_Emoji','Segoe_UI_Emoji','Segoe_UI_Symbol','Noto_Color_Emoji'] text-black outline outline-purple-500 print:outline-none",
       )}
     >
       <div
@@ -1051,7 +1051,7 @@ function Sheet01Conj(props: { landscape?: boolean }) {
         <Td for="ca">[C]bm → [C]v</Td>
 
         <Td for="ca">ll → pļ</Td>
-        <Td for="ca">nhn → ňn</Td>
+        <Td for="ca">ngn → ňn</Td>
         <Td for="ca">řř → ňš</Td>
         <Td for="ca">[C]çx → [C]xw</Td>
 
@@ -1160,8 +1160,12 @@ function Sheet01Conj(props: { landscape?: boolean }) {
 export function Main() {
   return (
     <>
-      <Sheet01Conj />
-      <Sheet01Conj landscape />
+      <div class="contents print:landscape:hidden">
+        <Sheet01Conj />
+      </div>
+      <div class="contents print:portrait:hidden">
+        <Sheet01Conj landscape />
+      </div>
     </>
   )
 }
