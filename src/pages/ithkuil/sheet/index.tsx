@@ -106,23 +106,8 @@ function Sheet01Conj(props: { landscape?: boolean }) {
       }
     >
       <VowelForms class="col-[span_20] row-[span_19]" />
+      <Aside />
 
-      <Show when={props.landscape}>
-        <Sidebar />
-      </Show>
-      <Ca />
-      <Show when={!props.landscape}>
-        <Block class="subgrid col-span-4 row-[span_23]">
-          <Sidebar />
-          <ComboThm class="col-span-4 row-span-1" />
-          <SentenceJuncture class="col-span-4 row-span-2" />
-        </Block>
-      </Show>
-
-      <Show when={props.landscape}>
-        <SentenceJuncture class="col-span-4 row-span-2" />
-        <ComboThm class="col-span-4 row-span-1" />
-      </Show>
       {/* <SuppletiveRefs class="col-span-8 row-span-1" /> */}
       {/* <ComboRef class="col-span-2 row-span-4" /> */}
       {/* <CarrierAdj class="col-span-2 row-span-4" /> */}
@@ -134,11 +119,27 @@ function Sheet01Conj(props: { landscape?: boolean }) {
     </Sheet>
   )
 
-  function Sidebar() {
+  function Aside() {
     return (
       <>
-        <Vh class="col-span-4 row-span-7" />
-        <Ref class="col-span-4 row-[span_13]" />
+        <Show when={props.landscape}>
+          <Vh class="col-span-4 row-span-7" />
+          <Ref class="col-span-4 row-[span_13]" />
+        </Show>
+        <Ca />
+        <Show when={!props.landscape}>
+          <Block class="subgrid col-span-4 row-[span_23]">
+            <Vh class="col-span-4 row-span-7" />
+            <Ref class="col-span-4 row-[span_13]" />
+            <ComboThm class="col-span-4 row-span-1" />
+            <SentenceJuncture class="col-span-4 row-span-2" />
+          </Block>
+        </Show>
+
+        <Show when={props.landscape}>
+          <SentenceJuncture class="col-span-4 row-span-2" />
+          <ComboThm class="col-span-4 row-span-1" />
+        </Show>
       </>
     )
   }
