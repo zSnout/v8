@@ -51,7 +51,7 @@ export function Main() {
     return (
       <Block class={[props.class, "grid grid-cols-2 grid-rows-2 gap-x-4 py-1"]}>
         <Td align="right">new ithkuil cheat sheet</Td>
-        <Td align="left">created by sakawi</Td>
+        <Td align="left">compiled by sakawi</Td>
         <Td align="right">updated to morphology v1.3.2</Td>
         <Td align="left">october 23, 2024</Td>
       </Block>
