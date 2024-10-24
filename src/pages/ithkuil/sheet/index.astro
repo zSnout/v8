@@ -1,0 +1,22 @@
+---
+import Layout from "@/layouts/Layout.astro"
+import { Main } from "."
+// import openGraph from "./open-graph.png"
+---
+
+<Layout
+  gray
+  title="TODO"
+  description="TODO"
+  og={{
+    imageAlt: "TODO",
+    imageSrc: "TODO",
+    title: "TODO",
+  }}
+>
+  <Main client:only />
+</Layout>
+
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+</style>
