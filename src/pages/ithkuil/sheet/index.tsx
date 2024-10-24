@@ -95,32 +95,64 @@ function Sheet(props: {
   )
 }
 
-function Sheet01Conj() {
+function Sheet01Conj(props: { landscape?: boolean }) {
   return (
     <Sheet
-      landscape
-      class="grid-cols-[repeat(24,1fr)] grid-rows-[repeat(35,1fr)]"
+      landscape={props.landscape}
+      class={
+        props.landscape ?
+          "grid-cols-[repeat(24,1fr)] grid-rows-[repeat(35,1fr)]" // 840
+        : "grid-cols-[repeat(20,1fr)] grid-rows-[repeat(42,1fr)]" // 840
+      }
     >
       <VowelForms class="col-[span_20] row-[span_19]" />
-      <Vh class="col-span-4 row-span-7" />
-      <Ref class="col-span-4 row-[span_13]" />
 
-      <Ca class="col-span-8 row-span-10" />
-      <CaAllomorphs class="col-span-8 row-span-5" />
-      <SentenceJuncture class="col-span-4 row-span-2" />
-      <ComboThm class="col-span-4 row-span-1" />
-      <SuppletiveRefs class="col-span-8 row-span-1" />
-      <ComboRef class="col-span-2 row-span-4" />
-      <CarrierAdj class="col-span-2 row-span-4" />
-      <VhScope class="col-span-2 row-span-4" />
-      <ParsingAdjunct class="col-span-2 row-span-4" />
-      <CaGemRules class="col-span-8 row-span-11 overflow-clip text-base/5" />
-      <AffixualAdjunctScope class="col-span-8 row-span-3" />
-      <CaGemPairs class="col-span-8 row-span-6" />
-      <CaseAffixes class="col-span-8 row-span-2" />
-      <Credits class="col-span-8 row-span-4" />
+      <Show when={props.landscape}>
+        <Sidebar />
+      </Show>
+      <Ca />
+      <Show when={!props.landscape}>
+        <Block class="subgrid col-span-4 row-[span_23]">
+          <Sidebar />
+          <ComboThm class="col-span-4 row-span-1" />
+          <SentenceJuncture class="col-span-4 row-span-2" />
+        </Block>
+      </Show>
+
+      <Show when={props.landscape}>
+        <SentenceJuncture class="col-span-4 row-span-2" />
+        <ComboThm class="col-span-4 row-span-1" />
+      </Show>
+      {/* <SuppletiveRefs class="col-span-8 row-span-1" /> */}
+      {/* <ComboRef class="col-span-2 row-span-4" /> */}
+      {/* <CarrierAdj class="col-span-2 row-span-4" /> */}
+      {/* <VhScope class="col-span-2 row-span-4" /> */}
+      {/* <ParsingAdjunct class="col-span-2 row-span-4" /> */}
+      {/* <AffixualAdjunctScope class="col-span-8 row-span-3" /> */}
+      {/* <CaseAffixes class="col-span-8 row-span-2" /> */}
+      {/* <Credits class="col-span-8 row-span-4" /> */}
     </Sheet>
   )
+
+  function Sidebar() {
+    return (
+      <>
+        <Vh class="col-span-4 row-span-7" />
+        <Ref class="col-span-4 row-[span_13]" />
+      </>
+    )
+  }
+
+  function Ca() {
+    return (
+      <Block class="subgrid col-[span_16] row-[span_16]">
+        <CaCore class="col-span-8 row-span-10" />
+        <CaAllomorphs class="col-span-8 row-span-5" />
+        <CaGemRules class="col-span-8 row-span-11 overflow-clip text-base/5" />
+        <CaGemPairs class="col-span-8 row-span-6" />
+      </Block>
+    )
+  }
 
   function Credits(props: { class?: ClsxItem }) {
     return (
@@ -820,7 +852,7 @@ function Sheet01Conj() {
     )
   }
 
-  function Ca(props: { class?: ClsxItem }) {
+  function CaCore(props: { class?: ClsxItem }) {
     return (
       <BlockLight class={clsx(props.class, "subgrid")}>
         <div class="subgrid col-span-4 row-span-10">
@@ -964,7 +996,7 @@ function Sheet01Conj() {
 
         <BlockLight class="col-span-4 row-span-2 grid">
           <Td for="ca" class="whitespace-normal text-base/5" align="left">
-            When slots V and VI are present, geminate as so:
+            Geminate if slots V and VI are present:
           </Td>
         </BlockLight>
       </BlockLight>
@@ -1102,5 +1134,10 @@ function Sheet01Conj() {
 }
 
 export function Main() {
-  return <Sheet01Conj />
+  return (
+    <>
+      <Sheet01Conj />
+      <Sheet01Conj landscape />
+    </>
+  )
 }
