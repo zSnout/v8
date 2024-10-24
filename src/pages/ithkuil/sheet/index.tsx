@@ -70,9 +70,18 @@ function Td(props: {
   )
 }
 
-function Sheet(props: { class?: ClsxItem; children?: JSX.Element }) {
+function Sheet(props: {
+  landscape?: boolean
+  class?: ClsxItem
+  children?: JSX.Element
+}) {
   return (
-    <div class="flex h-[11in] w-[8.5in] whitespace-nowrap rounded bg-white px-8 py-4 text-center font-[Carlito,ui-sans-serif,system-ui,sans-serif,'Apple_Color_Emoji','Segoe_UI_Emoji','Segoe_UI_Symbol','Noto_Color_Emoji'] text-black outline outline-purple-500">
+    <div
+      class={clsx(
+        props.landscape ? "h-[8.5in] w-[11in]" : "h-[11in] w-[8.5in]",
+        "flex whitespace-nowrap rounded bg-white px-8 py-4 text-center font-[Carlito,ui-sans-serif,system-ui,sans-serif,'Apple_Color_Emoji','Segoe_UI_Emoji','Segoe_UI_Symbol','Noto_Color_Emoji'] text-black outline outline-purple-500",
+      )}
+    >
       <div
         class={clsx(
           "grid flex-1 gap-px outline outline-1 outline-black",
@@ -939,60 +948,6 @@ function Sheet01Conj() {
   }
 }
 
-// function Sheet02Vocab() {
-//   return (
-//     <Sheet class="grid-cols-[repeat(16,1fr)] grid-rows-[repeat(40,4fr)]">
-//       <LivingCreatures class="col-span-4 row-span-8" />
-//     </Sheet>
-//   )
-//
-//   function LivingCreatures(props: { class?: ClsxItem }) {
-//     return (
-//       <Block class={[props.class, "grid grid-cols-subgrid grid-rows-subgrid"]}>
-//         <BlockLight class="col-span-4 row-span-4 grid grid-cols-subgrid grid-rows-subgrid">
-//           <Td>BSC</Td>
-//           <Td align="left" class="col-span-3">
-//             the animal
-//           </Td>
-//           <Td>CTE</Td>
-//           <Td align="left" class="col-span-3">
-//             its identity
-//           </Td>
-//           <Td>CSV</Td>
-//           <Td align="left" class="col-span-3">
-//             its physical body
-//           </Td>
-//           <Td>OBJ</Td>
-//           <Td align="left" class="col-span-3">
-//             its typical actions
-//           </Td>
-//         </BlockLight>
-//
-//         <BlockLight class="subgrid col-span-4 row-span-4 grid-cols-[1fr,1fr,2fr,2fr] gap-px">
-//           <Td>rr</Td>
-//           <Td>cat</Td>
-//           <Td>wildc.</Td>
-//           <Td>leop.c.</Td>
-//
-//           <Td>zv</Td>
-//           <Td>dog</Td>
-//           <Td>gray wolf</Td>
-//           <Td>coyote</Td>
-//
-//           <Td>zvw</Td>
-//           <Td>red</Td>
-//           <Td>fox</Td>
-//           <Td>bat-eared</Td>
-//         </BlockLight>
-//       </Block>
-//     )
-//   }
-// }
-
 export function Main() {
-  return (
-    <>
-      <Sheet01Conj />
-    </>
-  )
+  return <Sheet01Conj />
 }
