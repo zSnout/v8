@@ -96,34 +96,41 @@ function Sheet(props: {
 
 function Sheet01Conj() {
   return (
-    <Sheet class="grid-cols-[repeat(20,1fr)] grid-rows-[repeat(4,4fr),repeat(18,3fr),repeat(24,4fr)]">
-      <VowelForms class="col-[span_20] row-[span_23]" />
+    <Sheet
+      landscape
+      class="grid-cols-[repeat(24,1fr)] grid-rows-[repeat(35,1fr)]"
+    >
+      <VowelForms class="col-[span_20] row-[span_19]" />
+      <Vh class="col-span-4 row-span-7" />
+      <Ref class="col-span-4 row-[span_13]" />
+
       <Ca class="col-span-8 row-span-10" />
       <CaAllomorphs class="col-span-8 row-span-5" />
-      <Vh class="col-span-4 row-span-7" />
+      <SentenceJuncture class="col-span-4 row-span-2" />
+      <ComboThm class="col-span-4 row-span-1" />
       <CaseAffixes class="col-span-8 row-span-2" />
-      <AffixualAdjunctScope class="col-span-8 row-span-3" />
-      <Ref class="col-span-4 row-[span_13]" />
-      <CaGemRules class="col-span-8 row-span-11" />
       <ComboRef class="col-span-2 row-span-4" />
       <CarrierAdj class="col-span-2 row-span-4" />
       <VhScope class="col-span-2 row-span-4" />
       <ParsingAdjunct class="col-span-2 row-span-4" />
-      <SuppletiveRefs class="col-span-8 row-span-1" />
+      <CaGemRules class="col-span-8 row-span-11 overflow-clip text-base/5" />
+      <AffixualAdjunctScope class="col-span-8 row-span-3" />
       <CaGemPairs class="col-span-8 row-span-6" />
-      <ComboThm class="col-span-4 row-span-1" />
-      <Credits class="col-[span_16] row-span-2" />
-      <SentenceJuncture class="col-span-4 row-span-2" />
+      <SuppletiveRefs class="col-span-8 row-span-1" />
+      <Credits class="col-span-8 row-span-4" />
     </Sheet>
   )
 
   function Credits(props: { class?: ClsxItem }) {
     return (
-      <Block class={[props.class, "grid grid-cols-2 grid-rows-2 gap-x-4 py-1"]}>
-        <Td align="right">new ithkuil cheat sheet</Td>
+      <Block class={[props.class, "grid grid-cols-2 grid-rows-4 gap-x-4 py-1"]}>
+        <Td align="right">new ithkuil overview</Td>
         <Td align="left">compiled by sakawi</Td>
-        <Td align="right">updated to morphology v1.3.2</Td>
-        <Td align="left">october 23, 2024</Td>
+        <Td align="right">morphology v1.3.2</Td>
+        <Td align="left">october 24, 2024</Td>
+        <Td align="right">landscape edition</Td>
+        <Td align="left">grammar sheet</Td>
+        <Td class="col-span-2">https://v8.zsnout.com/ithkuil/sheet</Td>
       </Block>
     )
   }
@@ -149,28 +156,30 @@ function Sheet01Conj() {
       <BlockLight
         class={clsx(props.class, "grid grid-cols-1 grid-rows-1 items-center")}
       >
-        <ol class="list-decimal whitespace-normal pl-6 text-left text-base/5 marker:font-bold">
+        <ol class="list-decimal whitespace-normal pl-6 text-left marker:font-bold">
           <li>Geminate single consonants.</li>
           <li>tļ → ttļ.</li>
           <li>
-            If the C<sub>A</sub> starts with a stop followed by a
-            liquid/approximant, geminate the stop.
+            If there is an initial stop followed by [lrřwy], geminate the stop.
           </li>
           <li>If there is a sibilant, geminate it.</li>
+          <li>Geminate an initial non-sibilant fricative/nasal.</li>
+          {/* </ol>
+        <ol
+          class="list-decimal whitespace-normal pl-6 text-left marker:font-bold"
+          start={6}
+        > */}
           <li>
-            If a non-sibilant fricative/nasal is the first letter, geminate it.
-          </li>
-          <li>
-            If the C<sub>A</sub> starts with t/k/p and a fricative, geminate the
+            If the C<sub>A</sub> starts with [tkp] and a fricative, geminate the
             fricative.
           </li>
           <li>
-            If the C<sub>A</sub> ends in a combination to the right, substitute
+            If the C<sub>A</sub> ends in a combination to the left, substitute
             it.
           </li>
           <li>
-            If the C<sub>A</sub> begins with l/r/ř, geminate the rest. If it's
-            invalid, geminate the l/r/ř.
+            If the C<sub>A</sub> begins with [lrř], geminate the rest. If it's
+            invalid, geminate the [lrř].
           </li>
         </ol>
       </BlockLight>
@@ -208,9 +217,7 @@ function Sheet01Conj() {
 
   function ComboRef(props: { class?: ClsxItem }) {
     return (
-      <Block
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
+      <Block class={clsx(props.class, "subgrid")}>
         <Td class="pl-2">BSC</Td>
         <Td>x</Td>
         <Td class="pl-2">CTE</Td>
@@ -225,9 +232,7 @@ function Sheet01Conj() {
 
   function CarrierAdj(props: { class?: ClsxItem }) {
     return (
-      <Block
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
+      <Block class={clsx(props.class, "subgrid")}>
         <Td class="pl-2">CAR</Td>
         <Td>hl</Td>
         <Td class="pl-2">QUO</Td>
@@ -242,9 +247,7 @@ function Sheet01Conj() {
 
   function VhScope(props: { class?: ClsxItem }) {
     return (
-      <Block
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
+      <Block class={clsx(props.class, "subgrid")}>
         <Td class="pl-2">form.</Td>
         <Td>a</Td>
         <Td class="pl-2">MCS</Td>
@@ -295,10 +298,8 @@ function Sheet01Conj() {
 
   function Vh(props: { class?: ClsxItem }) {
     return (
-      <Block
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
-        <BlockLight class="col-span-4 grid grid-cols-subgrid grid-rows-subgrid">
+      <Block class={clsx(props.class, "subgrid")}>
+        <BlockLight class="subgrid col-span-4">
           <Td class="col-span-2">
             C<sub>N</sub>
           </Td>
@@ -342,11 +343,13 @@ function Sheet01Conj() {
 
   function VowelForms(props: { class?: ClsxItem }) {
     return (
-      <Block class={[props.class, "grid grid-cols-subgrid grid-rows-subgrid"]}>
+      <Block class={[props.class, "subgrid"]}>
         <FormativeS1 class="col-span-5 row-span-4" />
         <VXHeader class="col-[span_15] row-span-4" />
-        <VXSidebar class="col-[span_5] row-[span_18]" />
-        <VXBody class="col-[span_15] row-[span_18]" />
+        <div class="subgrid col-[span_20] row-[span_14] grid-rows-[repeat(18,1fr)] gap-px">
+          <VXSidebar class="col-[span_5] row-[span_18]" />
+          <VXBody class="col-[span_15] row-[span_18]" />
+        </div>
         <VXFooter class="col-[span_20]" />
       </Block>
     )
@@ -355,36 +358,34 @@ function Sheet01Conj() {
   function FormativeS1(props: { class?: ClsxItem }) {
     return (
       <Block class={[props.class, "grid grid-cols-4 grid-rows-subgrid gap-px"]}>
-        <Td outline>
+        <Td>
           C<sub>C</sub>
         </Td>
-        <Td outline />
-        <Td outline>W</Td>
-        <Td outline>Y</Td>
+        <Td />
+        <Td>W</Td>
+        <Td>Y</Td>
 
-        <Td outline />
-        <Td outline>’</Td>
-        <Td outline>w</Td>
-        <Td outline>y</Td>
+        <Td />
+        <Td>’</Td>
+        <Td>w</Td>
+        <Td>y</Td>
 
-        <Td outline>T1</Td>
-        <Td outline>h</Td>
-        <Td outline>hl</Td>
-        <Td outline>hm</Td>
+        <Td>T1</Td>
+        <Td>h</Td>
+        <Td>hl</Td>
+        <Td>hm</Td>
 
-        <Td outline>T2</Td>
-        <Td outline>hw</Td>
-        <Td outline>hr</Td>
-        <Td outline>hn</Td>
+        <Td>T2</Td>
+        <Td>hw</Td>
+        <Td>hr</Td>
+        <Td>hn</Td>
       </Block>
     )
   }
 
   function VXHeader(props: { class?: ClsxItem }) {
     return (
-      <div
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
+      <div class={clsx(props.class, "subgrid")}>
         <Td outline class="col-span-4">
           affixual STA.PRC
         </Td>
@@ -540,9 +541,7 @@ function Sheet01Conj() {
 
   function VXBody(props: { class?: ClsxItem }) {
     return (
-      <div
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
+      <div class={clsx(props.class, "subgrid")}>
         <For each={[1, 2, 3, 4, 5, 6, 7, 8, 9] as const}>
           {(degree) => (
             <For each={[1, 2, 3, 4] as const}>
@@ -599,12 +598,7 @@ function Sheet01Conj() {
     v: string
   }) {
     return (
-      <div
-        class={clsx(
-          props.class,
-          "grid grid-cols-subgrid grid-rows-subgrid outline outline-1 outline-z",
-        )}
-      >
+      <div class={clsx(props.class, "subgrid outline outline-1 outline-z")}>
         <Td>
           {props.vn1.endsWith(":BEN") ?
             props.vn1.slice(0, -4) + "+"
@@ -632,9 +626,7 @@ function Sheet01Conj() {
 
   function VXFooter(props: { class?: ClsxItem }) {
     return (
-      <div
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
+      <div class={clsx(props.class, "subgrid")}>
         <Td outline class="col-span-4">
           referential V<sub>V</sub>
         </Td>
@@ -671,11 +663,9 @@ function Sheet01Conj() {
 
   function Ca(props: { class?: ClsxItem }) {
     return (
-      <BlockLight
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
-        <div class="col-span-4 row-span-10 grid grid-cols-subgrid grid-rows-subgrid">
-          <BlockLight class="col-span-2 row-span-4 grid grid-cols-subgrid grid-rows-subgrid">
+      <BlockLight class={clsx(props.class, "subgrid")}>
+        <div class="subgrid col-span-4 row-span-10">
+          <BlockLight class="subgrid col-span-2 row-span-4">
             <Td>CSL</Td>
             <Td />
             <Td>ASO</Td>
@@ -728,7 +718,7 @@ function Sheet01Conj() {
             <Td>pš</Td>
           </BlockLight>
 
-          <BlockLight class="col-span-2 row-span-6 grid grid-cols-subgrid grid-rows-subgrid">
+          <BlockLight class="subgrid col-span-2 row-span-6">
             <Td>DEL</Td>
             <Td />
 
@@ -759,7 +749,7 @@ function Sheet01Conj() {
           </BlockLight>
         </div>
 
-        <BlockLight class="col-span-4 row-span-5 grid grid-cols-subgrid grid-rows-subgrid">
+        <BlockLight class="subgrid col-span-4 row-span-5">
           <Td> </Td>
           <Td>NRM</Td>
           <Td>RPV</Td>
@@ -790,7 +780,7 @@ function Sheet01Conj() {
           <Td>w / y</Td>
         </BlockLight>
 
-        <BlockLight class="col-span-4 row-span-3 grid grid-cols-subgrid grid-rows-subgrid">
+        <BlockLight class="subgrid col-span-4 row-span-3">
           <Td align="right">(...)</Td>
           <Td align="left" class="col-span-3 pl-2">
             standalone
@@ -813,7 +803,7 @@ function Sheet01Conj() {
 
         <BlockLight class="col-span-4 row-span-2 grid">
           <Td class="whitespace-normal text-base/5" align="left">
-            Geminate when slots V and VI are present:
+            When slots V and VI are present, geminate as so:
           </Td>
         </BlockLight>
       </BlockLight>
@@ -859,9 +849,7 @@ function Sheet01Conj() {
 
   function Ref(props: { class?: ClsxItem }) {
     return (
-      <Block
-        class={clsx(props.class, "grid grid-cols-subgrid grid-rows-subgrid")}
-      >
+      <Block class={clsx(props.class, "subgrid")}>
         <Td>ref.</Td>
         <Td>NEU</Td>
         <Td>BEN</Td>
@@ -894,19 +882,19 @@ function Sheet01Conj() {
       <Block
         class={clsx(props.class, "grid grid-cols-7 grid-rows-subgrid gap-px")}
       >
-        <BlockLight class="col-span-3 row-span-3 grid grid-cols-subgrid grid-rows-subgrid">
+        <BlockLight class="subgrid col-span-3 row-span-3">
           <Td class="col-span-3">case accessor</Td>
           <Td>s-</Td>
           <Td>z-</Td>
           <Td>č-</Td>
         </BlockLight>
-        <BlockLight class="col-span-3 row-span-3 grid grid-cols-subgrid grid-rows-subgrid">
+        <BlockLight class="subgrid col-span-3 row-span-3">
           <Td class="col-span-3">inverse accessor</Td>
           <Td>š-</Td>
           <Td>ž-</Td>
           <Td>j-</Td>
         </BlockLight>
-        <BlockLight class="row-span-3 grid grid-cols-subgrid grid-rows-subgrid">
+        <BlockLight class="subgrid row-span-3">
           <Td>stack</Td>
           <Td>l-</Td>
         </BlockLight>
