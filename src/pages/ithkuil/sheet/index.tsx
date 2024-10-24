@@ -20,7 +20,7 @@ import {
   type Validation,
 } from "@zsnout/ithkuil/generate"
 import { VowelForm } from "@zsnout/ithkuil/parse"
-import { For, Show, type JSX } from "solid-js"
+import { For, Show, Switch, type JSX } from "solid-js"
 
 function Block(props: { class?: ClsxItem; children?: JSX.Element }) {
   return (
@@ -96,6 +96,8 @@ function Sheet(props: {
 }
 
 function Sheet01Conj(props: { landscape?: boolean }) {
+  const outer = props
+
   return (
     <Sheet
       landscape={props.landscape}
@@ -108,16 +110,37 @@ function Sheet01Conj(props: { landscape?: boolean }) {
       <VowelForms class="col-[span_20] row-[span_19]" />
       <Aside />
 
-      {/* <SuppletiveRefs class="col-span-8 row-span-1" /> */}
-      {/* <ComboRef class="col-span-2 row-span-4" /> */}
-      {/* <CarrierAdj class="col-span-2 row-span-4" /> */}
-      {/* <VhScope class="col-span-2 row-span-4" /> */}
-      {/* <ParsingAdjunct class="col-span-2 row-span-4" /> */}
-      {/* <AffixualAdjunctScope class="col-span-8 row-span-3" /> */}
-      {/* <CaseAffixes class="col-span-8 row-span-2" /> */}
-      {/* <Credits class="col-span-8 row-span-4" /> */}
+      <Show
+        when={props.landscape}
+        fallback={
+          <>
+            <SuppletiveRefs class="col-span-8 row-span-1" />
+            <AffixualAdjunctScope class="col-span-8 row-span-3" />
+            <CaseAffixes class="col-span-8 row-span-2" />
+            <Credits class="col-span-8 row-span-4" />
+            <FourCols />
+          </>
+        }
+      >
+        <SuppletiveRefs class="col-span-8 row-span-1" />
+        <FourCols />
+        <AffixualAdjunctScope class="col-span-8 row-span-3" />
+        <CaseAffixes class="col-span-8 row-span-2" />
+        <Credits class="col-span-8 row-span-4" />
+      </Show>
     </Sheet>
   )
+
+  function FourCols() {
+    return (
+      <>
+        <ComboRef class="col-span-2 row-span-4" />
+        <CarrierAdj class="col-span-2 row-span-4" />
+        <VhScope class="col-span-2 row-span-4" />
+        <ParsingAdjunct class="col-span-2 row-span-4" />
+      </>
+    )
+  }
 
   function Aside() {
     return (
@@ -171,7 +194,7 @@ function Sheet01Conj(props: { landscape?: boolean }) {
           october 24, 2024
         </Td>
         <Td for="meta" align="right">
-          landscape edition
+          {outer.landscape ? "landscape" : "portrait"} edition
         </Td>
         <Td for="meta" align="left">
           grammar sheet
