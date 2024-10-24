@@ -40,7 +40,15 @@ export default {
     zSnoutTheme(),
 
     /** @type {import("tailwindcss/types/config").PluginCreator} */
-    ({ addVariant, matchUtilities, matchVariant, theme }) => {
+    ({ addComponents, addVariant, matchUtilities, matchVariant, theme }) => {
+      addComponents({
+        ".subgrid": {
+          display: "grid",
+          "grid-template-columns": "subgrid",
+          "grid-template-rows": "subgrid",
+        },
+      })
+
       addVariant("xs", "@media (min-width: 400px)")
 
       addVariant("scrollbar", "&::-webkit-scrollbar")

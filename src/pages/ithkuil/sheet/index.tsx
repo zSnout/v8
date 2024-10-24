@@ -22,29 +22,90 @@ import {
 import { VowelForm } from "@zsnout/ithkuil/parse"
 import { For, Show, type JSX } from "solid-js"
 
-export function Main() {
+function Block(props: { class?: ClsxItem; children?: JSX.Element }) {
+  return (
+    <div
+      class={clsx(props.class, "relative z-10 outline outline-1 outline-black")}
+    >
+      {props.children}
+    </div>
+  )
+}
+
+function BlockLight(props: { class?: ClsxItem; children?: JSX.Element }) {
+  return (
+    <div class={clsx(props.class, "outline outline-1 outline-z")}>
+      {props.children}
+    </div>
+  )
+}
+
+function Td(props: {
+  class?: string
+  children?: JSX.Element
+  outline?: boolean
+  align?: "left" | "right"
+}) {
+  return (
+    <div
+      class={clsx(
+        props.outline && "outline outline-1 outline-z",
+        props.class,
+        "flex",
+      )}
+    >
+      <span class="relative flex-1">
+        <span
+          class={clsx(
+            "absolute top-1/2 -translate-y-1/2",
+            props.align == "left" ? "left-0"
+            : props.align == "right" ? "right-0"
+            : "left-1/2 -translate-x-1/2",
+          )}
+        >
+          {props.children ?? "—"}
+        </span>
+      </span>
+    </div>
+  )
+}
+
+function Sheet(props: { class?: ClsxItem; children?: JSX.Element }) {
   return (
     <div class="flex h-[11in] w-[8.5in] whitespace-nowrap rounded bg-white px-8 py-4 text-center font-[Carlito,ui-sans-serif,system-ui,sans-serif,'Apple_Color_Emoji','Segoe_UI_Emoji','Segoe_UI_Symbol','Noto_Color_Emoji'] text-black outline outline-purple-500">
-      <div class="grid flex-1 grid-cols-[repeat(20,1fr)] grid-rows-[repeat(4,4fr),repeat(18,3fr),repeat(24,4fr)] gap-px outline outline-1 outline-black">
-        <VowelForms class="col-[span_20] row-[span_23]" />
-        <Ca class="col-span-8 row-span-10" />
-        <CaAllomorphs class="col-span-8 row-span-5" />
-        <Vh class="col-span-4 row-span-7" />
-        <CaseAffixes class="col-span-8 row-span-2" />
-        <AffixualAdjunctScope class="col-span-8 row-span-3" />
-        <Ref class="col-span-4 row-[span_13]" />
-        <CaGemRules class="col-span-8 row-span-11" />
-        <ComboRef class="col-span-2 row-span-4" />
-        <CarrierAdj class="col-span-2 row-span-4" />
-        <VhScope class="col-span-2 row-span-4" />
-        <ParsingAdjunct class="col-span-2 row-span-4" />
-        <SuppletiveRefs class="col-span-8 row-span-1" />
-        <CaGemPairs class="col-span-8 row-span-6" />
-        <ComboThm class="col-span-4 row-span-1" />
-        <Credits class="col-[span_16] row-span-2" />
-        <SentenceJuncture class="col-span-4 row-span-2" />
+      <div
+        class={clsx(
+          "grid flex-1 gap-px outline outline-1 outline-black",
+          props.class,
+        )}
+      >
+        {props.children}
       </div>
     </div>
+  )
+}
+
+function Sheet01Conj() {
+  return (
+    <Sheet class="grid-cols-[repeat(20,1fr)] grid-rows-[repeat(4,4fr),repeat(18,3fr),repeat(24,4fr)]">
+      <VowelForms class="col-[span_20] row-[span_23]" />
+      <Ca class="col-span-8 row-span-10" />
+      <CaAllomorphs class="col-span-8 row-span-5" />
+      <Vh class="col-span-4 row-span-7" />
+      <CaseAffixes class="col-span-8 row-span-2" />
+      <AffixualAdjunctScope class="col-span-8 row-span-3" />
+      <Ref class="col-span-4 row-[span_13]" />
+      <CaGemRules class="col-span-8 row-span-11" />
+      <ComboRef class="col-span-2 row-span-4" />
+      <CarrierAdj class="col-span-2 row-span-4" />
+      <VhScope class="col-span-2 row-span-4" />
+      <ParsingAdjunct class="col-span-2 row-span-4" />
+      <SuppletiveRefs class="col-span-8 row-span-1" />
+      <CaGemPairs class="col-span-8 row-span-6" />
+      <ComboThm class="col-span-4 row-span-1" />
+      <Credits class="col-[span_16] row-span-2" />
+      <SentenceJuncture class="col-span-4 row-span-2" />
+    </Sheet>
   )
 
   function Credits(props: { class?: ClsxItem }) {
@@ -267,57 +328,6 @@ export function Main() {
         <Td class="font-bold">hň</Td>
         <Td class="font-bold">hňw</Td>
       </Block>
-    )
-  }
-
-  function Block(props: { class?: ClsxItem; children?: JSX.Element }) {
-    return (
-      <div
-        class={clsx(
-          props.class,
-          "relative z-10 outline outline-1 outline-black",
-        )}
-      >
-        {props.children}
-      </div>
-    )
-  }
-
-  function BlockLight(props: { class?: ClsxItem; children?: JSX.Element }) {
-    return (
-      <div class={clsx(props.class, "outline outline-1 outline-z")}>
-        {props.children}
-      </div>
-    )
-  }
-
-  function Td(props: {
-    class?: ClsxItem
-    children?: JSX.Element
-    outline?: boolean
-    align?: "left" | "right"
-  }) {
-    return (
-      <div
-        class={clsx(
-          props.outline && "outline outline-1 outline-z",
-          props.class,
-          "flex",
-        )}
-      >
-        <span class="relative flex-1">
-          <span
-            class={clsx(
-              "absolute top-1/2 -translate-y-1/2",
-              props.align == "left" ? "left-0"
-              : props.align == "right" ? "right-0"
-              : "left-1/2 -translate-x-1/2",
-            )}
-          >
-            {props.children ?? "—"}
-          </span>
-        </span>
-      </div>
     )
   }
 
@@ -598,7 +608,10 @@ export function Main() {
           <Td class="row-span-2">{props.vk}</Td>
         </Show>
         <Td
-          class={[props.vWide && "col-span-2", "row-span-2 text-2xl font-bold"]}
+          class={clsx(
+            props.vWide && "col-span-2",
+            "row-span-2 text-2xl font-bold",
+          )}
         >
           {props.v[0] == "(" ? props.v.slice(1, -1) : props.v}
         </Td>
@@ -924,4 +937,62 @@ export function Main() {
       </Block>
     )
   }
+}
+
+// function Sheet02Vocab() {
+//   return (
+//     <Sheet class="grid-cols-[repeat(16,1fr)] grid-rows-[repeat(40,4fr)]">
+//       <LivingCreatures class="col-span-4 row-span-8" />
+//     </Sheet>
+//   )
+//
+//   function LivingCreatures(props: { class?: ClsxItem }) {
+//     return (
+//       <Block class={[props.class, "grid grid-cols-subgrid grid-rows-subgrid"]}>
+//         <BlockLight class="col-span-4 row-span-4 grid grid-cols-subgrid grid-rows-subgrid">
+//           <Td>BSC</Td>
+//           <Td align="left" class="col-span-3">
+//             the animal
+//           </Td>
+//           <Td>CTE</Td>
+//           <Td align="left" class="col-span-3">
+//             its identity
+//           </Td>
+//           <Td>CSV</Td>
+//           <Td align="left" class="col-span-3">
+//             its physical body
+//           </Td>
+//           <Td>OBJ</Td>
+//           <Td align="left" class="col-span-3">
+//             its typical actions
+//           </Td>
+//         </BlockLight>
+//
+//         <BlockLight class="subgrid col-span-4 row-span-4 grid-cols-[1fr,1fr,2fr,2fr] gap-px">
+//           <Td>rr</Td>
+//           <Td>cat</Td>
+//           <Td>wildc.</Td>
+//           <Td>leop.c.</Td>
+//
+//           <Td>zv</Td>
+//           <Td>dog</Td>
+//           <Td>gray wolf</Td>
+//           <Td>coyote</Td>
+//
+//           <Td>zvw</Td>
+//           <Td>red</Td>
+//           <Td>fox</Td>
+//           <Td>bat-eared</Td>
+//         </BlockLight>
+//       </Block>
+//     )
+//   }
+// }
+
+export function Main() {
+  return (
+    <>
+      <Sheet01Conj />
+    </>
+  )
 }
