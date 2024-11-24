@@ -2564,9 +2564,18 @@ export function Main() {
       contents: [
         { type: "number", value: "2" },
         { type: "var", letter: "x" },
-        { type: "sup", contents: [{ type: "number", value: "2" }] },
+        {
+          type: "sup",
+          contents: [
+            { type: "number", value: "2" },
+            { type: "op", op: "·" },
+            { type: "number", value: "3" },
+          ],
+        },
       ],
     },
+    { type: "op", op: "·" },
+    { type: "number", value: "3" },
     { type: "var", letter: "x" },
     { type: "sub", contents: [{ type: "number", value: "1" }] },
     { type: "var", letter: "x" },
