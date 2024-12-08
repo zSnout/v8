@@ -1,10 +1,16 @@
-import { createSignal, untrack, type Signal, onMount } from "solid-js"
+import {
+  createSignal,
+  onMount,
+  untrack,
+  type Setter,
+  type Signal,
+} from "solid-js"
 
-export function createStorage(
+export function createStorage<T extends string = string>(
   key: string,
   defaultValue: string,
   delay?: boolean | "directmount",
-): Signal<string> {
+): Signal<T | (string & {})> {
   const realKey = `z8:${key}`
 
   const [get, set] = createSignal(
@@ -33,21 +39,20 @@ export function createStorage(
     })
   }
 
-  return [
-    get,
-    (value: string | ((x: string) => string)) => {
-      if (typeof value == "function") {
-        const next = value(untrack(get))
-        localStorage.setItem(realKey, next)
-        set(next)
-        return next as any
-      } else {
-        localStorage.setItem(realKey, value)
-        set(value)
-        return value as any
-      }
-    },
-  ]
+  return [get, setFn satisfies Setter<string> as any]
+
+  function setFn(value: string | ((x: string) => string)) {
+    if (typeof value == "function") {
+      const next = value(untrack(get))
+      localStorage.setItem(realKey, next)
+      set(next)
+      return next as any
+    } else {
+      localStorage.setItem(realKey, value)
+      set(value)
+      return value as any
+    }
+  }
 }
 
 export function createStorageBoolean(
