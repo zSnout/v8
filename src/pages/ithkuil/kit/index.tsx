@@ -223,11 +223,11 @@ export function Main() {
       </div>
 
       <div class="contents h-full w-96 min-w-96 max-w-96 md:block">
-        <div class="fixed bottom-0 right-0 top-12 contents w-96 flex-col overflow-auto border-l border-z bg-z-body pb-12 pt-4 md:flex">
+        <div class="fixed bottom-0 right-0 top-12 contents w-96 flex-col overflow-y-auto overflow-x-hidden border-l border-z bg-z-body pb-12 pt-4 md:flex">
           <div
             class={clsx(
-              "fixed bottom-0 top-12 w-[calc(100%_+_1px)] overflow-y-auto overflow-x-hidden border-l border-z bg-z-body py-4 text-left transition-all md:contents",
-              sidebar() == "hide" ? "left-full" : "-left-px",
+              "fixed bottom-0 top-12 w-[calc(100%_+_1px)] overflow-y-auto overflow-x-hidden border-l border-z bg-z-body py-4 text-left transition-all xs:max-w-96 md:contents",
+              sidebar() == "hide" ? "right-[calc(-1px_-_100%)]" : "right-0",
             )}
           >
             <Sidebar />
