@@ -259,6 +259,24 @@ export function Main() {
           </p>
 
           <p class="mt-2 px-4">
+            This sidebar provides helpful information. On mobile, it may be
+            shown or hidden using the{" "}
+            <span class="inline-flex size-8 rounded-lg border border-z bg-z-body align-[-.375rem] shadow">
+              <Fa class="m-auto size-5" icon={faNavicon} title={sidebar()} />
+            </span>{" "}
+            or{" "}
+            <span class="inline-flex size-8 rounded-lg border border-z bg-z-body align-[-.5rem] shadow">
+              <Fa class="m-auto size-6" icon={faClose} title={sidebar()} />
+            </span>{" "}
+            button at the top right corner of the screen.
+            <span class="hidden md:inline">
+              {" "}
+              (It's hidden for you because you're on a sufficiently wide
+              device.)
+            </span>
+          </p>
+
+          <p class="mt-2 px-4">
             To gloss a word, type it into the query box at the top.
           </p>
 
