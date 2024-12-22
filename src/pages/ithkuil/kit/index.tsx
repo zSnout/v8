@@ -135,6 +135,7 @@ export function Main() {
 
   const wordsRaw = createMemo(() => {
     splitByNewline()
+    if (compact()) col1()
     return indexArray(
       createMemo(() =>
         source()
