@@ -129,6 +129,7 @@ export function Main() {
     "000",
   )
 
+  const DOUBLE_NEWLINE = /(?:\r?\n)\s*(?:\r?\n)+/g
   const NEWLINE = /(?:\r?\n)+/g
   const WHITESPACE = /\s+/g
 
@@ -137,7 +138,7 @@ export function Main() {
     return indexArray(
       createMemo(() =>
         source()
-          .split(NEWLINE)
+          .split(DOUBLE_NEWLINE)
           .filter((x) => x),
       ),
       createLine,
@@ -606,19 +607,14 @@ export function Main() {
     el: JSX.Element
     recognized?: RecognizerOutput
   }[] {
-    if (splitByNewline()) {
-      return createMemo(() => [createWord(line())])
-    } else {
-      return mapArray(
-        createMemo(() =>
-          line()
-            .split(WHITESPACE)
-            .filter((x) => x)
-            .map((x) => x),
-        ),
-        createWord,
-      )
-    }
+    return mapArray(
+      createMemo(() =>
+        line()
+          .split(splitByNewline() ? NEWLINE : WHITESPACE)
+          .filter((x) => x),
+      ),
+      createWord,
+    )
   }
 
   function Sidebar() {
@@ -967,9 +963,14 @@ export function Main() {
       <div class="flex w-full flex-1 flex-col gap-2 border-l border-z pl-2">
         <Changelog date={1734857347638}>
           <li>
-            Added compact mode, accessible through the sidebar. Compact mode
-            provides an alternative layout which removes some information in
-            exchange for a significantly simpler and easier-to-navigate layout.
+            Added compact mode, an alternative grid-based layout which increases
+            the density of information displayed onscreen.{" "}
+            <button
+              class="text-z-link underline underline-offset-2"
+              onClick={() => setCompact(true)}
+            >
+              Try it out!
+            </button>
           </li>
           <li>The query box now sticks to the top of the screen.</li>
           <li>
