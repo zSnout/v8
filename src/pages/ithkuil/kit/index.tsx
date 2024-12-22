@@ -99,6 +99,8 @@ export function Main() {
     false,
   )
 
+  const [col1, setCol1] = createStorageBoolean("ithkuil/kit/compact/col1", true)
+
   // "show" means "show on mobile and desktop"
   // "hide" means "hide on mobile and desktop"
   // anything else means "hide on mobile; show on desktop"
@@ -112,7 +114,7 @@ export function Main() {
   const WHITESPACE = /\s+/g
 
   const wordsRaw = createMemo(() => {
-    compact()
+    if (compact()) col1()
     splitByNewline()
 
     return indexArray(
@@ -142,7 +144,9 @@ export function Main() {
         <div
           class={
             compact() ?
-              "grid grid-cols-[auto,auto,auto]"
+              col1() ?
+                "grid grid-cols-[auto,auto,auto]"
+              : "grid grid-cols-[auto,auto]"
             : "flex flex-wrap gap-2"
           }
         >
@@ -150,7 +154,15 @@ export function Main() {
             {(line, idx) => (
               <>
                 <Show when={idx() > 0}>
-                  <div class={compact() ? "col-span-3 h-8" : "h-4 w-full"} />
+                  <div
+                    class={
+                      compact() ?
+                        col1() ?
+                          "col-span-3 h-8"
+                        : "col-span-2 h-8"
+                      : "h-4 w-full"
+                    }
+                  />
                 </Show>
                 <For each={line()}>{(x) => x.el}</For>
               </>
@@ -173,7 +185,7 @@ export function Main() {
       </div>
 
       <button
-        class="fixed right-2 top-14 flex size-8 rounded-lg border border-z bg-z-body shadow md:hidden"
+        class="fixed right-2 top-14 z-20 flex size-8 rounded-lg border border-z bg-z-body shadow md:hidden"
         onClick={() => setShowSidebar((x) => (x == "hide" ? "" : "hide"))}
       >
         <Fa
@@ -199,36 +211,9 @@ export function Main() {
   } {
     const cc = /^(?:q|h[aeiou]?[0123]$)/i.test(word)
 
-    if (cc && compact()) {
-      return {
-        el: (
-          <>
-            <div class="my-0.5 border-l border-z" />
-            <P class="pr-4 font-semibold text-z-heading">{word}</P>
-            <div class="flex items-center">
-              <Draw word={word} noMt />
-            </div>
-          </>
-        ),
-      }
-    }
-
-    if (cc) {
-      return {
-        el: (
-          <div
-            class={clsx(
-              stretch() && "flex-1",
-              "rounded-lg bg-z-body-selected px-2 py-1",
-            )}
-          >
-            <div class="font-bold text-z-heading">{word}</div>
-            <div>Custom character sequence</div>
-            <MaybeDraw word={word} />
-          </div>
-        ),
-      }
-    }
+    if (cc && compact() && !col1()) return { el: <CcCompactNoCol1 /> }
+    if (cc && compact()) return { el: <CcCompact /> }
+    if (cc) return { el: <Cc /> }
 
     let parsed: PartialFormative | PartialReferential | PlainAdjunct | undefined
     let gloss: GlossString | undefined
@@ -249,151 +234,324 @@ export function Main() {
     const success = unglossed.filter((x) => x.type == "success")
     const error = unglossed.filter((x) => x.type == "error")
 
+    if (success.length && compact() && !col1()) {
+      return {
+        recognized,
+        el: <SuccessCompactNoCol1 />,
+      }
+    }
+
     if (success.length && compact()) {
       return {
         recognized,
-        el: (
-          <>
-            <div class="relative pl-2">
-              <div
-                class={clsx(
-                  "absolute left-0 top-0.5 border-l border-z",
-                  success.length + +!!gloss == 1 ? "bottom-0.5" : "bottom-0",
-                )}
-              />
-              <P class="pr-4 font-semibold">{recognized.gloss}</P>
-            </div>
-            <Show when={gloss}>
-              <P class="pr-4 font-semibold text-z-heading">
-                {word.toLowerCase()}
-              </P>
-              <P>{gloss![glossLong() ? "full" : "short"]}</P>
-            </Show>
-            <For each={success}>
-              {(x, idx) => (
-                <>
-                  <Show when={gloss || idx() > 0}>
-                    <div
-                      class={clsx(
-                        "border-l border-z",
-                        idx() == success.length - 1 && "mb-0.5",
-                      )}
-                    />
-                  </Show>
-                  <P class="pr-4 font-semibold text-z-heading">
-                    {wordToIthkuil(x.value)}
-                  </P>
-                  <P>{glossWord(x.value)[glossLong() ? "full" : "short"]}</P>
-                </>
-              )}
-            </For>
-          </>
-        ),
+        el: <SuccessCompact />,
       }
     }
 
     if (success.length) {
       return {
-        el: (
-          <div
-            class={
-              "rounded-lg bg-z-body-selected px-2 py-1" +
-              (stretch() ? " flex-[1_0_fit-content]" : "")
-            }
-          >
-            <div class="font-bold text-z-heading">{word}</div>
-            <Show when={recognized.gloss != word}>
-              <div class="font-bold text-z-heading">{recognized.gloss}</div>
-            </Show>
-            <div class="grid grid-cols-[auto,auto] gap-x-4">
-              <Show when={gloss}>
-                <div>{word.toLowerCase()}</div>
-                <div>{gloss![glossLong() ? "full" : "short"]}</div>
-              </Show>
-              <For each={success}>
-                {({ value }) => (
-                  <>
-                    <div>{wordToIthkuil(value)}</div>
-                    <div>
-                      {glossWord(value)[glossLong() ? "full" : "short"]}
-                    </div>
-                  </>
-                )}
-              </For>
-            </div>
-            <For each={success}>
-              {(word) => <MaybeDraw word={wordToIthkuil(word.value)} />}
-            </For>
-          </div>
-        ),
+        el: <Success />,
         recognized,
+      }
+    }
+
+    if (gloss && compact() && !col1()) {
+      return {
+        el: <GlossCompactNoCol1 />,
       }
     }
 
     if (gloss && compact()) {
       return {
-        el: (
-          <>
-            <div class="my-0.5 border-l border-z" />
-            <P class="pr-4 font-semibold text-z-heading">
-              {word.toLowerCase()}
-            </P>
-            <P>{gloss?.[glossLong() ? "full" : "short"]}</P>
-          </>
-        ),
+        el: <GlossCompact />,
       }
     }
 
     if (gloss) {
       return {
-        el: (
-          <div
-            class={
-              "max-w-full rounded-lg bg-z-body-selected px-2 py-1" +
-              (stretch() ? " flex-[1_0_fit-content]" : "")
-            }
-          >
-            <div class="font-bold text-z-heading">{word}</div>
-            <div>{gloss[glossLong() ? "full" : "short"]}</div>
-            <MaybeDraw word={word} />
-          </div>
-        ),
+        el: <Gloss />,
+      }
+    }
+
+    if (compact() && !col1()) {
+      return {
+        el: <ErrorCompactNoCol1 />,
+        recognized,
       }
     }
 
     if (compact()) {
       return {
-        el: (
-          <>
-            <div class="relative pl-2">
-              <div class="absolute bottom-0.5 left-0 top-0.5 border-l border-red-300 dark:border-red-600" />
-              <P class="pr-4 font-semibold text-red-700 dark:text-red-400">
-                {recognized.gloss}
-              </P>
-            </div>
-            <P class="pr-4 font-semibold text-red-700 dark:text-red-400">
-              {err instanceof Error ?
-                err.message
-              : String(err ?? "Invalid word.")}
-            </P>
-            <div class="grid grid-cols-[min-content,auto] gap-x-4 text-red-700 dark:text-red-400">
-              <For each={error}>
-                {({ label, reason }) => (
-                  <>
-                    <P class="whitespace-nowrap">[{label}]</P>
-                    <P>{reason}</P>
-                  </>
-                )}
-              </For>
-            </div>
-          </>
-        ),
+        el: <ErrorCompact />,
         recognized,
       }
     }
 
     return {
-      el: (
+      el: <ErrorNormal />,
+      recognized,
+    }
+
+    function CcCompactNoCol1() {
+      return (
+        <>
+          <div class="relative pl-2">
+            <div class="absolute inset-y-0.5 left-0 border-l border-z" />
+            <P class="pr-4 font-semibold text-z-heading">{word}</P>
+          </div>
+          <div class="flex items-center">
+            <Draw word={word} noMt />
+          </div>
+        </>
+      )
+    }
+
+    function CcCompact() {
+      return (
+        <>
+          <div class="my-0.5 border-l border-z" />
+          <P class="pr-4 font-semibold text-z-heading">{word}</P>
+          <div class="flex items-center">
+            <Draw word={word} noMt />
+          </div>
+        </>
+      )
+    }
+
+    function Cc() {
+      return (
+        <div
+          class={clsx(
+            stretch() && "flex-1",
+            "rounded-lg bg-z-body-selected px-2 py-1",
+          )}
+        >
+          <div class="font-bold text-z-heading">{word}</div>
+          <div>Custom character sequence</div>
+          <MaybeDraw word={word} />
+        </div>
+      )
+    }
+
+    function SuccessCompactNoCol1() {
+      return (
+        <>
+          <Show when={gloss}>
+            <div class="relative pl-2">
+              <div
+                class={clsx(
+                  "absolute left-0 top-0.5 border-l border-z",
+                  success.length == 0 ? "bottom-0.5" : "bottom-0",
+                )}
+              />
+              <P class="pr-4 font-semibold text-z-heading">
+                {word.toLowerCase()}
+              </P>
+            </div>
+            <P>{gloss![glossLong() ? "full" : "short"]}</P>
+          </Show>
+          <For each={success}>
+            {(x, idx) => (
+              <>
+                <div class="relative pl-2">
+                  <div
+                    class={clsx(
+                      "absolute left-0 border-l border-z",
+                      !gloss && idx() == 0 ? "top-0.5" : "top-0",
+                      idx() == success.length - 1 ? "bottom-0.5" : "bottom-0",
+                    )}
+                  />
+                  <P
+                    class={clsx(
+                      "pr-4 font-semibold",
+                      idx() == 0 && !gloss ?
+                        "text-z-heading"
+                      : "text-z-heading opacity-30",
+                    )}
+                  >
+                    {wordToIthkuil(x.value)}
+                  </P>
+                </div>
+                <P>{glossWord(x.value)[glossLong() ? "full" : "short"]}</P>
+              </>
+            )}
+          </For>
+        </>
+      )
+    }
+
+    function SuccessCompact() {
+      return (
+        <>
+          <div class="relative pl-2">
+            <div
+              class={clsx(
+                "absolute left-0 top-0.5 border-l border-z",
+                success.length + +!!gloss == 1 ? "bottom-0.5" : "bottom-0",
+              )}
+            />
+            <P class="pr-4 font-semibold">{recognized.gloss}</P>
+          </div>
+          <Show when={gloss}>
+            <P class="pr-4 font-semibold text-z-heading">
+              {word.toLowerCase()}
+            </P>
+            <P>{gloss![glossLong() ? "full" : "short"]}</P>
+          </Show>
+          <For each={success}>
+            {(x, idx) => (
+              <>
+                <Show when={gloss || idx() > 0}>
+                  <div
+                    class={clsx(
+                      "border-l border-z",
+                      idx() == success.length - 1 && "mb-0.5",
+                    )}
+                  />
+                </Show>
+                <P
+                  class={clsx(
+                    "pr-4 font-semibold text-z-heading",
+                    (idx() != 0 || gloss) && "opacity-30",
+                  )}
+                >
+                  {wordToIthkuil(x.value)}
+                </P>
+                <P>{glossWord(x.value)[glossLong() ? "full" : "short"]}</P>
+              </>
+            )}
+          </For>
+        </>
+      )
+    }
+
+    function Success() {
+      return (
+        <div
+          class={
+            "rounded-lg bg-z-body-selected px-2 py-1" +
+            (stretch() ? " flex-[1_0_fit-content]" : "")
+          }
+        >
+          <div class="font-bold text-z-heading">{word}</div>
+          <Show when={recognized.gloss != word}>
+            <div class="font-bold text-z-heading">{recognized.gloss}</div>
+          </Show>
+          <div class="grid grid-cols-[auto,auto] gap-x-4">
+            <Show when={gloss}>
+              <div>{word.toLowerCase()}</div>
+              <div>{gloss![glossLong() ? "full" : "short"]}</div>
+            </Show>
+            <For each={success}>
+              {({ value }) => (
+                <>
+                  <div>{wordToIthkuil(value)}</div>
+                  <div>{glossWord(value)[glossLong() ? "full" : "short"]}</div>
+                </>
+              )}
+            </For>
+          </div>
+          <For each={success}>
+            {(word) => <MaybeDraw word={wordToIthkuil(word.value)} />}
+          </For>
+        </div>
+      )
+    }
+
+    function GlossCompactNoCol1() {
+      return (
+        <>
+          <div class="relative pl-2">
+            <div class="absolute inset-y-0.5 left-0 border-l border-z" />
+            <P class="pr-4 font-semibold text-z-heading">
+              {word.toLowerCase()}
+            </P>
+          </div>
+          <P>{gloss?.[glossLong() ? "full" : "short"]}</P>
+        </>
+      )
+    }
+
+    function GlossCompact() {
+      return (
+        <>
+          <div class="my-0.5 border-l border-z" />
+          <P class="pr-4 font-semibold text-z-heading">{word.toLowerCase()}</P>
+          <P>{gloss?.[glossLong() ? "full" : "short"]}</P>
+        </>
+      )
+    }
+
+    function Gloss() {
+      return (
+        <div
+          class={
+            "max-w-full rounded-lg bg-z-body-selected px-2 py-1" +
+            (stretch() ? " flex-[1_0_fit-content]" : "")
+          }
+        >
+          <div class="font-bold text-z-heading">{word}</div>
+          <div>{gloss![glossLong() ? "full" : "short"]}</div>
+          <MaybeDraw word={word} />
+        </div>
+      )
+    }
+
+    function ErrorCompactNoCol1() {
+      return (
+        <>
+          <div class="relative pl-2">
+            <div class="absolute bottom-0.5 left-0 top-0.5 border-l border-red-300 dark:border-red-600" />
+            <P class="pr-4 font-semibold text-red-700 dark:text-red-400">
+              {err instanceof Error ?
+                err.message
+              : String(err ?? "Invalid word.")}
+            </P>
+          </div>
+          <div class="grid grid-cols-[min-content,auto] gap-x-4 text-red-700 dark:text-red-400">
+            <For each={error}>
+              {({ label, reason }) => (
+                <>
+                  <P class="whitespace-nowrap">[{label}]</P>
+                  <P>{reason}</P>
+                </>
+              )}
+            </For>
+          </div>
+        </>
+      )
+    }
+
+    function ErrorCompact() {
+      return (
+        <>
+          <div class="relative pl-2">
+            <div class="absolute bottom-0.5 left-0 top-0.5 border-l border-red-300 dark:border-red-600" />
+            <P class="pr-4 font-semibold text-red-700 dark:text-red-400">
+              {recognized.gloss}
+            </P>
+          </div>
+          <P class="pr-4 font-semibold text-red-700 dark:text-red-400">
+            {err instanceof Error ?
+              err.message
+            : String(err ?? "Invalid word.")}
+          </P>
+          <div class="grid grid-cols-[min-content,auto] gap-x-4 text-red-700 dark:text-red-400">
+            <For each={error}>
+              {({ label, reason }) => (
+                <>
+                  <P class="whitespace-nowrap">[{label}]</P>
+                  <P>{reason}</P>
+                </>
+              )}
+            </For>
+          </div>
+        </>
+      )
+    }
+
+    function ErrorNormal() {
+      return (
         <div
           class={clsx(
             stretch() && "flex-1",
@@ -420,8 +578,7 @@ export function Main() {
             </For>
           </div>
         </div>
-      ),
-      recognized,
+      )
     }
   }
 
@@ -536,6 +693,14 @@ export function Main() {
                 <Checkbox checked={compact()} onInput={setCompact} />
                 Compact mode?
               </label>
+              <Show when={compact()}>
+                <div class="flex flex-col gap-1 pl-6">
+                  <label class="flex w-full gap-2">
+                    <Checkbox checked={col1()} onInput={setCol1} />
+                    Show input glosses?
+                  </label>
+                </div>
+              </Show>
               <Show when={!compact()}>
                 <label class="flex w-full gap-2">
                   <Checkbox checked={stretch()} onInput={setStretch} />
