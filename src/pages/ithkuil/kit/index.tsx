@@ -124,9 +124,10 @@ export function Main() {
     "",
   )
 
-  const [ad, setAd] = createStorage<
-    "000" | "001-2024-12-22" | "002-dismissed-compact-mode"
-  >("ithkuil/kit/ad", "000")
+  const [ad, setAd] = createStorage<"000" | "001-2024-12-22">(
+    "ithkuil/kit/ad",
+    "000",
+  )
 
   const NEWLINE = /(?:\r?\n)+/g
   const WHITESPACE = /\s+/g
@@ -157,14 +158,7 @@ export function Main() {
           />
         </div>
 
-        <Show
-          when={ad() < "001"}
-          fallback={
-            <Show when={ad() < "002"}>
-              <Ad002 />
-            </Show>
-          }
-        >
+        <Show when={ad() < "001"}>
           <Ad001 />
         </Show>
 
@@ -1007,51 +1001,6 @@ export function Main() {
           <button
             class="text-left text-sm text-z-link underline underline-offset-2"
             onClick={() => setAd("001-2024-12-22")}
-          >
-            Hide this message.
-          </button>
-        </p>
-      </div>
-    )
-  }
-
-  function Ad002() {
-    return (
-      <div class="flex w-full flex-1 flex-col gap-2 border-l border-z pl-2">
-        <Show
-          when={!compact()}
-          fallback={
-            <p>
-              Nice job! If you don't like compact mode, feel free to{" "}
-              <button
-                class="text-z-link underline underline-offset-2"
-                onClick={() => setCompact(false)}
-              >
-                switch back to normal mode
-              </button>
-              . You can toggle it from the sidebar anytime.
-            </p>
-          }
-        >
-          <p>
-            <strong class="text-z-heading">NEW!</strong> Try out{" "}
-            <button
-              class="text-z-link underline underline-offset-2"
-              onClick={() => setCompact(true)}
-            >
-              compact mode
-            </button>{" "}
-            to see all your glosses and constructed words in a single, highly
-            organized grid.{" "}
-            <em class="text-z-heading">
-              You can always revert back to normal mode in the sidebar.
-            </em>
-          </p>
-        </Show>
-        <p>
-          <button
-            class="text-left text-sm text-z-link underline underline-offset-2"
-            onClick={() => setAd("002-dismissed-compact-mode")}
           >
             Hide this message.
           </button>
