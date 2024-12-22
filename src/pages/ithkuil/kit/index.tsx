@@ -29,12 +29,14 @@ import {
   unglossWord,
   type DataAffixByDegree,
   type DataRoot,
+  type RecognizerOutput,
   type Replacement,
 } from "@zsnout/ithkuil/ungloss"
 import {
   createMemo,
   createSignal,
   For,
+  indexArray,
   mapArray,
   Match,
   onCleanup,
@@ -89,114 +91,131 @@ export function Main() {
     true,
   )
 
-  const words = mapArray(
+  const NEWLINE = /(?:\r?\n)+/g
+  const WHITESPACE = /\s+/g
+
+  function createWord(word: string) {
+    console.log(word)
+
+    if (/^(?:q|h[aeiou]?[0123])/i.test(word)) {
+      return {
+        el: (
+          <div class="max-w-full rounded-lg bg-z-body-selected px-2 py-1">
+            <div class="font-bold text-z-heading">{word}</div>
+            <div>Custom character sequence</div>
+            <MaybeDraw word={word} />
+          </div>
+        ),
+      }
+    }
+
+    try {
+      const parsed = parseWord(word)
+      if (!parsed) {
+        throw new Error("Not a valid word.")
+      }
+      const gloss = glossWord(parsed)
+
+      return {
+        el: (
+          <div
+            class={
+              "max-w-full rounded-lg bg-z-body-selected px-2 py-1" +
+              (stretch() ? " flex-[1_0_fit-content]" : "")
+            }
+          >
+            <div class="font-bold text-z-heading">{word}</div>
+            <div>{gloss[glossLong() ? "full" : "short"]}</div>
+            <MaybeDraw word={word} />
+          </div>
+        ),
+      }
+    } catch (err) {
+      const recognized = recognize(word)
+      const unglossed = unglossWord(recognized.gloss)
+      const success = unglossed.filter((x) => x.type == "success")
+      const error = unglossed.filter((x) => x.type == "error")
+
+      return {
+        el: (
+          <div
+            class={
+              "rounded-lg bg-z-body-selected px-2 py-1" +
+              (stretch() ? " flex-[1_0_fit-content]" : "")
+            }
+          >
+            <div class="font-bold text-z-heading">{word}</div>
+            <Show when={recognized.gloss != word}>
+              <div class="font-bold text-z-heading">{recognized.gloss}</div>
+            </Show>
+            <Switch>
+              <Match when={success.length == 0}>
+                <p class="text-red-700 dark:text-red-400">
+                  {err instanceof Error ? err.message : String(err)}
+                </p>
+                <div class="grid grid-cols-[auto,auto] gap-x-4 text-red-700 dark:text-red-400">
+                  <For each={error}>
+                    {({ label, reason }) => (
+                      <>
+                        <div>{label}</div>
+                        <div>{reason}</div>
+                      </>
+                    )}
+                  </For>
+                </div>
+              </Match>
+              <Match when={success.length == 1}>
+                <div>{wordToIthkuil(success[0]!.value)}</div>
+                <div>
+                  {glossWord(success[0]!.value)[glossLong() ? "full" : "short"]}
+                </div>
+              </Match>
+              <Match when={success.length > 1}>
+                <div class="grid grid-cols-[auto,auto] gap-x-4">
+                  <For each={success}>
+                    {(x) => (
+                      <>
+                        <div>{wordToIthkuil(x.value)}</div>
+                        <div>
+                          {glossWord(x.value)[glossLong() ? "full" : "short"]}
+                        </div>
+                      </>
+                    )}
+                  </For>
+                </div>
+              </Match>
+            </Switch>
+            <For each={success}>
+              {(word) => <MaybeDraw word={wordToIthkuil(word.value)} />}
+            </For>
+          </div>
+        ),
+        recognized,
+      }
+    }
+  }
+
+  function createLine(line: () => string): () => {
+    el: JSX.Element
+    recognized?: RecognizerOutput
+  }[] {
+    if (splitByNewline()) {
+      return createMemo(() => [createWord(line())])
+    } else {
+      return mapArray(
+        createMemo(() => line().split(WHITESPACE)),
+        createWord,
+      )
+    }
+  }
+
+  const words = indexArray(
     createMemo(() =>
       source()
-        .split(splitByNewline() ? /(?:\r?\n)+/g : /\s+/g)
+        .split(NEWLINE)
         .filter((x) => x),
     ),
-    (word) => {
-      if (/^(?:q|h[aeiou]?[0123])/i.test(word)) {
-        return {
-          el: (
-            <div class="max-w-full rounded-lg bg-z-body-selected px-2 py-1">
-              <div class="font-bold text-z-heading">{word}</div>
-              <div>Custom character sequence</div>
-              <MaybeDraw word={word} />
-            </div>
-          ),
-        }
-      }
-
-      try {
-        const parsed = parseWord(word)
-        if (!parsed) {
-          throw new Error("Not a valid word.")
-        }
-        const gloss = glossWord(parsed)
-
-        return {
-          el: (
-            <div
-              class={
-                "max-w-full rounded-lg bg-z-body-selected px-2 py-1" +
-                (stretch() ? " flex-[1_0_fit-content]" : "")
-              }
-            >
-              <div class="font-bold text-z-heading">{word}</div>
-              <div>{gloss[glossLong() ? "full" : "short"]}</div>
-              <MaybeDraw word={word} />
-            </div>
-          ),
-        }
-      } catch (err) {
-        const recognized = recognize(word)
-        const unglossed = unglossWord(recognized.gloss)
-        const success = unglossed.filter((x) => x.type == "success")
-        const error = unglossed.filter((x) => x.type == "error")
-
-        return {
-          el: (
-            <div
-              class={
-                "rounded-lg bg-z-body-selected px-2 py-1" +
-                (stretch() ? " flex-[1_0_fit-content]" : "")
-              }
-            >
-              <div class="font-bold text-z-heading">{word}</div>
-              <Show when={recognized.gloss != word}>
-                <div class="font-bold text-z-heading">{recognized.gloss}</div>
-              </Show>
-              <Switch>
-                <Match when={success.length == 0}>
-                  <p class="text-red-700 dark:text-red-400">
-                    {err instanceof Error ? err.message : String(err)}
-                  </p>
-                  <div class="grid grid-cols-[auto,auto] gap-x-4 text-red-700 dark:text-red-400">
-                    <For each={error}>
-                      {({ label, reason }) => (
-                        <>
-                          <div>{label}</div>
-                          <div>{reason}</div>
-                        </>
-                      )}
-                    </For>
-                  </div>
-                </Match>
-                <Match when={success.length == 1}>
-                  <div>{wordToIthkuil(success[0]!.value)}</div>
-                  <div>
-                    {
-                      glossWord(success[0]!.value)[
-                        glossLong() ? "full" : "short"
-                      ]
-                    }
-                  </div>
-                </Match>
-                <Match when={success.length > 1}>
-                  <div class="grid grid-cols-[auto,auto] gap-x-4">
-                    <For each={success}>
-                      {(x) => (
-                        <>
-                          <div>{wordToIthkuil(x.value)}</div>
-                          <div>
-                            {glossWord(x.value)[glossLong() ? "full" : "short"]}
-                          </div>
-                        </>
-                      )}
-                    </For>
-                  </div>
-                </Match>
-              </Switch>
-              <For each={success}>
-                {(word) => <MaybeDraw word={wordToIthkuil(word.value)} />}
-              </For>
-            </div>
-          ),
-          recognized,
-        }
-      }
-    },
+    createLine,
   )
 
   // "show" means "show on mobile and desktop"
@@ -217,9 +236,13 @@ export function Main() {
           placeholder="Enter words or unglossables here..."
         />
 
-        <div class="flex flex-wrap gap-4 break-words">
-          <For each={words()}>{(x) => x.el}</For>
-        </div>
+        <For each={words()}>
+          {(line) => (
+            <div class="flex flex-wrap gap-4 break-words">
+              <For each={line()}>{(x) => x.el}</For>
+            </div>
+          )}
+        </For>
       </div>
 
       <div class="contents h-full w-96 min-w-96 max-w-96 md:block">
@@ -426,6 +449,7 @@ export function Main() {
         <Section title="Root & Affix Alternatives">
           <For
             each={words()
+              .flatMap((x) => x())
               .flatMap((x) => x.recognized?.replacements)
               .filter((x) => x != null)}
             fallback={
@@ -474,82 +498,85 @@ export function Main() {
           return <p class="text-red-700 dark:text-red-400">{parsed.reason}</p>
         }
 
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g")
+        g.appendChild(
+          willElidePrimaries ?
+            Row({
+              children: parsed.value
+                .filter((character) => {
+                  if (
+                    character.construct == Primary &&
+                    isElidable(character as PrimaryCharacter) &&
+                    (!(character as PrimaryCharacter).bottom ||
+                      (character as PrimaryCharacter).bottom == "UNF/C")
+                  ) {
+                    return false
+                  }
+
+                  return true
+                })
+                .map((character) => {
+                  if (
+                    character.construct == Primary &&
+                    isElidable(character as PrimaryCharacter)
+                  ) {
+                    return AnchorY({
+                      at: "c",
+                      children: Diacritic({
+                        name:
+                          (character as PrimaryCharacter).bottom == "FRM" ?
+                            "HORIZ_BAR"
+                          : "DOT",
+                        handwritten: !!stroke,
+                      }),
+                    })
+                  }
+
+                  const node = character.construct(character as any)
+
+                  if (character.dimmed) {
+                    node.classList.add("dimmed")
+                  }
+
+                  return node
+                }),
+              space: 10 + (stroke ?? 0),
+            })
+          : CharacterRow({
+              children: parsed.value,
+              space: 10 + (stroke ?? 0),
+            }),
+        )
+
         const characters = AnchorX({
           at: "l",
-          children: (
-            <g>
-              {willElidePrimaries ?
-                Row({
-                  children: parsed.value
-                    .filter((character) => {
-                      if (
-                        character.construct == Primary &&
-                        isElidable(character as PrimaryCharacter) &&
-                        (!(character as PrimaryCharacter).bottom ||
-                          (character as PrimaryCharacter).bottom == "UNF/C")
-                      ) {
-                        return false
-                      }
-
-                      return true
-                    })
-                    .map((character) => {
-                      if (
-                        character.construct == Primary &&
-                        isElidable(character as PrimaryCharacter)
-                      ) {
-                        return AnchorY({
-                          at: "c",
-                          children: Diacritic({
-                            name:
-                              (character as PrimaryCharacter).bottom == "FRM" ?
-                                "HORIZ_BAR"
-                              : "DOT",
-                            handwritten: !!stroke,
-                          }),
-                        })
-                      }
-
-                      const node = character.construct(character as any)
-
-                      if (character.dimmed) {
-                        node.classList.add("dimmed")
-                      }
-
-                      return node
-                    }),
-                  space: 10 + (stroke ?? 0),
-                })
-              : CharacterRow({
-                  children: parsed.value,
-                  space: 10 + (stroke ?? 0),
-                })
-              }
-            </g>
-          ) as SVGGElement,
+          children: g,
         }) as SVGGElement
 
         const box = getBBox(characters)
 
-        return (
-          <svg
-            viewBox={`${box.x - stroke} ${box.y - stroke} ${box.width + 2 * stroke} ${box.height + 2 * stroke}`}
-            style={{
-              height: box.height / 2 + stroke + "px",
-            }}
-            class={
-              "mt-2 overflow-visible transition " +
-              (stroke ?
-                "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
-              : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed")
-            }
-            stroke-width={stroke}
-            stroke-linejoin="round"
-            stroke-linecap="round"
-          >
-            {characters}
-          </svg>
+        const svg = document.createElementNS(
+          "http://www.w3.org/2000/svg",
+          "svg",
         )
+        svg.setAttribute(
+          "viewBox",
+          `${box.x - stroke} ${box.y - stroke} ${box.width + 2 * stroke} ${box.height + 2 * stroke}`,
+        )
+        svg.setAttribute("style", "height:" + (box.height / 2 + stroke) + "px")
+        svg.setAttribute(
+          "class",
+          "mt-2 overflow-visible transition " +
+            (stroke ?
+              "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
+            : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed"),
+        )
+        svg.setAttribute("stroke-width", "" + stroke)
+        svg.setAttribute("stroke-linejoin", "round")
+        svg.setAttribute("stroke-linecap", "round")
+        svg.appendChild(characters)
+
+        return svg
       }
     }) as unknown as JSX.Element
     // `Show` does this so it's fine
