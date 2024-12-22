@@ -64,7 +64,7 @@ export function Main() {
     false,
   )
 
-  const [showScript, setShowScript] = createStorageBoolean(
+  const [showScript, setShowScriptRaw] = createStorageBoolean(
     "ithkuil/kit/script",
     true,
   )
@@ -94,10 +94,24 @@ export function Main() {
     true,
   )
 
-  const [compact, setCompact] = createStorageBoolean(
+  const [compact, setCompactRaw] = createStorageBoolean(
     "ithkuil/kit/compact",
     false,
   )
+
+  function setCompact(value: boolean) {
+    setCompactRaw(value)
+    if (value) {
+      setShowScriptRaw(false)
+    }
+  }
+
+  function setShowScript(value: boolean) {
+    setShowScriptRaw(value)
+    if (value) {
+      setCompact(false)
+    }
+  }
 
   const [col1, setCol1] = createStorageBoolean("ithkuil/kit/compact/col1", true)
 
@@ -109,6 +123,10 @@ export function Main() {
     "ithkuil/kit/sidebar",
     "",
   )
+
+  const [ad, setAd] = createStorage<
+    "000" | "001-2024-12-22" | "002-dismissed-compact-mode"
+  >("ithkuil/kit/ad", "000")
 
   const NEWLINE = /(?:\r?\n)+/g
   const WHITESPACE = /\s+/g
@@ -139,13 +157,24 @@ export function Main() {
           />
         </div>
 
+        <Show
+          when={ad() < "001"}
+          fallback={
+            <Show when={ad() < "002"}>
+              <Ad002 />
+            </Show>
+          }
+        >
+          <Ad001 />
+        </Show>
+
         <div
           class={
             compact() ?
               col1() ?
-                "grid grid-cols-[auto,auto,auto]"
-              : "grid grid-cols-[auto,auto]"
-            : "flex flex-wrap gap-2"
+                "grid w-full grid-cols-[auto,auto,auto]"
+              : "grid w-full grid-cols-[auto,auto]"
+            : "flex w-full flex-wrap gap-2"
           }
         >
           <For each={words()}>
@@ -195,10 +224,24 @@ export function Main() {
     </Unmain>
   )
 
-  function P(props: { class?: string; children: JSX.Element }) {
+  function P(props: { class?: string; children: string }) {
     return (
-      <p class={clsx("relative pl-4 -indent-4", props.class)}>
-        {props.children}
+      <p
+        class={clsx(
+          "relative hyphens-auto text-pretty pl-4 -indent-4",
+          props.class,
+        )}
+      >
+        <For each={props.children.split("/")}>
+          {(el, i) => (
+            <>
+              <Show when={i() != 0}>
+                /<wbr />
+              </Show>
+              {el}
+            </>
+          )}
+        </For>
       </p>
     )
   }
@@ -450,7 +493,7 @@ export function Main() {
               {word.toLowerCase()}
             </P>
           </div>
-          <P>{gloss?.[glossLong() ? "full" : "short"]}</P>
+          <P>{gloss![glossLong() ? "full" : "short"]}</P>
         </>
       )
     }
@@ -460,7 +503,7 @@ export function Main() {
         <>
           <div class="my-0.5 border-l border-z" />
           <P class="pr-4 font-semibold text-z-heading">{word.toLowerCase()}</P>
-          <P>{gloss?.[glossLong() ? "full" : "short"]}</P>
+          <P>{gloss![glossLong() ? "full" : "short"]}</P>
         </>
       )
     }
@@ -495,7 +538,7 @@ export function Main() {
             <For each={error}>
               {({ label, reason }) => (
                 <>
-                  <P class="whitespace-nowrap">[{label}]</P>
+                  <P class="!hyphens-none whitespace-nowrap">{`[${label}]`}</P>
                   <P>{reason}</P>
                 </>
               )}
@@ -523,7 +566,7 @@ export function Main() {
             <For each={error}>
               {({ label, reason }) => (
                 <>
-                  <P class="whitespace-nowrap">[{label}]</P>
+                  <P class="!hyphens-none whitespace-nowrap">{`[${label}]`}</P>
                   <P>{reason}</P>
                 </>
               )}
@@ -728,6 +771,12 @@ export function Main() {
               </Show>
             </CheckboxContainer>
           </div>
+          <button
+            class="mt-1 w-full px-4 text-sm text-z-link underline underline-offset-2"
+            onClick={() => setAd("000")}
+          >
+            Reset banners for new features
+          </button>
         </Section>
 
         <Section title="Credit">
@@ -738,7 +787,7 @@ export function Main() {
               class="text-z-link underline underline-offset-2"
               href="https://github.com/zsakowitz/ithkuil"
             >
-              this site's author
+              this site's author, sakawi
             </a>
             .
           </p>
@@ -917,6 +966,114 @@ export function Main() {
       }
     }) as unknown as JSX.Element
     // `Show` does this so it's fine
+  }
+
+  function Ad001() {
+    return (
+      <div class="flex w-full flex-1 flex-col gap-2 border-l border-z pl-2">
+        <Changelog date={1734857347638}>
+          <li>
+            Added compact mode, accessible through the sidebar. Compact mode
+            provides an alternative layout which removes some information in
+            exchange for a significantly simpler and easier-to-navigate layout.
+          </li>
+          <li>The query box now sticks to the top of the screen.</li>
+          <li>
+            Newlines typed into the query box now result in large breaks in the
+            output section. This can be helpful for aligning yourself onscreen.
+          </li>
+          <li>
+            A query like <Code>ACC</Code> or <Code>pa</Code>, which can either
+            be interpreted as a grammatical category or a word, will now display
+            both possible results.
+          </li>
+          <li>
+            Changed the order in which unglosses are displayed. A query of{" "}
+            <Code>1m</Code> will now show the referential <Code>la</Code> first,
+            with the formative <Code>aelala</Code> being second.
+          </li>
+          <li>
+            Precise controls for script generation now disappear from the
+            sidebar if the "Generate script?" option is disabled.
+          </li>
+        </Changelog>
+        <Changelog date={1733645340000}>
+          <li>
+            The sidebar now collapses to the side on mobile, making this website
+            finally accessible on mobile! 🎉
+          </li>
+        </Changelog>
+        <p>
+          <button
+            class="text-left text-sm text-z-link underline underline-offset-2"
+            onClick={() => setAd("001-2024-12-22")}
+          >
+            Hide this message.
+          </button>
+        </p>
+      </div>
+    )
+  }
+
+  function Ad002() {
+    return (
+      <div class="flex w-full flex-1 flex-col gap-2 border-l border-z pl-2">
+        <Show
+          when={!compact()}
+          fallback={
+            <p>
+              Nice job! If you don't like compact mode, feel free to{" "}
+              <button
+                class="text-z-link underline underline-offset-2"
+                onClick={() => setCompact(false)}
+              >
+                switch back to normal mode
+              </button>
+              . You can toggle it from the sidebar anytime.
+            </p>
+          }
+        >
+          <p>
+            <strong class="text-z-heading">NEW!</strong> Try out{" "}
+            <button
+              class="text-z-link underline underline-offset-2"
+              onClick={() => setCompact(true)}
+            >
+              compact mode
+            </button>{" "}
+            to see all your glosses and constructed words in a single, highly
+            organized grid.{" "}
+            <em class="text-z-heading">
+              You can always revert back to normal mode in the sidebar.
+            </em>
+          </p>
+        </Show>
+        <p>
+          <button
+            class="text-left text-sm text-z-link underline underline-offset-2"
+            onClick={() => setAd("002-dismissed-compact-mode")}
+          >
+            Hide this message.
+          </button>
+        </p>
+      </div>
+    )
+  }
+
+  function Changelog(props: { date: number; children: JSX.Element }) {
+    return (
+      <>
+        <p class="font-semibold text-z-heading">
+          Changelog for{" "}
+          {new Date(props.date).toLocaleDateString(undefined, {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </p>
+        <ul class="list-outside list-disc pl-6 *:pl-1.5">{props.children}</ul>
+      </>
+    )
   }
 }
 
