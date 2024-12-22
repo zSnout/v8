@@ -9,8 +9,13 @@ import {
 } from "@/stores/local-storage-store"
 import { faClose, faNavicon } from "@fortawesome/free-solid-svg-icons"
 import { affixes, roots, type AffixEntry } from "@zsnout/ithkuil/data"
-import { wordToIthkuil } from "@zsnout/ithkuil/generate"
-import { glossWord } from "@zsnout/ithkuil/gloss"
+import {
+  wordToIthkuil,
+  type PartialFormative,
+  type PartialReferential,
+  type PlainAdjunct,
+} from "@zsnout/ithkuil/generate"
+import { glossWord, type GlossString } from "@zsnout/ithkuil/gloss"
 import { parseWord } from "@zsnout/ithkuil/parse"
 import {
   AnchorX,
@@ -38,11 +43,9 @@ import {
   For,
   indexArray,
   mapArray,
-  Match,
   onCleanup,
   onMount,
   Show,
-  Switch,
   type JSX,
 } from "solid-js"
 
@@ -91,50 +94,76 @@ export function Main() {
     true,
   )
 
-  const NEWLINE = /(?:\r?\n)+/g
-  const WHITESPACE = /\s+/g
-
-  const words = indexArray(
-    createMemo(() =>
-      source()
-        .split(NEWLINE)
-        .filter((x) => x),
-    ),
-    createLine,
+  const [compact, setCompact] = createStorageBoolean(
+    "ithkuil/kit/compact",
+    false,
   )
 
   // "show" means "show on mobile and desktop"
   // "hide" means "hide on mobile and desktop"
   // anything else means "hide on mobile; show on desktop"
+  // "hide" is not actually supported yet
   const [sidebar, setShowSidebar] = createStorage<"show" | "hide">(
     "ithkuil/kit/sidebar",
     "",
   )
 
-  return (
-    <Unmain class="flex gap-6 px-6 md:pr-0">
-      <div class="flex flex-1 flex-col gap-8 md:w-[calc(100vw_-_27rem)] md:max-w-[calc(100vw_-_27rem)]">
-        <textarea
-          class="z-field min-h-20 w-full whitespace-pre-wrap border-transparent bg-z-body-selected shadow-none"
-          onInput={(e) => setSource(e.currentTarget.value)}
-          value={source()}
-          placeholder="Enter words or unglossables here..."
-        />
+  const NEWLINE = /(?:\r?\n)+/g
+  const WHITESPACE = /\s+/g
 
-        <For each={words()}>
-          {(line) => (
-            <div class="flex flex-wrap gap-4 break-words">
-              <For each={line()}>{(x) => x.el}</For>
-            </div>
-          )}
-        </For>
+  const wordsRaw = createMemo(() => {
+    compact()
+    splitByNewline()
+
+    return indexArray(
+      createMemo(() =>
+        source()
+          .split(NEWLINE)
+          .filter((x) => x),
+      ),
+      createLine,
+    )
+  })
+
+  const words = () => wordsRaw()()
+
+  return (
+    <Unmain class="flex items-start gap-6 px-6 md:pr-0">
+      <div class="flex flex-1 flex-col items-start gap-8 md:w-[calc(100vw_-_27rem)] md:max-w-[calc(100vw_-_27rem)]">
+        <div class="sticky top-12 z-10 -mx-6 -my-8 w-[calc(100%_+_3rem)] bg-z-body-partial px-6 py-8 backdrop-blur-sm">
+          <textarea
+            class="z-field min-h-20 w-full whitespace-pre-wrap bg-z-body"
+            onInput={(e) => setSource(e.currentTarget.value)}
+            value={source()}
+            placeholder="Enter words or unglossables here..."
+          />
+        </div>
+
+        <div
+          class={
+            compact() ?
+              "grid grid-cols-[auto,auto,auto]"
+            : "flex flex-wrap gap-2"
+          }
+        >
+          <For each={words()}>
+            {(line, idx) => (
+              <>
+                <Show when={idx() > 0}>
+                  <div class={compact() ? "col-span-3 h-8" : "h-4 w-full"} />
+                </Show>
+                <For each={line()}>{(x) => x.el}</For>
+              </>
+            )}
+          </For>
+        </div>
       </div>
 
-      <div class="contents h-full w-96 min-w-96 max-w-96 md:block">
-        <div class="fixed bottom-0 right-0 top-12 contents w-96 flex-col overflow-y-auto overflow-x-hidden border-l border-z bg-z-body pb-12 pt-4 md:flex">
+      <div class="z-20 contents h-full w-96 min-w-96 max-w-96 md:block">
+        <div class="fixed bottom-0 right-0 top-12 z-20 contents w-96 flex-col overflow-y-auto overflow-x-hidden border-l border-z bg-z-body pb-12 pt-4 md:flex">
           <div
             class={clsx(
-              "fixed bottom-0 top-12 w-[calc(100%_+_1px)] overflow-y-auto overflow-x-hidden border-l border-z bg-z-body py-4 text-left transition-all xs:max-w-96 md:contents",
+              "fixed bottom-0 top-12 z-20 w-[calc(100%_+_1px)] overflow-y-auto overflow-x-hidden border-l border-z bg-z-body py-4 text-left transition-all xs:max-w-96 md:contents",
               sidebar() == "hide" ? "right-[calc(-1px_-_100%)]" : "right-0",
             )}
           >
@@ -156,13 +185,43 @@ export function Main() {
     </Unmain>
   )
 
-  function createWord(word: string) {
-    console.log(word)
+  function P(props: { class?: string; children: JSX.Element }) {
+    return (
+      <p class={clsx("relative pl-4 -indent-4", props.class)}>
+        {props.children}
+      </p>
+    )
+  }
 
-    if (/^(?:q|h[aeiou]?[0123])/i.test(word)) {
+  function createWord(word: string): {
+    el: JSX.Element
+    recognized?: RecognizerOutput
+  } {
+    const cc = /^(?:q|h[aeiou]?[0123]$)/i.test(word)
+
+    if (cc && compact()) {
       return {
         el: (
-          <div class="max-w-full rounded-lg bg-z-body-selected px-2 py-1">
+          <>
+            <div class="my-0.5 border-l border-z" />
+            <P class="pr-4 font-semibold text-z-heading">{word}</P>
+            <div class="flex items-center">
+              <Draw word={word} noMt />
+            </div>
+          </>
+        ),
+      }
+    }
+
+    if (cc) {
+      return {
+        el: (
+          <div
+            class={clsx(
+              stretch() && "flex-1",
+              "rounded-lg bg-z-body-selected px-2 py-1",
+            )}
+          >
             <div class="font-bold text-z-heading">{word}</div>
             <div>Custom character sequence</div>
             <MaybeDraw word={word} />
@@ -171,13 +230,121 @@ export function Main() {
       }
     }
 
-    try {
-      const parsed = parseWord(word)
+    let parsed: PartialFormative | PartialReferential | PlainAdjunct | undefined
+    let gloss: GlossString | undefined
+    let err: unknown
+    directParse: try {
+      parsed = parseWord(word)
       if (!parsed) {
-        throw new Error("Not a valid word.")
+        break directParse
       }
-      const gloss = glossWord(parsed)
+      gloss = glossWord(parsed)
+    } catch (e) {
+      err = e
+    }
 
+    const recognized = recognize(word)
+    const [a, b, c, d, e] = unglossWord(recognized.gloss)
+    const unglossed = [c, b, d, e, a]
+    const success = unglossed.filter((x) => x.type == "success")
+    const error = unglossed.filter((x) => x.type == "error")
+
+    if (success.length && compact()) {
+      return {
+        recognized,
+        el: (
+          <>
+            <div class="relative pl-2">
+              <div
+                class={clsx(
+                  "absolute left-0 top-0.5 border-l border-z",
+                  success.length + +!!gloss == 1 ? "bottom-0.5" : "bottom-0",
+                )}
+              />
+              <P class="pr-4 font-semibold">{recognized.gloss}</P>
+            </div>
+            <Show when={gloss}>
+              <P class="pr-4 font-semibold text-z-heading">
+                {word.toLowerCase()}
+              </P>
+              <P>{gloss![glossLong() ? "full" : "short"]}</P>
+            </Show>
+            <For each={success}>
+              {(x, idx) => (
+                <>
+                  <Show when={gloss || idx() > 0}>
+                    <div
+                      class={clsx(
+                        "border-l border-z",
+                        idx() == success.length - 1 && "mb-0.5",
+                      )}
+                    />
+                  </Show>
+                  <P class="pr-4 font-semibold text-z-heading">
+                    {wordToIthkuil(x.value)}
+                  </P>
+                  <P>{glossWord(x.value)[glossLong() ? "full" : "short"]}</P>
+                </>
+              )}
+            </For>
+          </>
+        ),
+      }
+    }
+
+    if (success.length) {
+      return {
+        el: (
+          <div
+            class={
+              "rounded-lg bg-z-body-selected px-2 py-1" +
+              (stretch() ? " flex-[1_0_fit-content]" : "")
+            }
+          >
+            <div class="font-bold text-z-heading">{word}</div>
+            <Show when={recognized.gloss != word}>
+              <div class="font-bold text-z-heading">{recognized.gloss}</div>
+            </Show>
+            <div class="grid grid-cols-[auto,auto] gap-x-4">
+              <Show when={gloss}>
+                <div>{word.toLowerCase()}</div>
+                <div>{gloss![glossLong() ? "full" : "short"]}</div>
+              </Show>
+              <For each={success}>
+                {({ value }) => (
+                  <>
+                    <div>{wordToIthkuil(value)}</div>
+                    <div>
+                      {glossWord(value)[glossLong() ? "full" : "short"]}
+                    </div>
+                  </>
+                )}
+              </For>
+            </div>
+            <For each={success}>
+              {(word) => <MaybeDraw word={wordToIthkuil(word.value)} />}
+            </For>
+          </div>
+        ),
+        recognized,
+      }
+    }
+
+    if (gloss && compact()) {
+      return {
+        el: (
+          <>
+            <div class="my-0.5 border-l border-z" />
+            <P class="pr-4 font-semibold text-z-heading">
+              {word.toLowerCase()}
+            </P>
+            <P>{gloss?.[glossLong() ? "full" : "short"]}</P>
+          </>
+        ),
+      }
+    }
+
+    if (gloss) {
       return {
         el: (
           <div
@@ -192,68 +359,69 @@ export function Main() {
           </div>
         ),
       }
-    } catch (err) {
-      const recognized = recognize(word)
-      const unglossed = unglossWord(recognized.gloss)
-      const success = unglossed.filter((x) => x.type == "success")
-      const error = unglossed.filter((x) => x.type == "error")
+    }
 
+    if (compact()) {
       return {
         el: (
-          <div
-            class={
-              "rounded-lg bg-z-body-selected px-2 py-1" +
-              (stretch() ? " flex-[1_0_fit-content]" : "")
-            }
-          >
-            <div class="font-bold text-z-heading">{word}</div>
-            <Show when={recognized.gloss != word}>
-              <div class="font-bold text-z-heading">{recognized.gloss}</div>
-            </Show>
-            <Switch>
-              <Match when={success.length == 0}>
-                <p class="text-red-700 dark:text-red-400">
-                  {err instanceof Error ? err.message : String(err)}
-                </p>
-                <div class="grid grid-cols-[auto,auto] gap-x-4 text-red-700 dark:text-red-400">
-                  <For each={error}>
-                    {({ label, reason }) => (
-                      <>
-                        <div>{label}</div>
-                        <div>{reason}</div>
-                      </>
-                    )}
-                  </For>
-                </div>
-              </Match>
-              <Match when={success.length == 1}>
-                <div>{wordToIthkuil(success[0]!.value)}</div>
-                <div>
-                  {glossWord(success[0]!.value)[glossLong() ? "full" : "short"]}
-                </div>
-              </Match>
-              <Match when={success.length > 1}>
-                <div class="grid grid-cols-[auto,auto] gap-x-4">
-                  <For each={success}>
-                    {(x) => (
-                      <>
-                        <div>{wordToIthkuil(x.value)}</div>
-                        <div>
-                          {glossWord(x.value)[glossLong() ? "full" : "short"]}
-                        </div>
-                      </>
-                    )}
-                  </For>
-                </div>
-              </Match>
-            </Switch>
-            <For each={success}>
-              {(word) => <MaybeDraw word={wordToIthkuil(word.value)} />}
-            </For>
-          </div>
+          <>
+            <div class="relative pl-2">
+              <div class="absolute bottom-0.5 left-0 top-0.5 border-l border-red-300 dark:border-red-600" />
+              <P class="pr-4 font-semibold text-red-700 dark:text-red-400">
+                {recognized.gloss}
+              </P>
+            </div>
+            <P class="pr-4 font-semibold text-red-700 dark:text-red-400">
+              {err instanceof Error ?
+                err.message
+              : String(err ?? "Invalid word.")}
+            </P>
+            <div class="grid grid-cols-[min-content,auto] gap-x-4 text-red-700 dark:text-red-400">
+              <For each={error}>
+                {({ label, reason }) => (
+                  <>
+                    <P class="whitespace-nowrap">[{label}]</P>
+                    <P>{reason}</P>
+                  </>
+                )}
+              </For>
+            </div>
+          </>
         ),
         recognized,
       }
+    }
+
+    return {
+      el: (
+        <div
+          class={clsx(
+            stretch() && "flex-1",
+            "rounded-lg bg-z-body-selected px-2 py-1",
+          )}
+        >
+          <div class="font-bold text-z-heading">{word}</div>
+          <Show when={recognized.gloss != word}>
+            <div class="font-bold text-z-heading">{recognized.gloss}</div>
+          </Show>
+          <p class="text-red-700 dark:text-red-400">
+            {err instanceof Error ?
+              err.message
+            : String(err ?? "Invalid word.")}
+          </p>
+          <div class="grid grid-cols-[auto,auto] gap-x-4 text-red-700 dark:text-red-400">
+            <For each={error}>
+              {({ label, reason }) => (
+                <>
+                  <div>{label}</div>
+                  <div>{reason}</div>
+                </>
+              )}
+            </For>
+          </div>
+        </div>
+      ),
+      recognized,
     }
   }
 
@@ -268,7 +436,8 @@ export function Main() {
         createMemo(() =>
           line()
             .split(WHITESPACE)
-            .filter((x) => x),
+            .filter((x) => x)
+            .map((x) => x),
         ),
         createWord,
       )
@@ -364,9 +533,15 @@ export function Main() {
                 Show full glosses?
               </label>
               <label class="flex w-full gap-2">
-                <Checkbox checked={stretch()} onInput={setStretch} />
-                Stretch query boxes?
+                <Checkbox checked={compact()} onInput={setCompact} />
+                Compact mode?
               </label>
+              <Show when={!compact()}>
+                <label class="flex w-full gap-2">
+                  <Checkbox checked={stretch()} onInput={setStretch} />
+                  Stretch query boxes?
+                </label>
+              </Show>
               <label class="flex w-full gap-2">
                 <Checkbox
                   checked={splitByNewline()}
@@ -378,24 +553,31 @@ export function Main() {
                 <Checkbox checked={showScript()} onInput={setShowScript} />
                 Generate script?
               </label>
-              <label class="flex w-full gap-2">
-                <Checkbox checked={handwritten()} onInput={setHandwritten} />
-                Use handwritten characters?
-              </label>
-              <label class="flex w-full gap-2">
-                <Checkbox
-                  checked={elidePrimaries()}
-                  onInput={setElidePrimaries}
-                />
-                Elide primaries?
-              </label>
-              <label class="flex w-full gap-2">
-                <Checkbox
-                  checked={elideQuaternaries()}
-                  onInput={setElideQuaternaries}
-                />
-                Elide quaternaries?
-              </label>
+              <Show when={showScript()}>
+                <div class="flex flex-col gap-1 pl-6">
+                  <label class="flex w-full gap-2">
+                    <Checkbox
+                      checked={handwritten()}
+                      onInput={setHandwritten}
+                    />
+                    Use handwritten characters?
+                  </label>
+                  <label class="flex w-full gap-2">
+                    <Checkbox
+                      checked={elidePrimaries()}
+                      onInput={setElidePrimaries}
+                    />
+                    Elide primaries?
+                  </label>
+                  <label class="flex w-full gap-2">
+                    <Checkbox
+                      checked={elideQuaternaries()}
+                      onInput={setElideQuaternaries}
+                    />
+                    Elide quaternaries?
+                  </label>
+                </div>
+              </Show>
             </CheckboxContainer>
           </div>
         </Section>
@@ -479,7 +661,7 @@ export function Main() {
     )
   }
 
-  function Draw(props: { word: string }) {
+  function Draw(props: { word: string; noMt?: boolean }) {
     return createMemo(() => {
       const stroke = handwritten() ? 5 : 0
       const willElidePrimaries = elidePrimaries()
@@ -570,10 +752,13 @@ export function Main() {
         svg.setAttribute("style", "height:" + (box.height / 2 + stroke) + "px")
         svg.setAttribute(
           "class",
-          "mt-2 overflow-visible transition " +
-            (stroke ?
+          clsx(
+            !props.noMt && "mt-2",
+            "overflow-visible transition",
+            stroke ?
               "fill-none stroke-z-text-heading [&_.dimmed]:stroke-z-text-dimmed"
-            : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed"),
+            : "fill-z-text-heading [&_.dimmed]:fill-z-text-dimmed",
+          ),
         )
         svg.setAttribute("stroke-width", "" + stroke)
         svg.setAttribute("stroke-linejoin", "round")
