@@ -94,6 +94,68 @@ export function Main() {
   const NEWLINE = /(?:\r?\n)+/g
   const WHITESPACE = /\s+/g
 
+  const words = indexArray(
+    createMemo(() =>
+      source()
+        .split(NEWLINE)
+        .filter((x) => x),
+    ),
+    createLine,
+  )
+
+  // "show" means "show on mobile and desktop"
+  // "hide" means "hide on mobile and desktop"
+  // anything else means "hide on mobile; show on desktop"
+  const [sidebar, setShowSidebar] = createStorage<"show" | "hide">(
+    "ithkuil/kit/sidebar",
+    "",
+  )
+
+  return (
+    <Unmain class="flex gap-6 px-6 md:pr-0">
+      <div class="flex flex-1 flex-col gap-8 md:w-[calc(100vw_-_27rem)] md:max-w-[calc(100vw_-_27rem)]">
+        <textarea
+          class="z-field min-h-20 w-full whitespace-pre-wrap border-transparent bg-z-body-selected shadow-none"
+          onInput={(e) => setSource(e.currentTarget.value)}
+          value={source()}
+          placeholder="Enter words or unglossables here..."
+        />
+
+        <For each={words()}>
+          {(line) => (
+            <div class="flex flex-wrap gap-4 break-words">
+              <For each={line()}>{(x) => x.el}</For>
+            </div>
+          )}
+        </For>
+      </div>
+
+      <div class="contents h-full w-96 min-w-96 max-w-96 md:block">
+        <div class="fixed bottom-0 right-0 top-12 contents w-96 flex-col overflow-y-auto overflow-x-hidden border-l border-z bg-z-body pb-12 pt-4 md:flex">
+          <div
+            class={clsx(
+              "fixed bottom-0 top-12 w-[calc(100%_+_1px)] overflow-y-auto overflow-x-hidden border-l border-z bg-z-body py-4 text-left transition-all xs:max-w-96 md:contents",
+              sidebar() == "hide" ? "right-[calc(-1px_-_100%)]" : "right-0",
+            )}
+          >
+            <Sidebar />
+          </div>
+        </div>
+      </div>
+
+      <button
+        class="fixed right-2 top-14 flex size-8 rounded-lg border border-z bg-z-body shadow md:hidden"
+        onClick={() => setShowSidebar((x) => (x == "hide" ? "" : "hide"))}
+      >
+        <Fa
+          class={"m-auto " + (sidebar() == "hide" ? "size-5" : "size-6")}
+          icon={sidebar() == "hide" ? faNavicon : faClose}
+          title={sidebar()}
+        />
+      </button>
+    </Unmain>
+  )
+
   function createWord(word: string) {
     console.log(word)
 
@@ -203,73 +265,15 @@ export function Main() {
       return createMemo(() => [createWord(line())])
     } else {
       return mapArray(
-        createMemo(() => line().split(WHITESPACE)),
+        createMemo(() =>
+          line()
+            .split(WHITESPACE)
+            .filter((x) => x),
+        ),
         createWord,
       )
     }
   }
-
-  const words = indexArray(
-    createMemo(() =>
-      source()
-        .split(NEWLINE)
-        .filter((x) => x),
-    ),
-    createLine,
-  )
-
-  // "show" means "show on mobile and desktop"
-  // "hide" means "hide on mobile and desktop"
-  // anything else means "hide on mobile; show on desktop"
-  const [sidebar, setShowSidebar] = createStorage<"show" | "hide">(
-    "ithkuil/kit/sidebar",
-    "",
-  )
-
-  return (
-    <Unmain class="flex gap-6 px-6 md:pr-0">
-      <div class="flex flex-1 flex-col gap-8 md:w-[calc(100vw_-_27rem)] md:max-w-[calc(100vw_-_27rem)]">
-        <textarea
-          class="z-field min-h-20 w-full whitespace-pre-wrap border-transparent bg-z-body-selected shadow-none"
-          onInput={(e) => setSource(e.currentTarget.value)}
-          value={source()}
-          placeholder="Enter words or unglossables here..."
-        />
-
-        <For each={words()}>
-          {(line) => (
-            <div class="flex flex-wrap gap-4 break-words">
-              <For each={line()}>{(x) => x.el}</For>
-            </div>
-          )}
-        </For>
-      </div>
-
-      <div class="contents h-full w-96 min-w-96 max-w-96 md:block">
-        <div class="fixed bottom-0 right-0 top-12 contents w-96 flex-col overflow-y-auto overflow-x-hidden border-l border-z bg-z-body pb-12 pt-4 md:flex">
-          <div
-            class={clsx(
-              "fixed bottom-0 top-12 w-[calc(100%_+_1px)] overflow-y-auto overflow-x-hidden border-l border-z bg-z-body py-4 text-left transition-all xs:max-w-96 md:contents",
-              sidebar() == "hide" ? "right-[calc(-1px_-_100%)]" : "right-0",
-            )}
-          >
-            <Sidebar />
-          </div>
-        </div>
-      </div>
-
-      <button
-        class="fixed right-2 top-14 flex size-8 rounded-lg border border-z bg-z-body shadow md:hidden"
-        onClick={() => setShowSidebar((x) => (x == "hide" ? "" : "hide"))}
-      >
-        <Fa
-          class={"m-auto " + (sidebar() == "hide" ? "size-5" : "size-6")}
-          icon={sidebar() == "hide" ? faNavicon : faClose}
-          title={sidebar()}
-        />
-      </button>
-    </Unmain>
-  )
 
   function Sidebar() {
     return (
