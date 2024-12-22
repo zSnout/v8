@@ -974,8 +974,9 @@ export function Main() {
           </li>
           <li>The query box now sticks to the top of the screen.</li>
           <li>
-            Newlines typed into the query box now result in large breaks in the
-            output section. This can be helpful for aligning yourself onscreen.
+            Double newlines typed into the query box now result in large breaks
+            in the output section. This can be helpful for aligning yourself
+            onscreen.
           </li>
           <li>
             A query like <Code>ACC</Code> or <Code>pa</Code>, which can either
