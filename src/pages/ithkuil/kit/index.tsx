@@ -114,9 +114,7 @@ export function Main() {
   const WHITESPACE = /\s+/g
 
   const wordsRaw = createMemo(() => {
-    if (compact()) col1()
     splitByNewline()
-
     return indexArray(
       createMemo(() =>
         source()
@@ -211,9 +209,17 @@ export function Main() {
   } {
     const cc = /^(?:q|h[aeiou]?[0123]$)/i.test(word)
 
-    if (cc && compact() && !col1()) return { el: <CcCompactNoCol1 /> }
-    if (cc && compact()) return { el: <CcCompact /> }
-    if (cc) return { el: <Cc /> }
+    if (cc) {
+      return {
+        el: (
+          <Show when={compact()} fallback={<Cc />}>
+            <Show when={col1()} fallback={<CcCompactNoCol1 />}>
+              <CcCompact />
+            </Show>
+          </Show>
+        ),
+      }
+    }
 
     let parsed: PartialFormative | PartialReferential | PlainAdjunct | undefined
     let gloss: GlossString | undefined
@@ -234,62 +240,39 @@ export function Main() {
     const success = unglossed.filter((x) => x.type == "success")
     const error = unglossed.filter((x) => x.type == "error")
 
-    if (success.length && compact() && !col1()) {
-      return {
-        recognized,
-        el: <SuccessCompactNoCol1 />,
-      }
-    }
-
-    if (success.length && compact()) {
-      return {
-        recognized,
-        el: <SuccessCompact />,
-      }
-    }
-
     if (success.length) {
       return {
-        el: <Success />,
+        el: (
+          <Show when={compact()} fallback={<Success />}>
+            <Show when={col1()} fallback={<SuccessCompactNoCol1 />}>
+              <SuccessCompact />
+            </Show>
+          </Show>
+        ),
         recognized,
-      }
-    }
-
-    if (gloss && compact() && !col1()) {
-      return {
-        el: <GlossCompactNoCol1 />,
-      }
-    }
-
-    if (gloss && compact()) {
-      return {
-        el: <GlossCompact />,
       }
     }
 
     if (gloss) {
       return {
-        el: <Gloss />,
-      }
-    }
-
-    if (compact() && !col1()) {
-      return {
-        el: <ErrorCompactNoCol1 />,
-        recognized,
-      }
-    }
-
-    if (compact()) {
-      return {
-        el: <ErrorCompact />,
-        recognized,
+        el: (
+          <Show when={compact()} fallback={<Gloss />}>
+            <Show when={col1()} fallback={<GlossCompactNoCol1 />}>
+              <GlossCompact />
+            </Show>
+          </Show>
+        ),
       }
     }
 
     return {
-      el: <ErrorNormal />,
-      recognized,
+      el: (
+        <Show when={compact()} fallback={<ErrorNormal />}>
+          <Show when={col1()} fallback={<ErrorCompactNoCol1 />}>
+            <ErrorCompact />
+          </Show>
+        </Show>
+      ),
     }
 
     function CcCompactNoCol1() {
