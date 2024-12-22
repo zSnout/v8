@@ -167,8 +167,8 @@ export function Main() {
           class={
             compact() ?
               col1() ?
-                "grid w-full grid-cols-[auto,auto,auto]"
-              : "grid w-full grid-cols-[auto,auto]"
+                "grid w-full grid-cols-[1fr,1fr,2fr]"
+              : "grid w-full grid-cols-[1fr,2fr]"
             : "flex w-full flex-wrap gap-2"
           }
         >
