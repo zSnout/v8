@@ -254,6 +254,8 @@ export function Main() {
     recognized?: RecognizerOutput
   } {
     if (word.startsWith("%")) {
+      const contents = word.slice(1).replace(/_/g, " ").replace(/  /g, "_")
+
       return {
         el: (
           <Show
@@ -265,7 +267,7 @@ export function Main() {
                   "flex items-center justify-center px-4 font-semibold text-z-link",
                 )}
               >
-                {word.slice(1)}
+                {contents}
               </div>
             }
           >
@@ -276,7 +278,7 @@ export function Main() {
               )}
             >
               <div class="absolute inset-y-0.5 left-0 border-l border-z" />
-              <P>{`“${word.slice(1)}”`}</P>
+              <P>{`“${contents}”`}</P>
             </div>
           </Show>
         ),
@@ -1003,7 +1005,7 @@ export function Main() {
           Added inline tags. Type <Code>%sometext</Code> as a query to show it
           directly as blue text it in the output, unchanged. Useful for
           navigation, or for adding reference translations into your gloss
-          output.
+          output. To type a space in your tag, use an underscore.
         </li>
       </Changelog>
     )
