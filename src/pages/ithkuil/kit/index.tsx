@@ -246,6 +246,36 @@ export function Main() {
     el: JSX.Element
     recognized?: RecognizerOutput
   } {
+    if (word.startsWith("%")) {
+      return {
+        el: (
+          <Show
+            when={compact()}
+            fallback={
+              <div
+                class={clsx(
+                  stretch() && "flex-1",
+                  "flex items-center justify-center px-4 font-semibold text-z-link",
+                )}
+              >
+                {word.slice(1)}
+              </div>
+            }
+          >
+            <div
+              class={clsx(
+                col1() ? "col-span-3" : "col-span-2",
+                "relative pl-2 font-semibold text-z-link",
+              )}
+            >
+              <div class="absolute inset-y-0.5 left-0 border-l border-z" />
+              <P>{`“${word.slice(1)}”`}</P>
+            </div>
+          </Show>
+        ),
+      }
+    }
+
     const cc = /^(?:q|h[aeiou]?[0123]$)/i.test(word)
 
     if (cc) {
