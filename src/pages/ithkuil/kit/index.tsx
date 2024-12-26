@@ -43,9 +43,11 @@ import {
   For,
   indexArray,
   mapArray,
+  Match,
   onCleanup,
   onMount,
   Show,
+  Switch,
   type JSX,
 } from "solid-js"
 
@@ -124,10 +126,9 @@ export function Main() {
     "",
   )
 
-  const [ad, setAd] = createStorage<"000" | "001-2024-12-22">(
-    "ithkuil/kit/ad",
-    "000",
-  )
+  const [ad, setAd] = createStorage<
+    "000" | "001-2024-12-22" | "002-2024-12-26"
+  >("ithkuil/kit/ad", "000")
 
   const DOUBLE_NEWLINE = /(?:\r?\n)\s*(?:\r?\n)+/g
   const NEWLINE = /(?:\r?\n)+/g
@@ -160,9 +161,15 @@ export function Main() {
           />
         </div>
 
-        <Show when={ad() < "001"}>
-          <Ad001 />
-        </Show>
+        <Switch>
+          <Match when={ad() < "001"}>
+            <Ad001 />
+          </Match>
+
+          <Match when={ad() < "002"}>
+            <Ad002 />
+          </Match>
+        </Switch>
 
         <div
           class={
@@ -989,55 +996,96 @@ export function Main() {
     // `Show` does this so it's fine
   }
 
+  function C1735181313624() {
+    return (
+      <Changelog date={1735181313624}>
+        <li>
+          Added inline tags. Type <Code>%sometext</Code> as a query to show it
+          directly as blue text it in the output, unchanged. Useful for
+          navigation, or for adding reference translations into your gloss
+          output.
+        </li>
+      </Changelog>
+    )
+  }
+
+  function C1734857347638() {
+    return (
+      <Changelog date={1734857347638}>
+        <li>
+          Added compact mode, an alternative grid-based layout which increases
+          the density of information displayed onscreen.{" "}
+          <button
+            class="text-z-link underline underline-offset-2"
+            onClick={() => setCompact(true)}
+          >
+            Try it out!
+          </button>
+        </li>
+        <li>The query box now sticks to the top of the screen.</li>
+        <li>
+          Double newlines typed into the query box now result in large breaks in
+          the output section. This can be helpful for aligning yourself
+          onscreen.
+        </li>
+        <li>
+          A query like <Code>ACC</Code> or <Code>pa</Code>, which can either be
+          interpreted as a grammatical category or a word, will now display both
+          possible results.
+        </li>
+        <li>
+          Changed the order in which unglosses are displayed. A query of{" "}
+          <Code>1m</Code> will now show the referential <Code>la</Code> first,
+          with the formative <Code>aelala</Code> being second.
+        </li>
+        <li>
+          Precise controls for script generation now disappear from the sidebar
+          if the "Generate script?" option is disabled.
+        </li>
+      </Changelog>
+    )
+  }
+
+  function C1733645340000() {
+    return (
+      <Changelog date={1733645340000}>
+        <li>
+          The sidebar now collapses to the side on mobile, making this website
+          finally accessible on mobile! 🎉
+        </li>
+      </Changelog>
+    )
+  }
+
+  function SetAd(props: { ad: ReturnType<typeof ad> }) {
+    return (
+      <p>
+        <button
+          class="text-left text-sm text-z-link underline underline-offset-2"
+          onClick={() => setAd(props.ad)}
+        >
+          Hide this message.
+        </button>
+      </p>
+    )
+  }
+
   function Ad001() {
     return (
       <div class="flex w-full flex-1 flex-col gap-2 border-l border-z pl-2">
-        <Changelog date={1734857347638}>
-          <li>
-            Added compact mode, an alternative grid-based layout which increases
-            the density of information displayed onscreen.{" "}
-            <button
-              class="text-z-link underline underline-offset-2"
-              onClick={() => setCompact(true)}
-            >
-              Try it out!
-            </button>
-          </li>
-          <li>The query box now sticks to the top of the screen.</li>
-          <li>
-            Double newlines typed into the query box now result in large breaks
-            in the output section. This can be helpful for aligning yourself
-            onscreen.
-          </li>
-          <li>
-            A query like <Code>ACC</Code> or <Code>pa</Code>, which can either
-            be interpreted as a grammatical category or a word, will now display
-            both possible results.
-          </li>
-          <li>
-            Changed the order in which unglosses are displayed. A query of{" "}
-            <Code>1m</Code> will now show the referential <Code>la</Code> first,
-            with the formative <Code>aelala</Code> being second.
-          </li>
-          <li>
-            Precise controls for script generation now disappear from the
-            sidebar if the "Generate script?" option is disabled.
-          </li>
-        </Changelog>
-        <Changelog date={1733645340000}>
-          <li>
-            The sidebar now collapses to the side on mobile, making this website
-            finally accessible on mobile! 🎉
-          </li>
-        </Changelog>
-        <p>
-          <button
-            class="text-left text-sm text-z-link underline underline-offset-2"
-            onClick={() => setAd("001-2024-12-22")}
-          >
-            Hide this message.
-          </button>
-        </p>
+        <C1735181313624 />
+        <C1734857347638 />
+        <C1733645340000 />
+        <SetAd ad="002-2024-12-26" />
+      </div>
+    )
+  }
+
+  function Ad002() {
+    return (
+      <div class="flex w-full flex-1 flex-col gap-2 border-l border-z pl-2">
+        <C1735181313624 />
+        <SetAd ad="002-2024-12-26" />
       </div>
     )
   }
