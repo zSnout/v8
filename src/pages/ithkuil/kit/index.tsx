@@ -1007,6 +1007,26 @@ export function Main() {
           navigation, or for adding reference translations into your gloss
           output. To type a space in your tag, use an underscore.
         </li>
+        <ChangelogNested title="Major improvements to numbers">
+          <li>
+            Numeric affixes work. Use a numeric Cs form like{" "}
+            <Code>woli23a</Code>.
+          </li>
+          <li>
+            Numbers now have proper definitions. <Code>S1-23-4/7</Code> is now{" "}
+            <Code>S1-“set/group of 23 entities”-‘w/4 parts/sections’₁</Code>.
+          </li>
+          <li>
+            The numbers 0-15, 100, 100², 100⁴, and 100⁸ use their actual Cr and
+            Cs forms, such that the gloss <Code>S1-12</Code> now results in{" "}
+            <Code>ajdala</Code> instead of <Code>a12ala</Code>.
+          </li>
+          <li>
+            Warning: On zSnout, numeric affixes do not rotate to mark for
+            placement in slot V vs. VII in the script, because the digits 0 and
+            8 are indistinguishable when rotated.
+          </li>
+        </ChangelogNested>
       </Changelog>
     )
   }
@@ -1105,6 +1125,18 @@ export function Main() {
         </p>
         <ul class="list-outside list-disc pl-6 *:pl-1.5">{props.children}</ul>
       </>
+    )
+  }
+
+  function ChangelogNested(props: {
+    title: JSX.Element
+    children: JSX.Element
+  }) {
+    return (
+      <li>
+        <p>{props.title}</p>
+        <ul class="list-outside list-disc pl-6 *:pl-1.5">{props.children}</ul>
+      </li>
     )
   }
 }
