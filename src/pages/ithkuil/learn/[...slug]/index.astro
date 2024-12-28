@@ -1,0 +1,58 @@
+---
+import ProseLayout from "@/layouts/ProseLayout.astro"
+import type { GetStaticPathsItem } from "astro"
+import { CollectionEntry, getCollection } from "astro:content"
+
+export interface Props {
+  entry: CollectionEntry<"ithkuil">
+}
+
+export async function getStaticPaths() {
+  const blog = await getCollection("ithkuil")
+
+  return blog.map<GetStaticPathsItem>((entry) => ({
+    params: { slug: entry.slug },
+    props: { entry },
+  }))
+}
+
+const { entry } = Astro.props as Props
+const { Content, headings } = await entry.render()
+---
+
+<ProseLayout
+  description="TODO"
+  headings={headings}
+  title={`${entry.data.title} | Learn Ithkuil`}
+  og={{
+    title: entry.data.title,
+    imageAlt: "TODO",
+    imageSrc: "TODO",
+    // imageSrc: openGraphImage,
+    // imageAlt: entry.data.imageAlt,
+    // article: {
+    // authors: ["Zachary Sakowitz"],
+    // publishedTime: entry.data.published,
+    // tags: [entry.data.category],
+    // modifiedTime: entry.data.updated,
+    // },
+  }}
+>
+  <!--
+  <Unprose class="relative -mt-28 mb-28 flex flex-col bg-z-border pt-28">
+  <Reprose>
+    <h1 class="relative z-20 m-0 mb-4 transition">{entry.data.title}</h1>
+
+    <p class="relative z-20 m-0 mb-12 transition">
+      {entry.data.description}
+    </p>
+
+    <img
+      class="relative z-20 m-0 -mb-20 block rounded-lg shadow-md transition"
+      src={openGraphImage}
+    />
+  </Reprose>
+</ProseLayout>-->
+
+  <Content />
+</ProseLayout>
