@@ -22,7 +22,7 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons"
  * ) => md.Content}
  */
 export function makeQuiz(kind, source, list) {
-  const processor = this.freeze()
+  const { createLi, h } = els(this)
 
   if (list.ordered) {
     throw new Error("Radio-style quizzes must be unordered lists.")
@@ -37,28 +37,80 @@ export function makeQuiz(kind, source, list) {
   return h(
     "form",
     "",
-    source,
-    h("div", "grid grid-cols-2 gap-2", ...list.children.map(createLi)),
+    h("div", "last:*:mb-2", source),
+    h(
+      "div",
+      "grid grid-cols-2 gap-2",
+      ...list.children.map((x) => createLi(x, name)),
+    ),
   )
+}
 
-  function createLi(/** @type {md.ListItem} */ liRaw) {
-    const [li, reason] = extractReason(liRaw)
+function els(/** @type {px} */ processor) {
+  return { createLi, h }
 
-    return h(
-      "label",
-      "flex border border-2 border-slate-200 dark:border-slate-700 rounded-lg [&:has(>:checked)]:bg-blue-100 dark:[&:has(>:checked)]:bg-blue-900 [&:has(>:checked)]:border-blue-300 dark:[&:has(>:checked)]:border-blue-600 dark:[&:has(>:checked)]:text-blue-200 [&:has(>:checked)]:text-sky-900 pl-2 py-1 pr-3 gap-2",
+  function fa(icon, className) {
+    return {
+      /** @type {"html"} */ type: "html",
+      value: escape`<svg
+  class="${"overflow-visible transition " + className}"
+  fill="var(--icon-fill)"
+  role="presentation"
+  viewBox="${`0 0 ${icon.icon[0]} ${icon.icon[1]}`}"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <path d="${icon.icon[4]}"></path>
+</svg>`,
+    }
+  }
+
+  function Radio(/** @type {string} */ name) {
+    return [
+      h("input", { type: "radio", name, class: "sr-only peer" }),
+      h(
+        "div",
+        "size-5 mt-1 border-2 border-slate-200 rounded-full peer-checked:bg-[--z-bg-checkbox-selected] peer-checked:border-0 flex peer-checked:*:block",
+        // h("div", "size-2 bg-white rounded-full m-auto"),
+        fa(
+          faCheck,
+          "size-3 m-auto hidden fill-white [stroke-width:30] stroke-white",
+        ),
+      ),
+    ]
+  }
+
+  function Checkbox(/** @type {string} */ name) {
+    return [
       h("input", { type: "radio", name, class: "sr-only peer" }),
       h(
         "div",
         "size-5 mt-1 border-2 border-slate-200 rounded peer-checked:bg-[--z-bg-checkbox-selected] peer-checked:border-0 flex peer-checked:*:block",
-        { type: "html", value: fa(faCheck, "size-4 m-auto hidden fill-white") },
+        fa(faCheck, "size-4 m-auto hidden fill-white"),
       ),
-      h("div", "text-base/1.5 *:first:mt-0 *:last:mb-0", ...li.children),
+    ]
+  }
+
+  function createLi(
+    /** @type {md.ListItem} */ liRaw,
+    /** @type {string} */ name,
+  ) {
+    const [li, reason] = extractReason(liRaw)
+
+    return h(
+      "label",
+      "flex border border-2 border-slate-200 dark:border-slate-700 rounded-lg [&:has(>:checked)]:bg-blue-100 dark:[&:has(>:checked)]:bg-blue-900 [&:has(>:checked)]:border-blue-300 dark:[&:has(>:checked)]:border-blue-600 dark:[&:has(>:checked)]:text-blue-200 [&:has(>:checked)]:text-sky-900 pl-2 py-1 pr-3 gap-2 cursor-pointer",
+      ...Radio(name),
+      // ...Checkbox(name),
+      h("div", "text-base/1.5 first:*:mt-0 last:*:mb-0", ...li.children),
       reason && h("div", "quiz-reason hidden", ...reason.children),
     )
   }
 
-  function h(tagName, className, ...children) {
+  function h(
+    tagName,
+    className,
+    /** @type {(md.Content | null | undefined)[]} */ ...children
+  ) {
     const props =
       typeof className == "string" ? { class: className } : className
 
@@ -67,7 +119,7 @@ export function makeQuiz(kind, source, list) {
       value: `<${tagName}${Object.entries(props).map(
         ([k, v]) => ` ${escapeHTML(k)}="${escapeHTML(v)}"`,
       )}>${children
-        .filter((x) => x)
+        .filter((x) => x != null)
         .map((x) =>
           x.type == "html" ?
             x.value
@@ -141,16 +193,4 @@ function escapeHTML(text) {
 
 function escape(/** @type {TemplateStringsArray} */ text, ...interps) {
   return String.raw({ raw: text }, ...interps.map(escapeHTML))
-}
-
-function fa(icon, className) {
-  return escape`<svg
-  class="${"overflow-visible transition " + className}"
-  fill="var(--icon-fill)"
-  role="presentation"
-  viewBox="${`0 0 ${icon.icon[0]} ${icon.icon[1]}`}"
-  xmlns="http://www.w3.org/2000/svg"
->
-  <path d="${icon.icon[4]}"></path>
-</svg>`
 }
