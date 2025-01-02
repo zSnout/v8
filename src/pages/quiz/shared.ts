@@ -13,7 +13,7 @@ export class PartialCard {
     }
   }
 
-  private declare __brand
+  declare private __brand
 
   constructor(
     readonly short: string,
@@ -29,7 +29,7 @@ export class PartialCard {
 }
 
 export class DirectTreeCard {
-  private declare __brand2
+  declare private __brand2
 
   constructor(
     readonly short: string,
@@ -45,7 +45,7 @@ export class DirectTreeCard {
 }
 
 export class Generator {
-  private declare __brand3
+  declare private __brand3
   readonly weight: number
 
   constructor(
