@@ -13,6 +13,41 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons"
  *   : { readonly [K in keyof T]: DeepReadonly<T[K]> }} DeepReadonly
  */
 
+/** @type {<T>(arr: T[]) => T[]} */
+function shuffle(array) {
+  let currentIndex = array.length
+  let randomIndex
+
+  while (currentIndex != 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex)
+    currentIndex--
+    ;[array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ]
+  }
+
+  return array
+}
+
+/** @returns {[string, string[]]} */
+function stretch(/** @type {number} */ items) {
+  if (items % 2 == 0) {
+    return ["grid grid-cols-1 xs:grid-cols-2", [""]]
+  }
+
+  if (items == 1) {
+    return ["grid grid-cols-1", [""]]
+  }
+
+  return [
+    "grid grid-cols-1 xs:grid-cols-2",
+    Array.from({ length: items }, (_, i) =>
+      i == items - 1 ? "xs:col-span-2" : "",
+    ),
+  ]
+}
+
 /**
  * @type {(
  *   this: px,
@@ -22,11 +57,7 @@ import { faCheck } from "@fortawesome/free-solid-svg-icons"
  * ) => md.Content}
  */
 export function makeQuiz(kind, source, list) {
-  const { createLi, h } = els(this)
-
-  if (list.ordered) {
-    throw new Error("Radio-style quizzes must be unordered lists.")
-  }
+  const { Li, Submit, h } = els(this)
 
   if (list.children.reduce((a, b) => a + +!!b.checked, 0) != 1) {
     throw new Error("Radio-style quizzes must have exactly one correct answer.")
@@ -34,20 +65,20 @@ export function makeQuiz(kind, source, list) {
 
   const name = crypto.randomUUID()
 
+  const items = list.ordered ? list.children : shuffle(list.children)
+  const [grid, clsx] = stretch(items.length)
+
   return h(
     "form",
     "",
     h("div", "last:*:mb-2", source),
-    h(
-      "div",
-      "grid grid-cols-2 gap-2",
-      ...list.children.map((x) => createLi(x, name)),
-    ),
+    h("div", grid + " gap-2", ...items.map((x, i) => Li(x, name, clsx[i]))),
+    h("div", "flex", Submit()),
   )
 }
 
 function els(/** @type {px} */ processor) {
-  return { createLi, h }
+  return { h, Li, Submit }
 
   function fa(icon, className) {
     return {
@@ -69,7 +100,7 @@ function els(/** @type {px} */ processor) {
       h("input", { type: "radio", name, class: "sr-only peer" }),
       h(
         "div",
-        "size-5 mt-1 border-2 border-slate-200 rounded-full peer-checked:bg-[--z-bg-checkbox-selected] peer-checked:border-0 flex peer-checked:*:block",
+        "size-5 min-w-5 mt-1 border border-slate-200 rounded-full peer-checked:bg-[--z-bg-checkbox-selected] peer-checked:border-0 flex peer-checked:*:block",
         // h("div", "size-2 bg-white rounded-full m-auto"),
         fa(
           faCheck,
@@ -84,26 +115,36 @@ function els(/** @type {px} */ processor) {
       h("input", { type: "radio", name, class: "sr-only peer" }),
       h(
         "div",
-        "size-5 mt-1 border-2 border-slate-200 rounded peer-checked:bg-[--z-bg-checkbox-selected] peer-checked:border-0 flex peer-checked:*:block",
+        "size-5 min-w-5 mt-1 border border-slate-200 rounded peer-checked:bg-[--z-bg-checkbox-selected] peer-checked:border-0 flex peer-checked:*:block",
         fa(faCheck, "size-4 m-auto hidden fill-white"),
       ),
     ]
   }
 
-  function createLi(
+  function Li(
     /** @type {md.ListItem} */ liRaw,
     /** @type {string} */ name,
+    /** @type {string} */ className,
   ) {
     const [li, reason] = extractReason(liRaw)
 
     return h(
       "label",
-      "flex border border-2 border-slate-200 dark:border-slate-700 rounded-lg [&:has(>:checked)]:bg-blue-100 dark:[&:has(>:checked)]:bg-blue-900 [&:has(>:checked)]:border-blue-300 dark:[&:has(>:checked)]:border-blue-600 dark:[&:has(>:checked)]:text-blue-200 [&:has(>:checked)]:text-sky-900 pl-2 py-1 pr-3 gap-2 cursor-pointer",
+      "flex border border border-slate-200 dark:border-slate-700 rounded-lg [&:has(>:checked)]:bg-blue-100 dark:[&:has(>:checked)]:bg-blue-900 [&:has(>:checked)]:border-blue-300 dark:[&:has(>:checked)]:border-blue-600 dark:[&:has(>:checked)]:text-blue-200 [&:has(>:checked)]:text-sky-900 pl-2 py-1 pr-3 gap-2 cursor-pointer " +
+        className,
       ...Radio(name),
-      // ...Checkbox(name),
       h("div", "text-base/1.5 first:*:mt-0 last:*:mb-0", ...li.children),
       reason && h("div", "quiz-reason hidden", ...reason.children),
     )
+  }
+
+  function Submit() {
+    return h("input", {
+      type: "submit",
+      value: "Submit",
+      class:
+        "rounded-lg border border-slate-200 bg-z-body-selected border-transparent z-field shadow-none py-1 px-2 mt-2 ml-auto w-36",
+    })
   }
 
   function h(

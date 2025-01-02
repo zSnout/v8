@@ -1,3 +1,5 @@
+import { twMerge } from "tailwind-merge"
+
 export type ClsxItem =
   | string
   | false
@@ -30,5 +32,5 @@ function clsxOne(item: ClsxItem): string {
 }
 
 export function clsx(...items: ClsxItem[]): string {
-  return clsxOne(items)
+  return twMerge(clsxOne(items))
 }
