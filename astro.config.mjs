@@ -38,7 +38,7 @@ function escapeHTML(text) {
     .replaceAll('"', "&quot;")
 }
 
-/** @type {(this: px, node: md.Content) => md.Content | md.Content[]} */
+/** @type {(this: px, node: md.Content) => md.Content} */
 function traverse(node) {
   if (node.type == "image") {
     if (node.title) {
@@ -91,11 +91,11 @@ function traverse(node) {
         }),
       )
 
-      return [
-        { type: "html", value: TABLE_START },
+      return h(
+        "div",
+        WIDE_CLASSES,
         h("table", "text-base", h("tbody", "", ...rows)),
-        { type: "html", value: TABLE_END },
-      ]
+      )
     }
 
     const sx = node.value
@@ -146,11 +146,51 @@ const BLOCKQUOTE_STYLES = {
   ],
 }
 
-const TABLE_START = `<div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw]">
-<div class="mx-6 flex flex-col print:mx-0">
-<div class="flex w-full gap-12 text-z transition">
-<div class="mx-auto w-full max-w-prose">`
-const TABLE_END = "</div>".repeat(4)
+const WIDE_CLASSES =
+  "relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw] overflow-x-auto px-[max(1.5rem,50vw_-_32.5ch)] whitespace-nowrap scrollbar:hidden"
+
+const WIDE_START = `<div class="${escapeHTML(WIDE_CLASSES)}">`
+const WIDE_END = "</div>"
+
+/** @type {(this: px, node: md.Table) => md.Content[]} */
+function styleTable(node) {
+  const wraps = node.children[0].children.map((cell) => {
+    const first = cell.children[0]
+    if (first.type == "text") {
+      if (first.value.startsWith("@wrap ")) {
+        first.value = first.value.slice(6)
+        return true
+      }
+    }
+    return false
+  })
+
+  const { h } = els(this)
+
+  return [
+    { type: "html", value: WIDE_START },
+    traverse.call(this, {
+      ...node,
+      children: node.children.map((row) => ({
+        ...row,
+
+        children: row.children.map(
+          /** @returns {md.TableCell} */
+          (cell, index) =>
+            wraps[index] ?
+              {
+                type: "tableCell",
+                children: [h("span", "whitespace-normal", ...cell.children)],
+                position: cell.position,
+                data: cell.data,
+              }
+            : cell,
+        ),
+      })),
+    }),
+    { type: "html", value: WIDE_END },
+  ]
+}
 
 /** @type {(this: px, nodes: md.Content[]) => md.Content[]} */
 function traverseArray(nodes) {
@@ -160,11 +200,7 @@ function traverseArray(nodes) {
     const node = nodes[i]
 
     if (node.type == "table") {
-      output.push({ type: "html", value: TABLE_START })
-      const inner = traverse.call(this, node)
-      if (Array.isArray(inner)) output.push(...inner)
-      else output.push(inner)
-      output.push({ type: "html", value: TABLE_END })
+      output.push(...styleTable.call(this, node))
       continue
     }
 

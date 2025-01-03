@@ -60,7 +60,7 @@ The Contential and Constitutive forms typically complement each other, and
 together make up the Basic form. The Objective form is typically hard to infer.
 
 @info Those abbreviations (BSC, CTE, CSV, and OBJ) are used heavily on the
-official <https://ithkuil.net> website, hence why they're in our table.
+official <https://ithkuil.net> website hence why they're in our table.
 
 We can use different Specifications in our "there is..." statements. Instead of
 **stem + -alá**, we'll now have **specification + -lá**:
@@ -69,9 +69,10 @@ We can use different Specifications in our "there is..." statements. Instead of
 ¹arr²e⁰lá.
 There is a ¹cat ²body.
 
-¹aňs²ä⁰lá.
-There is a ²psychological cause leading to ¹good behavior.
-
 ¹ufč²i⁰lá.
 There is ²somebody who has been ¹exiled.
+
+
+¹aňs²ä⁰lá.
+There is a ²psychological cause leading to ¹good behavior.
 ```

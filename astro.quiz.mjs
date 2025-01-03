@@ -189,9 +189,22 @@ export function els(/** @type {px} */ processor) {
       "",
       ...text.split(/(?=[⁰¹²³⁴⁵⁶])/).map((part) => {
         if (part[0] in COLORS) {
-          return h("span", COLORS[part[0]], part.slice(1))
+          return h(
+            "span",
+            COLORS[part[0]],
+            ...part
+              .slice(1)
+              .split("/")
+              .flatMap((x, i) => (i ? ["/", h("wbr", "md:hidden"), x] : [x])),
+          )
         } else {
-          return part
+          return h(
+            "span",
+            "",
+            ...part
+              .split("/")
+              .flatMap((x, i) => (i ? ["/", h("wbr", "md:hidden"), x] : [x])),
+          )
         }
       }),
     )
@@ -206,13 +219,18 @@ export function els(/** @type {px} */ processor) {
       const lg = meta == "sm" ? " text-xl" : " text-3xl"
       const sm = meta == "sm" ? " text-sm" : ""
       return h(
-        "div not-prose",
-        "flex-1 text-center -m-px relative " + (meta == "sm" ? "px-2" : "px-8"),
+        "div",
+        "flex-1 text-center -m-px relative " + (meta == "sm" ? "px-2" : "px-4"),
         h("div", "absolute bottom-full h-4 inset-x-0 bg-z-body"),
         h("div", "absolute top-full h-4 inset-x-0 bg-z-body"),
-        h("p", "font-semibold my-0" + lg, colorize(src)),
-        ...dst.map((dst, i) =>
-          h("p", "my-0 [line-height:1.5]" + sm, colorize(dst)),
+        h("p", "font-semibold my-0 break-words" + lg, colorize(src)),
+        ...dst.map((dst) =>
+          h(
+            "p",
+            "my-0 [line-height:1.5] whitespace-normal md:whitespace-nowrap" +
+              sm,
+            colorize(dst),
+          ),
         ),
       )
     })
