@@ -1,5 +1,5 @@
 ---
-title: Roots
+title: Root
 ---
 
 In Ithkuil, a root is the core element of meaning. Some roots are more similar

@@ -1,5 +1,5 @@
 ---
-title: Stems
+title: Stem
 ---
 
 To actually use an Ithkuil root as part of a word, you need to pick one of its

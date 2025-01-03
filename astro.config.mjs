@@ -7,7 +7,7 @@
 import mdx from "@astrojs/mdx"
 import solidJs from "@astrojs/solid-js"
 import tailwind from "@astrojs/tailwind"
-import { faWarning } from "@fortawesome/free-solid-svg-icons"
+import { faInfoCircle, faWarning } from "@fortawesome/free-solid-svg-icons"
 import { defineConfig } from "astro/config"
 import rehypeKatex from "rehype-katex"
 import remarkMath from "remark-math"
@@ -38,7 +38,7 @@ function escapeHTML(text) {
     .replaceAll('"', "&quot;")
 }
 
-/** @type {(this: px, node: md.Content) => md.Content} */
+/** @type {(this: px, node: md.Content) => md.Content | md.Content[]} */
 function traverse(node) {
   if (node.type == "image") {
     if (node.title) {
@@ -65,39 +65,39 @@ function traverse(node) {
     }
   } else if (node.type == "code" && node.lang == "cx") {
     const { h, cx, colorize } = els(this)
+
     if (node.meta == "table") {
-      return h(
-        "table",
-        "text-base",
-        h(
-          "tbody",
-          "",
-          ...node.value.split("\n\n\n").flatMap((text, i, a) =>
-            text.split("\n\n").map((row, j, b) => {
-              const [src, ...dst] = row.split("\n")
-              return h(
-                "tr",
-                i != a.length - 1 && j == b.length - 1 ?
-                  "border-b-0 *:pb-5"
-                : "border-b-0",
-                h(
-                  "td",
-                  "font-semibold py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
-                  colorize(src),
-                ),
-                ...dst.map((dst) =>
-                  h(
-                    "td",
-                    " py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
-                    colorize(dst),
-                  ),
-                ),
-              )
-            }),
-          ),
-        ),
+      const rows = node.value.split("\n\n\n").flatMap((text, i, a) =>
+        text.split("\n\n").map((row, j, b) => {
+          const [src, ...dst] = row.split("\n")
+          return h(
+            "tr",
+            i != a.length - 1 && j == b.length - 1 ?
+              "border-b-0 *:pb-5"
+            : "border-b-0",
+            h(
+              "td",
+              "font-semibold py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
+              colorize(src),
+            ),
+            ...dst.map((dst) =>
+              h(
+                "td",
+                " py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
+                colorize(dst),
+              ),
+            ),
+          )
+        }),
       )
+
+      return [
+        { type: "html", value: TABLE_START },
+        h("table", "text-base", h("tbody", "", ...rows)),
+        { type: "html", value: TABLE_END },
+      ]
     }
+
     const sx = node.value
       .split("\n\n\n")
       .map((section) =>
@@ -107,6 +107,7 @@ function traverse(node) {
           ...cx(section, node.meta),
         ),
       )
+
     return h(
       "div",
       "flex flex-col bg-z-border gap-[calc(2rem_+_3px)] my-5 first:mt-0 last:mb-0",
@@ -136,9 +137,20 @@ const BLOCKQUOTE_STYLES = {
   todo: [
     faWarning,
     "border-yellow-300 bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100 dark:border-yellow-800",
-    "To be written later:",
+    "Incomplete note:",
+  ],
+  info: [
+    faInfoCircle,
+    "border-blue-300 bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-100 dark:border-blue-800",
+    "By the way...",
   ],
 }
+
+const TABLE_START = `<div class="relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw]">
+<div class="mx-6 flex flex-col print:mx-0">
+<div class="flex w-full gap-12 text-z transition">
+<div class="mx-auto w-full max-w-prose">`
+const TABLE_END = "</div>".repeat(4)
 
 /** @type {(this: px, nodes: md.Content[]) => md.Content[]} */
 function traverseArray(nodes) {
@@ -146,6 +158,15 @@ function traverseArray(nodes) {
   const output = []
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i]
+
+    if (node.type == "table") {
+      output.push({ type: "html", value: TABLE_START })
+      const inner = traverse.call(this, node)
+      if (Array.isArray(inner)) output.push(...inner)
+      else output.push(inner)
+      output.push({ type: "html", value: TABLE_END })
+      continue
+    }
 
     tags: {
       if (
@@ -183,14 +204,14 @@ function traverseArray(nodes) {
         output.push(
           h(
             "div",
-            "border px-4 pt-3 pb-2 rounded-lg my-5 " + classes,
+            "border px-4 py-3 rounded-lg my-5 " + classes,
             h(
               "div",
-              "mb-1 flex gap-2 items-center text-sm",
+              "mb-2 flex gap-2 items-center text-sm",
               fa(icon, "size-4 fill-current"),
               h("div", "", tagline),
             ),
-            h("div", "", ...source.children),
+            h("div", "[line-height:1.5]", ...source.children),
           ),
         )
         continue
@@ -211,7 +232,9 @@ function traverseArray(nodes) {
       continue
     }
 
-    output.push(traverse.call(this, node))
+    const inner = traverse.call(this, node)
+    if (Array.isArray(inner)) output.push(...inner)
+    else output.push(inner)
   }
   return output
 }
