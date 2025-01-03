@@ -1,5 +1,8 @@
 ---
+import { Fa } from "@/components/Fa"
+import { Unprose } from "@/components/Prose"
 import ProseLayout from "@/layouts/ProseLayout.astro"
+import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons"
 import { getCollection } from "astro:content"
 
 const pages = await getCollection("ithkuil")
@@ -17,16 +20,42 @@ const data = await Promise.all(
     imageAlt: "TODO",
     imageSrc: "TODO",
   }}
+  class="[&_.z-thematic-break]:!hidden"
 >
+  <h1>Ithkuil by Example</h1>
+  <p>
+    <em>hlä sakawi — by sakawi</em>
+  </p>
+
   {
     data.map(([entry, Content]) => (
       <>
-        <h2 class="relative">
-          <strong class="font-mono text-z">{entry.id.slice(0, 2)}</strong> —{" "}
-          {entry.data.title}
-        </h2>
+        <Unprose>
+          <hr class="!w-full max-w-full border-dashed border-z" />
+        </Unprose>
 
-        <Content />
+        <details class="group" open>
+          <summary class="relative block">
+            <Fa
+              icon={faCaretRight}
+              class="absolute -left-6 top-2 size-4 group-open:hidden"
+              title={false}
+            />
+            <Fa
+              icon={faCaretDown}
+              class="absolute -left-6 top-2 hidden size-4 group-open:block"
+              title={false}
+            />
+            <h2 class="contents select-none">
+              <span>
+                <strong class="font-mono text-z">{entry.id.slice(0, 2)}</strong>{" "}
+                — {entry.data.title}
+              </span>
+            </h2>
+          </summary>
+
+          <Content />
+        </details>
       </>
     ))
   }

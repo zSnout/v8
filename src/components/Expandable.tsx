@@ -1,7 +1,7 @@
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import {
   For,
-  JSX,
+  type JSX,
   batch,
   createEffect,
   createSignal,

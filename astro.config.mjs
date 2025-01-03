@@ -7,6 +7,7 @@
 import mdx from "@astrojs/mdx"
 import solidJs from "@astrojs/solid-js"
 import tailwind from "@astrojs/tailwind"
+import { faWarning } from "@fortawesome/free-solid-svg-icons"
 import { defineConfig } from "astro/config"
 import rehypeKatex from "rehype-katex"
 import remarkMath from "remark-math"
@@ -63,14 +64,47 @@ function traverse(node) {
         "</div></div>",
     }
   } else if (node.type == "code" && node.lang == "cx") {
-    const { h, cx } = els(this)
+    const { h, cx, colorize } = els(this)
+    if (node.meta == "table") {
+      return h(
+        "table",
+        "text-base",
+        h(
+          "tbody",
+          "",
+          ...node.value.split("\n\n\n").flatMap((text, i, a) =>
+            text.split("\n\n").map((row, j, b) => {
+              const [src, ...dst] = row.split("\n")
+              return h(
+                "tr",
+                i != a.length - 1 && j == b.length - 1 ?
+                  "border-b-0 *:pb-5"
+                : "border-b-0",
+                h(
+                  "td",
+                  "font-semibold py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
+                  colorize(src),
+                ),
+                ...dst.map((dst) =>
+                  h(
+                    "td",
+                    " py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
+                    colorize(dst),
+                  ),
+                ),
+              )
+            }),
+          ),
+        ),
+      )
+    }
     const sx = node.value
       .split("\n\n\n")
       .map((section) =>
         h(
           "div",
           "flex flex-wrap bg-z-border *:bg-z-body gap-x-[3px] gap-y-[calc(2rem_+_3px)] whitespace-nowrap",
-          ...cx(section),
+          ...cx(section, node.meta),
         ),
       )
     return h(
@@ -86,6 +120,24 @@ function traverse(node) {
   } else {
     return node
   }
+}
+
+/**
+ * @type {Record<
+ *   string,
+ *   [
+ *     icon: import("@fortawesome/free-solid-svg-icons").IconDefinition,
+ *     classes: string,
+ *     tagline: string,
+ *   ]
+ * >}
+ */
+const BLOCKQUOTE_STYLES = {
+  todo: [
+    faWarning,
+    "border-yellow-300 bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100 dark:border-yellow-800",
+    "To be written later:",
+  ],
 }
 
 /** @type {(this: px, nodes: md.Content[]) => md.Content[]} */
@@ -123,6 +175,27 @@ function traverseArray(nodes) {
         continue
       }
 
+      Object.hasOwn ??= {}.hasOwnProperty.call.bind({}.hasOwnProperty)
+      if (Object.hasOwn(BLOCKQUOTE_STYLES, tag)) {
+        const [icon, classes, tagline] = BLOCKQUOTE_STYLES[tag]
+
+        const { h, fa } = els(this)
+        output.push(
+          h(
+            "div",
+            "border px-4 pt-3 pb-2 rounded-lg my-5 " + classes,
+            h(
+              "div",
+              "mb-1 flex gap-2 items-center text-sm",
+              fa(icon, "size-4 fill-current"),
+              h("div", "", tagline),
+            ),
+            h("div", "", ...source.children),
+          ),
+        )
+        continue
+      }
+
       if (!tag.startsWith("quiz.")) break tags
 
       const next = nodes[++i]
@@ -141,6 +214,23 @@ function traverseArray(nodes) {
     output.push(traverse.call(this, node))
   }
   return output
+}
+
+/** @type {(this: px, nodes: md.Content[]) => md.Content[]} */
+function traverseRoot(nodes) {
+  const hr = nodes.findIndex((x) => x.type == "thematicBreak")
+  if (hr != -1) {
+    nodes = nodes.slice()
+    nodes.splice(hr, 0, {
+      type: "html",
+      value: '<div class="z-thematic-break contents">',
+    })
+    nodes.splice(nodes.length, 0, {
+      type: "html",
+      value: "</div>",
+    })
+  }
+  return traverseArray.call(this, nodes)
 }
 
 function debug(value) {
@@ -171,7 +261,7 @@ export default defineConfig({
         return (tree, _, next) => {
           return next(undefined, {
             ...tree,
-            children: tree.children && traverseArray.call(this, tree.children),
+            children: tree.children && traverseRoot.call(this, tree.children),
           })
         }
       },

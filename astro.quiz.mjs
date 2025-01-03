@@ -80,17 +80,20 @@ export function makeQuiz(kind, source, list) {
 const COLORS = {
   "⁰": "",
   "¹": "text-sky-600 dark:text-sky-400",
-  "²": "text-green-600 dark:text-green-400",
-  "³": "text-rose-600 dark:text-rose-400",
+  "²": "text-rose-600 dark:text-rose-400",
+  "³": "text-green-600 dark:text-green-400",
   "⁴": "text-violet-600 dark:text-violet-400",
   "⁵": "text-orange-600 dark:text-orange-400",
   "⁶": "text-fuchsia-600 dark:text-fuchsia-400",
 }
 
 export function els(/** @type {px} */ processor) {
-  return { h, Li, Submit, colorize, cx }
+  return { h, Li, Submit, colorize, cx, fa }
 
-  function fa(icon, className) {
+  function fa(
+    /** @type {import("@fortawesome/free-solid-svg-icons").IconDefinition} */ icon,
+    className = "",
+  ) {
     return {
       /** @type {"html"} */ type: "html",
       value: escape`<svg
@@ -194,16 +197,23 @@ export function els(/** @type {px} */ processor) {
     )
   }
 
-  function cx(/** @type {string} */ text) {
+  function cx(
+    /** @type {string} */ text,
+    /** @type {string | null | undefined} */ meta = "",
+  ) {
     return text.split("\n\n").map((row) => {
-      const [src, dst] = row.split("\n")
+      const [src, ...dst] = row.split("\n")
+      const lg = meta == "sm" ? " text-xl" : " text-3xl"
+      const sm = meta == "sm" ? " text-sm" : ""
       return h(
-        "div",
-        "flex-1 text-center -m-px px-8 relative",
+        "div not-prose",
+        "flex-1 text-center -m-px relative " + (meta == "sm" ? "px-2" : "px-8"),
         h("div", "absolute bottom-full h-4 inset-x-0 bg-z-body"),
         h("div", "absolute top-full h-4 inset-x-0 bg-z-body"),
-        h("p", "font-semibold text-3xl my-0", colorize(src)),
-        h("p", "my-0", colorize(dst)),
+        h("p", "font-semibold my-0" + lg, colorize(src)),
+        ...dst.map((dst, i) =>
+          h("p", "my-0 [line-height:1.5]" + sm, colorize(dst)),
+        ),
       )
     })
   }

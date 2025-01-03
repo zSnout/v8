@@ -2,14 +2,20 @@
 import "katex/dist/katex.min.css"
 import type { Props as LayoutProps } from "./Layout.astro"
 import PaddedLayout from "./PaddedLayout.astro"
+import { clsx } from "@/components/clsx"
 
-export interface Props extends LayoutProps {}
+export interface Props extends LayoutProps {
+  class?: string
+}
 ---
 
 <PaddedLayout maxWidth="max-w-prose" {...Astro.props}>
   <div class="flex h-full w-full flex-1 text-z transition">
     <article
-      class="prose-sp prose prose-slate mx-auto w-full flex-1 py-8 text-z transition dark:prose-invert prose-headings:scroll-mt-20 prose-pre:relative prose-pre:-left-4 prose-pre:w-[calc(100%_+_2em)] prose-hr:relative prose-hr:left-1/2 prose-hr:w-48 prose-hr:-translate-x-1/2 [&_.math]:overflow-x-auto"
+      class={clsx(
+        "prose-sp prose prose-slate mx-auto w-full flex-1 py-8 text-z transition dark:prose-invert prose-headings:scroll-mt-20 prose-pre:relative prose-pre:-left-4 prose-pre:w-[calc(100%_+_2em)] prose-hr:relative prose-hr:left-1/2 prose-hr:w-48 prose-hr:-translate-x-1/2 [&_.math]:overflow-x-auto",
+        Astro.props.class,
+      )}
     >
       <slot />
     </article>
