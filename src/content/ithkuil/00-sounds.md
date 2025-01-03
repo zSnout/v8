@@ -26,6 +26,14 @@ There are four types of stress in Ithkuil:
 
 We'll learn about how stress affects words later.
 
+> @btw
+>
+> We'll learn how to pronounce words later. But since Ithkuil is mostly only
+> used online, I'm going to skip that for now.
+>
+> Also, Ithkuil pronunciation can be a little tricky for English speakers. But
+> it isn't impossible!
+
 ---
 
 Here's how Ithkuil's consonants are pronounced:
