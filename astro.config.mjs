@@ -7,7 +7,12 @@
 import mdx from "@astrojs/mdx"
 import solidJs from "@astrojs/solid-js"
 import tailwind from "@astrojs/tailwind"
-import { faInfoCircle, faWarning } from "@fortawesome/free-solid-svg-icons"
+import {
+  faCaretDown,
+  faCaretRight,
+  faInfoCircle,
+  faWarning,
+} from "@fortawesome/free-solid-svg-icons"
 import { defineConfig } from "astro/config"
 import rehypeKatex from "rehype-katex"
 import remarkMath from "remark-math"
@@ -42,6 +47,27 @@ function escapeHTML(text) {
 function traverse(node) {
   if (
     node.type == "blockquote" &&
+    node.children[0]?.type == "paragraph" &&
+    node.children[0]?.children[0]?.type == "text" &&
+    node.children[0].children[0].value.startsWith("@details ")
+  ) {
+    node.children[0].children[0].value =
+      node.children[0].children[0].value.slice("@details ".length)
+    const { h, fa } = els(this)
+    return h(
+      "details",
+      "bg-z-body-selected border border-z rounded-lg [line-height:1.5] *:px-4 last:*:pb-3 *:mt-2 *:mb-0 first:*:mt-0 [&>ol]:pl-[calc(1.625em_+_1rem)] [&>ol>li]:my-1 [&>ol>li:last-child>p:last-child]:mb-2",
+      h(
+        "summary",
+        "flex gap-2 items-center text-sm [[open]>&]:pb-0 py-3 px-4",
+        fa(faCaretRight, "size-4 [[open]>*>&]:hidden"),
+        fa(faCaretDown, "size-4 hidden [[open]>*>&]:block"),
+        h("div", ",", ...node.children[0].children),
+      ),
+      ...node.children.slice(1),
+    )
+  } else if (
+    node.type == "blockquote" &&
     node.children.every((x) => x.type == "paragraph") &&
     node.children[0]?.children[0]?.type == "text" &&
     node.children[0].children[0].value.startsWith("@") &&
@@ -71,6 +97,9 @@ function traverse(node) {
   } else if (node.type == "text" && node.value.startsWith("@cx ")) {
     const { colorize } = els(this)
     return colorize(node.value.slice(4))
+  } else if (node.type == "text" && /^@[⁰¹²³⁴⁵⁶]/.test(node.value)) {
+    const { colorize } = els(this)
+    return colorize(node.value.slice(1))
   } else if (node.type == "image") {
     if (node.title) {
       return {
@@ -134,14 +163,17 @@ function traverse(node) {
       .map((section) =>
         h(
           "div",
-          "flex flex-wrap bg-z-border *:bg-z-body gap-x-[3px] gap-y-[calc(2rem_+_3px)] whitespace-nowrap",
+          "flex flex-wrap bg-z-border *:bg-z-body gap-x-[3px] gap-y-[calc(2rem_+_3px)]",
           ...cx(section, node.meta),
         ),
       )
 
     return h(
       "div",
-      "flex flex-col bg-z-border gap-[calc(2rem_+_3px)] my-5 first:mt-0 last:mb-0",
+      "flex flex-col bg-z-border gap-[calc(2rem_+_3px)] my-5 first:mt-0 last:mb-0" +
+        (node.value.split("\n\n").length == 1 ?
+          ""
+        : " whitespace-normal md:whitespace-nowrap"),
       ...sx,
     )
   } else if ("children" in node && Array.isArray(node.children)) {

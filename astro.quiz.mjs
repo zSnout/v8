@@ -189,7 +189,7 @@ export function els(/** @type {px} */ processor) {
       "",
       ...text.split(/(?=[⁰¹²³⁴⁵⁶])/).map((part) => {
         if (part[0] in COLORS) {
-          if (COLORS[part[0]] && /[,.:;!?()[\]{}]/.test(part.slice(1))) {
+          if (COLORS[part[0]] && /[.:;!?]/.test(part.slice(1))) {
             return h("span", "text-[200px]", "😭")
           }
           return h(
@@ -228,12 +228,7 @@ export function els(/** @type {px} */ processor) {
         h("div", "absolute top-full h-4 inset-x-0 bg-z-body"),
         h("p", "font-semibold my-0 break-words" + lg, colorize(src)),
         ...dst.map((dst) =>
-          h(
-            "p",
-            "my-0 [line-height:1.5] whitespace-normal md:whitespace-nowrap" +
-              sm,
-            colorize(dst),
-          ),
+          h("p", "my-0 [line-height:1.5]" + sm, colorize(dst)),
         ),
       )
     })

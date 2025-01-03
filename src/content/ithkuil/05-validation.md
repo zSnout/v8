@@ -42,3 +42,7 @@ Here are examples of various Validations:
 ¹eḑxwa⁰l²û⁰.
 ²I have a hunch ¹somebody is on vacation⁰.
 ```
+
+By the way, whatever word in a sentence has Validation is the main verb. In
+"there is..." sentences, the only word is the main verb. A sentence cannot have
+multiple main verbs; a new main verb implicitly starts a new sentence.

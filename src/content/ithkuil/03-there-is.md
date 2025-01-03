@@ -31,3 +31,7 @@ doesn't tell us who performs it or how.
 @btw There's two translations for amţralá and uňvalá; that's on purpose. The
 first is just to help you understand the pattern of "there is..." sentences, and
 the second is more natural English.
+
+@btw These "there is" words are called verbal formatives. They're verbal since
+they indicate the main verb in a sentence, and they're formatives because
+they're the main units which _form_ meaning.

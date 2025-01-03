@@ -1,5 +1,7 @@
 ---
+import { Fa } from "@/components/Fa"
 import ProseLayout from "@/layouts/ProseLayout.astro"
+import { faMapSigns } from "@fortawesome/free-solid-svg-icons"
 import type { GetStaticPathsItem } from "astro"
 import { type CollectionEntry, getCollection } from "astro:content"
 
@@ -18,6 +20,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props as Props
 const { Content } = await entry.render()
+const num = entry.id.slice(0, 2)
 ---
 
 <ProseLayout
@@ -29,5 +32,20 @@ const { Content } = await entry.render()
     imageSrc: "TODO",
   }}
 >
+  <h1>
+    {
+      entry.id[2] == "@" ?
+        <span>
+          <span class="inline-flex w-[2ch] align-[-3px] font-mono font-normal text-z">
+            <Fa icon={faMapSigns} class="m-auto size-[1em]" title="Interlude" />
+          </span>
+          <span> — {entry.data.title}</span>
+        </span>
+      : <span>
+          <strong class="font-mono font-normal text-z">{num}</strong> —{" "}
+          {entry.data.title}
+        </span>
+    }
+  </h1>
   <Content />
 </ProseLayout>
