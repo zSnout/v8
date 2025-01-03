@@ -2,7 +2,7 @@
 import { Reprose, Unprose } from "@/components/Prose"
 import ProseLayout from "@/layouts/ProseLayout.astro"
 import type { GetStaticPathsItem } from "astro"
-import { CollectionEntry, getCollection } from "astro:content"
+import { type CollectionEntry, getCollection } from "astro:content"
 
 export interface Props {
   entry: CollectionEntry<"blog">
@@ -18,7 +18,7 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props as Props
-const { Content, headings } = await entry.render()
+const { Content } = await entry.render()
 
 const openGraphImage = (
   await import(
@@ -33,7 +33,6 @@ const openGraphImage = (
 
 <ProseLayout
   description={entry.data.description}
-  headings={headings}
   title={`${entry.data.title} | zSnout Blog`}
   og={{
     title: entry.data.title,

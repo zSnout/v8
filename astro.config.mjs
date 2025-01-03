@@ -13,7 +13,7 @@ import remarkMath from "remark-math"
 import nesting from "tailwindcss/nesting"
 import glsl from "vite-plugin-glsl"
 import tsconfigPaths from "vite-tsconfig-paths"
-import { makeQuiz } from "./astro.quiz.mjs"
+import { els, makeQuiz } from "./astro.quiz.mjs"
 
 Promise.withResolvers ??= () => {
   let resolve
@@ -62,7 +62,14 @@ function traverse(node) {
         escapeHTML(node.value) +
         "</div></div>",
     }
-  } else if ("children" in node) {
+  } else if (node.type == "code" && node.lang == "cx") {
+    const { h, cx } = els(this)
+    return h(
+      "div",
+      "flex flex-wrap bg-z-border *:bg-z-body gap-x-[3px] gap-y-[calc(2rem_+_3px)] whitespace-nowrap my-5 first:mt-0 last:mb-0",
+      ...cx(node.value),
+    )
+  } else if ("children" in node && Array.isArray(node.children)) {
     return {
       ...node,
       children: /** @type {any} */ (traverseArray.call(this, node.children)),
@@ -91,6 +98,7 @@ function traverseArray(nodes) {
         break tags
 
       const [tag] = node.children[0].value.slice(1).split(/\s+/, 1)
+      if (!tag) break tags
 
       /** @type {md.Paragraph} */
       const source = {
@@ -154,7 +162,7 @@ export default defineConfig({
         return (tree, _, next) => {
           return next(undefined, {
             ...tree,
-            children: traverseArray.call(this, tree.children),
+            children: tree.children && traverseArray.call(this, tree.children),
           })
         }
       },

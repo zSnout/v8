@@ -1,12 +1,9 @@
 ---
-import type { MarkdownHeading } from "astro"
 import "katex/dist/katex.min.css"
 import type { Props as LayoutProps } from "./Layout.astro"
 import PaddedLayout from "./PaddedLayout.astro"
 
-export interface Props extends LayoutProps {
-  headings?: readonly MarkdownHeading[]
-}
+export interface Props extends LayoutProps {}
 ---
 
 <PaddedLayout maxWidth="max-w-prose" {...Astro.props}>

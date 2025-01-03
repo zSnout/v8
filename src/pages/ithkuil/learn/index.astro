@@ -1,0 +1,33 @@
+---
+import ProseLayout from "@/layouts/ProseLayout.astro"
+import { getCollection } from "astro:content"
+
+const pages = await getCollection("ithkuil")
+
+const data = await Promise.all(
+  pages.map(async (entry) => [entry, (await entry.render()).Content] as const),
+)
+---
+
+<ProseLayout
+  description="TODO"
+  title="Ithkuil Learn"
+  og={{
+    title: "Ithkuil Learn",
+    imageAlt: "TODO",
+    imageSrc: "TODO",
+  }}
+>
+  {
+    data.map(([entry, Content]) => (
+      <>
+        <h2 class="relative">
+          <strong class="font-mono text-z">{entry.id.slice(0, 2)}</strong> —{" "}
+          {entry.data.title}
+        </h2>
+
+        <Content />
+      </>
+    ))
+  }
+</ProseLayout>

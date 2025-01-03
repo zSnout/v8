@@ -77,8 +77,18 @@ export function makeQuiz(kind, source, list) {
   )
 }
 
-function els(/** @type {px} */ processor) {
-  return { h, Li, Submit }
+const COLORS = {
+  "⁰": "",
+  "¹": "text-sky-600 dark:text-sky-400",
+  "²": "text-green-600 dark:text-green-400",
+  "³": "text-rose-600 dark:text-rose-400",
+  "⁴": "text-violet-600 dark:text-violet-400",
+  "⁵": "text-orange-600 dark:text-orange-400",
+  "⁶": "text-fuchsia-600 dark:text-fuchsia-400",
+}
+
+export function els(/** @type {px} */ processor) {
+  return { h, Li, Submit, colorize, cx }
 
   function fa(icon, className) {
     return {
@@ -149,8 +159,8 @@ function els(/** @type {px} */ processor) {
 
   function h(
     tagName,
-    className,
-    /** @type {(md.Content | null | undefined)[]} */ ...children
+    /** @type {string | Record<string, string>} */ className = "",
+    /** @type {(md.Content | string | null | undefined)[]} */ ...children
   ) {
     const props =
       typeof className == "string" ? { class: className } : className
@@ -162,12 +172,40 @@ function els(/** @type {px} */ processor) {
       )}>${children
         .filter((x) => x != null)
         .map((x) =>
-          x.type == "html" ?
-            x.value
+          typeof x == "string" ? escapeHTML(x)
+          : x.type == "html" ? x.value
           : processor.stringify(processor.runSync(x)),
         )
         .join("")}</${tagName}>`,
     }
+  }
+
+  function colorize(/** @type {string} */ text) {
+    return h(
+      "span",
+      "",
+      ...text.split(/(?=[⁰¹²³⁴⁵⁶])/).map((part) => {
+        if (part[0] in COLORS) {
+          return h("span", COLORS[part[0]], part.slice(1))
+        } else {
+          return part
+        }
+      }),
+    )
+  }
+
+  function cx(/** @type {string} */ text) {
+    return text.split("\n\n").map((row) => {
+      const [src, dst] = row.split("\n")
+      return h(
+        "div",
+        "flex-1 text-center -m-px px-8 relative",
+        h("div", "absolute bottom-full h-4 inset-x-0 bg-z-body"),
+        h("div", "absolute top-full h-4 inset-x-0 bg-z-body"),
+        h("p", "font-semibold text-3xl my-0", colorize(src)),
+        h("p", "my-0", colorize(dst)),
+      )
+    })
   }
 }
 
