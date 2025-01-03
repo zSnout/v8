@@ -2,28 +2,62 @@
 title: Roots
 ---
 
-The simplest sentence in Ithkuil is a "there is an X" sentence. As in:
+In Ithkuil, a root is the core element of meaning. Some roots are more similar
+to English nouns, and some are more similar to English verbs, but they're
+treated identically in Ithkuil.
 
 ```cx
-¹alḑ⁰alá.
-⁰There is a ¹tree⁰.
+-lḑ-
+tree/shrub/bush
 
-¹ezv⁰alá.
-⁰There is a ¹dog⁰.
+-zv-
+common canine
 
-¹orr⁰alá.
-⁰There is a ¹feline⁰.
+-rr-
+feline
+
+-mţr-
+water-based weather phenomenon
+
+-ňv-
+delight/happiness/joy
+
+-šř-
+spacetime
 ```
 
-For more verb-like roots, this signifies that the verb is happening.
+Roots usually come with three related meanings. These are its three stems.
 
 ```cx
-¹amţr⁰alá.
-⁰It is ¹raining⁰.
+alḑ-
+tree
 
-¹eňv⁰alá.
-⁰[Someone] is ¹happy⁰.
+elḑ-
+shrub
 
-¹uřf⁰alá.
-⁰[Someone] is ¹performing a magic trick⁰.
+ulḑ-
+bush
+
+
+amţr-
+rain
+
+emţr-
+snow
+
+umţr-
+hail
+
+
+aňv-
+delight
+
+eňv-
+happiness
+
+uňv-
+short-term joy
 ```
+
+Stem 1 always starts with **a-**, stem 2 always starts with **e-**, and stem 3
+with **u-**.

@@ -64,10 +64,19 @@ function traverse(node) {
     }
   } else if (node.type == "code" && node.lang == "cx") {
     const { h, cx } = els(this)
+    const sx = node.value
+      .split("\n\n\n")
+      .map((section) =>
+        h(
+          "div",
+          "flex flex-wrap bg-z-border *:bg-z-body gap-x-[3px] gap-y-[calc(2rem_+_3px)] whitespace-nowrap",
+          ...cx(section),
+        ),
+      )
     return h(
       "div",
-      "flex flex-wrap bg-z-border *:bg-z-body gap-x-[3px] gap-y-[calc(2rem_+_3px)] whitespace-nowrap my-5 first:mt-0 last:mb-0",
-      ...cx(node.value),
+      "flex flex-col bg-z-border gap-[calc(2rem_+_3px)] my-5 first:mt-0 last:mb-0",
+      ...sx,
     )
   } else if ("children" in node && Array.isArray(node.children)) {
     return {

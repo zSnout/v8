@@ -15,7 +15,7 @@ The simplest sentence in Ithkuil is a "there is an X" sentence. As in:
 ⁰There is a ¹feline⁰.
 ```
 
-For more verb-like roots, this signifies that the verb is happening.
+For more verb-like stems, this signifies that the verb is happening.
 
 ```cx
 ¹amţr⁰alá.
