@@ -2,7 +2,11 @@
 import { Fa } from "@/components/Fa"
 import { Unprose } from "@/components/Prose"
 import ProseLayout from "@/layouts/ProseLayout.astro"
-import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons"
+import {
+  faCaretDown,
+  faCaretRight,
+  faMapSigns,
+} from "@fortawesome/free-solid-svg-icons"
 import { getCollection } from "astro:content"
 
 const pages = await getCollection("ithkuil")
@@ -28,36 +32,51 @@ const data = await Promise.all(
   </p>
 
   {
-    data.map(([entry, Content]) => (
-      <>
-        <Unprose>
-          <hr class="!w-full max-w-full border-dashed border-z transition-[margin,opacity] [details:not([open])+*:has(+details:not([open]))>&]:m-0 [details:not([open])+*:has(+details:not([open]))>&]:opacity-0" />
-        </Unprose>
+    data.map(([entry, Content]) => {
+      const num = entry.id.slice(0, 2)
+      return (
+        <>
+          <Unprose>
+            <hr class="!w-full max-w-full border-dashed border-z transition-[margin,opacity] [details:not([open])+*:has(+details:not([open]))>&]:m-0 [details:not([open])+*:has(+details:not([open]))>&]:opacity-0" />
+          </Unprose>
 
-        <details class="group" open id={"ithkuil-learn/" + entry.id}>
-          <summary class="relative block">
-            <Fa
-              icon={faCaretRight}
-              class="absolute -left-5 top-2 size-4 group-open:hidden"
-              title={false}
-            />
-            <Fa
-              icon={faCaretDown}
-              class="absolute -left-5 top-2 hidden size-4 group-open:block"
-              title={false}
-            />
-            <h2 class="contents select-none">
-              <span>
-                <strong class="font-mono text-z">{entry.id.slice(0, 2)}</strong>{" "}
-                — {entry.data.title}
-              </span>
-            </h2>
-          </summary>
+          <details class="group" open id={"ithkuil-learn/" + entry.id}>
+            <summary class="relative block">
+              <Fa
+                icon={faCaretRight}
+                class="absolute -left-5 top-2 size-4 group-open:hidden"
+                title={false}
+              />
+              <Fa
+                icon={faCaretDown}
+                class="absolute -left-5 top-2 hidden size-4 group-open:block"
+                title={false}
+              />
+              <h2 class="contents select-none">
+                {entry.id[2] == "@" ?
+                  <span>
+                    <span class="inline-flex w-[2ch] align-[-3px] font-mono font-normal text-z">
+                      <Fa
+                        icon={faMapSigns}
+                        class="m-auto size-[1em]"
+                        title="Interlude"
+                      />
+                    </span>
+                    <span> — {entry.data.title}</span>
+                  </span>
+                : <span>
+                    <strong class="font-mono font-normal text-z">{num}</strong>{" "}
+                    — {entry.data.title}
+                  </span>
+                }
+              </h2>
+            </summary>
 
-          <Content />
-        </details>
-      </>
-    ))
+            <Content />
+          </details>
+        </>
+      )
+    })
   }
 </ProseLayout>
 

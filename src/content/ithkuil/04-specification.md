@@ -59,20 +59,21 @@ Usually, specifications follow this pattern:
 The Contential and Constitutive forms typically complement each other, and
 together make up the Basic form. The Objective form is typically hard to infer.
 
-@info Those abbreviations (BSC, CTE, CSV, and OBJ) are used heavily on the
+@btw Those abbreviations (BSC, CTE, CSV, and OBJ) are used heavily on the
 official <https://ithkuil.net> website hence why they're in our table.
 
 We can use different Specifications in our "there is..." statements. Instead of
 **stem + -alá**, we'll now have **specification + -lá**:
 
 ```cx
-¹arr²e⁰lá.
-There is a ¹cat ²body.
+¹arr²e⁰lá⁰.
+There is a ¹cat ²body⁰.
 
-¹ufč²i⁰lá.
-There is ²somebody who has been ¹exiled.
+¹ufč²i⁰lá⁰.
+There is ²somebody who has been ¹exiled⁰.
+²Somebody has been ¹exiled⁰.
 
 
-¹aňs²ä⁰lá.
-There is a ²psychological cause leading to ¹good behavior.
+¹aňs²ä⁰lá⁰.
+There is a ²psychological cause leading to ¹good behavior⁰.
 ```

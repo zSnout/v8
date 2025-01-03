@@ -28,7 +28,19 @@ It's simple: just a stem followed by **-alá**.
 For more verb-like stems, this form indicates that the verb is happening, but
 doesn't tell us who performs it or how.
 
-@todo "it is raining" is more like "there is rain"; the "it" is a vestigial
-subject
+> @btw
+>
+> You might be asking, "where is the subject 'it' in 'it is raining'? it doesn't
+> look like you wrote it in the sentence anywhere." Good question! You know how
+> most verbs in English need a subject? **The dog** walks; **you** go outside;
+> **she** is over there.
+>
+> Well, the verb "to rain" doesn't really have a subject. Ask yourself: what is
+> the "it"? The sky? Who knows! So, in English, we just use "it" as the subject
+> since English grammar _requires_ a subject everywhere.
+>
+> Ithkuil doesn't have mandatory subjects, so we can just say "there is rain"
+> and leave it at that. (The "there" in "there is rain" is definitely not a
+> subject. It's more like an assertion that rain exists.)
 
 @todo why are there two transls for amţralá and uňvalá?

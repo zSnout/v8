@@ -189,6 +189,9 @@ export function els(/** @type {px} */ processor) {
       "",
       ...text.split(/(?=[⁰¹²³⁴⁵⁶])/).map((part) => {
         if (part[0] in COLORS) {
+          if (COLORS[part[0]] && /[,.:;!?()[\]{}]/.test(part.slice(1))) {
+            return h("span", "text-[200px]", "😭")
+          }
           return h(
             "span",
             COLORS[part[0]],

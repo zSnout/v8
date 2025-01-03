@@ -40,7 +40,38 @@ function escapeHTML(text) {
 
 /** @type {(this: px, node: md.Content) => md.Content} */
 function traverse(node) {
-  if (node.type == "image") {
+  if (
+    node.type == "blockquote" &&
+    node.children.every((x) => x.type == "paragraph") &&
+    node.children[0]?.children[0]?.type == "text" &&
+    node.children[0].children[0].value.startsWith("@") &&
+    Object.hasOwn(
+      BLOCKQUOTE_STYLES,
+      node.children[0].children[0].value.slice(1),
+    )
+  ) {
+    const tag = node.children[0].children[0].value.slice(1)
+    const [icon, classes, tagline] = BLOCKQUOTE_STYLES[tag]
+    const { h, fa } = els(this)
+    return h(
+      "div",
+      "border px-4 py-3 rounded-lg my-5 " + classes,
+      h(
+        "div",
+        "mb-2 flex gap-2 items-center text-sm",
+        fa(icon, "size-4 fill-current"),
+        h("div", "", tagline),
+      ),
+      ...node.children
+        .slice(1)
+        .map((text, i) =>
+          h("div", "[line-height:1.5]" + (i ? " mt-2" : ""), ...text.children),
+        ),
+    )
+  } else if (node.type == "text" && node.value.startsWith("@cx ")) {
+    const { colorize } = els(this)
+    return colorize(node.value.slice(4))
+  } else if (node.type == "image") {
     if (node.title) {
       return {
         type: "html",
@@ -93,7 +124,7 @@ function traverse(node) {
 
       return h(
         "div",
-        WIDE_CLASSES,
+        TABLE_CLASSES,
         h("table", "text-base", h("tbody", "", ...rows)),
       )
     }
@@ -139,24 +170,24 @@ const BLOCKQUOTE_STYLES = {
     "border-yellow-300 bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100 dark:border-yellow-800",
     "Incomplete note:",
   ],
-  info: [
+  btw: [
     faInfoCircle,
     "border-blue-300 bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-100 dark:border-blue-800",
     "By the way...",
   ],
 }
 
-const WIDE_CLASSES =
-  "relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw] overflow-x-auto px-[max(1.5rem,50vw_-_32.5ch)] whitespace-nowrap scrollbar:hidden"
+const TABLE_CLASSES =
+  "relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw] overflow-x-auto px-[max(1.5rem,50vw_-_32.5ch)] whitespace-nowrap scrollbar:hidden my-8 *:my-0"
 
-const WIDE_START = `<div class="${escapeHTML(WIDE_CLASSES)}">`
-const WIDE_END = "</div>"
+const TABLE_START = `<div class="${escapeHTML(TABLE_CLASSES)}">`
+const TABLE_END = "</div>"
 
 /** @type {(this: px, node: md.Table) => md.Content[]} */
 function styleTable(node) {
   const wraps = node.children[0].children.map((cell) => {
     const first = cell.children[0]
-    if (first.type == "text") {
+    if (first?.type == "text") {
       if (first.value.startsWith("@wrap ")) {
         first.value = first.value.slice(6)
         return true
@@ -168,7 +199,7 @@ function styleTable(node) {
   const { h } = els(this)
 
   return [
-    { type: "html", value: WIDE_START },
+    { type: "html", value: TABLE_START },
     traverse.call(this, {
       ...node,
       children: node.children.map((row) => ({
@@ -188,7 +219,7 @@ function styleTable(node) {
         ),
       })),
     }),
-    { type: "html", value: WIDE_END },
+    { type: "html", value: TABLE_END },
   ]
 }
 
