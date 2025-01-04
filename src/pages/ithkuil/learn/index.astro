@@ -40,7 +40,11 @@ const data = await Promise.all(
             <hr class="!w-full max-w-full border-dashed border-z transition-[margin,opacity] [details:not([open])+*:has(+details:not([open]))>&]:m-0 [details:not([open])+*:has(+details:not([open]))>&]:opacity-0" />
           </Unprose>
 
-          <details class="group" open id={"ithkuil-learn/" + entry.id}>
+          <details
+            class="group"
+            open={entry.data.open !== false}
+            id={"ithkuil-learn/" + entry.id}
+          >
             <summary class="relative block">
               <Fa
                 icon={faCaretRight}
@@ -88,6 +92,9 @@ const data = await Promise.all(
     const key = "ithkuil/learn/expand/" + el.id
     if (localStorage.getItem(key) == "false") {
       el.open = false
+    }
+    if (localStorage.getItem(key) == "true") {
+      el.open = true
     }
     el.addEventListener("toggle", () => {
       localStorage.setItem(key, "" + el.open)

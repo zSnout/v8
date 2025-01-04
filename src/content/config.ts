@@ -18,6 +18,7 @@ const ithkuil = defineCollection({
   type: "content",
   schema: z.object({
     title: z.string(),
+    open: z.boolean().optional(),
   }),
 })
 
