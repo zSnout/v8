@@ -13,6 +13,8 @@ export function Main() {
 
   const desmosEl = (<div class="fixed inset-0" />) as HTMLDivElement
 
+  const search = new URLSearchParams(location.search)
+
   const gc = Desmos.GraphingCalculator(desmosEl, {
     border: false,
     // @ts-expect-error bad typings
@@ -27,6 +29,45 @@ export function Main() {
   gc.setState(JSON.parse(state()))
 
   gc.observeEvent("change", () => setState(JSON.stringify(gc.getState())))
+
+  gc.setExpression({
+    id: "__fractal_explorer_list_fn0",
+    latex: "f_{path}\\left(z,0\\right)=z",
+  })
+
+  gc.setExpression({
+    id: "__fractal_explorer_list_fnn",
+    latex:
+      "f_{path}\\left(z,n\\right)=f_{path}\\left(\\operatorname{join}\\left(z,f_{eq}\\left(f_{c}\\left(P\\right),z\\left[z.\\operatorname{length}\\right],P\\right)\\right),n-1\\right)",
+  })
+
+  gc.setExpression({
+    id: "__fractal_explorer_list_p",
+    latex: "P=2+3i",
+    color: "black",
+    hidden: false,
+    dragMode: "XY",
+  })
+
+  gc.setExpression({
+    id: "__fractal_explorer_list_p",
+    latex: "f_{path}\\left(\\left[P\\right],50\\right)",
+    color: "black",
+    lines: true,
+  })
+
+  bounds: if (!search.has("desmosState")) {
+    const left = +(search.get("left") ?? NaN)
+    const top = +(search.get("top") ?? NaN)
+    const right = +(search.get("right") ?? NaN)
+    const bottom = +(search.get("bottom") ?? NaN)
+
+    if (isNaN(left) || isNaN(top) || isNaN(right) || isNaN(bottom)) {
+      break bounds
+    }
+
+    gc.setMathBounds({ bottom, left, right, top })
+  }
 
   const [clearConverter, treeToGlsl, fragPragma] = createDesmosNodeToGlsl(
     gc,

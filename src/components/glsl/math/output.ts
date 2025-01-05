@@ -122,7 +122,7 @@ export function treeToGLSL(tree: Tree, options?: TreeToGlslOptions): string {
   throw new Error("Unknown tree type: '" + tree + "'.")
 }
 
-export function textToGLSL(source: string, options: TreeToGlslOptions) {
+export function textToGLSL(source: string, options?: TreeToGlslOptions) {
   try {
     const result = parse(source)
 
