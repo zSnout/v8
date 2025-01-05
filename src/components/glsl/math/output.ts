@@ -28,8 +28,12 @@ export function createDesmosNodeToGlsl(
       const name = createId(value)
       setNames((x) => (x.includes(name) ? x : x.concat(name)))
 
-      const x = desmos.HelperExpression({ latex: value + ".x" })
-      const y = desmos.HelperExpression({ latex: value + ".y" })
+      const x = desmos.HelperExpression({
+        latex: `\\operatorname{real}(${value})`,
+      })
+      const y = desmos.HelperExpression({
+        latex: `\\operatorname{imag}(${value})`,
+      })
       el()?.setReactiveUniformArray(name, () => [
         x.numericValue,
         y.numericValue,
@@ -37,9 +41,11 @@ export function createDesmosNodeToGlsl(
       // el()?.setUniform(name, x.numericValue, y.numericValue)
       x.observe("numericValue", () => {
         el()?.setUniform(name, x.numericValue, y.numericValue)
+        console.log({ name, x: x.numericValue, y: y.numericValue })
       })
       y.observe("numericValue", () => {
         el()?.setUniform(name, x.numericValue, y.numericValue)
+        console.log({ name, x: x.numericValue, y: y.numericValue })
       })
 
       return name

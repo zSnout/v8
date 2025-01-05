@@ -13,7 +13,11 @@ export function Main() {
 
   const desmosEl = (<div class="fixed inset-0" />) as HTMLDivElement
 
-  const gc = Desmos.GraphingCalculator(desmosEl, { border: false })
+  const gc = Desmos.GraphingCalculator(desmosEl, {
+    border: false,
+    // @ts-expect-error bad typings
+    complex: true,
+  })
 
   const [state, setState] = createSearchParam(
     "desmosState",
