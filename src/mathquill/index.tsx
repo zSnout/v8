@@ -128,6 +128,35 @@ LatexCmds.dual = class extends MathCommand {
   }
 }
 
+LatexCmds.desmos = class extends MathCommand {
+  constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
+    super(ctrlSeq, domView, textTemplate)
+    this.ctrlSeq = "\\desmos"
+    this.domView = new DOMView(1, (blocks) =>
+      h.block(
+        "span",
+        { class: "mq-non-leaf mq-frozen", style: "--label:'desmos'" },
+        blocks[0],
+      ),
+    )
+    this.textTemplate = ["desmos(", ")"]
+  }
+
+  override mathspeak(opts: any) {
+    if (opts && opts.createdLeftOf) {
+      var cursor = opts.createdLeftOf
+      return cursor.parent.mathspeak()
+    }
+    return super.mathspeak()
+  }
+
+  override finalizeTree() {
+    const child = this.getEnd(L) as MQNode
+    this.upInto = this.downInto = child
+    this.mathspeakTemplate = ["Demsos, ", ", EndDesmos"]
+  }
+}
+
 LatexCmds.frozenmouse = class extends MathCommand {
   constructor(ctrlSeq: string, domView: DOMView, textTemplate: string[]) {
     super(ctrlSeq, domView, textTemplate)

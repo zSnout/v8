@@ -1,10 +1,67 @@
 import { MathError, parseLatex, type Node } from "@/mathquill/parse"
+import { createMemo, createSignal } from "solid-js"
 import { Result, error, ok } from "../../result"
+import type { WebGLCanvas } from "../canvas/base"
 import type { Vec2 } from "../types"
 import { optimize } from "./optimize"
 import { Constant, Operator, UnaryFunction, parse, type Tree } from "./parse"
 
-export function treeToGLSL(tree: Tree): string {
+export interface TreeToGlslOptions {
+  desmosNodeToGlsl?(name: string): string
+}
+
+const encoder = new TextEncoder()
+
+export function createDesmosToFractalConverter(
+  desmos: Desmos.Calculator,
+  el: () => WebGLCanvas | undefined,
+): [clear: () => void, fn: (tree: Tree) => string, fragPragma: () => string] {
+  const [names, setNames] = createSignal<readonly string[]>([])
+  return [
+    () => {
+      setNames([])
+    },
+    (tree) => {
+      const { value } = treeToLatex(tree)
+      const name = createId(value)
+      setNames((x) => (x.includes(name) ? x : x.concat(name)))
+
+      const x = desmos.HelperExpression({ latex: "(" + value + ").x" })
+      const y = desmos.HelperExpression({ latex: "(" + value + ").y" })
+      el()?.setUniform(name, x.numericValue, y.numericValue)
+      x.observe("numericValue", () => {
+        el()?.setUniform(name, x.numericValue, y.numericValue)
+      })
+      y.observe("numericValue", () => {
+        el()?.setUniform(name, x.numericValue, y.numericValue)
+      })
+
+      return name
+    },
+    createMemo(() =>
+      names()
+        .map((x) => `uniform vec2 ${x};`)
+        .join(""),
+    ),
+  ]
+
+  function createId(source: string) {
+    let id = ""
+    for (const byte of encoder.encode(source)) {
+      id += byte.toString(16).padStart(2, "0")
+    }
+    return "__u_desmosexpr" + id
+  }
+}
+
+function unsupported(): string {
+  throw new Error("This calculator does not support interpolation from Desmos.")
+}
+
+export function treeToGLSL(
+  tree: Tree,
+  { desmosNodeToGlsl = unsupported }: TreeToGlslOptions = {},
+): string {
   if (tree.type == "number") {
     return `vec2(${tree.value[0]}, ${tree.value[1]})`
   }
@@ -25,6 +82,10 @@ export function treeToGLSL(tree: Tree): string {
       return `-(${treeToGLSL(tree.arg)})`
     }
     return `cx_${tree.name}(${treeToGLSL(tree.arg)})`
+  }
+
+  if (tree.type == "desmos") {
+    return desmosNodeToGlsl(tree.name)
   }
 
   if (tree.type == "binary-fn") {
@@ -174,11 +235,14 @@ export function nodeToTree(node: Node): Tree {
         Object.assign(tree, { __symbol: symbol })
         return tree
       }
-      {
-        throw new MathError(
-          `This calculator does not support the ${node.op} function.`,
-        )
-      }
+
+      throw new MathError(
+        `This calculator does not support the ${node.op} function.`,
+      )
+
+    case "desmos":
+      return { type: "desmos", name: node.name }
+
     case "big":
       throw new MathError(
         `This calculator does not support ${
@@ -246,6 +310,11 @@ export function treeToLatex(tree: Tree): {
   }
 
   switch (tree.type) {
+    case "desmos":
+      return {
+        value: `\\desmos{${tree.name}}`,
+        precedence: Precedence.Leaf,
+      }
     case "number":
       if (tree.value[0] == 1 && tree.value[1] == -1) {
         return { value: `\\operatorname{fx}`, precedence: Precedence.Leaf }
@@ -475,14 +544,43 @@ export function treeToLatex(tree: Tree): {
   }
 }
 
-export function latexToGLSL(latex: string): Result<string> {
+// export function nodeToLatex(node: Node) {
+//   switch (node.type) {
+//     case "n":
+//       return node.value
+//     case "v":
+//       return node.name
+//     case "bracket":
+//       const [lhs, rhs] = {
+//         "()": ["\\left(", "\\right)"],
+//         "[]": ["\\left[", "\\right]"],
+//         "{}": ["\\left{", "\\right}"],
+//         "||": ["\\left|", "\\right|"],
+//         "<>": ["\\left\\langle", "\\right\\rangle"],
+//         "||||": ["\\left{||}", "\\right{||}"],
+//       }[node.bracket]
+//       return lhs + nodeToLatex(node.contents) + rhs
+//     case "group":
+//       return nodeToLatex(node.contents)
+//     case "unary":
+//       if (has(UNARY_TRIG_FNS,))
+//       return node.op
+//     case "big":
+//     case "binary":
+//   }
+// }
+
+export function latexToGLSL(
+  latex: string,
+  options?: TreeToGlslOptions,
+): Result<string> {
   try {
     const node = parseLatex(latex)
     if (!node.ok) {
       return node
     }
     const tree = nodeToTree(node.value)
-    return ok(treeToGLSL(tree))
+    return ok(treeToGLSL(tree, options))
   } catch (err) {
     return error(err)
   }
@@ -491,6 +589,7 @@ export function latexToGLSL(latex: string): Result<string> {
 export function treeHasSlider(tree: Tree): boolean {
   switch (tree.type) {
     case "number":
+    case "desmos":
       return false
     case "binary-fn":
       return treeHasSlider(tree.left) || treeHasSlider(tree.right)
@@ -504,6 +603,7 @@ export function treeHasSlider(tree: Tree): boolean {
 export function nodeHasUnfrozenMouseTime(node: Node): boolean {
   switch (node.type) {
     case "n":
+    case "desmos":
       return false
     case "v":
       return node.name == "m" || node.name == "t"
@@ -528,6 +628,7 @@ export function unfreeze(node: Node): Node {
   switch (node.type) {
     case "n":
     case "v":
+    case "desmos":
       return node
     case "bracket":
     case "group":
@@ -593,6 +694,8 @@ export function freeze(node: Node, mouse: Vec2, time: number): Node {
   switch (node.type) {
     case "n":
     case "v":
+    case "desmos":
+      // TODO: add frozendesmos
       if (node.type == "v" && node.name == "m") {
         return {
           type: "unary",

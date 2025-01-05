@@ -159,3 +159,9 @@ export class WebGLCoordinateCanvas extends WebGLCanvas {
     })
   }
 }
+
+export class WebGLNoSquareCoordinateCanvas extends WebGLCoordinateCanvas {
+  override coordsNormalizedToCanvasSize(): Coordinates {
+    return this.getCoords()
+  }
+}

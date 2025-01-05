@@ -9,46 +9,44 @@ export function Main() {
   return (
     <>
       <ErrorBoundary>
-        {() => (
-          <canvas
-            class="h-full w-full touch-none"
-            ref={(canvas) => {
-              const gl = unwrap(
-                class extends WebGLInteractiveCoordinateCanvas {
-                  override draw() {
-                    const { bottom, left, right, top } =
-                      this.coordsNormalizedToCanvasSize()
+        <canvas
+          class="h-full w-full touch-none"
+          ref={(canvas) => {
+            const gl = unwrap(
+              class extends WebGLInteractiveCoordinateCanvas {
+                override draw() {
+                  const { bottom, left, right, top } =
+                    this.coordsNormalizedToCanvasSize()
 
-                    const gridWidth = right - left
-                    const gridHeight = top - bottom
+                  const gridWidth = right - left
+                  const gridHeight = top - bottom
 
-                    this.setUniform(
-                      "u_pixel",
-                      gridWidth / this.canvas.clientWidth,
-                      gridHeight / this.canvas.clientHeight,
-                    )
+                  this.setUniform(
+                    "u_pixel",
+                    gridWidth / this.canvas.clientWidth,
+                    gridHeight / this.canvas.clientHeight,
+                  )
 
-                    super.draw()
-                  }
-                }.of(canvas, {
-                  saveCoordinates: true,
-                  top: 10,
-                  right: 10,
-                  bottom: -10,
-                  left: -10,
-                }),
-              )
+                  super.draw()
+                }
+              }.of(canvas, {
+                saveCoordinates: true,
+                top: 10,
+                right: 10,
+                bottom: -10,
+                left: -10,
+              }),
+            )
 
-              gl.load(fragmentSource)
-              gl.draw()
+            gl.load(fragmentSource)
+            gl.draw()
 
-              trackMouse(gl)
-              trackTime(gl)
+            trackMouse(gl)
+            trackTime(gl)
 
-              gl.draw()
-            }}
-          />
-        )}
+            gl.draw()
+          }}
+        />
       </ErrorBoundary>
     </>
   )

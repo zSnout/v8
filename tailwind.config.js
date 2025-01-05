@@ -5,7 +5,7 @@ import { zSnoutTheme } from "@zsnout/tailwind"
 /** @type {import("tailwindcss").Config} */
 export default {
   content: [
-    "./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}",
+    "./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue,css,postcss}",
     "astro.config.mjs",
     "astro.quiz.mjs",
   ],

@@ -32,6 +32,7 @@
     "@tailwindcss/typography": "^0.5.9",
     "@thisbeyond/solid-dnd": "^0.7.5",
     "@types/color-diff": "^1.2.5",
+    "@types/desmos": "^1.6.3",
     "@types/dompurify": "^3.0.5",
     "@types/moo": "^0.5.9",
     "@types/nearley": "^2.11.5",

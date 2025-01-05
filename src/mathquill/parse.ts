@@ -269,6 +269,7 @@ type Tree<Unary, Big, Binary, Inner = Node> =
   | { type: "op"; name: string }
   | { type: "n"; value: string }
   | { type: "v"; name: string }
+  | { type: "desmos"; name: string }
   | { type: "bracket"; bracket: DoubleBracket; contents: Inner }
   | { type: "group"; contents: Inner }
   | { type: "unary"; op: Unary; contents: Inner }
@@ -389,35 +390,35 @@ function s2_groupTokens(tokens: Step1[]): GroupTokensResult {
 
 export class MathError extends Error {}
 
+export const UNARY_TRIG_FNS = [
+  "sin",
+  "arcsin",
+  "sinh",
+  "arcsinh",
+  "cos",
+  "arccos",
+  "cosh",
+  "arccosh",
+  "tan",
+  "arctan",
+  "tanh",
+  "arctanh",
+  "csc",
+  "arccsc",
+  "csch",
+  "arccsch",
+  "sec",
+  "arcsec",
+  "sech",
+  "arcsech",
+  "cot",
+  "arccot",
+  "coth",
+  "arccoth",
+] as const
+
 const TRIG_OPERATORS = Object.freeze(
-  (
-    [
-      "sin",
-      "arcsin",
-      "sinh",
-      "arcsinh",
-      "cos",
-      "arccos",
-      "cosh",
-      "arccosh",
-      "tan",
-      "arctan",
-      "tanh",
-      "arctanh",
-      "csc",
-      "arccsc",
-      "csch",
-      "arccsch",
-      "sec",
-      "arcsec",
-      "sech",
-      "arcsech",
-      "cot",
-      "arccot",
-      "coth",
-      "arccoth",
-    ] as const
-  ).flatMap((x) => [x, `${x}^2`] as const),
+  UNARY_TRIG_FNS.flatMap((x) => [x, `${x}^2`] as const),
 )
 
 const UNARY_OPERATORS = Object.freeze([
@@ -468,13 +469,28 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
     switch (token.type) {
       case "op":
         switch (token.name) {
+          case "desmos": {
+            const next = tokens[index + 1]
+            if (
+              !(
+                next?.type == "group" &&
+                next.contents.length == 1 &&
+                next.contents[0]?.type == "v"
+              )
+            ) {
+              throw new MathError(
+                "Expected a lone variable name in the 'desmos' block.",
+              )
+            }
+            output.push({ type: "desmos", name: next.contents[0].name })
+            index++
+            break
+          }
+          // @ts-expect-error intentional fallthrough
           case "sqrt":
-          case "frozenmouse":
-          case "frozentime": {
             const next = tokens[index + 1]
             const next2 = tokens[index + 2]
             if (
-              token.name == "sqrt" &&
               next?.type == "bracket" &&
               next.bracket == "[]" &&
               next2?.type == "group"
@@ -486,18 +502,22 @@ function s3_parseLatexCommands(tokens: Step2[]): Step3[] {
                 b: parseGroups(next2.contents),
               })
               index += 2
-            } else if (next?.type == "group") {
-              output.push({
-                type: "unary",
-                op: token.name,
-                contents: parseGroups(next.contents),
-              })
-              index += 1
-            } else {
+              break
+            }
+          case "frozenmouse":
+          case "frozentime": {
+            const next = tokens[index + 1]
+            if (next?.type != "group") {
               throw new MathError(
                 `\\${token.name} requires a {...} group after it.`,
               )
             }
+            output.push({
+              type: "unary",
+              op: token.name,
+              contents: parseGroups(next.contents),
+            })
+            index += 1
             break
           }
           case "frac":
@@ -1084,6 +1104,7 @@ type BaseBinaryOperator =
 export type Node =
   | { type: "n"; value: string }
   | { type: "v"; name: string }
+  | { type: "desmos"; name: string }
   | { type: "bracket"; bracket: DoubleBracket; contents: Node }
   | { type: "group"; contents: Node }
   | { type: "unary"; op: Unary; contents: Node }

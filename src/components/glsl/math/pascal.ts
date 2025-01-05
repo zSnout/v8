@@ -48,6 +48,7 @@ function toJs(node: Node, vlist: readonly string[]): string {
           return `!(${toJs(node.contents, vlist)})`
         case "sqrt":
         case "unsign":
+        case "desmos":
         case "!":
         case "logb":
         case "logb^2":

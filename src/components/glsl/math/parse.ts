@@ -90,6 +90,7 @@ export type Tree =
   | { type: "unary-fn"; name: UnaryFunction; arg: Tree }
   | { type: "constant"; name: Constant }
   | { type: "number"; value: Complex }
+  | { type: "desmos"; name: string }
 
 const precedenceMap: Record<Operator, number> = {
   "+": 1,

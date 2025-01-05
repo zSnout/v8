@@ -6,6 +6,7 @@ import { createEventListener } from "@/components/create-event-listener"
 import { isInteractive } from "@/components/draggable"
 import { CheckboxGroup, Radio } from "@/components/fields/Radio"
 import { Range } from "@/components/fields/Range"
+import type { WebGLCoordinateCanvas } from "@/components/glsl/canvas/coordinate"
 import { WebGLInteractiveCoordinateCanvas } from "@/components/glsl/canvas/interactive"
 import {
   freeze,
@@ -13,6 +14,7 @@ import {
   nodeToTree,
   treeToLatex,
   unfreeze,
+  type TreeToGlslOptions,
 } from "@/components/glsl/math/output"
 import { parse } from "@/components/glsl/math/parse"
 import { trackMouse } from "@/components/glsl/mixins/track-mouse"
@@ -290,7 +292,25 @@ function createEquationSearchParam(
   ]
 }
 
-export function Main() {
+export function Main(props: {
+  createCanvas?(el: HTMLCanvasElement): WebGLCoordinateCanvas
+  beforeTreeToGlsl?(): void
+  treeToGlsl?: TreeToGlslOptions
+  fragMods?: string
+}) {
+  const createCanvas =
+    props.createCanvas ??
+    ((el) =>
+      unwrap(
+        WebGLInteractiveCoordinateCanvas.of(el, {
+          saveCoordinates: true,
+          top: 1.25,
+          right: 0.5,
+          bottom: -1.25,
+          left: -2,
+        }),
+      ))
+
   const [equation, setEquation] = createEquationSearchParam(
     "equation",
     "z^{2}+c",
@@ -362,7 +382,7 @@ export function Main() {
   type View = "main" | "equations" | "help"
   const [view, setView] = createSignal<View>("main")
 
-  let gl: WebGLInteractiveCoordinateCanvas | undefined
+  let gl: WebGLCoordinateCanvas | undefined
 
   let mouse!: Accessor<Vec2>
   let time!: Accessor<number>
@@ -428,94 +448,87 @@ export function Main() {
   return (
     <>
       <ErrorBoundary>
-        {() => (
-          <canvas
-            class="h-full w-full touch-none"
-            ref={(canvas) => {
-              gl = unwrap(
-                WebGLInteractiveCoordinateCanvas.of(canvas, {
-                  saveCoordinates: true,
-                  top: 1.25,
-                  right: 0.5,
-                  bottom: -1.25,
-                  left: -2,
-                }),
-              )
+        <canvas
+          class="h-full w-full touch-none"
+          ref={(canvas) => {
+            gl = createCanvas(canvas)
 
-              createEffect(() => {
-                try {
-                  const [equationText, zText, cText] = [equation(), z(), c()]
+            createEffect(() => {
+              try {
+                const [equationText, zText, cText] = [equation(), z(), c()]
 
-                  if (!gl) {
-                    return
-                  }
+                if (!gl) {
+                  return
+                }
 
-                  const eq = latexToGLSL(equationText)
-                  if (!eq.ok) {
-                    setEqParseError(eq.reason)
-                  } else {
-                    setEqParseError()
-                  }
+                props.beforeTreeToGlsl?.()
 
-                  const zEq = latexToGLSL(zText)
-                  if (!zEq.ok) {
-                    setZParseError(zEq.reason)
-                  } else {
-                    setZParseError()
-                  }
+                const eq = latexToGLSL(equationText, props.treeToGlsl)
+                if (!eq.ok) {
+                  setEqParseError(eq.reason)
+                } else {
+                  setEqParseError()
+                }
 
-                  const cEq = latexToGLSL(cText)
-                  if (!cEq.ok) {
-                    setCParseError(cEq.reason)
-                  } else {
-                    setCParseError()
-                  }
+                const zEq = latexToGLSL(zText, props.treeToGlsl)
+                if (!zEq.ok) {
+                  setZParseError(zEq.reason)
+                } else {
+                  setZParseError()
+                }
 
-                  if (!(eq.ok && zEq.ok && cEq.ok)) {
-                    return
-                  }
+                const cEq = latexToGLSL(cText, props.treeToGlsl)
+                if (!cEq.ok) {
+                  setCParseError(cEq.reason)
+                } else {
+                  setCParseError()
+                }
 
-                  gl.load(
+                if (!(eq.ok && zEq.ok && cEq.ok)) {
+                  return
+                }
+
+                gl.load(
+                  (props.fragMods ?? "") +
                     fragmentSource
                       .replace(/EQ_Z/g, zEq.value)
                       .replace(/EQ_C/g, cEq.value)
                       .replace(/EQ/g, eq.value),
-                  )
+                )
 
-                  gl.draw()
-                } catch {}
-              })
+                gl.draw()
+              } catch {}
+            })
 
-              gl.setReactiveUniform("u_theme", () => themeMap[theme()].id)
-              gl.setReactiveUniform(
-                "u_inner_theme",
-                () => innerThemeMap[innerTheme()].id,
-              )
-              gl.setReactiveUniform("u_effect_outer_a", effectOuterA)
-              gl.setReactiveUniform("u_effect_outer_b", effectOuterB)
-              gl.setReactiveUniform("u_effect_outer_c", effectOuterC)
-              gl.setReactiveUniform("u_effect_inner_a", effectInnerA)
-              gl.setReactiveUniform("u_effect_inner_b", effectInnerB)
-              gl.setReactiveUniform("u_detail", detail)
-              gl.setReactiveUniform("u_detail_min", minDetail)
-              gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
-              gl.setReactiveUniform("u_plot_size", plotSize)
-              gl.setReactiveUniformArray("u_slider", () => [slider() / 100, 0])
-              gl.setReactiveUniform(
-                "u_dual_enabled",
-                () =>
-                  equation().includes("\\dual{") ||
-                  z().includes("\\dual{") ||
-                  c().includes("\\dual{"),
-              )
+            gl.setReactiveUniform("u_theme", () => themeMap[theme()].id)
+            gl.setReactiveUniform(
+              "u_inner_theme",
+              () => innerThemeMap[innerTheme()].id,
+            )
+            gl.setReactiveUniform("u_effect_outer_a", effectOuterA)
+            gl.setReactiveUniform("u_effect_outer_b", effectOuterB)
+            gl.setReactiveUniform("u_effect_outer_c", effectOuterC)
+            gl.setReactiveUniform("u_effect_inner_a", effectInnerA)
+            gl.setReactiveUniform("u_effect_inner_b", effectInnerB)
+            gl.setReactiveUniform("u_detail", detail)
+            gl.setReactiveUniform("u_detail_min", minDetail)
+            gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
+            gl.setReactiveUniform("u_plot_size", plotSize)
+            gl.setReactiveUniformArray("u_slider", () => [slider() / 100, 0])
+            gl.setReactiveUniform(
+              "u_dual_enabled",
+              () =>
+                equation().includes("\\dual{") ||
+                z().includes("\\dual{") ||
+                c().includes("\\dual{"),
+            )
 
-              mouse = trackMouse(gl)
-              ;[time, speed, setSpeed] = trackTime(gl)
+            mouse = trackMouse(gl)
+            ;[time, speed, setSpeed] = trackTime(gl)
 
-              gl.draw()
-            }}
-          />
-        )}
+            gl.draw()
+          }}
+        />
       </ErrorBoundary>
 
       <Show

@@ -1,5 +1,5 @@
 import { NormalizeContent } from "@/layouts/NormalizeContent"
-import { ErrorBoundary as SolidErrorBoundary, JSX } from "solid-js"
+import { JSX, ErrorBoundary as SolidErrorBoundary } from "solid-js"
 import { Center } from "./Center"
 
 export function Error(props: { reason: unknown; status?: number }) {
@@ -33,12 +33,10 @@ export function Error(props: { reason: unknown; status?: number }) {
   )
 }
 
-export function ErrorBoundary(props: { children: () => JSX.Element }) {
-  const Inner = props.children
-
+export function ErrorBoundary(props: { children: JSX.Element }) {
   return (
     <SolidErrorBoundary fallback={(error) => <Error reason={error} />}>
-      <Inner />
+      {props.children}
     </SolidErrorBoundary>
   )
 }
