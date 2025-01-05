@@ -544,32 +544,6 @@ export function treeToLatex(tree: Tree): {
   }
 }
 
-// export function nodeToLatex(node: Node) {
-//   switch (node.type) {
-//     case "n":
-//       return node.value
-//     case "v":
-//       return node.name
-//     case "bracket":
-//       const [lhs, rhs] = {
-//         "()": ["\\left(", "\\right)"],
-//         "[]": ["\\left[", "\\right]"],
-//         "{}": ["\\left{", "\\right}"],
-//         "||": ["\\left|", "\\right|"],
-//         "<>": ["\\left\\langle", "\\right\\rangle"],
-//         "||||": ["\\left{||}", "\\right{||}"],
-//       }[node.bracket]
-//       return lhs + nodeToLatex(node.contents) + rhs
-//     case "group":
-//       return nodeToLatex(node.contents)
-//     case "unary":
-//       if (has(UNARY_TRIG_FNS,))
-//       return node.op
-//     case "big":
-//     case "binary":
-//   }
-// }
-
 export function latexToGLSL(
   latex: string,
   options?: TreeToGlslOptions,
