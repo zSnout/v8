@@ -12,23 +12,29 @@ export interface TreeToGlslOptions {
 
 const encoder = new TextEncoder()
 
-export function createDesmosToFractalConverter(
+export function createDesmosNodeToGlsl(
   desmos: Desmos.Calculator,
   el: () => WebGLCanvas | undefined,
-): [clear: () => void, fn: (tree: Tree) => string, fragPragma: () => string] {
+): [clear: () => void, fn: (tree: string) => string, fragPragma: () => string] {
   const [names, setNames] = createSignal<readonly string[]>([])
+
   return [
     () => {
       setNames([])
     },
-    (tree) => {
-      const { value } = treeToLatex(tree)
+    (value) => {
+      console.log("creating for " + value)
+
       const name = createId(value)
       setNames((x) => (x.includes(name) ? x : x.concat(name)))
 
-      const x = desmos.HelperExpression({ latex: "(" + value + ").x" })
-      const y = desmos.HelperExpression({ latex: "(" + value + ").y" })
-      el()?.setUniform(name, x.numericValue, y.numericValue)
+      const x = desmos.HelperExpression({ latex: value + ".x" })
+      const y = desmos.HelperExpression({ latex: value + ".y" })
+      el()?.setReactiveUniformArray(name, () => [
+        x.numericValue,
+        y.numericValue,
+      ])
+      // el()?.setUniform(name, x.numericValue, y.numericValue)
       x.observe("numericValue", () => {
         el()?.setUniform(name, x.numericValue, y.numericValue)
       })
@@ -50,7 +56,7 @@ export function createDesmosToFractalConverter(
     for (const byte of encoder.encode(source)) {
       id += byte.toString(16).padStart(2, "0")
     }
-    return "__u_desmosexpr" + id
+    return "u_desmosexpr" + id
   }
 }
 
@@ -58,10 +64,7 @@ function unsupported(): string {
   throw new Error("This calculator does not support interpolation from Desmos.")
 }
 
-export function treeToGLSL(
-  tree: Tree,
-  { desmosNodeToGlsl = unsupported }: TreeToGlslOptions = {},
-): string {
+export function treeToGLSL(tree: Tree, options?: TreeToGlslOptions): string {
   if (tree.type == "number") {
     return `vec2(${tree.value[0]}, ${tree.value[1]})`
   }
@@ -76,36 +79,34 @@ export function treeToGLSL(
 
   if (tree.type == "unary-fn") {
     if (tree.name == "+") {
-      return treeToGLSL(tree.arg)
+      return treeToGLSL(tree.arg, options)
     }
     if (tree.name == "-") {
-      return `-(${treeToGLSL(tree.arg)})`
+      return `-(${treeToGLSL(tree.arg, options)})`
     }
-    return `cx_${tree.name}(${treeToGLSL(tree.arg)})`
+    return `cx_${tree.name}(${treeToGLSL(tree.arg, options)})`
   }
 
   if (tree.type == "desmos") {
-    return desmosNodeToGlsl(tree.name)
+    return options?.desmosNodeToGlsl?.(tree.name) ?? unsupported()
   }
 
   if (tree.type == "binary-fn") {
     switch (tree.name) {
       case "+":
       case "-":
-        return `(${treeToGLSL(tree.left)}) ${tree.name} (${treeToGLSL(
-          tree.right,
-        )})`
+        return `(${treeToGLSL(tree.left, options)}) ${tree.name} (${treeToGLSL(tree.right, options)})`
       case "*":
       case "**":
-        return `cx_mult(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
+        return `cx_mult(${treeToGLSL(tree.left, options)}, ${treeToGLSL(tree.right, options)})`
       case "#":
-        return `(${treeToGLSL(tree.left)}) * (${treeToGLSL(tree.right)})`
+        return `(${treeToGLSL(tree.left, options)}) * (${treeToGLSL(tree.right, options)})`
       case "/":
-        return `cx_div(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
+        return `cx_div(${treeToGLSL(tree.left, options)}, ${treeToGLSL(tree.right, options)})`
       case "^":
-        return `cx_pow(${treeToGLSL(tree.left)}, ${treeToGLSL(tree.right)})`
+        return `cx_pow(${treeToGLSL(tree.left, options)}, ${treeToGLSL(tree.right, options)})`
       case "|":
-        return `(dual ? ${treeToGLSL(tree.right)} : ${treeToGLSL(tree.left)})`
+        return `(dual ? ${treeToGLSL(tree.right, options)} : ${treeToGLSL(tree.left, options)})`
     }
 
     // @ts-expect-error nothing should reach here
@@ -115,7 +116,7 @@ export function treeToGLSL(
   throw new Error("Unknown tree type: '" + tree + "'.")
 }
 
-export function textToGLSL(source: string) {
+export function textToGLSL(source: string, options: TreeToGlslOptions) {
   try {
     const result = parse(source)
 
@@ -123,7 +124,7 @@ export function textToGLSL(source: string) {
       return result
     }
 
-    return ok(treeToGLSL(optimize(result.value)))
+    return ok(treeToGLSL(optimize(result.value), options))
   } catch (err) {
     return error(err)
   }

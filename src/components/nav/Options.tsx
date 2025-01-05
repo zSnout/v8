@@ -6,7 +6,7 @@ import { Dialog } from "../Dialog"
 import { Fa } from "../Fa"
 
 export function Options(props: { buttons?: any; children: any }) {
-  const [open, setOpen] = createSignal(true)
+  const [open, setOpen] = createSignal(false)
 
   if (typeof document != "undefined") {
     createEventListener(document, "keydown", (event) => {

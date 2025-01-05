@@ -788,6 +788,10 @@ function isImplicitlyMultiplyable(
     return true
   }
 
+  if (token.type == "desmos") {
+    return true
+  }
+
   return false
 }
 
@@ -932,18 +936,19 @@ const MULTIPLICATIVE_OPERATORS = Object.freeze([
 type MultiplicativeOperator = (typeof MULTIPLICATIVE_OPERATORS)[number]
 
 function isStep6Value(
-  token: {
-    type: Step5["type"]
-  },
+  token: { type: Step5["type"] },
   contentsMayBeBig: boolean,
-): token is { type: "n" | "v" | "binary" | "bracket" | "unary" | "big" } {
+): token is {
+  type: "n" | "v" | "binary" | "bracket" | "unary" | "big" | "desmos"
+} {
   return (
     token.type == "n" ||
     token.type == "v" ||
     token.type == "binary" ||
     token.type == "bracket" ||
     token.type == "unary" ||
-    (contentsMayBeBig && token.type == "big")
+    (contentsMayBeBig && token.type == "big") ||
+    token.type == "desmos"
   )
 }
 

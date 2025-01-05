@@ -2,6 +2,8 @@
 
 precision highp float;
 
+FRAG_MODS;
+
 uniform float u_detail;
 uniform float u_detail_min;
 uniform float u_fractal_size;

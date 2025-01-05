@@ -17,8 +17,6 @@ import {
   type TreeToGlslOptions,
 } from "@/components/glsl/math/output"
 import { parse } from "@/components/glsl/math/parse"
-import { trackMouse } from "@/components/glsl/mixins/track-mouse"
-import { trackTime } from "@/components/glsl/mixins/track-time"
 import type { Vec2 } from "@/components/glsl/types"
 import { DynamicOptions } from "@/components/nav/Options"
 import { unwrap } from "@/components/result"
@@ -292,12 +290,14 @@ function createEquationSearchParam(
   ]
 }
 
-export function Main(props: {
+export interface FractalExplorerOptions {
   createCanvas?(el: HTMLCanvasElement): WebGLCoordinateCanvas
   beforeTreeToGlsl?(): void
   treeToGlsl?: TreeToGlslOptions
   fragMods?: string
-}) {
+}
+
+export function MainInner(props: FractalExplorerOptions = {}) {
   const createCanvas =
     props.createCanvas ??
     ((el) =>
@@ -445,431 +445,446 @@ export function Main(props: {
     })
   }
 
-  return (
-    <>
-      <ErrorBoundary>
-        <canvas
-          class="h-full w-full touch-none"
-          ref={(canvas) => {
-            gl = createCanvas(canvas)
+  return {
+    el: (
+      <>
+        <ErrorBoundary>
+          <canvas
+            class="h-full w-full touch-none"
+            ref={(canvas) => {
+              gl = createCanvas(canvas)
 
-            createEffect(() => {
-              try {
-                const [equationText, zText, cText] = [equation(), z(), c()]
+              createEffect(() => {
+                try {
+                  const [eqText, zText, cText] = [equation(), z(), c()]
 
-                if (!gl) {
-                  return
-                }
+                  if (!gl) {
+                    return
+                  }
 
-                props.beforeTreeToGlsl?.()
+                  props.beforeTreeToGlsl?.()
 
-                const eq = latexToGLSL(equationText, props.treeToGlsl)
-                if (!eq.ok) {
-                  setEqParseError(eq.reason)
-                } else {
-                  setEqParseError()
-                }
+                  const eq = latexToGLSL(eqText, props.treeToGlsl)
+                  if (!eq.ok) {
+                    setEqParseError(eq.reason)
+                  } else {
+                    setEqParseError()
+                  }
 
-                const zEq = latexToGLSL(zText, props.treeToGlsl)
-                if (!zEq.ok) {
-                  setZParseError(zEq.reason)
-                } else {
-                  setZParseError()
-                }
+                  const zEq = latexToGLSL(zText, props.treeToGlsl)
+                  if (!zEq.ok) {
+                    setZParseError(zEq.reason)
+                  } else {
+                    setZParseError()
+                  }
 
-                const cEq = latexToGLSL(cText, props.treeToGlsl)
-                if (!cEq.ok) {
-                  setCParseError(cEq.reason)
-                } else {
-                  setCParseError()
-                }
+                  const cEq = latexToGLSL(cText, props.treeToGlsl)
+                  if (!cEq.ok) {
+                    setCParseError(cEq.reason)
+                  } else {
+                    setCParseError()
+                  }
 
-                if (!(eq.ok && zEq.ok && cEq.ok)) {
-                  return
-                }
+                  if (!(eq.ok && zEq.ok && cEq.ok)) {
+                    return
+                  }
 
-                gl.load(
-                  (props.fragMods ?? "") +
+                  gl.load(
                     fragmentSource
+                      .replace(/FRAG_MODS;/, props.fragMods ?? "")
                       .replace(/EQ_Z/g, zEq.value)
                       .replace(/EQ_C/g, cEq.value)
                       .replace(/EQ/g, eq.value),
-                )
+                  )
 
-                gl.draw()
-              } catch {}
-            })
+                  gl.draw()
+                } catch {}
+              })
 
-            gl.setReactiveUniform("u_theme", () => themeMap[theme()].id)
-            gl.setReactiveUniform(
-              "u_inner_theme",
-              () => innerThemeMap[innerTheme()].id,
-            )
-            gl.setReactiveUniform("u_effect_outer_a", effectOuterA)
-            gl.setReactiveUniform("u_effect_outer_b", effectOuterB)
-            gl.setReactiveUniform("u_effect_outer_c", effectOuterC)
-            gl.setReactiveUniform("u_effect_inner_a", effectInnerA)
-            gl.setReactiveUniform("u_effect_inner_b", effectInnerB)
-            gl.setReactiveUniform("u_detail", detail)
-            gl.setReactiveUniform("u_detail_min", minDetail)
-            gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
-            gl.setReactiveUniform("u_plot_size", plotSize)
-            gl.setReactiveUniformArray("u_slider", () => [slider() / 100, 0])
-            gl.setReactiveUniform(
-              "u_dual_enabled",
-              () =>
-                equation().includes("\\dual{") ||
-                z().includes("\\dual{") ||
-                c().includes("\\dual{"),
-            )
+              gl.setReactiveUniform("u_theme", () => themeMap[theme()].id)
+              gl.setReactiveUniform(
+                "u_inner_theme",
+                () => innerThemeMap[innerTheme()].id,
+              )
+              gl.setReactiveUniform("u_effect_outer_a", effectOuterA)
+              gl.setReactiveUniform("u_effect_outer_b", effectOuterB)
+              gl.setReactiveUniform("u_effect_outer_c", effectOuterC)
+              gl.setReactiveUniform("u_effect_inner_a", effectInnerA)
+              gl.setReactiveUniform("u_effect_inner_b", effectInnerB)
+              gl.setReactiveUniform("u_detail", detail)
+              gl.setReactiveUniform("u_detail_min", minDetail)
+              gl.setReactiveUniform("u_fractal_size", () => fractalSize() ** 2)
+              gl.setReactiveUniform("u_plot_size", plotSize)
+              gl.setReactiveUniformArray("u_slider", () => [slider() / 100, 0])
+              gl.setReactiveUniform(
+                "u_dual_enabled",
+                () =>
+                  equation().includes("\\dual{") ||
+                  z().includes("\\dual{") ||
+                  c().includes("\\dual{"),
+              )
 
-            mouse = trackMouse(gl)
-            ;[time, speed, setSpeed] = trackTime(gl)
+              // mouse = trackMouse(gl)
+              // ;[time, speed, setSpeed] = trackTime(gl)
 
-            gl.draw()
-          }}
-        />
-      </ErrorBoundary>
+              gl.draw()
+            }}
+          />
+        </ErrorBoundary>
 
-      <Show
-        when={
-          equation().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/) ||
-          z().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/) ||
-          c().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/)
-        }
-      >
-        <div class="fixed bottom-6 left-6 right-6 flex touch-none justify-center">
-          <div class="flex w-full max-w-xs flex-1">
-            <Range
-              class="border-0"
-              name="slider"
-              min={0}
-              max={100}
-              step="any"
-              get={slider}
-              getLabel={() => Math.round(slider()) + "%"}
-              set={setSlider}
-            />
-          </div>
-        </div>
-      </Show>
-
-      <DynamicOptions
-        buttons={
-          <>
-            <DialogButton onClick={() => setView("main")}>
-              <div class="flex h-6 w-6">
-                <Fa class="m-auto h-6 w-6" icon={faSliders} title="Main View" />
-              </div>
-            </DialogButton>
-
-            <DialogButton onClick={() => setView("equations")}>
-              <div class="flex h-6 w-6">
-                <Fa
-                  class="m-auto h-6 w-6"
-                  icon={faGears}
-                  title="Equation View"
-                />
-              </div>
-            </DialogButton>
-
-            <DialogButton class="mr-auto" onClick={() => setView("help")}>
-              <div class="flex h-6 w-6">
-                <Fa
-                  class="m-auto h-6 w-6"
-                  icon={faQuestion}
-                  title="Help View"
-                />
-              </div>
-            </DialogButton>
-
-            <DialogButton
-              onClick={() => {
-                if (!gl) {
-                  return
-                }
-
-                gl.setCoords({
-                  bottom: -1.25,
-                  top: 1.25,
-                  left: -2,
-                  right: 0.5,
-                })
-              }}
-            >
-              <Fa
-                class="h-6 w-6"
-                icon={faLocationCrosshairs}
-                title="Reset Position"
+        <Show
+          when={
+            equation().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/) ||
+            z().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/) ||
+            c().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)s/)
+          }
+        >
+          <div class="fixed bottom-6 left-6 right-6 flex touch-none justify-center">
+            <div class="flex w-full max-w-xs flex-1">
+              <Range
+                class="border-0"
+                name="slider"
+                min={0}
+                max={100}
+                step="any"
+                get={slider}
+                getLabel={() => Math.round(slider()) + "%"}
+                set={setSlider}
               />
-            </DialogButton>
-          </>
-        }
-      >
-        <Radio<Theme>
-          get={theme}
-          label="Theme"
-          options={["simple", "gradient", "plot", "trig", "black", "none"]}
-          set={setTheme}
-        />
-
-        <Radio<InnerTheme>
-          class="mt-2"
-          get={innerTheme}
-          label="Inner Theme"
-          options={["black", "gradient", "plot", "blobs"]}
-          set={setInnerTheme}
-        />
-
-        {CheckboxGroup({
-          get class() {
-            const o = themeMap[theme()]
-            const i = innerThemeMap[innerTheme()]
-
-            if (!(o.a || o.b || o.c || i.a || i.b)) {
-              return "mt-2 opacity-30 pointer-events-none"
-            } else {
-              return "mt-2"
-            }
-          },
-          get options() {
-            const o = themeMap[theme()]
-            const i = innerThemeMap[innerTheme()]
-
-            const all = [
-              [o.a, effectOuterA, setEffectOuterA],
-              [o.b, effectOuterB, setEffectOuterB],
-              [o.c, effectOuterC, setEffectOuterC],
-              [i.a, effectInnerA, setEffectInnerA],
-              [i.b, effectInnerB, setEffectInnerB],
-            ] as const
-
-            const opts = all.filter(([x]) => x)
-
-            if (opts.length) {
-              return opts
-            } else {
-              return [
-                [
-                  <em>no color options available</em>,
-                  () => false,
-                  () => {},
-                ] as const,
-              ]
-            }
-          },
-        })}
-
-        <Show when={view() == "equations"}>
-          <Equation
-            get={z}
-            set={setZ}
-            error={zParseError}
-            label="Initial value of z"
-          />
-
-          <Equation
-            get={c}
-            set={setC}
-            error={cParseError}
-            label="Initial value of constant c"
-          />
+            </div>
+          </div>
         </Show>
 
-        <Equation
-          get={equation}
-          set={setEquation}
-          error={eqParseError}
-          label="Iteration function"
-        />
+        <DynamicOptions
+          buttons={
+            <>
+              <DialogButton onClick={() => setView("main")}>
+                <div class="flex h-6 w-6">
+                  <Fa
+                    class="m-auto h-6 w-6"
+                    icon={faSliders}
+                    title="Main View"
+                  />
+                </div>
+              </DialogButton>
 
-        <Show when={view() == "main"}>
-          <Show
-            when={
-              equation().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/) ||
-              z().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/) ||
-              c().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/)
-            }
-          >
-            <Range
-              class="mt-3"
-              name="Speed"
-              min={Math.log(0.01)}
-              max={Math.log(10)}
-              step="any"
-              get={() => Math.log(speed())}
-              getLabel={() => speed().toFixed(2)}
-              set={(v) => setSpeed(Math.exp(v))}
+              <DialogButton onClick={() => setView("equations")}>
+                <div class="flex h-6 w-6">
+                  <Fa
+                    class="m-auto h-6 w-6"
+                    icon={faGears}
+                    title="Equation View"
+                  />
+                </div>
+              </DialogButton>
+
+              <DialogButton class="mr-auto" onClick={() => setView("help")}>
+                <div class="flex h-6 w-6">
+                  <Fa
+                    class="m-auto h-6 w-6"
+                    icon={faQuestion}
+                    title="Help View"
+                  />
+                </div>
+              </DialogButton>
+
+              <DialogButton
+                onClick={() => {
+                  if (!gl) {
+                    return
+                  }
+
+                  gl.setCoords({
+                    bottom: -1.25,
+                    top: 1.25,
+                    left: -2,
+                    right: 0.5,
+                  })
+                }}
+              >
+                <Fa
+                  class="h-6 w-6"
+                  icon={faLocationCrosshairs}
+                  title="Reset Position"
+                />
+              </DialogButton>
+            </>
+          }
+        >
+          <Radio<Theme>
+            get={theme}
+            label="Theme"
+            options={["simple", "gradient", "plot", "trig", "black", "none"]}
+            set={setTheme}
+          />
+
+          <Radio<InnerTheme>
+            class="mt-2"
+            get={innerTheme}
+            label="Inner Theme"
+            options={["black", "gradient", "plot", "blobs"]}
+            set={setInnerTheme}
+          />
+
+          {CheckboxGroup({
+            get class() {
+              const o = themeMap[theme()]
+              const i = innerThemeMap[innerTheme()]
+
+              if (!(o.a || o.b || o.c || i.a || i.b)) {
+                return "mt-2 opacity-30 pointer-events-none"
+              } else {
+                return "mt-2"
+              }
+            },
+            get options() {
+              const o = themeMap[theme()]
+              const i = innerThemeMap[innerTheme()]
+
+              const all = [
+                [o.a, effectOuterA, setEffectOuterA],
+                [o.b, effectOuterB, setEffectOuterB],
+                [o.c, effectOuterC, setEffectOuterC],
+                [i.a, effectInnerA, setEffectInnerA],
+                [i.b, effectInnerB, setEffectInnerB],
+              ] as const
+
+              const opts = all.filter(([x]) => x)
+
+              if (opts.length) {
+                return opts
+              } else {
+                return [
+                  [
+                    <em>no color options available</em>,
+                    () => false,
+                    () => {},
+                  ] as const,
+                ]
+              }
+            },
+          })}
+
+          <Show when={view() == "equations"}>
+            <Equation
+              get={z}
+              set={setZ}
+              error={zParseError}
+              label="Initial value of z"
+            />
+
+            <Equation
+              get={c}
+              set={setC}
+              error={cParseError}
+              label="Initial value of constant c"
             />
           </Show>
 
-          <Range
-            class="mb-2 mt-6"
-            name="Detail"
-            min={Math.log(10)}
-            max={Math.log(1000)}
-            step="any"
-            get={() => Math.log(detail())}
-            getLabel={() => "" + Math.round(detail())}
-            set={(v) => {
-              const value = Math.round(Math.exp(v))
-              setDetail(value)
-
-              if (minDetail() > value) {
-                setMinDetail(value)
-              }
-            }}
+          <Equation
+            get={equation}
+            set={setEquation}
+            error={eqParseError}
+            label="Iteration function"
           />
 
-          <Range
-            class="mb-2"
-            name="Min. Detail"
-            min={Math.log(1)}
-            max={Math.log(1001)}
-            step="any"
-            get={() => Math.log(minDetail() + 1)}
-            getLabel={() => "" + Math.round(minDetail())}
-            set={(v) => {
-              const value = Math.round(Math.exp(v) - 1)
-              setMinDetail(value)
+          <Show when={view() == "main"}>
+            <Show
+              when={
+                equation().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/) ||
+                z().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/) ||
+                c().match(/(?<!(?:\\|\\operatorname{)[A-Za-z]*)t/)
+              }
+            >
+              <Range
+                class="mt-3"
+                name="Speed"
+                min={Math.log(0.01)}
+                max={Math.log(10)}
+                step="any"
+                get={() => Math.log(speed())}
+                getLabel={() => speed().toFixed(2)}
+                set={(v) => setSpeed(Math.exp(v))}
+              />
+            </Show>
 
-              if (value > detail()) {
+            <Range
+              class="mb-2 mt-6"
+              name="Detail"
+              min={Math.log(10)}
+              max={Math.log(1000)}
+              step="any"
+              get={() => Math.log(detail())}
+              getLabel={() => "" + Math.round(detail())}
+              set={(v) => {
+                const value = Math.round(Math.exp(v))
                 setDetail(value)
-              }
-            }}
-          />
 
-          <Range
-            class={
-              theme() == "plot" || innerTheme() == "plot" ? "mb-2" : "mb-6"
-            }
-            name="Fractal Size"
-            min={Math.log(0.1)}
-            max={Math.log(100)}
-            step="any"
-            get={() => Math.log(fractalSize())}
-            getLabel={() => fractalSize().toFixed(2)}
-            set={(v) => setFractalSize(Math.exp(v))}
-          />
-
-          <Show when={theme() == "plot" || innerTheme() == "plot"}>
-            <Range
-              class="mb-6"
-              name="Plot Size"
-              min={Math.log(0.1)}
-              max={Math.log(10.1)}
-              step="any"
-              get={() => Math.log(plotSize() + 0.09999999)}
-              getLabel={() => plotSize().toFixed(2)}
-              set={(v) => setPlotSize(Math.exp(v) - 0.09999999)}
+                if (minDetail() > value) {
+                  setMinDetail(value)
+                }
+              }}
             />
+
+            <Range
+              class="mb-2"
+              name="Min. Detail"
+              min={Math.log(1)}
+              max={Math.log(1001)}
+              step="any"
+              get={() => Math.log(minDetail() + 1)}
+              getLabel={() => "" + Math.round(minDetail())}
+              set={(v) => {
+                const value = Math.round(Math.exp(v) - 1)
+                setMinDetail(value)
+
+                if (value > detail()) {
+                  setDetail(value)
+                }
+              }}
+            />
+
+            <Range
+              class={
+                theme() == "plot" || innerTheme() == "plot" ? "mb-2" : "mb-6"
+              }
+              name="Fractal Size"
+              min={Math.log(0.1)}
+              max={Math.log(100)}
+              step="any"
+              get={() => Math.log(fractalSize())}
+              getLabel={() => fractalSize().toFixed(2)}
+              set={(v) => setFractalSize(Math.exp(v))}
+            />
+
+            <Show when={theme() == "plot" || innerTheme() == "plot"}>
+              <Range
+                class="mb-6"
+                name="Plot Size"
+                min={Math.log(0.1)}
+                max={Math.log(10.1)}
+                step="any"
+                get={() => Math.log(plotSize() + 0.09999999)}
+                getLabel={() => plotSize().toFixed(2)}
+                set={(v) => setPlotSize(Math.exp(v) - 0.09999999)}
+              />
+            </Show>
+
+            {gl ?
+              <ColorModifiers gl={gl} save />
+            : undefined}
           </Show>
 
-          {gl ?
-            <ColorModifiers gl={gl} save />
-          : undefined}
-        </Show>
+          <Show when={view() == "help"}>
+            <h3 class="mb-2 mt-4 text-center font-semibold">
+              Rendering process (depends on theme)
+            </h3>
 
-        <Show when={view() == "help"}>
-          <h3 class="mb-2 mt-4 text-center font-semibold">
-            Rendering process (depends on theme)
-          </h3>
-
-          <div class="flex flex-col gap-2">
-            {p`To start, the variable ${"p"} is set to the complex number represented by its point on-screen (e.g. the center is ${"0"}, a unit above is ${"i"}, a unit to the right is ${"1"}, and so on). The variable ${"c"} is set to ${c()}, and the variable ${"z"} is set to ${z()}.
+            <div class="flex flex-col gap-2">
+              {p`To start, the variable ${"p"} is set to the complex number represented by its point on-screen (e.g. the center is ${"0"}, a unit above is ${"i"}, a unit to the right is ${"1"}, and so on). The variable ${"c"} is set to ${c()}, and the variable ${"z"} is set to ${z()}.
             `}
 
-            <Show
-              when={theme() == "none"}
-              fallback={[
-                p`${"z"} is then set to ${equation()} (iteration function). That is repeated is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin for a maximum of ${detail()} (detail level) repetitions.`,
-                themeMap[theme()].help({
-                  a: effectOuterA(),
-                  b: effectOuterB(),
-                  c: effectOuterC(),
-                }).main,
-                innerThemeMap[innerTheme()].help({
-                  a: effectInnerA(),
-                  b: effectInnerB(),
-                }).main,
-              ]}
-            >
-              {p`${"z"} is then set to ${equation()} (iteration function). That is repeated ${detail()} (detail level) times.`}
-              {
-                innerThemeMap[innerTheme()].help({
-                  a: effectInnerA(),
-                  b: effectInnerB(),
-                }).none
-              }
-            </Show>
-          </div>
-        </Show>
+              <Show
+                when={theme() == "none"}
+                fallback={[
+                  p`${"z"} is then set to ${equation()} (iteration function). That is repeated is applied until ${"z"} is more than ${fractalSize()} (fractal size) units away from the origin for a maximum of ${detail()} (detail level) repetitions.`,
+                  themeMap[theme()].help({
+                    a: effectOuterA(),
+                    b: effectOuterB(),
+                    c: effectOuterC(),
+                  }).main,
+                  innerThemeMap[innerTheme()].help({
+                    a: effectInnerA(),
+                    b: effectInnerB(),
+                  }).main,
+                ]}
+              >
+                {p`${"z"} is then set to ${equation()} (iteration function). That is repeated ${detail()} (detail level) times.`}
+                {
+                  innerThemeMap[innerTheme()].help({
+                    a: effectInnerA(),
+                    b: effectInnerB(),
+                  }).none
+                }
+              </Show>
+            </div>
+          </Show>
 
-        <Show when={view() == "equations"}>
-          <h3 class="mb-2 mt-4 text-center font-semibold">
-            Variables usable in equations
-          </h3>
+          <Show when={view() == "equations"}>
+            <h3 class="mb-2 mt-4 text-center font-semibold">
+              Variables usable in equations
+            </h3>
 
-          <table class="[&_td:first-child]:pr-4">
-            <tbody>
-              <tr>
-                <td>c</td>
-                <td>constant value used in iterations</td>
-              </tr>
+            <table class="[&_td:first-child]:pr-4">
+              <tbody>
+                <tr>
+                  <td>c</td>
+                  <td>constant value used in iterations</td>
+                </tr>
 
-              <tr>
-                <td>m</td>
-                <td>mouse position</td>
-              </tr>
+                <tr>
+                  <td>m</td>
+                  <td>mouse position</td>
+                </tr>
 
-              <tr>
-                <td>p</td>
-                <td>value of point on-screen</td>
-              </tr>
+                <tr>
+                  <td>p</td>
+                  <td>value of point on-screen</td>
+                </tr>
 
-              <tr>
-                <td>s</td>
-                <td>adjustable slider between 0 and 1</td>
-              </tr>
+                <tr>
+                  <td>s</td>
+                  <td>adjustable slider between 0 and 1</td>
+                </tr>
 
-              <tr>
-                <td>t</td>
-                <td>number of seconds passed since page load</td>
-              </tr>
+                <tr>
+                  <td>t</td>
+                  <td>number of seconds passed since page load</td>
+                </tr>
 
-              <tr>
-                <td>z</td>
-                <td>value being iterated</td>
-              </tr>
+                <tr>
+                  <td>z</td>
+                  <td>value being iterated</td>
+                </tr>
 
-              <tr>
-                <td>iter</td>
-                <td>number of iterations that have passed</td>
-              </tr>
+                <tr>
+                  <td>iter</td>
+                  <td>number of iterations that have passed</td>
+                </tr>
 
-              <tr>
-                <td>pi</td>
-                <td>pi accurate to 15 decimal places</td>
-              </tr>
+                <tr>
+                  <td>pi</td>
+                  <td>pi accurate to 15 decimal places</td>
+                </tr>
 
-              <tr>
-                <td>e</td>
-                <td>e accurate to 15 decimal places</td>
-              </tr>
-            </tbody>
-          </table>
+                <tr>
+                  <td>e</td>
+                  <td>e accurate to 15 decimal places</td>
+                </tr>
+              </tbody>
+            </table>
 
-          <h3 class="mb-2 mt-4 text-center font-semibold">
-            Functions usable in equations
-          </h3>
+            <h3 class="mb-2 mt-4 text-center font-semibold">
+              Functions usable in equations
+            </h3>
 
-          {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"log"}, ${"ln"}, ${"real"}, and ${"imag"} work as expected. ${"exp"} is short for ${"e^x"}. ${"|x|"} calculates the magnitude of a complex number; use ${"unsign"} to take the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-π"} and ${"π"}. All functions work on complex numbers.`}
+            {p`${"+-*/^"}, ${"sin"}, ${"cos"}, ${"tan"}, ${"log"}, ${"ln"}, ${"real"}, and ${"imag"} work as expected. ${"exp"} is short for ${"e^x"}. ${"|x|"} calculates the magnitude of a complex number; use ${"unsign"} to take the absolute value of the real and imaginary components separately. ${"sign"} returns a normalized vector. ${"angle"} returns a value between ${"-π"} and ${"π"}. All functions work on complex numbers.`}
 
-          <h3 class="mb-2 mt-4 text-center font-semibold">Dual graphing</h3>
+            <h3 class="mb-2 mt-4 text-center font-semibold">Dual graphing</h3>
 
-          {p`Dual graphing is helpful for exploring Julia sets. Type ${"dual"} to create a dual value, represented as two overlapping rectangles in the equation editor. The larger value will be used in the main window, and the smaller one in a smaller subwindow. Try changing all instances of ${"c"} to ${"dual(c,m)"}!`}
-        </Show>
-      </DynamicOptions>
-    </>
-  )
+            {p`Dual graphing is helpful for exploring Julia sets. Type ${"dual"} to create a dual value, represented as two overlapping rectangles in the equation editor. The larger value will be used in the main window, and the smaller one in a smaller subwindow. Try changing all instances of ${"c"} to ${"dual(c,m)"}!`}
+          </Show>
+        </DynamicOptions>
+      </>
+    ),
+    vars: {
+      c,
+      z,
+      eq: equation,
+    },
+  }
+}
+
+export function Main(props: FractalExplorerOptions) {
+  return MainInner(props).el
 }

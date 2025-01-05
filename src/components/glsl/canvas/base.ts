@@ -1,4 +1,4 @@
-import { createEffect, onCleanup } from "solid-js"
+import { createEffect, createRoot, onCleanup } from "solid-js"
 import { error, ok, Result } from "../../result"
 
 function resize(canvas: HTMLCanvasElement) {
@@ -98,7 +98,8 @@ export class WebGLCanvas {
     if (success) {
       return ok(shader)
     } else {
-      console.log(gl.getShaderInfoLog(shader))
+      console.error(gl.getShaderInfoLog(shader))
+      console.error(source)
       gl.deleteShader(shader)
 
       return error("Failed to compile " + type + " shader.")
@@ -291,6 +292,8 @@ export class WebGLCanvas {
     this.queueDraw()
   }
 
+  #rxuniforms = new Map<string, () => void>()
+
   setReactiveUniform(name: string, value: () => number | boolean) {
     const set = () => {
       const location = this.#getUniformLocation(name)
@@ -303,13 +306,47 @@ export class WebGLCanvas {
       this.queueDraw()
     }
 
-    createEffect(set)
+    const root = createRoot((dispose) => {
+      createEffect(set)
+      return dispose
+    })
+
     this.#effects.push(set)
+
+    const cleanup = () => {
+      root()
+      const idx = this.#effects.indexOf(set)
+      if (idx != -1) this.#effects.splice(idx, 1)
+    }
+
+    this.#rxuniforms.get(name)?.()
+    onCleanup(cleanup)
+    this.#rxuniforms.set(name, cleanup)
+
+    return cleanup
   }
 
   setReactiveUniformArray(name: string, value: () => readonly number[]) {
-    createEffect(() => this.setUniform(name, ...value()))
-    this.#effects.push(() => this.setUniform(name, ...value()))
+    const root = createRoot((dispose) => {
+      createEffect(() => this.setUniform(name, ...value()))
+      return dispose
+    })
+
+    const set = () => this.setUniform(name, ...value())
+
+    this.#effects.push(set)
+
+    const cleanup = () => {
+      root()
+      const idx = this.#effects.indexOf(set)
+      if (idx != -1) this.#effects.splice(idx, 1)
+    }
+
+    this.#rxuniforms.get(name)?.()
+    onCleanup(cleanup)
+    this.#rxuniforms.set(name, cleanup)
+
+    return cleanup
   }
 
   load(fragmentSource: string) {
