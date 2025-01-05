@@ -41,18 +41,20 @@ export function Main() {
       "f_{path}\\left(z,n\\right)=f_{path}\\left(\\operatorname{join}\\left(z,f_{eq}\\left(f_{c}\\left(P\\right),z\\left[z.\\operatorname{length}\\right],P\\right)\\right),n-1\\right)",
   })
 
-  gc.setExpression({
-    id: "__fractal_explorer_list_p",
-    latex: "P=2+3i",
-    color: "black",
-    hidden: false,
-    dragMode: "XY",
-  })
+  if (!gc.getExpressions().some((x) => x.id == "__fractal_explorer_list_p")) {
+    gc.setExpression({
+      id: "__fractal_explorer_list_p",
+      latex: "P=-0.11+0.77i",
+      color: "#808080",
+      hidden: false,
+      dragMode: "XY",
+    })
+  }
 
   gc.setExpression({
-    id: "__fractal_explorer_list_p",
-    latex: "f_{path}\\left(\\left[P\\right],50\\right)",
-    color: "black",
+    id: "__fractal_explorer_list_path",
+    latex: "P_{path}=f_{path}\\left(\\left[P\\right],100\\right)",
+    color: "#808080",
     lines: true,
   })
 
@@ -96,10 +98,25 @@ export function Main() {
     beforeTreeToGlsl: clearConverter,
   })
 
+  function latexToDesmos(source: string) {
+    return source
+      .replace(/\\desmos{(.)}/g, "$1")
+      .replace(/\\frozenmouse{([^}]+)}/g, "\\left($1\\right)")
+      .replace(/\\frozentime{([^}]+)}/g, "\\left($1\\right)")
+      .replace(/\\operatorname{unsign}/g, () => {
+        gc.setExpression({
+          id: "__fractal_explorer_unsign",
+          latex:
+            "f_{unsign}(z)=\\left|z.\\operatorname{real}\\right|+i\\left|z.\\operatorname{imag}\\right|",
+        })
+        return "f_{unsign}"
+      })
+  }
+
   createEffect(() => {
     gc.setExpression({
       id: "__fractal_explorer_c",
-      latex: "f_c\\left(p\\right)=" + vars.c(),
+      latex: "f_c\\left(p\\right)=" + latexToDesmos(vars.c()),
       hidden: true,
     })
   })
@@ -107,7 +124,7 @@ export function Main() {
   createEffect(() => {
     gc.setExpression({
       id: "__fractal_explorer_z",
-      latex: "f_z\\left(p\\right)=" + vars.z(),
+      latex: "f_z\\left(p\\right)=" + latexToDesmos(vars.z()),
       hidden: true,
     })
   })
@@ -115,9 +132,7 @@ export function Main() {
   createEffect(() => {
     gc.setExpression({
       id: "__fractal_explorer_f",
-      latex:
-        "f_{eq}\\left(c,z,p\\right)=" +
-        vars.eq().replace(/\\desmos{(.)}/g, "$1"),
+      latex: "f_{eq}\\left(c,z,p\\right)=" + latexToDesmos(vars.eq()),
       hidden: true,
     })
   })
