@@ -1,0 +1,23 @@
+@font-face {
+  font-family: IthkuilBasic;
+  src: url("../../../assets/fonts/Ithkuil Basic.ttf");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: IthkuilFlow;
+  src: url("../../../assets/fonts/IthkuilFlow.ttf");
+  font-style: normal;
+}
+
+@font-face {
+  font-family: IthkuilBasic;
+  src: url("../../../assets/fonts/Ithkuil Basic Oblique.ttf");
+  font-style: oblique;
+}
+
+@font-face {
+  font-family: IthkuilFlow;
+  src: url("../../../assets/fonts/IthkuilFlow Oblique.ttf");
+  font-style: oblique;
+}
