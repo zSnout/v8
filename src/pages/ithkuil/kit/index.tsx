@@ -50,6 +50,7 @@ import {
   Switch,
   type JSX,
 } from "solid-js"
+import { Credit } from "../_credit"
 
 const recognize = createRecognizer(affixes, roots)
 
@@ -810,51 +811,10 @@ export function Main() {
         </Section>
 
         <Section title="Credit">
-          <p class="mx-4 mt-2">
-            The parsing, glossing, unglossing, script generation systems, and
-            handwritten script characters were built by{" "}
-            <a
-              class="text-z-link underline underline-offset-2"
-              href="https://github.com/zsakowitz/ithkuil"
-            >
-              this site's author, sakawi
-            </a>
-            .
-          </p>
-
-          <p class="mx-4 mt-2">
-            The calligraphic Ithkuil characters were created by{" "}
-            <a
-              class="text-z-link underline underline-offset-2"
-              href="https://github.com/shankarsivarajan"
-            >
-              Shankar Sivarajan
-            </a>
-            .
-          </p>
-
-          <p class="mx-4 mt-2">
-            The custom character syntax for advanced alphabetic characters was
-            designed by{" "}
-            <a
-              class="text-z-link underline underline-offset-2"
-              href="https://github.com/ryanlo713"
-            >
-              Lucifer Caelius Delicatus
-            </a>
-            .
-          </p>
-
-          <p class="mx-4 mt-2">
-            The dictionaries for the root and affix searches are from the{" "}
-            <a
-              class="text-z-link underline underline-offset-2"
-              href="https://docs.google.com/spreadsheets/d/1JdaG1PaSQJRE2LpILvdzthbzz1k_a0VT86XSXouwGy8/edit"
-            >
-              Collaborative Ithkuil IV Roots and Affixes Spreadsheet
-            </a>
-            .
-          </p>
+          <Credit
+            sakawi="parsing, glossing, unglossing, script generation systems, and handwritten script characters"
+            class="mx-4 mt-2"
+          />
         </Section>
 
         <hr class="mb-2 mt-4 border-z" />

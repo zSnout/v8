@@ -32,6 +32,7 @@ import {
   onCleanup,
   untrack,
 } from "solid-js"
+import { Credit } from "../_credit"
 
 export function Main() {
   const [inputText, setInputText] = createSignal("Wattunkí ruyün!")
@@ -519,6 +520,10 @@ export function Main() {
           <em>very</em> slow, and will freeze the browser for 30 seconds to
           several minutes.
         </p>
+
+        <div class="mt-4 flex flex-col gap-2">
+          <Credit sakawi="parsing, script generation systems, and handwritten script characters" />
+        </div>
       </div>
     </div>
   )
