@@ -28,11 +28,12 @@ We'll learn about how stress affects words later.
 
 > @btw
 >
-> We'll learn how to pronounce words later. But since Ithkuil is mostly only
-> used online, I'm going to skip that for now.
+> Pronunciation isn't super important for now, since we're only writing Ithkuil,
+> but you can learn it at
+> [the expanded version of this article](/ithkuil/learn/00-sounds).
 >
-> Also, Ithkuil pronunciation can be a little tricky for English speakers. But
-> it isn't impossible!
+> Ithkuil pronunciation can be a little tricky for English speakers. But it
+> isn't impossible!
 
 ---
 
@@ -72,10 +73,18 @@ Here's how Ithkuil's consonants are pronounced:
 | z      | z   | z       | **z**any, **z**ip                                              |
 | ž      | ʒ   | zh      | mea**s**ure, a**z**ure                                         |
 | ẓ      | dz  | dz      | a**ds**                                                        |
-| '      | ʔ   | <pause> | a short pause of breath, as in uh**-**oh                       |
+| '      | ʔ   | <pause> | a short pause of breath, as in uh<strong>-</strong>oh          |
 
-| Letter | IPA | Pronunciation |
-| ------ | --- | ------------- |
+> @todo
+>
+> Vowels are a bit more complicated than consonants in Ithkuil, so I've only
+> included a very rough IPA chart. See
+> [Yuorb](https://yuorb.github.io/en/docs/01.html#Sec1_2) if you don't know IPA,
+> or if you want to learn about how vowel pronunciations changes in different
+> contexts.
+
+| Letter | IPA |
+| ------ | --- |
 | a      | a   |
 | ä      | æ   |
 | e      | e   |
@@ -83,11 +92,7 @@ Here's how Ithkuil's consonants are pronounced:
 | i      | i   |
 | ö      | œ~ø |
 | o      | o   |
-| ü      | ʉ   |
+| ü      | ʉ~y |
 | u      | u   |
 
 </div>
-
-**Vowels**
-
-TODO:
