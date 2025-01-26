@@ -1,3 +1,17 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "cSpell.words": [
+    "apsu",
+    "apsulç",
+    "Attentuative",
+    "Attenuative",
+    "Delimitive",
+    "Depletive",
+    "elze",
+    "elzela",
+    "Graduative",
+    "ujra",
+    "ujrarf",
+    "Uniplex"
+  ]
 }
