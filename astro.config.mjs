@@ -133,13 +133,12 @@ function traverse(node) {
               "font-semibold py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
               colorize(src),
             ),
-            ...dst.map((dst) =>
-              h(
-                "td",
-                " py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
-                colorize(dst),
-              ),
-            ),
+            dst.length ?
+              h("td", "py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0", {
+                type: "html",
+                value: dst.map((x) => colorize(x).value).join("<br>"),
+              })
+            : null,
           )
         }),
       )
