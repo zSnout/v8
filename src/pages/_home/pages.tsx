@@ -1,4 +1,11 @@
 import zsnoutSevenOpenGraph from "@/assets/zsnout-7.png"
+import {
+  faBook,
+  faRightToBracket,
+  faUserGear,
+  faUserPlus,
+  type IconDefinition,
+} from "@fortawesome/free-solid-svg-icons"
 import { getCollection } from "astro:content"
 import fakeGradientOpenGraph from "../art/fake-gradient/open-graph.png"
 import debugMathToGLSLOpenGraph from "../debug/math-to-glsl/open-graph.png"
@@ -29,7 +36,7 @@ export type Tag =
 
 export type Category = "archive" | "blog" | "debug"
 
-export interface Page {
+export interface Page<T extends string | IconDefinition = string> {
   title: string
   href: `/${string}` | `https://${string}`
   subtitle: string // 100-200 words
@@ -39,12 +46,12 @@ export interface Page {
   category?: Category
   categoryHref?: "/blog"
 
-  imageSrc: string
+  imageSrc: T
   imageAlt: string
 }
 
 export interface PageTextOnly
-  extends Omit<Page, "published" | "categoryHref" | "imageSrc" | "imageAlt"> {}
+  extends Omit<Page<string | IconDefinition>, "published" | "categoryHref"> {}
 
 const nonBlogPages: readonly Page[] = [
   {
@@ -265,6 +272,8 @@ export const accountEntry: readonly PageTextOnly[] = [
     subtitle:
       "Log in to your zSnout account to unlock access to additional pages, such as the recently updated Stories.",
     tags: ["account"],
+    imageSrc: faRightToBracket,
+    imageAlt: "right arrow moving into bracket",
   },
   {
     href: "/sign-up",
@@ -272,6 +281,8 @@ export const accountEntry: readonly PageTextOnly[] = [
     subtitle:
       "Sign up for a free zSnout account to unlock access to additional pages, such as the recently updated Stories.",
     tags: ["account"],
+    imageSrc: faUserPlus,
+    imageAlt: "user with plus symbol",
   },
 ]
 
@@ -282,6 +293,8 @@ export const accountVerified: readonly PageTextOnly[] = [
     subtitle:
       "Collaboratively write with friends, but with a twist: you can only see the immediately previous sentence written.",
     tags: ["account", "collaborative"],
+    imageSrc: faBook,
+    imageAlt: "book",
   },
   {
     href: "/account",
@@ -289,6 +302,8 @@ export const accountVerified: readonly PageTextOnly[] = [
     subtitle:
       "See details about your account, including your username, email, and verification date. Also includes a button to sign out on this device.",
     tags: ["account"],
+    imageSrc: faUserGear,
+    imageAlt: "user with gear",
   },
 ]
 

@@ -1,6 +1,6 @@
 import { createEventListener } from "@/components/create-event-listener"
 import { Fa } from "@/components/Fa"
-import { Unmain } from "@/components/Prose"
+import { MatchQuery, supabase } from "@/components/supabase"
 import {
   faChevronRight,
   type IconDefinition,
@@ -20,7 +20,6 @@ import { MegaCard } from "./cards/MegaCard"
 import { SideCard } from "./cards/SideCard"
 import { accountEntry, accountVerified, Page, pages } from "./pages"
 import { SidePageSeparator } from "./SidePageSeparator"
-import { MatchQuery, supabase } from "@/components/supabase"
 
 const allPages = pages.slice()
 
@@ -29,12 +28,12 @@ const page2 = allPages.at(-2)!
 const page3 = allPages.at(-3)!
 const page4 = allPages.at(-4)!
 
-function SectionHeader(props: { title: JSX.Element; allItems?: JSX.Element }) {
+function SectionHeader(props: { title: JSX.Element; children?: JSX.Element }) {
   return (
-    <div class="mt-16 flex items-center border-b border-t-4 border-b-z border-t-z-text-heading py-2 transition dark:border-t-z-text-subtitle">
+    <div class="mt-16 flex items-center border-t-4 border-t-z-text-heading pt-2 transition dark:border-t-z-text-subtitle">
       <p class="text-xl font-bold text-z-heading transition">{props.title}</p>
 
-      {props.allItems}
+      {props.children}
     </div>
   )
 }
@@ -42,14 +41,11 @@ function SectionHeader(props: { title: JSX.Element; allItems?: JSX.Element }) {
 function BlogSection() {
   return (
     <>
-      <SectionHeader
-        title="Latest Posts"
-        allItems={
-          <AllItems label="All Posts" href="/blog" icon={faChevronRight} />
-        }
-      />
+      <SectionHeader title="Latest Posts">
+        <AllItems label="All Posts" href="/blog" icon={faChevronRight} />
+      </SectionHeader>
 
-      <div class="mt-4 flex flex-col gap-8 sm:flex-row">
+      <div class="mt-2 flex flex-col gap-x-4 gap-y-8 sm:flex-row">
         <BlogCard class="flex" page={allPages[0]!} />
         <BlogCard class="flex" page={allPages[1]!} />
         <BlogCard class="hidden md:flex" page={allPages[2]!} />
@@ -73,12 +69,11 @@ function AccountSection() {
             ok={({ user }) => user.user_metadata.username + "'s Account"}
           />
         }
-        allItems={
-          <AllItems href="/account" label="Settings" icon={faChevronRight} />
-        }
-      />
+      >
+        <AllItems href="/account" label="Settings" icon={faChevronRight} />
+      </SectionHeader>
 
-      <div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div class="mt-2 grid grid-cols-1 gap-x-4 gap-y-8 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         <Show
           when={user()?.data.user}
           fallback={
@@ -121,7 +116,7 @@ function AllPagesSection() {
     <>
       <SectionHeader title="All Pages" />
 
-      <div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div class="mt-2 grid grid-cols-1 gap-x-4 gap-y-8 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {pages
           .filter((x) => x.category != "blog")
           .sort((a, b) => (a.title < b.title ? -1 : 1))
@@ -160,54 +155,22 @@ function UnsearchedView() {
 function SearchedView(props: { pages: readonly Page[] }) {
   return (
     <>
-      <div
-        class="flex flex-col gap-12 lg:flex-row"
-        classList={{
-          "flex-1": props.pages.length == 0,
-          "h-full": props.pages.length == 0,
-        }}
-      >
-        <Show
-          fallback={
-            <div class="m-auto flex flex-col gap-4 text-center">
-              <p class="text-2xl font-bold text-z-heading">
-                Looks like there aren't any results!
-              </p>
-
-              <p class="text-lg">Try adjusting your query.</p>
-            </div>
-          }
-          when={props.pages[0]}
-        >
-          <MegaCard {...props.pages[0]!} />
-
-          <div class="flex flex-1 flex-col lg:basis-48">
-            <Show when={props.pages[1]}>
-              <SideCard {...props.pages[1]!} />
-            </Show>
-
-            <Show when={props.pages[2]}>
-              <SidePageSeparator />
-
-              <SideCard {...props.pages[2]!} />
-            </Show>
-
-            <Show when={props.pages[3]}>
-              <SidePageSeparator />
-
-              <SideCard {...props.pages[3]!} />
-            </Show>
+      <Show
+        when={props.pages.length == 0}
+        fallback={
+          <div class="grid grid-cols-1 gap-x-4 gap-y-8 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <For each={props.pages}>
+              {(page) => <CompactCard page={page} />}
+            </For>
           </div>
-        </Show>
-      </div>
+        }
+      >
+        <div class="m-auto flex flex-col gap-4 text-center">
+          <p class="text-2xl font-bold text-z-heading">
+            Looks like there aren't any results!
+          </p>
 
-      <Show when={props.pages.length > 4}>
-        <SectionHeader title="More Results" />
-
-        <div class="mt-4 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {pages.slice(4).map((page) => (
-            <CompactCard page={page} />
-          ))}
+          <p class="text-lg">Try adjusting your query.</p>
         </div>
       </Show>
     </>
@@ -274,25 +237,5 @@ export function Main() {
         <SearchedView pages={filtered()} />
       </Show>
     </>
-  )
-}
-
-export function Neohuomi() {
-  return (
-    <Unmain>
-      <div class="grid grid-cols-2 gap-4">
-        <For each={pages.filter((x) => x.categoryHref != "/blog").reverse()}>
-          {(page) => (
-            <div class="flex h-36 gap-2 rounded-xl bg-z-body-selected p-1 transition">
-              <img class="rounded-lg" src={page.imageSrc} alt={page.imageAlt} />
-              <div class="flex h-full flex-col gap-1">
-                <h2 class="text-lg font-bold text-z-heading">{page.title}</h2>
-                <p class="mt-auto line-clamp-4">{page.subtitle}</p>
-              </div>
-            </div>
-          )}
-        </For>
-      </div>
-    </Unmain>
   )
 }

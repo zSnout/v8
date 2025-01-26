@@ -4,6 +4,14 @@ import type { Page } from "../pages"
 export function BlogCard(props: { class: string; page: Page }) {
   return (
     <div class={"w-full flex-col " + props.class}>
+      <a class="block w-full" href={props.page.href}>
+        <img
+          class="mb-2 aspect-open-graph w-full rounded-lg"
+          src={props.page.imageSrc}
+          alt={props.page.imageAlt}
+        />
+      </a>
+
       <BlueGreenText name={props.page.tags[0]} />
 
       <a
