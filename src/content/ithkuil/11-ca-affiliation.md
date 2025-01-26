@@ -3,8 +3,8 @@ title: CA — Affiliation
 ---
 
 Affiliation describes how related something's purposes or functions are. Is
-there a single purpose, or many? If many, are they a means to an end, or
-disorganized?
+there a single purpose, or many? If many, are they a means to an end, or are
+they unrelated?
 
 English usually marks purpose by word choice. For instance, the word "grove"
 just means "a group of similar trees". However, if those trees were planted by
@@ -13,15 +13,19 @@ might be a simple _gathering_, neutral with respect to purpose, or a _team_, all
 working together to achieve a common objective, or a _crowd_ with an absence of
 purpose.
 
+Ithkuil, on the other hand, marks purpose with a consonant in the C<sub>A</sub>
+slot, making it possible to derive words like orchard, team, and crowd without
+needing to memorize more vocab.
+
 Here is an overview of the four Affiliations. We'll talk a little more about
 each one later.
 
-| Abbr. | Name          | Form     | @wrap Meaning                                                                   |
-| ----- | ------------- | -------- | ------------------------------------------------------------------------------- |
-| CSL   | Consolidative | —        | neutral with respect to purpose or function                                     |
-| ASO   | Associative   | -l- (nļ) | with a single purpose                                                           |
-| COA   | Coalescent    | -r- (rļ) | with many different immediate purposes but working towards a single one overall |
-| VAR   | Variative     | -ř- (ň)  | with many different purposes                                                    |
+| Abbr. | Name          | Form   | @wrap Meaning                                                                   |
+| ----- | ------------- | ------ | ------------------------------------------------------------------------------- |
+| CSL   | Consolidative | —      | neutral with respect to purpose or function                                     |
+| ASO   | Associative   | l (nļ) | with a single purpose                                                           |
+| COA   | Coalescent    | r (rļ) | with many different immediate purposes but working towards a single one overall |
+| VAR   | Variative     | ř (ň)  | with many different purposes                                                    |
 
 If all C<sub>A</sub> categories are default (for now, that means Uniplex
 Configuration) except Affiliation, the C<sub>A</sub> becomes the parenthesized
@@ -152,5 +156,5 @@ Let's talk a little more about each Affiliation.
   blink, adding VAR would mean that each blink signals something different.
 
 @cite Most of the examples in this section come directly from
-[ithkuil.net](https://ithkuil.net/newithkuil_03_morphology.htm#:~:text=variously%2Dsized%20curves.%E2%80%99-,3.2%C2%A0%20Affiliation,-While%20the%20category);
+[ithkuil.net, section 3.2](https://ithkuil.net/newithkuil_03_morphology.htm#:~:text=variously%2Dsized%20curves.%E2%80%99-,3.2%C2%A0%20Affiliation,-While%20the%20category);
 I didn't come up with all of them myself.
