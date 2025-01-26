@@ -8,6 +8,7 @@ import {
   faMapSigns,
 } from "@fortawesome/free-solid-svg-icons"
 import { getCollection } from "astro:content"
+import { STYLES } from "../../../../astro.styles.mjs"
 
 const pages = await getCollection("ithkuil")
 
@@ -58,21 +59,35 @@ const data = await Promise.all(
               />
               <h2 class="contents select-none">
                 {entry.id[2] == "@" ?
-                  <span>
-                    <span class="inline-flex w-[2ch] align-[-3px] font-mono font-normal text-z">
-                      <Fa
-                        icon={faMapSigns}
-                        class="m-auto size-[1em]"
-                        title="Interlude"
-                      />
-                    </span>
-                    <span> — {entry.data.title}</span>
+                  <span class="inline-flex w-[2ch] align-[-3px] font-mono font-normal text-z">
+                    <Fa
+                      icon={faMapSigns}
+                      class="m-auto size-[1em]"
+                      title="Interlude"
+                    />
                   </span>
-                : <span>
-                    <strong class="font-mono font-normal text-z">{num}</strong>{" "}
-                    — {entry.data.title}
+                : <strong class="font-mono font-normal text-z">{num}</strong>}
+                {" — "}
+                {entry.data.title.split(/\bCA\b/g).flatMap((x, i) =>
+                  i == 0 ? x : (
+                    [
+                      <span>
+                        C<sub>A</sub>
+                      </span>,
+                      x,
+                    ]
+                  ),
+                )}
+                {entry.data.tag && (
+                  <span
+                    class={
+                      "inline-block rounded-md border px-2 py-2 text-lg/[1] font-semibold transition [text-box:trim-both_cap_alphabetic] " +
+                      STYLES[entry.data.tag]![1]
+                    }
+                  >
+                    {STYLES[entry.data.tag]![3]}
                   </span>
-                }
+                )}
               </h2>
             </summary>
 

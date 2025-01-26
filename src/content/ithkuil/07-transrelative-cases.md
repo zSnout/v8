@@ -1,8 +1,9 @@
 ---
-title: Transrelative Cases
+title: Cases — Transrelative
 ---
 
-Before I explain any more, here's an overview:
+Before I explain any more, here's an overview of the nine so-called
+Transrelative Cases, some of the most common cases in Ithkuil:
 
 | Abbr. | Name         | Ending | @wrap Role                                                 |
 | ----- | ------------ | ------ | ---------------------------------------------------------- |
@@ -28,8 +29,8 @@ nine roles best fit various nouns in some English sentences.
 4. **@¹She** is running.
 5. **@¹The machine** throws **@²a ping-pong ball** **@³at him**.
 
-You probably have zero experience right now, so guess the case of each
-highlighted noun, but don't worry about getting them wrong.
+Try guessing the Case of each highlighted noun. Since you don't have that much
+experience with Case yet, don't worry about getting them wrong.
 
 > @details Answers and explanations
 >
@@ -41,8 +42,8 @@ highlighted noun, but don't worry about getting them wrong.
 >
 > 2. **@¹I (AFF)** hear **@²a bee (STM)**.
 >
->    In this case, the bee is a stimulus for your sensory experience of hearing.
->    This is certainly a passive experience, making you Affective.
+>    Here, the bee is a stimulus for your sensory experience of hearing. This is
+>    certainly a passive experience, making you Affective.
 >
 > 3. **@¹You (EFF)** entertain **@²your friends (AFF)**.
 >
@@ -58,7 +59,7 @@ highlighted noun, but don't worry about getting them wrong.
 >    She is Inducive because running not only takes willful desire on your part
 >    to kick legs and keep running, making you Ergative, but it also changes
 >    many parts of your body (consuming nutrients and stores sugars), making you
->    Absolutive. Ergative plus Absolutive makes Inducive, so that's the case we
+>    Absolutive. Ergative plus Absolutive makes Inducive, so that's the Case we
 >    assign.
 >
 > 5. **@¹The machine (ERG)** throws **@²a ping-pong ball (THM)** **@³at him
@@ -90,7 +91,7 @@ stress, so make sure to write it properly!
 
 @btw These words are called nominal formatives. They're nominal since they
 represent nouns, and they're formatives since they're basically verbal
-formatives, but with a case ending instead of a Validation ending.
+formatives, but with a Case ending instead of a Validation ending.
 
 Of course, these are just lone words. To put them into a sentence, just... put
 them in a sentence! Normally, nouns go after the main verb, but you can put a

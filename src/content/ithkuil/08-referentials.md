@@ -26,7 +26,7 @@ the main verb to emphasize them.
 ¹I observe that ²it¹'s a tree⁰.
 
 ¹uḑralô ²lo ³ne⁰.
-¹I imagine that ²I ¹made ³y'all ²cyan⁰.
+¹I imagine that ²I ¹made ³y'all ¹cyan⁰.
 ```
 
 Each referent (the consonant part) comes in three variants: neutral, beneficial,

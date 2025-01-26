@@ -35,16 +35,23 @@ const num = entry.id.slice(0, 2)
   <h1>
     {
       entry.id[2] == "@" ?
-        <span>
-          <span class="inline-flex w-[2ch] align-[-3px] font-mono font-normal text-z">
-            <Fa icon={faMapSigns} class="m-auto size-[1em]" title="Interlude" />
-          </span>
-          <span> — {entry.data.title}</span>
+        <span class="inline-flex w-[2ch] align-[-3px] font-mono font-normal text-z">
+          <Fa icon={faMapSigns} class="m-auto size-[1em]" title="Interlude" />
         </span>
-      : <span>
-          <strong class="font-mono font-normal text-z">{num}</strong> —{" "}
-          {entry.data.title}
-        </span>
+      : <strong class="font-mono font-normal text-z">{num}</strong>
+    }
+    {" — "}
+    {
+      entry.data.title.split(/\bCA\b/g).flatMap((x, i) =>
+        i == 0 ? x : (
+          [
+            <span>
+              C<sub>A</sub>
+            </span>,
+            x,
+          ]
+        ),
+      )
     }
   </h1>
   <Content />

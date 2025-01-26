@@ -7,12 +7,7 @@
 import mdx from "@astrojs/mdx"
 import solidJs from "@astrojs/solid-js"
 import tailwind from "@astrojs/tailwind"
-import {
-  faCaretDown,
-  faCaretRight,
-  faInfoCircle,
-  faWarning,
-} from "@fortawesome/free-solid-svg-icons"
+import { faCaretDown, faCaretRight } from "@fortawesome/free-solid-svg-icons"
 import { defineConfig } from "astro/config"
 import rehypeKatex from "rehype-katex"
 import remarkMath from "remark-math"
@@ -20,6 +15,7 @@ import nesting from "tailwindcss/nesting"
 import glsl from "vite-plugin-glsl"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { els, makeQuiz } from "./astro.quiz.mjs"
+import { STYLES } from "./astro.styles.mjs"
 
 Promise.withResolvers ??= () => {
   let resolve
@@ -71,13 +67,10 @@ function traverse(node) {
     node.children.every((x) => x.type == "paragraph") &&
     node.children[0]?.children[0]?.type == "text" &&
     node.children[0].children[0].value.startsWith("@") &&
-    Object.hasOwn(
-      BLOCKQUOTE_STYLES,
-      node.children[0].children[0].value.slice(1),
-    )
+    Object.hasOwn(STYLES, node.children[0].children[0].value.slice(1))
   ) {
     const tag = node.children[0].children[0].value.slice(1)
-    const [icon, classes, tagline] = BLOCKQUOTE_STYLES[tag]
+    const [icon, classes, tagline] = STYLES[tag]
     const { h, fa } = els(this)
     return h(
       "div",
@@ -186,31 +179,8 @@ function traverse(node) {
   }
 }
 
-/**
- * @type {Record<
- *   string,
- *   [
- *     icon: import("@fortawesome/free-solid-svg-icons").IconDefinition,
- *     classes: string,
- *     tagline: string,
- *   ]
- * >}
- */
-const BLOCKQUOTE_STYLES = {
-  todo: [
-    faWarning,
-    "border-yellow-300 bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100 dark:border-yellow-800",
-    "Incomplete note:",
-  ],
-  btw: [
-    faInfoCircle,
-    "border-blue-300 bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-100 dark:border-blue-800",
-    "By the way...",
-  ],
-}
-
 const TABLE_CLASSES =
-  "relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw] overflow-x-auto px-[max(1.5rem,50vw_-_32.5ch)] whitespace-nowrap scrollbar:hidden my-8 *:my-0"
+  "relative left-[calc(-50vw_+_min(50vw_-_1.5rem,32.5ch))] w-[100vw] overflow-x-auto px-[max(1.5rem,50vw_-_32.5ch)] whitespace-nowrap scrollbar:hidden my-8 *:my-0 [table_&]:contents"
 
 const TABLE_START = `<div class="${escapeHTML(TABLE_CLASSES)}">`
 const TABLE_END = "</div>"
@@ -295,9 +265,18 @@ function traverseArray(nodes) {
         continue
       }
 
+      if (tag == "scrollable") {
+        output.push({ type: "html", value: TABLE_START })
+        while (nodes[++i].type == "html") {
+          output.push(nodes[i])
+        }
+        output.push({ type: "html", value: TABLE_END })
+        continue
+      }
+
       Object.hasOwn ??= {}.hasOwnProperty.call.bind({}.hasOwnProperty)
-      if (Object.hasOwn(BLOCKQUOTE_STYLES, tag)) {
-        const [icon, classes, tagline] = BLOCKQUOTE_STYLES[tag]
+      if (Object.hasOwn(STYLES, tag)) {
+        const [icon, classes, tagline] = STYLES[tag]
 
         const { h, fa } = els(this)
         output.push(
@@ -375,7 +354,9 @@ export default defineConfig({
     }),
   ],
   markdown: {
-    remarkRehype: { allowDangerousHtml: true },
+    remarkRehype: {
+      allowDangerousHtml: true,
+    },
     rehypePlugins: [rehypeKatex],
     remarkPlugins: [
       remarkMath,

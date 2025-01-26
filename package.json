@@ -61,6 +61,8 @@
     "prettier-plugin-tailwindcss": "^0.6.5",
     "random-seed": "^0.3.0",
     "rehype-katex": "^6.0.2",
+    "remark-extended-table": "^2.0.2",
+    "remark-gfm": "^4.0.0",
     "remark-math": "^5.1.1",
     "solid-js": "^1.6.12",
     "solid-monaco": "^0.2.0",

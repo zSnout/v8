@@ -22,3 +22,6 @@ For this one, we'll look at the overall structure of words we can make so far.
 For now, it looks like we have four grammatical categories to play with, plus
 the root. Root typically isn't counted as a grammatical category, since there
 are 6000 different roots. Nice!
+
+The lone **-l-**? It's part of something called the C<sub>A</sub> slot, which
+we'll discuss later.

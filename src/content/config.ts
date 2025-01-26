@@ -1,4 +1,5 @@
 import { defineCollection, z } from "astro:content"
+import { STYLES } from "../../astro.styles.mjs"
 
 const blog = defineCollection({
   type: "content",
@@ -19,6 +20,7 @@ const ithkuil = defineCollection({
   schema: z.object({
     title: z.string(),
     open: z.boolean().optional(),
+    tag: z.enum(Object.keys(STYLES)).optional(),
   }),
 })
 
