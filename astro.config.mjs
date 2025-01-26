@@ -147,7 +147,7 @@ function traverse(node) {
       return h(
         "div",
         TABLE_CLASSES,
-        h("table", "text-base", h("tbody", "", ...rows)),
+        h("table", "text-base", h("tbody", "whitespace-normal", ...rows)),
       )
     }
 
@@ -200,8 +200,26 @@ function styleTable(node) {
 
   const { h } = els(this)
 
+  const WRAP_CLASSES = [
+    "[&>table>*>tr>td:nth-child(1)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(2)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(3)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(4)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(5)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(6)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(7)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(8)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(9)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(10)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(11)]:min-w-48",
+    "[&>table>*>tr>td:nth-child(12)]:min-w-48",
+  ]
+
   return [
-    { type: "html", value: TABLE_START },
+    {
+      type: "html",
+      value: `<div class="${escapeHTML(TABLE_CLASSES)}${wraps.map((x, i) => (x ? " " + WRAP_CLASSES[i] : "")).join("")}">`,
+    },
     traverse.call(this, {
       ...node,
       children: node.children.map((row) => ({
