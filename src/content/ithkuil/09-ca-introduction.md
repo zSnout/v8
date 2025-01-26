@@ -27,3 +27,6 @@ understand them yet.
 The C<sub>A</sub> slot essentially operates by sticking the consonant forms for
 all five of these categories together and calling it a day. It's a bit more
 complicated, but that's the rough idea.
+
+By the way, the C<sub>A</sub> only exists on formatives. Referentials don't have
+C<sub>A</sub> slots.
