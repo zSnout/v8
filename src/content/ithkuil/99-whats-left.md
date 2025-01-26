@@ -29,8 +29,6 @@ A not-at-all-brief list of everything that still needs to be explained.
   - Case-Scope
   - Mood
 - Ca
-  - Extension
-  - Perspective
   - Essence
 
 ## Affixes
