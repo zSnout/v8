@@ -12,5 +12,8 @@ This section is a record of all errors I've corrected so far.
    verb.
 2. Capitalized Case in "07 — Cases — Transrelative" when it refers to the
    Ithkuil grammatical category, as opposed to the linguistic notion of case.
+3. Recolored the phrase "birds exists" in **@cx They say a ¹group of dissimilar,
+   fused birds exists⁰.** to grey, since it should be **@⁰birds exists**, since
+   it's not part of the Configuration.
 
 </div>

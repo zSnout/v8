@@ -256,7 +256,7 @@ aţla¹l⁰ó
 They say a ¹single bird exists⁰.
 
 aţla¹ç⁰ó
-They say a ¹group of dissimilar, fused birds exists⁰.
+They say a ¹group of dissimilar, fused ⁰birds exists.
 ```
 
 > @btw
