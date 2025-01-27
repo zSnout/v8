@@ -481,32 +481,51 @@ function ref(canvas: HTMLCanvasElement) {
   function pathGraphDirectY(getY: (x: number) => number) {
     const min = 0
     const max = width()
-    const step = THEME_DIRECT_XY_RESOLUTION * scale()
+    const step =
+      (location.href.includes("?circles") ? 10 : 1) *
+      THEME_DIRECT_XY_RESOLUTION *
+      scale()
 
     const path = new Path2D()
-    let initialized = false
-    let lasty: number | undefined
 
-    for (let canvasX = min - step; canvasX < max + step; canvasX += step) {
-      const graphX = convertCanvasToGraphX(canvasX)
-      const graphY = getY(graphX)
-      const canvasY = convertGraphToCanvasY(graphY)
+    if (location.href.includes("?circles")) {
+      for (let canvasX = min - step; canvasX < max + step; canvasX += step) {
+        const graphX = convertCanvasToGraphX(canvasX)
+        const graphY = getY(graphX)
+        const canvasY = convertGraphToCanvasY(graphY)
 
-      if (Number.isFinite(graphY)) {
-        console.log("draw")
-        if (
-          initialized
-          // && lasty != null
-          // && Math.abs(lasty - canvasY) < THEME_DIRECT_XY_MAX_DISTANCE
-        ) {
-          lasty = canvasY
-          path.lineTo(canvasX, canvasY)
-        } else {
-          lasty = canvasY
-          path.moveTo(canvasX, canvasY)
-          initialized = true
+        path.moveTo(canvasX, canvasY)
+        path.arc(
+          canvasX,
+          canvasY,
+          (canvas.width / canvas.clientWidth) * 4,
+          0,
+          2 * Math.PI,
+        )
+      }
+    } else {
+      let initialized = false
+      let lasty: number | undefined
+
+      for (let canvasX = min - step; canvasX < max + step; canvasX += step) {
+        const graphX = convertCanvasToGraphX(canvasX)
+        const graphY = getY(graphX)
+        const canvasY = convertGraphToCanvasY(graphY)
+
+        if (Number.isFinite(graphY)) {
+          if (
+            initialized
+            // && lasty != null
+            // && Math.abs(lasty - canvasY) < THEME_DIRECT_XY_MAX_DISTANCE
+          ) {
+            lasty = canvasY
+            path.lineTo(canvasX, canvasY)
+          } else {
+            lasty = canvasY
+            path.moveTo(canvasX, canvasY)
+            initialized = true
+          }
         }
-      } else {
       }
     }
 
