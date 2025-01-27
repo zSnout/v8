@@ -52,7 +52,7 @@ function traverse(node) {
     const { h, fa } = els(this)
     return h(
       "details",
-      "bg-z-body-selected border border-z rounded-lg [line-height:1.5] *:px-4 last:*:pb-3 *:mt-2 *:mb-0 first:*:mt-0 [&>ol]:pl-[calc(1.625em_+_1rem)] [&>ol>li]:my-1 [&>ol>li:last-child>p:last-child]:mb-2",
+      "bg-z-body-selected border border-z rounded-lg [line-height:1.5] *:px-4 last:*:pb-3 *:mt-2 *:mb-0 first:*:mt-0 [&>ol]:pl-[calc(1.625em_+_1rem)] [&>ol>li]:my-1 [&>ol>li:last-child>p:last-child]:mb-2 [&_table]:mx-2 [&_table]:w-[calc(100%_-_1rem)] [&_tr]:border-b-0 [&_tr:not(:first-child)_td]:pt-0 [&_tr:not(:last-child)_td]:pb-0 [&_table]:my-2",
       h(
         "summary",
         "flex gap-2 items-center text-sm [[open]>&]:pb-0 py-3 px-4",
