@@ -292,6 +292,17 @@ function traverseArray(nodes) {
         continue
       }
 
+      if (tag == "compactlist") {
+        output.push({
+          type: "html",
+          value:
+            '<div class="[&>ol>li]:my-1 [&>ol>li:last-child>p:last-child]:mb-2 [line-height:1.5]">',
+        })
+        output.push(nodes[++i])
+        output.push({ type: "html", value: "</div>" })
+        continue
+      }
+
       Object.hasOwn ??= {}.hasOwnProperty.call.bind({}.hasOwnProperty)
       if (Object.hasOwn(STYLES, tag)) {
         const [icon, classes, tagline] = STYLES[tag]
