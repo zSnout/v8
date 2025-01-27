@@ -9,7 +9,7 @@ a quick summary table of its structure.
 
 <table class="[&_small]:[font-variant:small-caps] [&_small]:lowercase [&_[data-bl]]:border-l [&_[data-bl]]:border-l-[--tw-prose-th-borders] [&_[data-br]]:border-r [&_[data-br]]:border-r-[--tw-prose-th-borders] [&_span]:font-mono">
   <thead>
-    <tr class="border-b *:text-center">
+    <tr class="border-b border-b-[--tw-prose-td-borders] *:text-center">
       <th class="align-middle" colspan="2" rowspan="2">Affiliation</th>
       <th data-bl colspan="4">Configuration</th>
       <th class="align-middle" data-bl colspan="2" rowspan="2">Extension</th>
