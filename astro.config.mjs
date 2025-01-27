@@ -130,7 +130,7 @@ function traverse(node) {
             : "border-b-0",
             h(
               "td",
-              "font-semibold py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0",
+              "font-semibold py-0.5 [:first-child>&]:pt-0 [:last-child>&]:pb-0 whitespace-nowrap",
               colorize(src),
             ),
             dst.length ?
@@ -284,10 +284,11 @@ function traverseArray(nodes) {
 
       if (tag == "scrollable") {
         output.push({ type: "html", value: TABLE_START })
-        while (nodes[++i].type == "html") {
+        while (nodes[++i]?.type == "html") {
           output.push(nodes[i])
         }
         output.push({ type: "html", value: TABLE_END })
+        i--
         continue
       }
 

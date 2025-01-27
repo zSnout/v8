@@ -47,7 +47,7 @@ alḑa²l¹t⁰a
 oţkha¹z⁰a
 ¹group of ⁰armed forces
 
-oţkha²r¹z⁰a
+oţkha²l¹z⁰a
 ²troop
 
 oţkha²ř¹z⁰a

@@ -15,5 +15,10 @@ This section is a record of all errors I've corrected so far.
 3. Recolored the phrase "birds exists" in **@cx They say a ¹group of dissimilar,
    fused birds exists⁰** to **@⁰grey**, since it's not part of the
    Configuration.
+4. Changed the translation of "troop" from **@⁰oţkha²r¹z⁰a** to
+   **@oţkha²l¹z⁰a**, since each soldier in a troop can typically do the same
+   actions as most other soldiers.
+5. Put back most of the C<sub>A</sub> — Configuration chapter, which has been
+   missing for a while.
 
 </div>
