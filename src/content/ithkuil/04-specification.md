@@ -34,16 +34,16 @@ aly⁴i⁰-
 the medium used for the art
 
 
-aňs¹a⁰-
+anš¹a⁰-
 well-behaved
 
-aňs²ä⁰-
+anš²ä⁰-
 the psychological state which causes good behavior
 
-aňs³e⁰-
+anš³e⁰-
 the physical manifestation of good behavior
 
-aňs⁴i⁰-
+anš⁴i⁰-
 the entity who has good behavior
 ```
 
@@ -74,6 +74,6 @@ There is ²somebody who has been ¹exiled⁰.
 ²Somebody has been ¹exiled⁰.
 
 
-¹aňs²ä⁰lá⁰.
+¹anš²ä⁰lá⁰.
 There is a ²psychological cause leading to ¹good behavior⁰.
 ```

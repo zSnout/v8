@@ -20,5 +20,7 @@ This section is a record of all errors I've corrected so far.
    actions as most other soldiers.
 5. Put back most of the C<sub>A</sub> — Configuration chapter, which has been
    missing for a while.
+6. Fixed roots in section 04; the root `ňs` was incorrectly used when it should
+   be `nš`.
 
 </div>

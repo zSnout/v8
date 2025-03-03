@@ -20,7 +20,7 @@ import {
   type Validation,
 } from "@zsnout/ithkuil/generate"
 import { VowelForm } from "@zsnout/ithkuil/parse"
-import { For, Show, Switch, type JSX } from "solid-js"
+import { For, Show, type JSX } from "solid-js"
 
 function Block(props: { class?: ClsxItem; children?: JSX.Element }) {
   return (
