@@ -209,7 +209,7 @@ first row is for plain UPX and DPX.
     <tr>
       <td class="hidden"></td>
       <td>F (Fused)</td>
-      <td>č</td>
+      <td>ç</td>
       <td>š</td>
     </tr>
     <tr>

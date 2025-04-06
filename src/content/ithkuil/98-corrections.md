@@ -22,5 +22,7 @@ This section is a record of all errors I've corrected so far.
    missing for a while.
 6. Fixed roots in section 04; the root `ňs` was incorrectly used when it should
    be `nš`.
+7. Fixed consonant form for `MDF` in the C<sub>A</sub> — Configuration chapter;
+   it was previously listed as `č`, but has now been corrected to `ç`.
 
 </div>
