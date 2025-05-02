@@ -35,12 +35,12 @@ other languages, such as HTML, CSS, and the jQuery library.
 
 ## Beginning of COVID
 
-When COVID first started in the United States I was in fourth grade. Our
-teachers assured us that we'd be back in a few weeks (or years) and that we'd
-have enough to work on at home. Every day we had three Zoom classes that would
-be over by noon, leaving the rest of the day for an "asynchronous" class where
-we'd work on anything the teachers assigned us. I usually got all my work done
-before the end of the day and didn't have anything left to do!
+When COVID first started in the United States I was in fifth grade. Our teachers
+assured us that we'd be back in a few weeks (or years) and that we'd have enough
+to work on at home. Every day we had three Zoom classes that would be over by
+noon, leaving the rest of the day for an "asynchronous" class where we'd work on
+anything the teachers assigned us. I usually got all my work done before the end
+of the day and didn't have anything left to do!
 
 To remedy my boredom I started creating an online chat application using
 [000webhost][3]. To do this I taught myself PHP and MySQL. My basic
