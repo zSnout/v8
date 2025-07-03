@@ -60,7 +60,7 @@ a quick summary table of its structure.
       <td data-bl><span>ICP</span> <small>Inceptive</small></td>
       <td><strong>k / g₁</strong></td>
       <td data-bl><span>N</span> <small>Nomic</small></td>
-      <td><strong>y (j)</strong></td>
+      <td><strong>w (v)</strong></td>
       <td><strong>m / h₂</strong></td>
     </tr>
     <tr>
@@ -72,7 +72,7 @@ a quick summary table of its structure.
       <td data-bl><span>ATV</span> <small>Attenuative</small></td>
       <td><strong>p / b₁</strong></td>
       <td data-bl><span>A</span> <small>Abstract</small></td>
-      <td><strong>w (v)</strong></td>
+      <td><strong>y (j)</strong></td>
       <td><strong>n / ç₂</strong></td>
     </tr>
     <tr>

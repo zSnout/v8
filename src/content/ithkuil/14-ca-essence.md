@@ -55,8 +55,8 @@ Essence is RPV. Here is the complete chart:
 | ----------------- | ------------ | -------------------- |
 | M (Monadic)       | — (l)        | l (tļ)               |
 | G (Agglomerative) | r            | ř                    |
-| N (Nomic)         | y (j)        | m / h₂               |
-| A (Abstract)      | w (v)        | n / ç₂               |
+| N (Nomic)         | w (v)        | m / h₂               |
+| A (Abstract)      | y (j)        | n / ç₂               |
 
 You already know the NRM column; it's the Perspective values from the last
 section.

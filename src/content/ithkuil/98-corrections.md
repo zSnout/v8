@@ -24,5 +24,8 @@ This section is a record of all errors I've corrected so far.
    be `nš`.
 7. Fixed consonant form for `MDF` in the C<sub>A</sub> — Configuration chapter;
    it was previously listed as `č`, but has now been corrected to `ç`.
+8. Fixed Perspective forms for N and A as listed in "14 — C<sub>A</sub> —
+   Essence" and "15 — C<sub>A</sub> — Overall Structure"; **w (v)** and **y
+   (j)** should be listed under `N` and `A` respectively.
 
 </div>
