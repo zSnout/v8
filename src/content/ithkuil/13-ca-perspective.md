@@ -86,10 +86,10 @@ grove
 alḑat⁴ra
 ⁴at least one ⁰grove
 
-alḑat⁴ya
+alḑat⁴wa
 ⁰groves ⁴in general
 
-alḑat⁴wa
+alḑat⁴ya
 ⁰grove⁴hood ⁰(⁴the quality of being ⁰a grove)
 
 
@@ -99,10 +99,10 @@ ulza¹f⁰a
 ulza¹f⁴r⁰a
 ⁴one or more ¹sets of different, connected ⁰rivers
 
-ulza¹f⁴y⁰a
+ulza¹f⁴w⁰a
 ¹sets of different, connected ⁰rivers ⁴in general
 
-ulza¹f⁴w⁰a
+ulza¹f⁴y⁰a
 ⁴the quality of being ¹a set of different, connected ⁰rivers
 
 
@@ -112,9 +112,9 @@ I heard [somebody's] asleep.
 eļma⁴r⁰í
 I heard ⁴one or more ⁰instances of sleeping are occurring.
 
-eļma⁴j⁰í
+eļma⁴v⁰í
 I heard sleeping ⁴happens in general⁰.
 
-eļma⁴v⁰í
+eļma⁴j⁰í
 I heard ⁴the quality of sleeping ⁰exists.
 ```

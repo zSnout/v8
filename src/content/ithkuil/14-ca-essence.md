@@ -81,21 +81,21 @@ uzva⁴tļ⁰a
 a ⁴hypothetical ⁰coyote
 
 
-uzva¹t⁴y⁰a
+uzva¹t⁴w⁰a
 ¹groups of ⁰coyotes ⁴in general
 
 uzva¹t⁴m⁰a
 ⁴hypothetical ¹groups of ⁰coyotes ⁴in general
 
 
-uzva²r¹t⁴y⁰a
+uzva²r¹t⁴w⁰a
 ²packs of ⁰coyotes ⁴in general
 
 uzva²r¹t⁴h⁰a
 ⁴hypothetical ²packs of ⁰coyotes ⁴in general
 
 
-umfka³bz⁴j⁰ó.
+umfka³bz⁴w⁰ó.
 They say newspapers are ³slowly going away⁰.
 
 umfka³bz⁴m⁰ó.
