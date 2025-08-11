@@ -20,6 +20,7 @@ import {
 import {
   AFFILIATION_ESSENCE_DIACRITICS,
   ALL_BIAS_ADJUNCTS_BY_SCRIPT_INDEX,
+  AdvancedAlphabetic,
   BIAS_EXTENSIONS,
   Bias,
   Break,
@@ -39,6 +40,7 @@ import {
   VALIDATION_TO_SECONDARY_EXTENSION,
   isElidable,
   textToScript,
+  type AdvancedAlphabeticCharacter,
   type BiasCharacter,
   type BreakCharacter,
   type CoreName,
@@ -476,6 +478,18 @@ function convertBreak(_: BreakCharacter) {
   return " "
 }
 
+function convertAdvancedAlphabetic(char: AdvancedAlphabeticCharacter) {
+  return (
+    "Z" +
+    (char.top ? "^" + EXT[char.top] : "") +
+    (char.bottom ? "_" + EXT[char.bottom] : "") +
+    (char.left ? "<" + DIAC[char.left] : "") +
+    (char.right ? ">" + DIAC[char.right] : "") +
+    (char.superposed ? "^" + DIAC[char.superposed] : "") +
+    (char.underposed ? "_" + DIAC[char.underposed] : "")
+  )
+}
+
 function convert(text: string, elidePrimaries: boolean): Result<string> {
   try {
     const output = textToScript(text)
@@ -518,6 +532,12 @@ function convert(text: string, elidePrimaries: boolean): Result<string> {
 
             if (character.construct == Break) {
               return convertBreak(character as BreakCharacter)
+            }
+
+            if (character.construct == AdvancedAlphabetic) {
+              return convertAdvancedAlphabetic(
+                character as AdvancedAlphabeticCharacter,
+              )
             }
 
             throw new Error(
