@@ -1,5 +1,5 @@
 import { DPR } from "@/components/pixel-ratio"
-import { createEffect, onCleanup } from "solid-js"
+import { createEffect, onCleanup, untrack } from "solid-js"
 import { error, ok, Result } from "../../result"
 
 function resize(canvas: HTMLCanvasElement) {
@@ -36,6 +36,16 @@ export class WebGLCanvas {
   #attributeLocations = new Map<string, GLint>()
   #uniformLocations = new Map<string, WebGLUniformLocation>()
   #effects: (() => void)[] = []
+
+  #runEffects() {
+    untrack(() => {
+      this.#effects.forEach((x) => {
+        try {
+          x()
+        } catch {}
+      })
+    })
+  }
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -106,7 +116,7 @@ export class WebGLCanvas {
     }
   }
 
-  #createProgramRaw(
+  #createProgram(
     vertexSource: string,
     fragmentSource: string,
   ): Result<WebGLProgram> {
@@ -146,32 +156,6 @@ export class WebGLCanvas {
 
       return error("Failed to link WebGL program.")
     }
-  }
-
-  #createProgramLast:
-    | { vertex: string; frag: string; result: Result<WebGLProgram> }
-    | undefined
-
-  #createProgram(
-    vertexSource: string,
-    fragmentSource: string,
-  ): Result<WebGLProgram> {
-    if (
-      this.#createProgramLast &&
-      this.#createProgramLast.vertex == vertexSource &&
-      this.#createProgramLast.frag == fragmentSource &&
-      !this.#gl.isContextLost()
-    ) {
-      return this.#createProgramLast.result
-    }
-
-    const result = this.#createProgramRaw(vertexSource, fragmentSource)
-    this.#createProgramLast = {
-      vertex: vertexSource,
-      frag: fragmentSource,
-      result,
-    }
-    return result
   }
 
   #getAttributeLocation(name: string) {
@@ -368,12 +352,9 @@ in vec4 a_position;out vec4 position;void main(){gl_Position=position=a_position
     this.#program = program.value
     this.#uniformLocations.clear()
     this.#attributeLocations.clear()
+    this.#runEffects()
 
-    this.#effects.forEach((fn) => {
-      try {
-        fn()
-      } catch {}
-    })
+    this.queueDraw()
 
     return ok(undefined)
   }

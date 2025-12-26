@@ -481,8 +481,6 @@ export function Main() {
                       .replace(/EQ_C/g, cEq.value)
                       .replace(/EQ/g, eq.value),
                   )
-
-                  gl.draw()
                 } catch {}
               })
 
