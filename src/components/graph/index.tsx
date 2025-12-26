@@ -1,4 +1,5 @@
 import { batch, createMemo, createSignal, untrack } from "solid-js"
+import { DPR } from "../pixel-ratio"
 
 export type MutableExpression =
   | { type: "variable"; name: string }
@@ -86,7 +87,7 @@ const THEME_DIRECT_XY_MAX_DISTANCE = 128
 function ref(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d")!
 
-  const [scale, setScale] = createSignal(window.devicePixelRatio || 1)
+  const [scale, setScale] = createSignal(DPR())
   const [rawDimensions, setRawDimensions] = createSignal({
     w: canvas.clientWidth,
     h: canvas.clientHeight,
@@ -567,7 +568,7 @@ function ref(canvas: HTMLCanvasElement) {
         h: canvas.clientHeight,
       })
 
-      setScale(window.devicePixelRatio || 1)
+      setScale(DPR())
     })
 
     draw()

@@ -1,7 +1,7 @@
 ---
 category: code
 title: Type Systems | project nya Devlog 2
-description:
+description: todo
 excerpt: todo
 imageAlt: todo
 draft: true

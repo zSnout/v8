@@ -1,4 +1,5 @@
 import { Fa } from "@/components/Fa"
+import { DPR } from "@/components/pixel-ratio"
 import {
   faArrowLeft,
   faArrowRight,
@@ -78,7 +79,7 @@ function Pdf(
               return
             }
 
-            const scale = window.devicePixelRatio || 1
+            const scale = DPR
             const viewport = page.getViewport({
               scale: canvas.clientWidth / page.getViewport({ scale: 1 }).width,
             })

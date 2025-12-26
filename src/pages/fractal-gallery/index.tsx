@@ -4,6 +4,7 @@ import {
   textToGLSL,
   treeToGLSL,
 } from "@/components/glsl/math/output"
+import { DPR } from "@/components/pixel-ratio"
 import { Result, error, ok, unwrap } from "@/components/result"
 import { parseLatex } from "@/mathquill/parse"
 import { For } from "solid-js"
@@ -14,8 +15,8 @@ let gl: WebGLCoordinateCanvas
 
 const glCanvas = (
   <canvas
-    width={440 * (globalThis.devicePixelRatio || 1)}
-    height={440 * (globalThis.devicePixelRatio || 1)}
+    width={440 * DPR()}
+    height={440 * DPR()}
     ref={(canvas) =>
       (gl = unwrap(
         WebGLCoordinateCanvas.of(canvas, {
@@ -100,8 +101,8 @@ function Canvas(props: {
             return
           }
 
-          glCanvas.width = 440 * (globalThis.devicePixelRatio || 1)
-          glCanvas.height = 440 * (globalThis.devicePixelRatio || 1)
+          glCanvas.width = 440 * DPR()
+          glCanvas.height = 440 * DPR()
 
           gl.setCoords({
             top: props.top,
@@ -140,8 +141,8 @@ function Canvas(props: {
 
           gl.draw()
 
-          canvas.width = canvas.clientWidth * devicePixelRatio
-          canvas.height = canvas.clientHeight * devicePixelRatio
+          canvas.width = canvas.clientWidth * DPR()
+          canvas.height = canvas.clientHeight * DPR()
           ctx.drawImage(glCanvas, 0, 0, canvas.width, canvas.height)
         }
 

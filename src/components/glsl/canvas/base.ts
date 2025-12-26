@@ -1,10 +1,11 @@
+import { DPR } from "@/components/pixel-ratio"
 import { createEffect, onCleanup } from "solid-js"
 import { error, ok, Result } from "../../result"
 
 function resize(canvas: HTMLCanvasElement) {
   const { width, height } = canvas.getBoundingClientRect()
-  canvas.width = width * devicePixelRatio
-  canvas.height = height * devicePixelRatio
+  canvas.width = width * DPR()
+  canvas.height = height * DPR()
 }
 
 export interface WebGLCanvasOptions {}

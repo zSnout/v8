@@ -1,7 +1,7 @@
 ---
 category: code
 title: DSLs | project nya Devlog 1
-description:
+description: todo
 excerpt: todo
 imageAlt: todo
 draft: true

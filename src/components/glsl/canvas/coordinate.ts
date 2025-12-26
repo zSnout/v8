@@ -1,3 +1,4 @@
+import { DPR } from "@/components/pixel-ratio"
 import type { Result } from "../../result"
 import type { Coordinates, Point } from "../types"
 import { WebGLCanvas, WebGLCanvasOptions } from "./base"
@@ -132,10 +133,8 @@ export class WebGLCoordinateCanvas extends WebGLCanvas {
     const { top, right, bottom, left } = this.coordsNormalizedToCanvasSize()
 
     return {
-      x: (x / this.canvas.width) * devicePixelRatio * (right - left) + left,
-      y:
-        (1 - (y / this.canvas.height) * devicePixelRatio) * (top - bottom) +
-        bottom,
+      x: (x / this.canvas.width) * DPR() * (right - left) + left,
+      y: (1 - (y / this.canvas.height) * DPR()) * (top - bottom) + bottom,
     }
   }
 

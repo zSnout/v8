@@ -1,4 +1,5 @@
 import { createEffect, onCleanup, untrack } from "solid-js"
+import { DPR } from "./pixel-ratio"
 
 export function Canvas2D(props: {
   class?: string
@@ -17,10 +18,10 @@ export function Canvas2D(props: {
 
         function draw() {
           canvas.width =
-            canvas.clientWidth * devicePixelRatio * (props.pixelation?.() ?? 1)
+            canvas.clientWidth * DPR() * (props.pixelation?.() ?? 1)
 
           canvas.height =
-            canvas.clientHeight * devicePixelRatio * (props.pixelation?.() ?? 1)
+            canvas.clientHeight * DPR() * (props.pixelation?.() ?? 1)
 
           context.clearRect(0, 0, canvas.width, canvas.height)
 
