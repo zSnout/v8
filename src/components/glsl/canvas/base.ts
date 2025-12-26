@@ -106,7 +106,10 @@ export class WebGLCanvas {
     }
   }
 
-  #createProgram(vertexSource: string, fragmentSource: string) {
+  #createProgramRaw(
+    vertexSource: string,
+    fragmentSource: string,
+  ): Result<WebGLProgram> {
     const gl = this.#gl
 
     const vertex = this.#createShader("vertex", vertexSource)
@@ -143,6 +146,32 @@ export class WebGLCanvas {
 
       return error("Failed to link WebGL program.")
     }
+  }
+
+  #createProgramLast:
+    | { vertex: string; frag: string; result: Result<WebGLProgram> }
+    | undefined
+
+  #createProgram(
+    vertexSource: string,
+    fragmentSource: string,
+  ): Result<WebGLProgram> {
+    if (
+      this.#createProgramLast &&
+      this.#createProgramLast.vertex == vertexSource &&
+      this.#createProgramLast.frag == fragmentSource &&
+      !this.#gl.isContextLost()
+    ) {
+      return this.#createProgramLast.result
+    }
+
+    const result = this.#createProgramRaw(vertexSource, fragmentSource)
+    this.#createProgramLast = {
+      vertex: vertexSource,
+      frag: fragmentSource,
+      result,
+    }
+    return result
   }
 
   #getAttributeLocation(name: string) {
