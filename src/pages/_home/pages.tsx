@@ -198,7 +198,7 @@ const nonBlogPages: readonly Page[] = [
 
   {
     title: "zSnout 7",
-    href: "https://v7dyn.zsnout.com",
+    href: "https://v7.zsnout.com",
     subtitle:
       "See the previous generation of zSnout's site, featuring over 50 pages. Includes puzzles, learning tools, spinning turntables, 4 versions of the Storymatic language, and games to play online with friends.",
 
